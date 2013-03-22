@@ -1,0 +1,17 @@
+{% extends "anonym/base.html" %}
+{% load zenforms %}
+
+{% block title %}Смена пароля{% endblock %}
+
+{% block content %}
+    <p>Введите новый пароль для аккаунта {{ username }}</p>
+    <h2>{{ message }}</h2>
+    {% if form %}
+        <form action="." method="post" class="uniForm">
+            {% izenform form options notag=1 %}
+            <div class="buttonHolder">
+                <input class="primaryAction" type="submit" value="Сменить">
+            </div>
+        </form>
+    {% endif %}
+{% endblock %}

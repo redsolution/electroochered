@@ -1,0 +1,22 @@
+{% load zenforms %}
+{% if not field.field.widget.is_hidden %}
+    <div class="ctrlHolder {% if field.errors %}error{% endif %} {% if field.field.required %}required{% endif %}">
+    {% if field.errors %}
+        {{ field.errors }}
+    {% endif %}
+    {% if field|widget_type == 'CheckboxInput' %}
+        <label for="{{ field.id_for_label }}" class="checkbox">
+            {{ field }}
+            {{ field.label }}
+        </label>
+    {% else %}
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+    {% endif %}
+    {% if field.help_text %}
+        <p class="formHint">{{ field.help_text }}</p>
+    {% endif %}
+    </div>
+{% else %}
+    {{ field }}
+{% endif %}

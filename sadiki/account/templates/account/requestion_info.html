@@ -1,0 +1,131 @@
+{% extends "account/requestion_base.html" %}
+{% load zenforms sadiki_core_tags pytils_numeral %}
+
+{% block content_title %}
+    <h1>{% block title %}Информация о заявке {{ requestion }}{% endblock %}</h1>
+{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    {% if requestion.address.coords %}
+        {% include "includes/leaflet_css.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    {% with requestion.address.coords as point %}
+        {% if point %}
+            {% include "includes/leaflet_js.html" %}
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    draw_map_for_point('requestion_map', {{ point.x }}, {{ point.y }});
+
+                    {% queue_tooltips as tooltips %}
+                    $("#requestion-status-row .icon-question-sign").popover({
+                        title: "Статусы заявки",
+                        content: "{{ tooltips.requestion_status_tooltip }}",
+                        placement: "left", html: true})
+                    $("#special-actions-row .icon-question-sign").popover({
+                        title: "Особые действия",
+                        content: "Действия уполномоченного лица, которые могли повлиять на очередность",
+                        placement: "left"})
+                    $("#age-groups-row .icon-question-sign").popover({
+                        title: "Возрастные группы в системе",
+                        content: "{{ tooltips.age_groups_tooltip }}",
+                        placement: "top", html:true})
+                    $("#benefit-categories-row .icon-question-sign").popover({
+                        title: "Категории льгот",
+                        content: "{{ tooltips.benefit_categories_tooltip }}",
+                        placement: "top", html:true})
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block content %}
+    {% if not requestion.editable %}
+        <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+    {% else %}
+        {% if requestion.status != STATUS_REQUESTER_NOT_CONFIRMED %}
+            <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
+        {% endif %}
+<div class="row">
+    <div class="span6">
+            <div class="page-header"><h2>Информация о заявке</h2></div>
+            <dl>
+                <dt>Адрес электронной почты</dt>
+                <dd><h3>{{ requestion.profile.user.email|verbose_value }}</h3></dd>
+                <dt>Ребенок</dt>
+                <dd><h3>{{ requestion.fio|verbose_value }}</h3></dd>
+
+                <dt>Родитель</dt>
+                <dd><h3>{{ requestion.profile.fio|verbose_value }}</h3></dd>
+                <dt>Возрастная категория</dt>
+                <dd>{{ requestion.age_groups.0|default:"Ваш ребенок не попадает ни в одну возрастную категорию, наверное, ему нужно подрасти" }}</dd>
+            </dl>
+        <hr />
+            <p>Перед Вами <strong>{{ requestions_before }}</strong> заяв{{ requestions_before|choose_plural:"ка,ки,ок" }},
+                из них <strong>{{ benefits_before }}</strong> льготник{{ benefits_before|choose_plural:",а,ов" }}
+                и <strong>{{ confirmed_before }}</strong> документально подтвержденн{{ confirmed_before|choose_plural:"ая,ые,ых" }}</p>
+
+            {% if requestions_after > 0 %}
+                <p>А после Вас <strong>{{ requestions_after }}</strong> заявк{{ requestions_after|choose_plural:"а,ки,ок" }},
+                из них <strong>{{ benefits_after }}</strong> льготник{{ benefits_after|choose_plural:",а,ов" }}
+                и <strong>{{ confirmed_after }}</strong> документально подтвержденн{{ confirmed_after|choose_plural:"ая,ые,ых" }}</p>
+            {% else %}
+                <p>Ваша заявка самая новая!</p>
+            {% endif %}
+
+
+            <div class="page-header"><h2>Данные заявки</h2></div>
+
+            <dl>
+                <dt>Территориальная область:</dt>
+                <dd>{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</dd>
+                <dt>Дата рождения:</dt>
+                <dd>{{ requestion.birth_date }}</dd>
+                <dt>Статус:</dt>
+                <dd>{{ requestion.get_status_display }}</dd>
+                <dt>Льготы:</dt>
+                <dd>{{ requestion.benefit_category }}</dd>
+                <dt>Приоритетные ДОУ:</dt>
+                <dd><ul>
+                    {% for sadik in requestion.pref_sadiks.all %}
+                        <li><a href="{% url sadik_info sadik_id=sadik.id %}">{{ sadik.short_name }}</a></li>
+                    {% endfor %}
+                    </ul>
+                </dd>
+            </dl>
+        </div>
+        <div class="span3">
+            <div class="page-header"><h2>Документы</h2></div>
+                <ul class="documents">
+                    {% for doc in requestion.evidience_documents %}
+                    <li>
+                        <p>{{ doc.template }}</p>
+                        Номер {{ doc.document_number }}
+                        {% if doc.confirmed %}<i class="green icon-ok-circle"></i>Подтвержден
+                        {% else %}<i class="red icon-ban-circle"></i>Не подтвержден
+                        {% endif %}
+                        <hr />
+                    </li>
+                    {% endfor %}
+
+                </ul>
+                {% if requestion.address.coords %}<div id="requestion_map"></div>{% endif %}
+        </div>
+</div>
+        <h2 class="page-header">Очередь заявок</h2>
+
+        {% with queue as object_list %}
+        {% with requestion as target_requestion %}
+            {% include "anonym/includes/queue_include.html" %}
+        {% endwith %}
+        {% endwith %}
+
+        <h2><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></h2>
+
+    {% endif %}
+{% endblock %}

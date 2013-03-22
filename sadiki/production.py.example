@@ -1,0 +1,3 @@
+# -*- coding: utf-8 -*-
+from sadiki.settings import *
+from sadiki.conf_settings import *

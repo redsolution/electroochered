@@ -1,0 +1,27 @@
+{% spaceless %}
+  {% if has_previous %}
+    <span class="page arrow"><a href="{% if get_params %}?{{ get_params }}&{% else %}?{% endif %}page={{ previous }}">&larr; Назад</a></span>
+  {% endif %}
+  {% if not in_leading_range %}
+    {% for p in pages_outside_trailing_range %}
+      <span class="page"><a href="{% if get_params %}?{{ get_params }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a></span>
+    {% endfor %}
+    <span class="page"><span class="ellipsis">...</span></span>
+  {% endif %}
+  {% for p in page_range %}
+    {% if p == page %}
+      <span class="page current-page"><span>{{ p }}</span></span>
+    {% else %}
+      <span class="page"><a href="{% if get_params %}?{{ get_params }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a></span>
+    {% endif %}
+  {% endfor %}
+  {% if not in_trailing_range %}
+    <span class="page"><span class="ellipsis">...</span></span>
+    {% for p in pages_outside_leading_range reversed %}
+      <span class="page"><a href="{% if get_params %}?{{ get_params }}&{% else %}?{% endif %}page={{ p }}">{{ p }}</a></span>
+    {% endfor %}
+  {% endif %}
+  {% if has_next %}
+    <span class="page arrow"><a href="{% if get_params %}?{{ get_params }}&{% else %}?{% endif %}page={{ next }}">Вперед &rarr;</a></span>
+  {% endif %}
+{% endspaceless %}

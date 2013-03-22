@@ -1,0 +1,32 @@
+{% extends "logger/report_base.html" %}
+{% load zenforms %}
+
+{% block title %}
+    {{ report_type_verbose }}
+{% endblock %}
+
+{% block content %}
+    {% izenform form options submit="Показать" %}
+    <h2 class="vertical-margins">Отчеты, подходящие по характеристикам</h2>
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Название отчета</th>
+                <th>Дата начала</th>
+                <th>Дата окончания</th>
+                <th></th>
+            </tr>
+            <tbody>
+                {% for report in reports %}
+                    {% url show_report report_id=report.id as report_url%}
+                    <tr>
+                        <td><a href="{{ report_url }}">{{ report.get_type_display }}</a></td>
+                        <td>{{ report.from_date }}</td>
+                        <td>{{ report.to_date }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </thead>
+
+    </table>
+{% endblock %}

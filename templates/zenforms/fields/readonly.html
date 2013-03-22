@@ -1,0 +1,15 @@
+<div class="ctrlHolder readOnly">
+    <span class="readOnlyLabel">{{ readonly.label }}</span>
+    {% for field in readonly.fields %}
+    <div class="readOnly">
+        {% ifequal readonly.fields|length 1 %}
+        {% else %}
+        <span class="choiceLabel">{{ field.meta.verbose_name }}</span>
+        {% endifequal %}
+        <span class="choice">{{ field.value }}</span>
+    </div>
+    {% endfor %}
+    {% if readonly.help_text %}
+        <p class="formHint">{{ readonly.help_text }}</p>
+    {% endif %}
+</div>

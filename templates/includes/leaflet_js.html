@@ -1,0 +1,28 @@
+{% load sadiki_core_tags %}
+{% load_settings %}
+<script src="{{ STATIC_URL }}leaflet/leaflet.js"></script>
+<script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
+<script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
+<script type="text/javascript">
+    function draw_map_for_point(id, x, y){
+        var point = [x, y];
+        point.reverse();
+        var map = new L.Map(id, {
+            center: L.latLng(point),
+            zoom: 14,
+            scrollWheelZoom: false,
+            touchZoom: false,
+            doubleClickZoom: false,
+            zoomControl: false,
+            dragging: false
+        });
+        var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+            subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+            attribution: 'Map data © OpenStreetMap contributors',
+            center: L.latLng(point),
+            zoom: 14
+        });
+        osmLayer.addTo(map);
+        L.marker(point).addTo(map)
+    };
+</script>

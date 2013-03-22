@@ -1,0 +1,21 @@
+{% extends "anonym/base.html" %}
+{% load flatpages %}
+
+{% block content_menu %}
+    {% url anonym_registration as anonym_registration_url %}
+    {% url login as login_url %}
+    <ul class="content-menu">
+        <li {% if request.path == anonym_registration_url %}class="active"{% endif %}>
+            <a href="{{ anonym_registration_url }}">Регистрация</a>
+        </li>
+        <li {% if request.path == login_url %}class="active"{% endif %}>
+            <a href="{{ login_url }}">Войти в систему</a>
+        </li>
+        {% get_flatpages "/about_registration/" as about_registration_pages %}
+        {% if about_registration_pages %}
+            <li {% if request.path == about_registration_pages.0.url %}class="active"{% endif %}>
+                <a href="{{ about_registration_pages.0.url }}">{{ about_registration_pages.0.title }}</a>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock %}

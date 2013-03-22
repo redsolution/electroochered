@@ -1,0 +1,37 @@
+{% extends "operator/requestion_base.html" %}
+{% load zenforms %}
+{% block title %}Подтверждение операции №{{ transition.index }} {{ transition.comment }} для заявки {{ requestion }}{% endblock %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(function(){
+            var delay = 3;
+            $(':submit').attr('disabled', 'disabled');
+            $(':submit').append('<span id="countdown"/>');
+            function countdown(){
+                var counterEl = document.getElementById('countdown');
+                counterEl.textContent = ' (' + delay + ')';
+                delay--;
+                if (delay < 0 ){
+                    $(':submit').removeAttr('disabled');
+                    $(':submit #countdown').remove();
+                } else {
+                    setTimeout(countdown, 1000);
+                }
+            }
+            countdown();
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    {% zenform form %}
+        {% fieldset unused_fields %}
+        <input type="hidden" name="next" value="{{ redirect_to }}" />
+        {% if extra_template %}
+            {% include extra_template.name %}
+        {% endif %}
+        {% submit "Подтвердить" %}
+    {% endzenform %}
+{% endblock %}

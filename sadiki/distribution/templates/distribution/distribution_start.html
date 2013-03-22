@@ -1,0 +1,16 @@
+{% extends "operator/base.html" %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block title %}Подтвеждение операции{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="span8 offset2">
+        <h2>Вы действительно хотите открыть распределение?  Выделение мест будет невозможно.</h2>
+    </div>
+    
+</div>
+{% include "core/include/confirmation.html" %}
+{% endblock %}

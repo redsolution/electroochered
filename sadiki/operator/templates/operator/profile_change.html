@@ -1,0 +1,28 @@
+{% extends "operator/requestion_base.html" %}
+{% load zenforms %}
+
+{% block title %}Изменение профиля{% endblock %}
+
+{% block content %}
+<div class="content span8 offset2 ">
+    <form action="." class="uniForm" method="POST">
+        {% if user_form.non_field_errors or requestion_form.non_field_errors %}
+            <div id="errorMsg">
+                {% load i18n %}
+                <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
+                <ol>
+                    {% for error in user_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    {% for error in profile_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
+        {% izenform user_form options notag=1%}
+        {% izenform profile_form options notag=1 %}
+        {% submit "Изменить" %}
+    </form>
+</div>
+{% endblock %}

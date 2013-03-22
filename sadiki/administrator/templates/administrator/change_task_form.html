@@ -1,0 +1,122 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_modify adminmedia %}
+
+{% block extrahead %}{{ block.super }}
+<script type="text/javascript" src="../../../jsi18n/"></script>
+{{ media }}
+{% endblock %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% admin_media_prefix %}css/forms.css" />
+<style>
+.red {
+    color: red;
+}
+.xls {
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAmFJREFUeNqMU01IVFEYPffvzTgTOkHO7EuD9hPYUNhe0imDbGqVhLQokMASpCT6wZa1KNwUYuMm6GdIKEwaVFKxidoUUTQKLdKJodAKfT999868cZSIvsvhvfveveee73zfZY8ymaLtOBHPdeGhOvSMgTMGxtiSECLKOcfmkLZtRw4lk/hXLC4u1k9MTaWVUqnNJNzzSud+zs8TFpCfXzBPPdcxnE4jGo1ibyJxdM22R1xSupHAlyIFlFqHnutgdOJSoYBYLIZ9iUSH47j3zUY9GIdEOXPOJYFVmF239H1nQwOejY1Be3Q8lQIpbhdMweJBIqCDfOek5NqsCoEgASs/f2F3PG5Q+U6bQ6IW3bNNkFxpBeVcuKgQkO/mJ3csrK4Ajutg1f6Nuq1h1Igt6J5pQtiqg2RVBH7OhoxyC1lhNF7kULTCtsnkayWpZ142o7Ym4HEIvY5tUFBN4PuRPvlQdwN2XdA9AYx0jSIgg+gaajfZ8/WceQV6s0Mjf91Dx+0k7s7149aJewgIiXTuCjrvtGKytxhnhtonoHL5KJ3umAJ9GvCQfZPDk/eDuJy6gezb15juW47vH6h/hWoFpTIKA0HvSlraTTSeYzh/pB/jM9OY/JLB2cN92HOpds5zTQd6unaGwDSQLMNSoBJjew9D97HT+LCcQ1tLC55PZPHuxyw6D54iY9cw3vM1Lv3e/utFUcDgg5ulC6UHpZZ5mkEyGcCBZBtVbnSODQ0PvwiHw81GUfleMKqCEgpBFaJ+sCr9odu3+O3746sf21qDIkSGS50ldhAi+P8oELb5kz8CDAD+0b0zLKTumwAAAABJRU5ErkJggg%3D%3D) no-repeat left center;
+    padding-left: 20px;
+    line-height: 16px;
+    display: block;
+}
+.pdf {
+    background:  url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABGdBTUEAAK/INwWK6QAAABl0RVh0U29mdHdhcmUAQWRvYmUgSW1hZ2VSZWFkeXHJZTwAAAHhSURBVDjLjZPLSxtRFIfVZRdWi0oFBf+BrhRx5dKVYKG4tLhRqlgXPmIVJQiC60JCCZYqFHQh7rrQlUK7aVUUfCBRG5RkJpNkkswrM5NEf73n6gxpHujAB/fOvefjnHM5VQCqCPa1MNoZnU/Qxqhx4woE7ZZlpXO53F0+n0c52Dl8Pt/nQkmhoJOCdUWBsvQJ2u4ODMOAwvapVAqSJHGJKIrw+/2uxAmuJgFdMDUVincSxvEBTNOEpmlIp9OIxWJckMlkoOs6AoHAg6RYYNs2kp4RqOvfuIACVFVFPB4vKYn3pFjAykDSOwVta52vqW6nlEQiwTMRBKGygIh9GEDCMwZH6EgoE+qHLMuVBdbfKwjv3yE6Ogjz/PQ/CZVDPSFRRYE4/RHy1y8wry8RGWGSqyC/nM1meX9IQpQV2JKIUH8vrEgYmeAFwuPDCHa9QehtD26HBhCZnYC8ucGzKSsIL8wgsjiH1PYPxL+vQvm5B/3sBMLyIm7GhhCe90BaWykV/Gp+VR9oqPVe9vfBTsruM1HtBKVPmFIUNusBrV3B4ev6bsbyXlPdkbr/u+StHUkxruBPY+0KY8f38oWX/byvNAdluHNLeOxDB+uyQQfPCWZ3NT69BYJWkjxjnB1o9Fv/ASQ5s+ABz8i2AAAAAElFTkSuQmCC) no-repeat left center;
+    padding-left: 20px;
+    line-height: 16px;
+    display: block;
+}
+
+</style>
+{% endblock %}
+
+{% block coltype %}{% if ordered_objects %}colMS{% else %}colM{% endif %}{% endblock %}
+
+{% block bodyclass %}{{ opts.app_label }}-{{ opts.object_name.lower }} change-form{% endblock %}
+
+{% block breadcrumbs %}{% if not is_popup %}
+<div class="breadcrumbs">
+     <a href="../../../">{% trans "Home" %}</a> &rsaquo;
+     <a href="../../">{{ app_label|capfirst|escape }}</a> &rsaquo;
+     {% if has_change_permission %}<a href="../">{{ opts.verbose_name_plural|capfirst }}</a>{% else %}{{ opts.verbose_name_plural|capfirst }}{% endif %} &rsaquo;
+     {% if add %}{% trans "Add" %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
+</div>
+{% endif %}{% endblock %}
+
+{% block content %}<div id="content-main">
+{% block object-tools %}
+{% if change %}{% if not is_popup %}
+  <ul class="object-tools"><li><a href="history/" class="historylink">{% trans "History" %}</a></li>
+  {% if has_absolute_url %}<li><a href="../../../r/{{ content_type_id }}/{{ object_id }}/" class="viewsitelink">{% trans "View on site" %}</a></li>{% endif%}
+  </ul>
+{% endif %}{% endif %}
+{% endblock %}
+{% if not add and original.status == IMPORT_START %}
+    <h1>Проводится импорт</h1>
+{% else %}
+    <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.module_name }}_form">{% block form_top %}{% endblock %}
+    <div>
+    {% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
+    {% if save_on_top %}{% submit_row %}{% endif %}
+    {% if errors %}
+        <p class="errornote">
+        {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+        </p>
+        <ul class="errorlist">{% for error in adminform.form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    {% for fieldset in adminform %}
+      {% include "admin/includes/fieldset.html" %}
+    {% endfor %}
+    {% if add or original.status == STATUS_INITIAL %}
+        <h2>Не обработан</h2>
+    {% else %}
+        {% if original.status == IMPORT_FINISH %}
+            <h2>Результат обработки</h2>
+            <fieldset class="module aligned">
+                <div class="form-row">
+                    <label>Количество записей</label>
+                    <p>{{ original.total }}</p>
+                </div>
+                {% if original.result_file %}
+                    <div class="form-row">
+                        <label>Результат обработки</label>
+                        <p><a class="xls" href="{{ original.result_file.url }}">Скачать</a></p>
+                    </div>
+                {% endif %}
+                {% if original.errors %}
+                <div class="form-row red">
+                    <label class="red">Количество ошибок</label>
+                    <p>{{ original.errors }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Список ошибок</label>
+                    <p><a class="pdf" href="{{ original.file_with_errors.url }}">Скачать</a></p>
+                </div>
+                {% endif %}
+            </fieldset>
+        {% else %}
+            {% if original.status == IMPORT_ERROR %}
+                <h2>Ошибка во время импорта</h2>
+            {% endif %}
+            
+        {% endif %}
+    {% endif %}
+    {% block after_field_sets %}{% endblock %}
+
+    {% for inline_admin_formset in inline_admin_formsets %}
+        {% include inline_admin_formset.opts.template %}
+    {% endfor %}
+
+    {% block after_related_objects %}{% endblock %}
+    {% csrf_token %}
+    {% submit_row %}
+
+    {% if adminform and add %}
+       <script type="text/javascript">document.getElementById("{{ adminform.first_field.auto_id }}").focus();</script>
+    {% endif %}
+
+    {# JavaScript for prepopulated fields #}
+    {% prepopulated_fields_js %}
+
+    </div>
+    </form></div>
+{% endif %}
+{% endblock %}

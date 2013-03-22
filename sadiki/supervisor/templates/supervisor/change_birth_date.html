@@ -1,0 +1,25 @@
+{% extends "supervisor/requestion_base.html" %}
+{% load zenforms %}
+
+{% block content %}
+    <h1>Изменение даты рождения для заявки {{ requestion }}</h1>
+    <form action="." class="uniForm" method="POST">
+        {% if form.non_field_errors or confirmation_form.non_field_errors %}
+            <div id="errorMsg">
+                {% load i18n %}
+                <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
+                <ol>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    {% for error in confirmation_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
+        {% izenform form options notag=1%}
+        {% izenform confirmation_form options notag=1 %}
+        {% submit "Изменить" %}
+    </form>
+{% endblock %}

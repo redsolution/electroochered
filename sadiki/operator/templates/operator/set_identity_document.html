@@ -1,0 +1,28 @@
+{% extends "operator/base.html" %}
+{% load zenforms %}
+
+{% block title %}
+    Необходимо указать идентифицирующий документ для заявки
+{% endblock %}
+
+{% block content %}
+    <h3>С заявкой нельзя выполнять никаких действий, пока не будет указан идентифицирующий документ.</h3>
+    <form action="." class="uniForm" method="post">
+        {% if form.non_field_errors %}
+            <div id="errorMsg">
+                {% load i18n %}
+                <h3>
+                {% blocktrans count form.non_field_errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+                </h3>
+                <ol>
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
+        {% izenform form options notag=1 %}
+        <input type="hidden" name="next" value="{{ redirect_to }}" />
+        {% submit "Задать" %}
+    </form>
+{% endblock %}

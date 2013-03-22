@@ -1,0 +1,9 @@
+{% extends "operator/base.html" %}
+{% load zenforms %}
+
+{% block content %}
+    <div class="content span8 offset2 ">
+        <h2>Немедленное выделение места для заявки {{ requestion }}</h2>
+        {% izenform form options submit="Выделить место" %}
+    </div>
+{% endblock %}

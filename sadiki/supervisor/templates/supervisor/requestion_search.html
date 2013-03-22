@@ -1,0 +1,26 @@
+{% extends "supervisor/base.html" %}
+
+{% load pytils_numeral sadiki_core_tags %}
+
+{% block js %}
+    {{ block.super }}
+    <script type="text/javascript">
+    $(function(){
+        var extra = $('.extra_search');
+        $('.trigger_extra').toggle(function(){
+            $('a', this).text('Свернуть');
+            extra.removeClass('hide');
+        }, function(){
+            $('a', this).text('Расширенный поиск');
+            extra.addClass('hide');
+        });
+
+    });
+    </script>
+{% endblock %}
+
+{% block title %}Поиск заявок{% endblock %}
+
+{% block content %}
+    {% include "supervisor/includes/requestion_search_include.html" %}
+{% endblock %}

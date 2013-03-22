@@ -1,0 +1,7 @@
+{% extends "operator/requestion_base.html" %}
+{% load zenforms %}
+
+{% block content %}
+    <h2>Изменение льгот заявки {{ requestion }}</h2>
+     {% izenform form options submit="Сохранить" %}
+{% endblock %}

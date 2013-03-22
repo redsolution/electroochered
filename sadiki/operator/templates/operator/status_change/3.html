@@ -1,0 +1,11 @@
+{# Операция: Подтверждение документов #}
+{% if requestion.other_requestions_with_ident_document.count %}
+<div class="ctrlHolder">
+    <p><strong>Внимание!</strong> При подтверждении текущей заявки, все указанные ниже заявки будут отклонены автоматически</p>
+    {% for other_requestion in requestion.other_requestions_with_ident_document.all %}
+    <ul>
+        <li><a href="{% url operator_requestion_info other_requestion.id %}">{{ other_requestion }}</a></li>
+    </ul>
+    {% endfor %}
+</div>
+{% endif %}

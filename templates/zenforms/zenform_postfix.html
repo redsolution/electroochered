@@ -1,0 +1,13 @@
+{% if not options.nocsrf %}
+{% csrf_token %}
+{% endif %}
+{% if options.notag %}
+{% else %}
+    {% if options.izenform %}
+        {% include "zenforms/submit.html" %}
+    {% endif %}
+    </form>
+    <script type="text/javascript">
+        $(function(){$('form.uniForm').uniform();})
+    </script>
+{% endif %}

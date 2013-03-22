@@ -1,0 +1,9 @@
+Здравствуйте, {{ user.get_verbose_name }}!
+
+Вам пришло новое сообщение с сайта {{ scheme }}://{{ domain }}/.
+
+{% block content %}{{ message }}{% enblock content %}
+
+--
+С уважением, администрация {{ scheme }}://{{ domain }}/.
+mailto: {{ from_email }}

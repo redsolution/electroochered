@@ -1,0 +1,10 @@
+{# Операция: Восстановить заявку #}
+
+{% with requestion.other_requestions_with_ident_document as other_requestions %}
+    {% if other_requestions %}
+        <p>Следующие заявки будут помечены как недостоверные, так как имеют идентичный номер удостоверяющего документа:</p>
+        {% for other_requestion in other_requestions %}
+            <a href="{% url supervisor_requestion_info other_requestion.id %}">{{ other_requestion }}</a>
+        {% endfor %}
+    {% endif %}
+{% endwith %}

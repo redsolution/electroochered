@@ -1,0 +1,102 @@
+{% extends 'account/profile_base.html' %}
+
+{% load zenforms sadiki_core_tags %}
+
+{% block content_title %}
+    <h1>{% block title %}Личный кабинет{% endblock %}</h1>
+{% endblock %} 
+
+{% block content %}
+    <div class="row">
+    <div class="span5">
+    <h2>Мой профиль</h2>
+        <div class="uniForm">
+            <div class="ctrlHolder readOnly">
+                <span class="readOnlyLabel">Документ, удостоверяющий родителя</span>
+                {% with profile.get_identity_documents.0 as profile_document %}
+                    <div class="readOnly">
+                        <span class="choice">{% if profile_document %}{{ profile_document.template }}: {{ profile_document }}{% else %}Не указан{% endif %}</span>
+                    </div>
+                {% endwith %}
+            </div>
+            <div class="ctrlHolder readOnly">
+                <span class="readOnlyLabel">Адрес электронной почты</span>
+                <div class="readOnly">
+                    <span class="choice">{{ profile.user.email|verbose_value }}</span>
+                </div>
+            </div>
+            {% readonly profile 'first_name' %}
+            {% readonly profile 'last_name' %}
+            {% readonly profile 'patronymic' %}
+            {% readonly profile 'phone_number' %}
+            {% readonly profile 'mobile_number' %}
+            <div class="buttonHolder">
+                <a id="changeProfile" href="{% url account_profile_change %}" class="btn"><i class="icon-pencil"></i> Изменить</a>
+            </div>
+        </div>
+    </div>
+    <div class="span6">
+    <h2>Ваши заявки</h2>
+    {% for requestion in request.user.get_profile.requestion_set.all %}
+        <div class="uniForm">
+            <h3 class="page-header">Заявка № {{ requestion.requestion_number }}</h3>
+
+
+            <div class="ctrlHolder readOnly">
+                <span class="readOnlyLabel">Дата постановки на учёт</span>
+                <div class="readOnly">
+                    <span class="choice">{{ requestion.registration_datetime }}</span>
+                </div>
+                    <p class="formHint">Время ожидания: {{ requestion.registration_datetime|timesince }}</p>
+            </div>
+
+            <div class="ctrlHolder readOnly">
+                <span class="readOnlyLabel">Статус заявки</span>
+                <div class="readOnly">
+                    <span class="choice">{{ requestion.get_status_display }}</span>
+                </div>
+            </div>
+
+            <div class="ctrlHolder readOnly">
+                <span class="readOnlyLabel">Ребёнок</span>
+                <div class="readOnly">
+                    <span class="choice">{{ requestion.fio }}</span>
+                </div>
+            </div>
+
+            <div class="ctrlHolder readOnly">
+                <span class="readOnlyLabel">Возрастная категория</span>
+                <div class="readOnly">
+                    <span class="choice">
+                    {% if requestion.age_groups %}
+                        {{ requestion.age_groups.0 }}
+                    {% else %}
+                        Отсутствует
+                    {% endif %}
+                    </span>
+                </div>
+                <p class="formHint">Возрастная категория меняется автоматически по мере взросления</p>
+            </div>
+
+
+            <div class="buttonHolder">
+                <div class="btn-group">
+                {% url account_requestion_info requestion.id as info_url %}
+                {% action_button_for_url info_url options text="<i class='icon-info-sign'></i> Страница заявки" %}
+
+                {% url account_requestion_change requestion.id as change_url %}
+                {% action_button_for_url change_url options text="<i class='icon-pencil'></i> Изменить заявку" %}
+
+                {% url account_benefits_change requestion.id as benefits_url %}
+                {% action_button_for_url benefits_url options text="<i class='icon-star'></i> Изменить льготы" %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <p>Вы не подали ни одной завки</p>
+    {% endfor %}
+        <hr />
+        <a class="btn" id="addRequestion" href="{% url requestion_add_by_user %}"><i class="icon-plus"></i> Добавить заявку</a>
+    </div>
+    </div>
+{% endblock %}

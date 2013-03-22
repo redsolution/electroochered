@@ -1,0 +1,29 @@
+{% extends "anonym/registration_base.html" %}
+{% load zenforms %}
+
+{% block content_title %}
+    <h1>{% block title %}Вход в систему{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="span8">
+        <form class="uniForm" method="post">
+            {% if form.non_field_errors %}
+                <div id="errorMsg">
+                    {% load i18n %}
+                    <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
+                    <ol>
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ol>
+                </div>
+            {% endif %}
+            {% izenform form options notag=1 %}
+            <a href="{% url reset_password_request %}">Забыли пароль?</a>
+            {% submit "Войти" %}
+        </form>
+        </div>
+    </div>
+{% endblock %}

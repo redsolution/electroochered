@@ -1,0 +1,20 @@
+{% extends "anonym/base.html" %}
+{% load zenforms %}
+
+{% block title %}Смена пароля{% endblock %}
+
+{% block content %}
+    <h2>Пароль успешно изменен</h2>
+    <a href="/">Переход на главную страницу через <span id="countdown"></span> c.</a>
+    <script type="text/javascript">
+    var delay = 3;
+    function countdown(){
+        var counterEl = document.getElementById('countdown');
+        counterEl.textContent = delay;
+        delay--;
+        if (delay <0 ){window.location='/'}
+        setTimeout(countdown, 1000);
+    }
+    countdown();
+    </script>
+{% endblock %}

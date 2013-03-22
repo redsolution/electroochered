@@ -1,0 +1,873 @@
+/* Глобальные стили */
+.centered {
+    text-align: center;
+}
+
+.error {
+    color: #A60000;
+}
+
+.red {
+    color: #B94A48;
+}
+
+.green {
+    color: #468847;
+}
+
+.imgicon {
+    background-image: url('../img/icons_bw.png');
+    background-repeat: none;
+    width: 64px;
+    height: 64px;
+    display: block;
+}
+
+.imgicon:hover, .imgicon.hover, *:hover>.imgicon {
+    background-image: url('../img/icons.png')
+}
+
+.imgicon.add {background-position: 0 0;}
+.imgicon.user {background-position: -64px 0;}
+.imgicon.bubble {background-position: -128px 0;}
+.imgicon.card {background-position: -192px 0;}
+
+.imgicon.gear {background-position: 0 -64px;}
+.imgicon.house {background-position: -64px -64px;}
+.imgicon.key {background-position: -128px -64px;}
+.imgicon.graph {background-position: -192px -64px;}
+
+.imgicon.search {background-position: 0 -128px;}
+.imgicon.flag {background-position: -64px -128px;}
+.imgicon.cert {background-position: -128px -128px;}
+.imgicon.wand {background-position: -192px -128px;}
+
+
+/* Clear Floated Elements
+----------------------------------------------------------------------------------------------------*/
+
+
+.clear {
+    clear: both;
+    display: block;
+    overflow: hidden;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
+
+
+.clearfix:after {
+    clear: both;
+    content: ' ';
+    display: block;
+    font-size: 0;
+    line-height: 0;
+    visibility: hidden;
+    width: 0;
+    height: 0;
+}
+
+.clearfix {
+    display: inline-block;
+}
+
+* html .clearfix {
+    height: 1%;
+}
+
+.clearfix {
+    display: block;
+}
+
+body {
+    background: url('../img/roughcloth_121.png') repeat-y;
+}
+
+h1 {
+    font-weight: normal;
+    font-size: 32px;
+}
+
+h2 {
+    font-weight: normal;
+    font-size: 30px;
+}
+
+.boxshadow {
+    -webkit-box-shadow: 0px 0px 10px 0px #CCCCCC;
+    -moz-box-shadow: 0px 0px 10px 0px #CCCCCC;
+    box-shadow: 0px 0px 10px 0px #CCCCCC;
+}
+
+
+/*a, a:link, a:hover, a:active, a:visited {
+    color: #222222;
+}*/
+
+/*a:visited {*/
+    /*color: #005580;*/
+/*}*/
+
+a:hover {
+    text-decoration: none;
+}
+
+.vertical-margins {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+img.ui-datepicker-trigger {
+    float:left;
+    margin: 5px 0px 0px 3px;
+    vertical-align: middle;
+}
+
+.center-aligned {
+    text-align: center;
+}
+.left-aligned {
+    text-align: left;
+}
+.right-aligned {
+    text-align: right;
+}
+
+.quiet {
+    color: #DDD;
+}
+
+.data-table .icon-question-sign{
+    font-size: 16px !important;
+}
+
+/*** Загрузка таблицы ***/
+.loading-initial {
+    width: 100%;
+    height: 300px;
+    border: 1px solid #DDD;
+    position: relative;
+    -webkit-box-shadow: inset 0px 0px 100px 0px rgba(0, 0, 0, 0.3);
+    -moz-box-shadow: inset 0px 0px 100px 0px rgba(0, 0, 0, 0.3);
+    box-shadow: inset 0px 0px 100px 0px rgba(0, 0, 0, 0.3);
+}
+
+.loading-initial:after {
+    background: url('../img/loading.gif') no-repeat left center;
+    content: "Загрузка";
+    color: #666;
+    font-size: 16pt;
+    font-weight: bold;
+    position: absolute;
+    top: 50%;
+    left: 40%;
+    line-height: 32px;
+    padding-left: 36px;
+}
+
+.loading-blockui:after {
+    background: url('../img/loading.gif') no-repeat left center;
+    content: "Загрузка";
+    color: #666;
+    font-size: 16pt;
+    font-weight: bold;
+    position: relative;
+    line-height: 32px;
+    padding-left: 36px;
+    width: 100%;
+    height: 100%;
+}
+
+/**** Сортировка таблицы ****/
+
+.data-table table thead th.sortable {
+    cursor: pointer;
+}
+
+.data-table table thead th.sortable:hover {
+    background: #DDD;
+}
+
+.data-table table thead th.sortable.asc:after {
+    content: ' ↓';
+}
+
+.data-table table thead th.sortable.desc:after {
+    content: ' ↑';
+}
+
+.data-table .sorting span, .data-table .sorting .label {
+    float: left;
+}
+
+.data-table .sorting span, .data-table .sorting .label {
+    line-height: 1.5em;
+}
+
+.data-table .sorting .label {
+    padding-right: 1.5em;
+    margin: 2px;
+}
+
+.data-table .sorting .label a.close {
+    width: 0;
+    height: 0;
+}
+
+table.table.table-bordered tr.highlight td {
+    background: yellow;
+}
+
+/**** Формочка поиска заявки ****/
+.queue-forms .requestion {
+    float: right;
+}
+
+
+/*** Форма фильтра заявок ***/
+.queue-forms .extrasearch {
+    float: left;
+}
+
+.queue-forms .toggler:hover {
+    background-color: #F0F0F0;
+    cursor: pointer;
+    border-bottom: grey dashed 1px;
+}
+
+/* паджинация таблицы*/
+.pagination-page {
+	padding-top: 15px;
+	margin-bottom: 60px;
+	text-align: center;
+}
+.pagination-page .page {
+	display: inline-block;
+	text-align: center;
+	border-bottom: grey solid 3px;
+    margin: 0 3px;
+    width: 36px;
+}
+
+.pagination-page .page.arrow {
+    width: 70px;
+}
+
+.pagination-page .page:hover {
+	background: #F0F0F0;
+	border-bottom-color: #333;
+}
+
+.pagination-page .page.arrow {
+    border: none;
+}
+
+.pagination-page  .page *  {
+	display: block;
+	line-height: 36px;
+	color: #666;
+	text-decoration: none !important;
+}
+
+.pagination-page .current-page {
+	width: 36px;
+	line-height: 36px;
+	background: #333;
+	border-bottom-color: #333;
+	/*cursor: default;*/
+}
+
+.pagination-page  .current-page span {
+    color: white;
+}
+
+.pagination-page  .current-page:hover {
+	background: #333 !important;
+}
+
+/*** Подсветка найденной заявки ***/
+#queue_table .highlight, #queue_table .highlight td {
+    background-color: yellow;
+}
+
+#queue_table .distributed_sadik{
+    text-align:center;
+    font-size: 17px;
+}
+
+/**** Кнопочка "Наверх" при скорллинге таблицы ****/
+#up {
+    height: 30px;
+    width: 120px;
+    color: #117eff;
+    cursor: pointer;
+    background-color: rgba(17, 126, 255, 0.1);
+    padding: 10px 0;
+    font-weight: bold;
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    -webkit-transition: background-color 500ms ease;
+    -moz-transition: background-color 500ms ease;
+    -ms-transition: background-color 500ms ease;
+    -o-transition: background-color 500ms ease;
+    transition: background-color 500ms ease;
+}
+
+#up:hover {
+    background-color: rgba(17, 126, 255, 0.2);
+}
+
+/*** BlockUI ***/
+.blockMsg {
+    height: 40px;
+    background: url('../img/loading.gif') no-repeat left center;
+    color: #666;
+    font-size: 16pt;
+    font-weight: bold;
+    line-height: 32px;
+}
+
+/*** Uni Forms overrides ***/
+
+#errorMsg h3 {
+    margin: 1.5em 0;
+}
+
+.uniForm input.datepicker {
+    margin: 0;
+}
+
+.uniForm input.datetimepicker {
+    padding: 4px 2px;
+    border: 1px solid #AAA;
+    background: white;
+}
+
+.uniForm td {
+    position: relative;
+}
+
+.uniForm .ctrlHolder.error, .uniForm .ctrlHolder.focused.error {
+    position: relative;
+}
+
+.uniForm .ctrlHolder.error input.error,
+.uniForm .ctrlHolder.error select.error,
+.uniForm .ctrlHolder.error textarea.error {margin: 0;}
+
+.uniForm .errorlist {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.uniForm .errorlist li {
+    margin: 0 0 3px 1.5em;
+    padding: 3px;
+    background: #F6BEC1;
+    position: relative;
+    font-size: .85em;
+    border-radius: 4px;
+    color: #A60000
+}
+
+.uniForm .buttonHolder .secondaryAction{
+    padding: 10px 22px;
+    line-height: 1;
+    background: #6c7586;
+    border: 1px solid #4c5262;
+    font-size: 12px;
+    font-weight: bold;
+    color: #fff;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+    box-shadow: 1px 1px 0 #fff;
+    -webkit-box-shadow: 1px 1px 0 #fff;
+    -moz-box-shadow: 1px 1px 0 #fff;
+    text-shadow: -1px -1px 0 rgba(0,0,0,.25);
+}
+
+
+.uniForm .buttonHolder .primaryAction:disabled{
+    padding: 10px 22px; line-height: 1;
+    background: #3b5486;
+    border: 1px solid #354562;
+    color: #cacaca;
+}
+.uniForm .buttonHolder :active:disabled{
+    position: relative;
+    top: 0;
+}
+.uniForm .secondaryAction:disabled{
+    color: #9f9f9f;
+}
+
+.uniForm .required input {
+    border-color: #666;
+}
+
+.uniForm .required label {
+    font-weight: bold;
+}
+
+.uniForm .required label:after {
+    content: " *";
+}
+
+.uniForm .readOnly {
+    font-size: 1em;
+    position: relative;
+}
+
+.uniForm .readOnlyLabel {
+    color: #666;
+    font-weight: normal;
+}
+
+.uniForm .readOnly .choice {
+    font-size: 1.5em;
+}
+
+.uniForm .readOnly .formHint {
+    position: absolute;
+    right: 0;
+    bottom: 0.3em;;
+}
+
+.uniForm label.checkbox{
+    float: left;
+    width: 53% !important;
+}
+
+/**** Header ****/
+
+.header {
+    float:left;
+    width: 100%;
+    height: 53px;
+    /*background-color: #2c2c2c;
+    background-image: -moz-linear-gradient(top, #333333, #222222);
+    background-image: -ms-linear-gradient(top, #333333, #222222);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#333333), to(#222222));
+    background-image: -webkit-linear-gradient(top, #333333, #222222);
+    background-image: -o-linear-gradient(top, #333333, #222222);
+    background-image: linear-gradient(top, #333333, #222222);*/
+   background: url("../img/header_bg.png");
+    background-repeat: repeat-x;
+    filter: progid:dximagetransform.microsoft.gradient(startColorstr='#333333', endColorstr='#222222', GradientType=0);
+    -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+       -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.header .logo {
+    display: inline;
+    float: left;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.header .logo a {
+    color: #FFFFFF;
+    font-size: 16px;
+    line-height: 45px;
+}
+
+.header .logo a:visited,
+.header .logo a:focus,
+.header .logo a:hover,
+.header .logo a:active {
+    color: #FFFFFF;
+}
+
+.header .logo a img {
+    vertical-align: middle;
+    float: left;
+    margin: 5px 25px 0px 0px;
+}
+
+.header .logo a:link {
+    text-decoration: none;
+}
+
+.header .logarea {
+    float: right;
+}
+
+.header .logarea .signup a,
+.header .logarea .signup a:visited,
+.header .logarea .signup a:focus,
+.header .logarea .signup a:hover,
+.header .logarea .signup a:active{
+    font-size: 16px;
+    color: #FFFFFF;
+}
+
+.header .logarea .signup li{
+    float:left;
+    margin-right: 10px;
+    line-height: 45px;
+}
+
+.header .logarea ul li{
+    list-style: none;
+}
+
+.dropdown{
+    height: 40px;
+    padding-top: 10px;
+}
+
+.header .logarea .dropdown-toggle{
+    background-color: transparent;
+    color: #FFFFFF;
+    padding-top: 10px;
+    margin-top: 1px;
+}
+
+.header .logarea .dropdown-toggle .avatar{
+    float:left;
+    margin-right: 10px;
+}
+
+.header .logarea .dropdown-toggle p{
+    float:left;
+    font-size: 16px;
+    line-height: 30px;
+    margin-right: 10px;
+}
+
+.header .logarea .dropdown-toggle .selector{
+    margin-right: 10px;
+    margin-top: 13px;
+}
+
+.dropdown-menu{
+    right: 0px;
+}
+
+/*** Стили страниц ****/
+
+/* Распределение */
+.inactive_requestion a{
+    color: gray;
+}
+
+.decision_requestion a{
+    color: #008000;
+}
+
+.on_decision_requestion a{
+    color: #ff0000;
+}
+
+.current_group {
+    color: #008000;
+}
+
+/**** Футер ****/
+
+.stickyfooter {
+    background: url("../img/footer_bg.png");
+    color: #ffffff;
+}
+
+.stickyfooter .footer-content{
+    max-height: 95px;
+    padding-top:15px;
+    overflow: hidden;
+}
+
+.stickyfooter .footer-content div {
+    float:left;
+}
+
+.stickyfooter a,
+.stickyfooter a:visited,
+.stickyfooter a:focus,
+.stickyfooter a:link,
+.stickyfooter a:active {
+}
+
+.stickyfooter strong {
+    white-space: nowrap;
+}
+
+.stickyfooter .footer-logo{
+    margin-right: auto;
+    margin-left: auto;
+    text-align: center;
+    width: 110px;
+    min-height: 1px;
+    font-size: 10px;
+    overflow: hidden;
+}
+
+.stickyfooter .footer-logo img{
+    max-width: 100px;
+    max-height: 80px;
+    margin-top: 2px;
+}
+
+.stickyfooter .footer-description{
+    width: 400px;
+    padding: 0px 10px;
+}
+
+.stickyfooter .footer-phone{
+    width: 275px;
+    padding-left: 10px;
+}
+
+.stickyfooter .footer-phone .phone-number{
+    font-size: 25px;
+    padding-top: 5px;
+}
+
+.stickyfooter .phone-description{
+    font-size: 12px;
+}
+
+.stickyfooter .footer-links a{
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.stickyfooter .rslogo {
+    float: right !important;
+    margin: 10px 20px 0px 20px;
+    text-align: right;
+}
+
+/* Sticky Footer by Ryan Fait http://ryanfait.com/ */
+* {
+    margin: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+.wrapper {
+    min-height: 100%;
+    height: auto !important;
+    height: 100%;
+    margin: 0 auto -110px; /* the bottom margin is the negative value of the footer's height */
+}
+
+.stickyfooter, .stickyfooterpush {
+    height: 110px; /* .push must be the same height as .footer */
+    clear: both;
+}
+
+.queue-table .documental-confirmation-cell {
+    width: 100px;
+}
+
+.left-menu {
+    width: 120px;
+    float:left;
+    margin-left: -100%;
+}
+
+.left-menu ul li.active{
+    border-right: 1px solid #c7c7c7;
+    border-bottom: 1px solid #c7c7c7;
+    background-color: #f1f5f1;
+}
+
+.left-menu ul li {
+    width: 120px;
+    height: 120px;
+    border-right: 1px solid #c8ad43;
+    border-bottom: 1px solid #c8ad43;
+    background-color: #ffdc51;
+}
+
+.left-menu ul li:hover{
+    border-right: 1px solid #c7c7c7;
+    border-bottom: 1px solid #c7c7c7;
+}
+
+.left-menu ul li i {
+    position: absolute;
+    left: 28px;
+    top: 28px;
+}
+
+.left-menu ul li a{
+    text-align: center;
+    position: relative;
+    height: 120px;
+    width: 120px;
+    color: #000000;
+}
+
+.left-menu ul li a p{
+    width: 100%;
+    position: absolute;
+    bottom: 0px;
+    margin: 0px 0px 5px 0px;
+}
+
+.wrapcontent{
+    float: left;
+    width: 100%;
+}
+
+.content{
+    background-color: #FFFFFF;
+    margin-left:121px;
+}
+
+.content-header{
+    background: url("../img/content_header_bg.png");
+}
+
+.content-header{
+    border-bottom: 1px #dddddd solid;
+    padding-left: 30px;
+}
+
+.content-header h1{
+    color: #464646;
+    padding: 20px 0px;
+}
+
+.content-menu{
+    margin:0px 0px 6px 0px;
+}
+
+.content-menu li{
+    list-style: none;
+    display: inline;
+    padding: 7px 10px;
+    margin: 0px 10px 0px 0px ;
+}
+
+.content-menu li a{
+    color: #737473;
+}
+
+.content-menu li.active{
+    background-color: #FFFFFF;
+    border: 1px #DDDDDD solid;
+    border-bottom: 1px #FFFFFF solid;
+}
+
+.content-main {
+    padding:30px;
+}
+
+.centering{
+    width: 750px;
+    margin-left: 200px;
+}
+
+/*Sadik info*/
+
+.sadik_contacts{
+    float:left;
+    margin-right: 610px;
+    min-height: 310px;
+}
+
+.sadik_contacts dt{
+    color: #666666;
+    font-weight: normal;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.sadik_contacts dd{
+    margin: 0px;
+    font-size: 17px;
+}
+
+#sadik_map{
+    width: 570px;
+    height: 300px;
+    position: absolute;
+    right: 30px;
+}
+
+
+/***** Requestion info ****/
+ul.documents {
+    list-style: none;
+}
+
+.documents i {
+    font-size: large;
+}
+
+.row-delete {
+    vertical-align: middle;
+}
+
+.add-row {
+    margin-top: 10px;
+}
+
+#requestion_map{
+    width: 400px;
+    height: 300px;
+}
+
+/*** Форма редактирования документов ***/
+
+#documents_form tr {
+    height: 50px;
+    line-height: 50px;
+    margin: 3px;
+}
+
+#documents_form tr th {
+    text-align: left;
+}
+
+#documents_form tr td {
+    border-bottom: 1px solid #EEE;
+}
+
+#documents_form .row select {
+    vertical-align: middle;
+    float: none;
+    display: inline;
+}
+
+tr.dynamic-form td {
+    position: relative;
+}
+
+tr.dynamic-form td.error input {
+    box-shadow: 0px 0px 5px 0px #A60000;
+}
+
+tr.dynamic-form .errorlist {
+    position: absolute;
+    left: 50px;
+    width: 30em;
+    background: #F6BEC1;
+    color: #A60000;
+    border-radius: 4px;
+}
+
+
+/** Карта садиков **/
+#map {
+    width: 100%;
+    height: 500px;
+}
+
+/* bootstrap popover */
+.popover-inner {
+  width: 350px;
+}

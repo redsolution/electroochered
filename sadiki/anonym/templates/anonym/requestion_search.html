@@ -1,0 +1,84 @@
+{% extends "anonym/queue_base.html" %}
+{% load sadiki_core_tags zenforms pytils_numeral %}
+
+
+{% block content_title %}
+    <h1>{% block title %}Поиск заявки{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    <div class="content-main">
+        <form action="." method="post" class="uniForm">
+        {% zenform form options notag=1 %}
+            <div class="row">
+            <div class="span5">
+                {% fieldset 'birth_date' 'registration_date' 'number_in_old_list' %}
+            </div>
+            <div class="span5">
+                {% fieldset unused_fields %}
+            </div>
+            </div>
+            <div class="row">
+                <div class="span10">
+                {% submit "Поиск" %}
+                </div>
+            </div>
+        {% endzenform %}
+        </form>
+    {% if query %}
+        <div class="row vertical-margins"><div class="span10">
+            <div class="well query">
+                По запросу:
+                {% for field in query.fields.values %}
+                    <dl>
+                        <dt>{{ field.label }}</dt>
+                        <dd>{{ field.value }}</dd>
+                    </dl>
+                {% endfor %}
+                <strong>{{ results.count }} заяв{{ results.count|choose_plural:"ка, ки, ок" }}</strong>
+            </div>
+        {% if results.count > 0 %}
+            {% block queue_table %}
+            <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Номер заявки</th>
+                    <th>Дата рождения</th>
+                    <th>Дата регистрации</th>
+                    <th>Льготы</th>
+                    <th>Статус заявки</th>
+                </tr>
+                </thead>
+                <tbody>
+                    {% for requestion in results %}
+                    <tr>
+                        <td>{{ forloop.counter }}</td>
+                        <td><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">{{ requestion.requestion_number }}</a></td>
+                        <td>{{ requestion.birth_date }}</td>
+                        <td>{{ requestion.registration_datetime }}</td>
+                        <td>{{ requestion.benefit_category }}</td>
+                        <td>{{ requestion.get_status_display }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endblock queue_table %}
+        {% else %}
+            {% if more_results.count > 0 %}
+                <div class="well query">
+                    Но зато по запросу:
+                    {% for field in less_query.fields.values %}
+                        <dl>
+                            <dt>{{ field.label }}</dt>
+                            <dd>{{ field.value }}</dd>
+                        </dl>
+                    {% endfor %}
+                    <strong>{{ more_results.count }} заяв{{ more_results.count|choose_plural:"ка, ки, ок" }}</strong>
+                </div>
+            {% endif %}
+        {% endif %}
+        </div></div>
+    {% endif %}
+    </div>
+{% endblock %}

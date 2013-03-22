@@ -1,0 +1,63 @@
+{% extends "anonym/queue_base.html" %}
+{% load sadiki_core_tags zenforms paginate %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(function(){
+            {% if target_requestion %}
+            $(window).scrollTo('#target', {offset:{top:-$(window).height()/2}, left:0});
+            $('#id_requestion_number').parent('.ctrlHolder').append(' <a href="#target">Перейти к заявке</a>');
+            {% endif %}
+
+            $('<div id="up"><i class="icon-arrow-up"></i> Наверх</div>').insertAfter('ul.nav');
+            $('#up').topLink({
+                min: $('ul.nav').height() + $('.header').height(),
+                fadeSpeed: 100
+            }).click(function(e){
+                e.preventDefault();
+                $.scrollTo(0,300);
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block content_title %}
+    <h1>{% block title %}Очередь в ДОУ {{ area }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    {% if not import_finished %}
+        <div class="alert">
+            Внимание! В очереди не отображаются заявки, поданные до запуска
+            системы, они появятся позднее.
+        </div>
+    {% endif %}
+        <div class="queue-forms clearfix" id="filterForm">
+            <form action="." method="get" class='uniForm'>
+            {% izenform form options notag=1 nocsrf=1 %}
+            <div class="buttonHolder">
+                <button class="primaryAction" value="submit"><i class="icon-filter"></i> Фильтр</button>
+            </div>
+            </form>
+        </div>
+    {% if requestions_dict %}
+        <div class="pagination-page">
+            {% digg_paginator %}
+        </div>
+
+        {% with requestions_dict.itervalues as object_list %}
+        {% block queue_table %}
+            {% include 'anonym/includes/queue_include.html' %}
+        {% endblock queue_table %}
+        {% endwith %}
+
+        <div class="pagination-page">
+            {% digg_paginator %}
+        </div>
+    {% else %}
+        <h2 class="vertical-margins center-aligned">Нет ни одной заявки в очереди, соответсвующей вашему запросу</h2>
+    {% endif %}
+
+{% endblock %}

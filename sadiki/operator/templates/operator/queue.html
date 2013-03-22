@@ -1,0 +1,60 @@
+{% extends "anonym/queue.html" %}
+{% load paginate sadiki_core_tags flatpages %}
+
+{% block content_menu %}
+    {% url operator_queue as queue_url %}
+    {% url operator_requestion_search as operator_requestion_search_url %}
+    {% url sadik_list as sadik_list_url %}
+    <ul class="content-menu">
+        <li {% if request.path == queue_url %}class="active"{% endif %}>
+            <a href="{{ queue_url }}">Очередь</a>
+        </li>
+        <li {% if request.path == operator_requestion_search_url %}class="active"{% endif %}>
+            <a href="{{ operator_requestion_search_url }}">Поиск заявки</a>
+        </li>
+        {% get_flatpages "/queue_howto/" as queue_howto_pages %}
+        {% if queue_howto_pages %}
+            <li {% if request.path == queue_howto_pages.0.url %}class="active"{% endif %}>
+                <a href="{{ queue_howto_pages.0.url }}">{{ queue_howto_pages.0.title }}</a>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+
+{% block queue_table %}
+<div id="queue_table" class="data-table">
+<table class="table table-striped table-bordered table-condensed">
+    <thead>
+    <tr>
+        <th>Номер заявки</th>
+        <th>Дата рождения</th>
+        <th>Дата регистрации</th>
+        <th id="benefit-categories-row">Категория льгот <span class="icon-question-sign"></span></th>
+        <th id="requestion-status-row">Статус заявки <span class="icon-question-sign"></span></th>
+        <th>Выделено место</th>
+        <th id="special-actions-row">Особые действия <span class="icon-question-sign"></span></th>
+    </tr>
+    </thead>
+    <tbody>
+        {% for requestion in object_list %}
+        <tr {% if target_requestion.id == requestion.id %}class="highlight" id="target" {% endif %}>
+            <td><a href="{% url operator_requestion_info requestion.id %}">{{ requestion.requestion_number }}</a></td>
+            <td>{{ requestion.birth_date }}</td>
+            <td>{{ requestion.registration_datetime }}</td>
+            <td>{{ requestion.benefit_category }}</td>
+            <td>{{ requestion.get_status_display }}</td>
+            {% if requestion.status == STATUS_DECISION %}
+                <td class="distributed_sadik"><a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a></td>
+            {% else %}
+                <td></td>
+            {% endif %}
+            <td>
+                {{ requestion.action_log.get_action_flag_display }}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock queue_table %}

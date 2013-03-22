@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content_title %}<h1>{% block title %}Интерфейс суперпользователя{% endblock %}</h1>{% endblock %}
+
+{% block menu %}
+    {% url supervisor_requestion_search as supervisor_requestion_search_url %}
+    {% url distribution_year_info as distribution_year_info_url %}
+    <ul class="nav">
+        <li {% if request.path == supervisor_requestion_search_url %}class="active"{% endif %}>
+            <a href="{{ supervisor_requestion_search_url }}">
+                <i class="imgicon search"></i>
+                <p>Поиск заявки</p>
+            </a>
+        </li>
+        <li {% if request.path == distribution_year_info_url %}class="active"{% endif %}>
+            <a href="{{ distribution_year_info_url }}">
+                <i class="imgicon flag"></i>
+                <p>Новый учебный год</p>
+            </a>
+        </li>
+    </ul>
+{% endblock %}

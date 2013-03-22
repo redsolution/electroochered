@@ -1,0 +1,26 @@
+{% extends "operator/base.html" %}
+
+{% block title %}
+    {{ report.get_type_display }}
+{% endblock %}
+
+{% block content_menu %}
+    <ul class="content-menu">
+        {% for report_type_id, report_type_name in report_types.iteritems%}
+            {% url reports_for_type report_type=report_type_id as report_url %}
+            <li {% if request.path == report_url or report_type_id == report.type %}class="active"{% endif %}>
+                <a href="{{ report_url }}">{{ report_type_name }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <p>c {{ report.from_date }} по {{ report.to_date }}</p>
+    {% if report.age_group %}
+        <p>Возрастная группа: {{ report.age_group }}</p>
+    {% endif %}
+    {% if report.decision_type %}
+        <p>Тип распределения: {{ report.get_decision_type_display }}</p>
+    {% endif %}
+{% endblock %}

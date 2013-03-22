@@ -1,0 +1,157 @@
+{% extends "distribution/distribution_base.html" %}
+{% load sadiki_core_tags %}
+
+{% block js %}
+    {{ block.super }}
+    <script>
+        var queue_data = {};
+        $(document).ready(function(){
+
+            $('#select_sadik_form').change(function(){
+                var sadik_id = $(this).find('option:selected').val();
+                $('#sadik_'  + sadik_id + '_description').show().siblings('dl').hide();
+            });
+            $('#select_sadik_form').trigger('change');
+        });
+    </script>
+{% endblock js %}
+
+{% block content %}
+    {% if not distribution %}
+        <h2>Распределение еще не началось</h2>
+    {% else %}
+        <h1>Комплектование групп</h1>
+    <div class="row">
+        <div class="span_7">
+        {% if current_requestion %}
+            <h3>Распределение заявки {{ current_requestion.requestion_number }}</h3>
+        {% endif %}
+        {% if not queue %}
+            Больше вы не можете никого распределить.
+            {% if free_places %}
+                Количество свободных мест в МДОУ: {{ free_places }}
+            {% else %}
+                В МДОУ не осталось ни одного свободного места
+            {% endif %}
+            <a class="btn" href="{% url distribution_end %}">Завершить распределение</a>
+        {% endif %}
+            <table class="table table-striped table-bordered table-condensed">
+                <tr>
+                    <th>Номер заявки</th>
+                    <th>Льготы</th>
+                    <th>Дата регистрации</th>
+                    <th>Желаемый год</th>
+                </tr>
+                {% for requestion in inactive_queue %}
+                    <tr class="requestion_info table-row {% cycle 'even' 'odd' %}">
+                        <td class="{% if requestion.status == decision_status %} decision_requestion{% else %} inactive_requestion{% endif %}">
+                            <a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a>
+                        </td>
+                        <td class="centered">
+                            <div class="icon_text">{{ requestion.benefit_category }}</div>
+                        </td>
+                        <td class="centered">
+                            {{ requestion.registration_datetime|date:"H:i d-M-Y" }}
+                        </td>
+                        <td class="centered">
+                            {{ requestion.admission_date|date:"d-M-Y" }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% for requestion in queue %}
+                    <tr class="requestion_info table-row {% cycle 'even' 'odd' %}">
+                        <td>
+                            <a href="{% url operator_requestion_info requestion_id=requestion.id %}" {% if requestion == current_requestion %}class="red"{% endif %}>{{ requestion }}</a>
+                        </td>
+                        <td class="centered">
+                            <div class="icon_text">{{ requestion.benefit_category }}</div>
+                        </td>
+                        <td class="centered">
+                            {{ requestion.registration_datetime|date:"H:i d-M-Y" }}
+                        </td>
+                        <td class="centered">
+                            {{ requestion.admission_date|date:"d-M-Y" }}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+
+            <div class="grid_3 alpha requestion_list">
+                <h3>Сводка</h3>
+                <div class="table-row clearfix">
+                    <p>Получили места: {{ distributed_requestions_number }}</p>
+                </div>
+                <div class="table-row clearfix">
+                    <div>Свободных мест: {{ free_places }}</div>
+                </div>
+            </div>
+            <div class="grid_3 omega legend">
+                <h3>Обозначения</h3>
+                <div class="decision_requestion">
+                    <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
+                    Распределенная заявка
+                </div><br />
+                <div class="">
+                    <a href="#" class="red" onclick="return false;">75401364-Б-134457884</a><br />
+                    Текущая заявка
+                </div><br />
+                <div class="inactive_requestion">
+                    <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
+                    Заявка не подходит по возрасту
+                </div><br />
+                <div class="">
+                    <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
+                    Следующая заявка
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="span_3">
+            {% if last_distributed_requestion %}
+                {% comment %}<a href="{% url cancel_requestion_distribution requestion_id=last_distributed_requestion.id %}">Отменить последнее распределение заявки</a>{% endcomment %}
+            {% endif %}
+            {% if current_requestion %}
+                <h3>Заявка</h3>
+                <p>Дата рождения: {{ current_requestion.birth_date|date:"j M Y" }}</p>
+                <p>Адрес: {% if current_requestion.address %}{{ current_requestion.address }}{% else %}не указан{% endif %}</p>
+                <p>Тел.: {% if current_requestion.profile.telephone %}{{ current_requestion.profile.telephone }}{% else %}не указан{% endif %}</p>
+                <p>ФИО родителей: {{ current_requestion.profile.name_patronymic|verbose_value }}</p>
+                <p>Возрастная группа: {{ current_requestion_age_groups.0 }}</p>
+
+                <form action="." method="POST" id="select_sadik_form">
+                    {% csrf_token %}
+                    {{ select_sadik_form.as_p }}
+                    <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
+                </form>
+
+                <h3 id="sadik_info_list">Информация о МДОУ</h3>
+
+                {% for sadik in sadik_list %}
+                    <dl id="sadik_{{ sadik.id }}_description" style="display: none;">
+                        <p>Название: {{ sadik|verbose_value }}</p>
+                        <p>Адрес: {{ sadik.adress|verbose_value }}</p>
+                        <p>Телефон: {{ sadik.telephone|verbose_value }}</p>
+                        Возрастные группы:
+                        <table class="table table-striped table-bordered table-condensed">
+                            <tr>
+                                <th>Название</th>
+                                <th>Свободные места</th>
+                            </tr>
+                            {% sadik_groups_for_requestion current_requestion sadik as sadik_groups_for_requestion %}
+                            {% for sadik_group in sadik.related_groups %}
+                                <tr {% if sadik_group|appropriate_for_birth_date:requetion.birth_date %}class="red"{% endif %}>
+                                    <td>{{ sadik_group }}</td>
+                                    <td class="centered">{{ sadik_group.free_places }}</td>
+                                </tr>
+                            {% endfor %}
+                        </table>
+                    </dl>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}

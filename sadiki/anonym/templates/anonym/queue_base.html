@@ -1,0 +1,49 @@
+{% extends "anonym/base.html" %}
+{% load flatpages sadiki_core_tags %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-tooltip.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            {% queue_tooltips as tooltips %}
+            $("#requestion-status-row .icon-question-sign").popover({
+                title: "Статусы заявки",
+                content: "{{ tooltips.requestion_status_tooltip }}",
+                placement: "left", html: true})
+            $("#special-actions-row .icon-question-sign").popover({
+                title: "Особые действия",
+                content: "Действия уполномоченного лица, которые могли повлиять на очередность",
+                placement: "left"})
+            $("#age-groups-row .icon-question-sign").popover({
+                title: "Возрастные группы в системе",
+                content: "{{ tooltips.age_groups_tooltip }}",
+                placement: "top", html:true})
+            $("#benefit-categories-row .icon-question-sign").popover({
+                title: "Категории льгот",
+                content: "{{ tooltips.benefit_categories_tooltip }}",
+                placement: "top", html:true})
+        })
+    </script>
+{% endblock %}
+
+{% block content_menu %}
+    {% url anonym_queue as queue_url %}
+    {% url anonym_requestion_search as anonym_requestion_search_url %}
+    {% url sadik_list as sadik_list_url %}
+    <ul class="content-menu">
+        <li {% if request.path == queue_url %}class="active"{% endif %}>
+            <a href="{{ queue_url }}">Очередь</a>
+        </li>
+        <li {% if request.path == anonym_requestion_search_url %}class="active"{% endif %}>
+            <a href="{{ anonym_requestion_search_url }}">Поиск заявки</a>
+        </li>
+        {% get_flatpages "/queue_howto/" as queue_howto_pages %}
+        {% if queue_howto_pages %}
+            <li {% if request.path == queue_howto_pages.0.url %}class="active"{% endif %}>
+                <a href="{{ queue_howto_pages.0.url }}">{{ queue_howto_pages.0.title }}</a>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock %}

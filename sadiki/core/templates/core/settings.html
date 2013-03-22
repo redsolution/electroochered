@@ -1,0 +1,28 @@
+{% extends "anonym/base.html" %}
+
+{% block content_title %}
+    <h1>{% block title %}Настройки системы{% endblock %}</h1>
+{% endblock %} 
+
+
+{% block content %}
+<div class="row">
+    <div class="span10">
+    <dl>
+        <dt>Желаемая дата поступления</dt>
+        <dd>
+            {% if settings.DESIRED_DATE == settings.DESIRED_DATE_NO %}Нельзя указать{% endif %}
+            {% if settings.DESIRED_DATE == settings.DESIRED_DATE_NEXT_YEAR %}1 сентября следующего года{% endif %}
+            {% if settings.DESIRED_DATE == settings.DESIRED_DATE_SPEC_YEAR %}1 сентября любого указанного года (указывается в заявлении){% endif %}
+            {% if settings.DESIRED_DATE == settings.DESIRED_DATE_ANY %}любая дата  (указывается в заявлении){% endif %}
+
+        </dd>
+
+        <dt>Начало нового учебного года</dt>
+        <dd>{{ settings.NEW_YEAR_START|date:"F d" }}</dd>
+
+
+    </dl>
+    </div>
+</div>
+{% endblock %}

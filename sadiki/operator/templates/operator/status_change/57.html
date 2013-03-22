@@ -1,0 +1,9 @@
+{# Операция: Возврат после длительного отсутствия #}
+
+{% if requestion.distributed_in_vacancy.status == VACANCY_STATUS_TEMP_DISTRIBUTED %}
+    {% with requestion.distributed_in_vacancy.get_distributed_requestion as other_requestion %}
+        {% if other_requestion %}
+            <p>Для заявки <a href="{% url operator_requestion_info other_requestion.id %}">{{ other_requestion }}</a> будет отменено временное зачисление.</p>
+        {% endif %}
+    {% endwith %}
+{% endif %}

@@ -1,0 +1,62 @@
+{% extends "operator/requestion_base.html" %}
+{% load sadiki_core_tags %}
+
+{% block css %}
+    {{ block.super }}
+    {% if requestion.address.coords %}
+        {% include "includes/leaflet_css.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block bottomjs %}
+{{ block.super }}
+    <script type="text/javascript">
+        $(function(){$('.tooltip').tooltip();});
+        function blink(element_class){
+            $("."+element_class).animate({opacity:0.3},1000,"swing",function(){
+                $(this).animate({opacity:1},1000, "swing");});
+            window.setTimeout("blink('distributed_info')", 3000);
+        };
+        $(document).ready(function(){
+            blink("distributed_info");
+        });
+    </script>
+    {% with requestion.address.coords as point %}
+        {% if point %}
+            {% include "includes/leaflet_js.html" %}
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    draw_map_for_point('requestion_map', {{ point.x }}, {{ point.y }});
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block title %}Страница заявки {{ requestion }}{% endblock %}
+
+{% block content %}
+    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
+        Заявление на регистрацию
+    </a>
+    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_info">
+        Заявление на изменение данных
+    </a>
+    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_preferred_sadiks">
+        Заявление на изменение приоритетных ДОУ
+    </a>
+    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=remove_registration">
+        Заявление на cнятие с учета
+    </a>
+    {% include "operator/includes/requestion_info.html" %}
+
+    <h2 class="page-header">Действия с заявкой</h2>
+    <div class="btn-group">
+    {% for transition in requestion.available_transitions %}
+        {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
+        {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
+    {% endfor %}
+    </div>
+
+
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends "operator/blanks/base.html" %}
+{% load pytils_dt sadiki_core_tags %}
+{% block content %}
+    <div class="header">
+        <p>Начальнику {{ local_authority }} {{ authority_head }}</p>
+        <p>Заявитель: <span class="requester_info">{{ requestion.profile.fio }}</span></p>
+        <p>проживающего(ей) по адресу: <span class="blank_field">{{ "&nbsp; "|multiply:25|safe }}</span>&nbsp;</p>
+        <p>Контактный телефон: <span class="requester_info">{{ requestion.profile.phone_number }}</span></p>
+        {% if requestion.profile.user.email %}
+            <p>E-mail: {{ requestion.profile.user.email }}</p>
+        {% endif %}
+    </div>
+    <div class="content">
+        <h2>ЗАЯВЛЕНИЕ</h2>
+        <p>Прошу зарегистрировать в системе электронной очереди в детские сады «Электроочередь» 
+        и поставить на учет для предоставления места в муниципальном 
+        дошкольном образовательном учреждении (ДОУ) {{ municipality_name_genitive }} моего ребенка {{ requestion.fio }}, дата рождения: {{ requestion.birth_date|ru_strftime:"%d %B %Y г." }}</p>
+        {% with requestion.areas.all as requestion_areas %}
+            {% if requestion_areas %}
+                <p>Области для зачисления {% for area in areas %}{{ area }}{% if not forloop.last %}; {% endif %}{% endfor %}.</p>
+            {% endif %}
+        {% endwith %}
+        <p>На зачисление в любое ДОУ, отличное от приоритетных {{ requestion.distribute_in_any_sadik|yesno:"согласен, не согласен" }}.</p>
+        <p>Приоритетные ДОУ {% for sadik in requestion.pref_sadiks.all %}{{ sadik }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+        <p>Я ознакомлен(а) с административным регламентом {{ local_authority }} 
+        по предоставлению муниципальной услуги 
+        «Прием заявлений, постановка на учет и зачисление детей в образовательные учреждения, 
+        реализующие основную образовательную программу дошкольного образования (детские сады)»</p>
+    </div>
+    <div class="footer">
+        <div class="date">{{ requestion.registration_datetime|ru_strftime:"%d %B %Y г." }}</div>
+        <div class="signature"><span class="blank_field">{{ "&nbsp; "|multiply:20|safe }}</span>&nbsp;/<span class="blank_field">{{ "&nbsp; "|multiply:20|safe }}</span>&nbsp;</div>
+    </div>
+{% endblock content %}

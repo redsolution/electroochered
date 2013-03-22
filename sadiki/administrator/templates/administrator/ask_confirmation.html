@@ -1,0 +1,10 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+    <div class="row">
+        <div class="span8 offset2">
+            <h2>{{ message }}</h2>
+        </div>
+    </div>
+    {% include "core/include/confirmation.html" %}
+{% endblock %}

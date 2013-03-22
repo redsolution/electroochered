@@ -1,0 +1,28 @@
+{% extends "operator/base.html" %}
+{% load sadiki_core_tags %}
+
+{% block content_title %}<h1>{% block title %}Комплектование{% endblock %}</h1>{% endblock %}
+
+{% block content_menu %}
+    {% load_urlpatterns %}
+    {% if current_distribution %}
+        {% url distribution_info current_distribution.id as distribution_info_url %}
+        {% create_extend_list distribution_info distribution_info_url as decision_urls %}
+    {% else %}
+        {% create_extend_list distribution_info as decision_urls %}
+    {% endif %}
+
+    <ul class="content-menu">
+        <li {% if request.path in decision_urls %}class="active"{% endif %}>
+            <a href="{{ distribution_info }}">Сводка</a>
+        </li>
+        {% if sadik_list_with_groups|check_url_availability:request.user %}
+        <li {% if request.path == sadik_list_with_groups or request.path|resolve_url_name == "sadikgroup_change_places" %}class="active"{% endif %}>
+            <a href="{{ sadik_list_with_groups }}">Выделение мест</a>
+        </li>
+        {% endif %}
+        <li {% if request.path == decision_manager %}class="active"{% endif %}>
+            <a href="{{ decision_manager }}">Комплектование</a>
+        </li>
+    </ul>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "anonym/base.html" %}
+{% load sadiki_core_tags %}
+
+{% block css %}
+    {{ block.super }}
+    {% if sadik.address.coords %}
+        {% include "includes/leaflet_css.html" %}
+    {% endif %}
+{% endblock %}
+
+{% block bottomjs %}
+{{ block.super }}
+    {% with sadik.address.coords as point %}
+        {% if point %}
+            {% include "includes/leaflet_js.html" %}
+            <script type="text/javascript">
+            $(document).ready(function(){
+                draw_map_for_point('sadik_map', {{ point.x }}, {{ point.y }});
+            });
+            </script>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block content_title %}
+    <h1>{% block title %}{{ sadik.short_name }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content_menu %}
+    {% url sadik_list as sadik_list_url %}
+    {% url sadik_info sadik_id=sadik.id as sadik_url %}
+    {% url sadik_info_change sadik_id=sadik.id as sadik_info_change_url %}
+    <ul class="content-menu">
+        <li {% if request.path == sadik_list_url %}class="active"{% endif %}>
+            <a href="{{ sadik_list_url }}">Список ДОУ</a>
+        </li>
+        
+        <li {% if request.path == sadik_url %}class="active"{% endif %}>
+            <a href="{{ sadik_url }}">{{ sadik }}</a>
+        </li>
+        {% if sadik_info_change_url|check_url_availability:request.user %}
+        <li {% if request.path == sadik_info_change_url %}class="active"{% endif %}>
+            <a href="{{ sadik_info_change_url }}">Изменение {{ sadik }}</a>
+        </li>
+        {% endif %}
+        {% url requestion_list_enroll as requestion_list_enroll_url %}
+        {% if requestion_list_enroll_url|check_url_availability:request.user %}
+            <li {% if request.path == requestion_list_enroll_url %}class="active"{% endif %}>
+                <a href="{{ requestion_list_enroll_url }}">Зачисление</a>
+            </li>
+        {% endif %}
+    </ul>
+{% endblock %}
+
+{% block content %}
+    <h2>Контактные данные</h2>
+    <div class="clearfix">
+        <dl class="sadik_contacts">
+            <dt>Полное наименование:</dt>
+                <dd>{{ sadik.name }}</dd>
+            <dt>Адрес:</dt>
+                <dd>{{ sadik.address|verbose_value }}</dd>
+            <dt>Номера телефонов:</dt>
+                <dd>{{ sadik.phone|verbose_value }}</dd>
+            <dt>Ф.И.О. руководителя:</dt>
+                <dd>{{ sadik.head_name|verbose_value }}</dd>
+            <dt>Веб-сайт:</dt>
+                <dd>
+                    {% if sadik.site %}
+                        <a href="{{ sadik.site }}">{{ sadik.site }}</a>
+                    {% else %}
+                        Не указан
+                    {% endif %}
+                </dd>
+            <dt>Электронная почта:</dt>
+                <dd>
+                    {% if sadik.email %}
+                        <a href="mailto:{{ sadik.email }}">{{ sadik.email }}</a>
+                    {% else %}
+                        Не указана
+                    {% endif %}
+                </dd>
+        </dl>
+        {% if sadik.address.coords %}<div id="sadik_map"></div>{% endif %}
+    </div>
+    <h2>ДОУ указан в качестве приоритетного</h2>
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+            <tr>
+                <th>Критерий</th>
+                <th>Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    Очередники
+                </td>
+                <td>{{ requestions_statistics.prefer_requestions_number }}</td>
+            </tr>
+            <tr>
+                <td>
+                    Очередники, имеющие право на первоочередное зачисление
+                </td>
+                <td>{{ requestions_statistics.prefer_benefit_requestions_number }}</td>
+            </tr>
+        </tbody>
+    </table>
+    <h2>Количество детей в очереди с разбивкой по возрастным категориям</h2>
+    <table class="table table-striped table-bordered table-condensed">
+        <thead>
+        <tr>
+            {% for group in groups %}
+                <th>{{ group.name }}</th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            {% for number in requestions_numbers_by_groups %}
+                <td>{{ number }}</td>
+            {% endfor %}
+        </tr>
+        </tbody>
+    </table>
+    {% if distributed_for_groups %}
+        <h2>Дети, посещающие ДОУ</h2>
+        {% with request.user.is_operator as user_is_operator %}
+        {% for sadik_group, requestions  in distributed_for_groups %}
+        <h3>{{ sadik_group }}</h3>
+        <table class="table table-striped table-bordered table-condensed">
+            <thead>
+            <tr>
+                <td>Номер заявки</td>
+                <td>Дата постановки в очередь</td>
+                <td>Дата рождения</td>
+                <td>Дата окончания распределения</td>
+            </tr>
+            </thead>
+            <tbody>
+                {% for requestion in requestions %}
+                    {% if user_is_operator %}
+                        {% include "operator/includes/sadik_info_distributed_include.html" %}
+                    {% else %}
+                        {% include "anonym/includes/sadik_info_distributed_include.html" %}
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+        {% endwith %}
+    {% endif %}
+{% endblock %}

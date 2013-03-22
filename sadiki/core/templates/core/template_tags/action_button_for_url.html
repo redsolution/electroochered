@@ -1,0 +1,7 @@
+{% if available %}
+    <a class="btn" href="{{ url }}">{{ options.text }}</a>
+{% else %}
+    {% if not options.hide_disabled %}
+        <a class="btn disabled">{{ options.text }}</a>
+    {% endif %}
+{% endif %}

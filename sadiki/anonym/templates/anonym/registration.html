@@ -1,0 +1,43 @@
+{% extends "anonym/registration_base.html" %}
+
+{% load zenforms %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $('#id_template').regexpValidate('#id_document_number');
+        });
+    </script>
+{% endblock %}
+
+{% block content_title %}<h1>{% block title %}Регистрация пользователя{% endblock %}</h1>{% endblock %}
+
+{% block content %}
+    <form class="uniForm" action="." method="post" >
+        {% if registration_form.non_field_errors or profile_form.non_field_errors or personal_data_approve_form.non_field_errors %}
+            <div id="errorMsg">
+                {% load i18n %}
+                <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
+                <ol>
+                    {% for error in registration_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    {% for error in profile_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                    {% for error in personal_data_approve_form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
+        <h2>Данные для входа</h2>
+        <p class="quiet">Звёздочкой отмечены обязательные поля</p>
+        {% izenform registration_form options notag=1 %}
+        <h2>Профиль</h2>
+        {% izenform profile_form options notag=1 %}
+        {% izenform personal_data_approve_form options notag=1 %}
+        {% submit "Зарегистрироваться" %}
+    </form>
+{% endblock %}

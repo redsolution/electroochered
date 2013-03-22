@@ -1,0 +1,83 @@
+{% extends "anonym/sadik_list.html" %}
+{% load sadiki_core_tags zenforms %}
+
+{% block title %}Работа с заявками для которых выделены места{% endblock %}
+
+{% block content %}
+    {% if current_area %}
+        <h1>{{ current_area }} территориальная область</h1>
+    {% endif %}
+    {% if form %}
+        <div class="row">
+            <div class="content span8 offset2">
+                {% izenform form options method='GET' submit="Выбрать" %}
+            </div>
+        </div>
+    {% endif %}
+    {% if distribution_started %}
+        <h3 class="important">Во время распределения заявки не могут быть возвращены в очередь</h3>
+    {% endif %}
+    {% if sadik %}
+        <h3>{{ sadik }}</h3>
+        <div class="decision_requestions_list clearfix">
+            {% for group, requestions in requestions_by_groups %}
+                {% if requestions %}
+                    <h3>Группа {{ group }}</h3>
+                    <table class="table table-striped table-bordered table-condensed">
+                        <thead>
+                            <tr>
+                                <th>Номер заявки</th>
+                                <th>Номер в списках</th>
+                                <th>Дата рождения</th>
+                                <th>Контактная информация</th>
+                                <th>Статус</th>
+                                <th>Действия</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for requestion in requestions %}
+                            <tr>
+                                <td>
+                                    {% if requestion.user.is_operator %}
+                                        <a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a>
+                                    {% else %}
+                                        <p>{{ requestion }}</p>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ requestion.number_in_old_list|verbose_value }}
+                                </td>
+                                <td>
+                                    {{ requestion.birth_date|date:"d-M-Y" }}
+                                </td>
+                                <td>
+                                    <p>Адрес: {{ requestion.address|verbose_value }}</p>
+                                    <p>Телефон: {{ requestion.profile.phone_number|verbose_value }}</p>
+                                    <p>Мобильный: {{ requestion.profile.mobile_number|verbose_value }}</p>
+                                    <p>Родитель: {{ requestion.profile.fio|verbose_value }}</p>
+                                    <p>Ребёнок: {{ requestion.fio|verbose_value }}</p>
+                                </td>
+                                <td>
+                                    {{ requestion.get_status_display }}
+                                    {% if requestion.status in appeal_statuses %}
+                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p> 
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% url operator_requestion_status_change requestion.id STATUS_DISTRIBUTED as decision_to_distributed_url %}
+                                    <p>{% action_button_for_url decision_to_distributed_url get_params next=request.get_full_path options text="Зачислить" %}</p>
+                                    {% url operator_requestion_status_change requestion.id STATUS_REQUESTER as decision_to_requester_url %}
+                                    <p>{% action_button_for_url decision_to_requester_url get_params next=request.get_full_path options text="Вернуть в очередь" %}</p>
+                                    {% url operator_requestion_status_change requestion.id STATUS_NOT_APPEAR as decision_to_not_appear_url %}
+                                    <p>{% action_button_for_url decision_to_not_appear_url get_params next=request.get_full_path options text="Отметить неявку"%}</p>
+                                    {% url operator_requestion_status_change requestion.id STATUS_REMOVE_REGISTRATION as remove_registration_url %}
+                                    <p>{% action_button_for_url remove_registration_url get_params next=request.get_full_path options text="Снять с учета" %}</p>
+                                </td>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            {% endfor %}
+        </div>
+   {% endif %}
+{% endblock content %}

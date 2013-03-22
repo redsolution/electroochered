@@ -1,0 +1,130 @@
+{% load sadiki_core_tags zenforms %}
+
+
+    {% with requestion.get_vacancy_distributed as vacancy_distributed %}
+        {% if vacancy_distributed %}
+            <h2 class="distributed_info green">Заявка зачислена в <a href="{% url sadik_info sadik_id=vacancy_distributed.sadik_group.sadik.id %}">{{ vacancy_distributed.sadik_group.sadik }}</a></h2>
+        {% else %}
+            {% with requestion.get_vacancy_temp_distributed as vacancy_temp_distributed %}
+                {% if vacancy_temp_distributed %}
+                    <h2 class="distributed_info green">Заявка временно зачислена в <a href="{% url sadik_info sadik_id=vacancy_temp_distributed.sadik_group.sadik.id %}">{{ vacancy_temp_distributed.sadik_group.sadik }}</a></h2>
+                {% endif %}
+            {% endwith %}
+        {% endif %}
+    {% endwith %}
+    {% with requestion.get_vacancy_decision as vacancy_decision %}
+        {% if vacancy_decision %}
+            <h2 class="distributed_info green">Происходит процесс распределения в <a href="{% url sadik_info sadik_id=vacancy_decision.sadik_group.sadik.id %}">{{ vacancy_decision.sadik_group.sadik }}</a></h2>
+        {% endif %}
+    {% endwith %}
+<div class="row">
+<div class="span5">
+<h2 class="page-header">Информация о заявке</h2>
+<div class="uniForm">
+<div class="ctrlHolder readOnly">
+        <span class="readOnlyLabel">Адрес электронной почты</span>
+        <div class="readOnly">
+            <span class="choice">{{ requestion.profile.email|verbose_value }}</span>
+        </div>
+    </div>
+    <div class="ctrlHolder readOnly">
+        <span class="readOnlyLabel">Статус</span>
+        <div class="readOnly">
+            <span class="choice">{{ requestion.get_status_display }}</span>
+        </div>
+    </div>
+
+    <div class="ctrlHolder readOnly">
+        <span class="readOnlyLabel">ФИО ребёнка</span>
+        <div class="readOnly">
+            <span class="choice">{{ requestion.fio }}</span>
+        </div>
+    </div>
+    {% readonly requestion 'birth_date' %}
+    {% readonly requestion 'registration_datetime' %}
+    <div class="ctrlHolder readOnly">
+        <span class="readOnlyLabel">Возрастная категория</span>
+        <div class="readOnly">
+            <span class="choice">{{ requestion.age_groups.0|default:"Ребенок не попадает ни в одну возрастную категорию, наверное, ему нужно подрасти" }}</span>
+        </div>
+    </div>
+    <div class="ctrlHolder readOnly">
+        <span class="readOnlyLabel">Льготы</span>
+        <div class="readOnly">
+            <span class="choice">{{ requestion.benefit_category }}</span>
+        </div>
+    </div>
+    <div class="ctrlHolder readOnly">
+        <span class="readOnlyLabel">Приоритетные ДОУ</span>
+        <div class="readOnly">
+            {% for sadik in requestion.pref_sadiks.all %}
+                <p><a href="{% url sadik_info sadik_id=sadik.id %}">{{ sadik.short_name }}</a></p>
+            {% endfor %}
+        </div>
+    </div>
+
+
+</div>
+</div>
+<div class="span4">
+{% if requestion.address.coords %}<div id="requestion_map"></div>{% endif %}
+<h2 class="page-header">Родитель</h2>
+{% with requestion.profile as profile %}
+    <div class="uniForm">
+        <div class="ctrlHolder readOnly">
+            <span class="readOnlyLabel">Документ, удостоверяющий родителя</span>
+            {% with profile.get_identity_documents.0 as profile_document %}
+                <div class="readOnly">
+                    <span class="choice">{% if profile_document %}{{ profile_document.template }}: {{ profile_document }}{% else %}Не указан{% endif %}</span>
+                </div>
+            {% endwith %}
+        </div>
+        <div class="ctrlHolder readOnly">
+            <span class="readOnlyLabel">ФИО родителя</span>
+            <div class="readOnly">
+                    <span class="choice">
+                        {{ profile.first_name }} {{ profile.last_name }} {{ profile.patronymic }}
+                        ({{ requestion.get_agent_type_display }})
+                    </span>
+            </div>
+        </div>
+        {% readonly profile 'phone_number' %}
+        {% if profile.email_verified %}
+            {% readonly profile.user 'email' %}
+        {% endif %}
+        {% if profile.mobile_number %}
+            {% readonly profile 'mobile_number' %}
+        {% endif %}
+        
+    </div>
+
+{% endwith %}
+</div>
+</div>
+<div class="uniForm">
+{% url operator_profile_change requestion.id as operator_profile_change_url%}
+{% if operator_profile_change_url|check_url_availability:request.user %}
+    <div class="buttonHolder">
+        <a href="{% url find_profile_for_requestion requestion_id=requestion.id %}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
+        <a id="changeProfile" href="{% url operator_profile_change requestion.id %}" class="btn"><i class="icon-pencil"></i> Изменить</a>
+    </div>
+{% endif %}
+</div>
+        
+<h2 class="page-header">Документы</h2>
+{% if other_requestions_with_document %}
+    <p class="red">
+        Другие заявки с таким же идентифицирующим документом:
+        {% for other_requestion in other_requestions_with_document %}
+            <a href="{% url operator_requestion_info requestion_id=other_requestion.id %}">{{ other_requestion }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+{% endif %}
+<ul class="documents">
+    {% for doc in requestion.evidience_documents %}
+        <li><p>{{ doc.template }}</p>
+            {{ doc }}
+            {% if doc.confirmed %}<i title="Подтвержден" class="green icon-ok-circle"></i>
+                {% else %}<i title="Не подтвержден" class="red icon-ban-circle"></i>{% endif %}</li>
+    {% endfor %}
+</ul>

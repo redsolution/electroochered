@@ -1,0 +1,14 @@
+<form action="." method="post">
+    {% csrf_token %}
+    <div class="row">
+      <div class="span2 offset5">
+          <button name="confirmation" value="yes" class="btn">
+              <div class="icon yes"></div>Да
+          </button>
+          <button name="confirmation" value="no" class="btn">
+              <div class="icon no"></div>Нет
+          </button>
+      </div>
+    </div>
+    <input type="hidden" name="next" value="{{ params.redirect_to }}" />
+</form>

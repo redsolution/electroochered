@@ -1,0 +1,11 @@
+Большая часть проекта лицензирована под "GNU AFFERO GENERAL PUBLIC LICENSE Version 3",
+размещенной в текущей директории в файле LICENSE-agpl-3.0.txt.
+
+Файлы в каталоге /media/img лицензированы под "Creative Commons Attribution Non-Commercial No Derivatives".
+
+В каталогах /media/js/libs, /media/leaflet, /media/openlayers размещены сторонние библиотеки
+у которых свои условия лицензирования.
+В каталоге /media/css все файлы, кроме style.css имеют собственное лицензирование.
+
+Файл /media/font/Ubuntu-Regular.ttf лицензирован под "Ubuntu Font Licence" http://font.ubuntu.com/ufl/ubuntu-font-licence-1.0.txt
+Файлы /media/font/fontawesome-*, /media/css/font-awesome* относятся к проекту Fontawesome http://fortawesome.github.com/Font-Awesome/#license

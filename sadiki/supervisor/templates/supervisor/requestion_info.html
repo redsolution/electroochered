@@ -1,0 +1,36 @@
+{% extends "supervisor/requestion_base.html" %}
+{% load sadiki_core_tags %}
+
+{% block title %}Информация о заявке {{ requestion }}{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+{% endblock %}
+
+{% block bottomjs %}
+{{ block.super }}
+    {% include "includes/leaflet_js.html" %}
+    {% with requestion.address.coords as point %}
+        {% if point %}
+            <script type="text/javascript">
+                $(document).ready(function(){
+                    draw_map_for_point('requestion_map', {{ point.x }}, {{ point.y }});
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+{% endblock %}
+
+{% block content %}
+    {% include "operator/includes/requestion_info.html" %}
+
+    {% url change_registration_datetime requestion.id as change_registration_datetime_url %}
+    {% action_button_for_url change_registration_datetime_url options text="Изменить дату регистрации" %}
+    {% url change_birth_date requestion.id as change_birth_date_url %}
+    {% action_button_for_url change_birth_date_url options text="Изменить дату рождения" %}
+    {% for transition in requestion.available_transitions %}
+        {% url supervisor_requestion_status_change requestion.id transition.dst as status_change_url %}
+        {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
+    {% endfor %}
+{% endblock %}

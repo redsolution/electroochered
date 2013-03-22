@@ -1,0 +1,36 @@
+{% extends "distribution/distribution_base.html" %}
+{% load sadiki_core_tags %}
+
+{% block title %}Сводная инфорамация по комплектованию{% endblock %}
+
+{% block content %}
+    {% if ending_distribution %}
+        <h2 class="page-header">Выполняется завершение распределения.</h2>
+        <p>Подождите, пока система завершит распределение</p>
+        <a href=".">Страница автоматически обновится через <span id="countdown"></span> c.</a>
+        <script type="text/javascript">
+            var delay = 30;
+            function countdown(){
+                var counterEl = document.getElementById('countdown');
+                counterEl.textContent = delay;
+                delay--;
+                if (delay <0 ){window.location.reload()}
+                setTimeout(countdown, 1000);
+            }
+            countdown();
+        </script>
+    {% else %}
+        {% if distribution %}
+            <h3>Текущее зачисление:</h3>
+            <p>Статус: {{ distribution.get_status_display }} <br />
+               Количество мест: {{ distribution.vacancies_set.count }}
+            </p>
+        {% else %}
+            <p>Активных зачислений нет</p>
+            {% url distribution_init as distribution_init_url %}
+            {% if distribution_init_url|check_url_availability:request.user %}
+                <a class="btn" href="{% url distribution_init %}">Открыть новое зачисление</a>
+            {% endif %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "operator/blanks/base.html" %}
+{% load pytils_dt sadiki_core_tags %}
+{% block content %}
+    <div class="header">
+        <p>Начальнику {{ local_authority }} {{ authority_head }}</p>
+        <p>Заявитель: <span class="requester_info">{{ requestion.profile.fio }}</span></p>
+        <p>Контактный телефон: <span class="requester_info">{{ requestion.profile.phone_number }}</span></p>
+        <p>Номер заявки в системе "Электроочередь": <span class="requester_info">{{ requestion.requestion_number }}</span></p>
+    </div>
+    <div class="content">
+        <h2>ЗАЯВЛЕНИЕ</h2>
+        Прошу снять моего ребенка с учета нуждающихся в предоставлении места в 
+        муниципальном дошкольном образовательном учреждении {{ municipality_name_genitive }}.
+    </div>
+    <div class="footer">
+        <div class="date">{{ current_datetime|ru_strftime:"%d %B %Y г." }}</div>
+        <div class="signature"><span class="blank_field">{{ "&nbsp; "|multiply:20|safe }}</span>&nbsp;/<span class="blank_field">{{ "&nbsp; "|multiply:20|safe }}</span>&nbsp;</div>
+    </div>
+{% endblock content %}

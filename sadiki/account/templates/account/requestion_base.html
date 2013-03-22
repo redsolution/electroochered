@@ -1,0 +1,43 @@
+{% extends "account/base.html" %}
+{% load sadiki_core_tags %}
+
+{% block content_title %}
+    <h1>{% block title %}Заявка {{ requestion.requestion_number }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content_menu %}
+    {% url account_requestion_info requestion.id as account_requestion_info_url%}
+    {% url account_requestion_change requestion.id as account_requestion_change_url%}
+    {% url account_benefits_change requestion.id as account_benefits_change_url %}
+    {% url account_preferredsadiks_change requestion.id as account_preferredsadiks_change_url %}
+    {% url account_documents_change requestion.id as account_documents_change_url %}
+    {% url requestion_logs_for_account requestion.id as requestion_logs_for_account_url %}
+    <ul class="content-menu">
+        <li {% if request.path == account_requestion_info_url %}class="active"{% endif %}>
+            <a href="{{ account_requestion_info_url }}">Информация о заявке</a>
+        </li>
+        {% if requestion.editable %}
+            <li {% if request.path == account_requestion_change_url %}class="active"{% endif %}>
+                <a href="{{ account_requestion_change_url }}">Изменить заявку</a>
+            </li>
+            {% check_url_availability account_benefits_change_url as "benefits_available" %}
+            {% if benefits_available %}
+            <li {% if request.path == account_benefits_change_url %}class="active"{% endif %}>
+                <a href="{{ account_benefits_change_url }}">Изменить льготы</a>
+            </li>
+            {% endif %}
+            <li {% if request.path == account_preferredsadiks_change_url %}class="active"{% endif %}>
+                <a href="{{ account_preferredsadiks_change_url }}">Изменить приоритетные ДОУ</a>
+            </li>
+            {% check_url_availability account_documents_change_url as "documents_available" %}
+            {% if documents_available %}
+                <li {% if request.path == account_documents_change_url %}class="active"{% endif %}>
+                    <a href="{{ account_documents_change_url }}">Документы</a>
+                </li>
+            {% endif %}
+        {% endif %}
+        <li {% if request.path == requestion_logs_for_account_url %}class="active"{% endif %}>
+            <a href="{{ requestion_logs_for_account_url }}">История изменений</a>
+        </li>
+    </ul>
+{% endblock %}

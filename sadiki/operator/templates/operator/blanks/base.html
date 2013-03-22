@@ -1,0 +1,63 @@
+{% load pytils_dt %}
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+        <style type="text/css">
+            @font-face {
+                font-family: Arial;
+                src: url("{{ media_root }}/font/Ubuntu.ttf");
+            }
+            
+            body {
+                padding: 10mm;
+                width: 210mm;
+                height: 297mm;
+                margin: 0px;
+                font-family: Arial;
+                font-size: 11pt;
+            }
+            .header{
+                margin-left: 95mm;
+            }
+            p {
+                margin: 0mm;
+                padding: 0mm;
+            }
+            .content{
+                text-align: justify;
+            }
+            .content h2{
+                text-align: center;
+                margin-top: 20mm;
+            }
+            
+            .footer{
+                margin-top: 30mm;
+                padding: 0mm
+            }
+            
+            .footer tr td{
+                text-align: left;
+                padding: 0mm;
+                margin: 0mm;
+            }
+            
+            .footer .date{
+                float: left;
+            }
+            .footer .signature{
+                float: right;
+            }
+            
+            .blank_field{
+                white-space-collapse: discard;
+                text-decoration: underline;
+            }
+        </style>
+    </head>
+    
+    <body>
+        {% block content %}
+        {% endblock %}
+    </body>
+</html>
