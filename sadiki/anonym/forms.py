@@ -48,7 +48,7 @@ class RegistrationForm(forms.ModelForm):
     def clean_password1(self):
         if 'password1' in self.cleaned_data:
             password = self.cleaned_data['password1']
-            # порверка что Email и пароль не совпадают
+            # проверка, что Email и пароль не совпадают
             if 'username' in self.cleaned_data:
                 if password == self.cleaned_data['username']:
                     raise forms.ValidationError(
@@ -208,7 +208,7 @@ class QueueFilterForm(forms.Form):
         widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}),
         help_text=u"Укажите номер заявки к которой вы хотите перейти")
     confirmed = forms.BooleanField(label=u'Документально подтвержденные',
-        required=False, help_text=u"Отметьте для исключения всех неподвержденных заявок из очереди")
+        required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
     benefit_category = forms.ModelChoiceField(label=u'Категория льгот', required=False,
         queryset=BenefitCategory.objects.exclude_system_categories(),
         help_text=u"При выборе в очереди будут отображаться заявки только этой категории льгот")
@@ -218,7 +218,7 @@ class QueueFilterForm(forms.Form):
     area = forms.ModelChoiceField(
         label=u'Территориальная области в которую заявка может быть зачислена',
         queryset=Area.objects.all(), empty_label=u"Весь муниципалитет",
-        required=False, help_text=u"При выборе в очереди будут отображаться завки,\
+        required=False, help_text=u"При выборе в очереди будут отображаться заявки,\
             которые указали возможность зачисления в данную территориальную область"
     )
 

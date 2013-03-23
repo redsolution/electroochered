@@ -344,7 +344,7 @@ class PreferredSadiksChange(AccountRequestionEditMixin, TemplateView):
         form = PreferredSadikForm(instance=requestion, data=request.POST)
         if form.is_valid():
             if form.has_changed():
-                # TODO: Добавить изящества в составление конеткста для логов
+                # TODO: Добавить изящества в составление контекста для логов
                 pref_sadiks = set(requestion.pref_sadiks.all())
                 requestion = form.save()
                 new_pref_sadiks = set(requestion.pref_sadiks.all())

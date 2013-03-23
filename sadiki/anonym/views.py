@@ -184,7 +184,7 @@ class Queue(ListView):
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
-#        для анонимного и авторизованного пользвоателя нужно отобразить какие особые действия совершались с заявкой
+#        для анонимного и авторизованного пользователя нужно отобразить какие особые действия совершались с заявкой
         requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in queryset])
 #        нам нужны не все логи, а только с определенными действиями
         if queryset:
@@ -263,7 +263,7 @@ class RequestionSearch(TemplateView):
         heaviest_key = max(initial_query.keys(), key=lambda x: self.field_weights[x])
         if self.initial_query.filter(
             **{heaviest_key: initial_query[heaviest_key]}).exists():
-            # прверка целесообразности уточнения
+            # проверка целесообразности уточнения
             new_query = initial_query.copy()
             for _ in initial_query.keys():
                 lightest_key = min(new_query.keys(), key=lambda x: self.field_weights[x])
