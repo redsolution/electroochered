@@ -624,7 +624,7 @@ class Profile(models.Model):
         return EvidienceDocument.objects.documents_for_object(self)
 
     def sadik_available(self, sadik):
-        u""""проверка есть ли у пользователя права на ДОУ"""
+        u"""проверка есть ли у пользователя права на ДОУ"""
         return (self.area == sadik.area if self.area else True
             and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
