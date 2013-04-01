@@ -174,7 +174,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         benefits_after = Requestion.objects.queue().benefits().count() - benefits_before
         confirmed_after = Requestion.objects.queue().confirmed().count() - confirmed_before
         requestions_after = Requestion.objects.queue().count() - requestions_before
-        queue_chunk = Requestion.objects.queue()[requestions_before - 20:requestions_before + 20]
+        offset = max(0, requestions_before - 20)
+        queue_chunk = Requestion.objects.queue()[offset:requestions_before + 20]
 
         # Вычесть свою заявку
         requestions_after -= 1
@@ -192,7 +193,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'requestions_before': requestions_before,
             'requestions_after': requestions_after,
             'queue': queue_chunk,
-            'offset': requestions_before - 20,
+            'offset': offset,
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
         }
 
