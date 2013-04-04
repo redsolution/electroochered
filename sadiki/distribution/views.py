@@ -184,9 +184,9 @@ class DecisionManager(OperatorPermissionMixin, View):
         available_sadiks_ids = available_sadik_groups.filter(
             query_available_sadiks).values_list('sadik', flat=True)
         available_sadiks = Sadik.objects.filter(id__in=available_sadiks_ids)
-        pref_sadiks = requestion.pref_sadiks.filter(id__in=available_sadiks_ids)
+        pref_sadiks = requestion.pref_sadiks.filter(id__in=available_sadiks_ids).select_related("address__coords")
         any_sadiks = Sadik.objects.exclude(
-            id__in=pref_sadiks).filter(id__in=available_sadiks)
+            id__in=pref_sadiks).filter(id__in=available_sadiks).select_related("address__coords")
         return {'pref_sadiks': pref_sadiks, 'any_sadiks': any_sadiks}
     
     def decision_manager(self, request):
@@ -242,7 +242,11 @@ class DecisionManager(OperatorPermissionMixin, View):
             form = SelectSadikForm(current_requestion,
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query)
         queue_info_dict.update({'sadik_list': sadiks_query,
-            'select_sadik_form': form,})
+            'select_sadik_form': form,
+            "sadiks_coords": dict([(sadik.id, {"x": sadik.address.coords.x, "y": sadik.address.coords.y})
+                                   if sadik.address and sadik.address.coords else (sadik.id, {})
+                                   for sadik in sadiks_query]),
+        })
         return render_to_response('distribution/decision_manager.html',
             queue_info_dict, context_instance=RequestContext(request),
         )

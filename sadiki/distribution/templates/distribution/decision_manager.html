@@ -1,20 +1,61 @@
 {% extends "distribution/distribution_base.html" %}
 {% load sadiki_core_tags %}
 
-{% block js %}
+{% block css %}
     {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+{% endblock %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    {% load_settings %}
+    <script src="{{ STATIC_URL }}leaflet/leaflet.js"></script>
+    <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
+    <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
     <script>
-        var queue_data = {};
+        var sadiks_coords = {{ sadiks_coords|safe }};
         $(document).ready(function(){
+            var sadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62],  // the same for the shadow
+            });
+            {% with current_requestion.address.coords as point %}
+                var requestion_point = [{{ point.y }}, {{ point.x }}]
+                var requestion_marker = L.marker(requestion_point)
+                var point = [{{ point.y }}, {{ point.x }}]
+            {% endwith %}
+            var map = new L.Map("requestion_map", {
+                center: L.latLng(point)
+            });
+            var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+                subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+            });
+            osmLayer.addTo(map);
+
+            var points = L.layerGroup([]);
 
             $('#select_sadik_form').change(function(){
+                points.clearLayers();
                 var sadik_id = $(this).find('option:selected').val();
                 $('#sadik_'  + sadik_id + '_description').show().siblings('dl').hide();
+                var sadik_coords = sadiks_coords[sadik_id]
+                if ($.isEmptyObject(sadik_coords)) {
+                    $("#requestion_map").hide()
+                } else {
+                    $("#requestion_map").show()
+                    var sadik_point = [sadik_coords["y"], sadik_coords["x"]]
+                    var sadik_marker = L.marker(sadik_point, {icon: sadikIcon});
+                    points = L.layerGroup([requestion_marker, sadik_marker]).addTo(map);
+                    map.fitBounds([requestion_point, sadik_point]);
+                };
             });
             $('#select_sadik_form').trigger('change');
         });
     </script>
-{% endblock js %}
+{% endblock %}
 
 {% block content %}
     {% if not distribution %}
@@ -77,7 +118,7 @@
             </table>
 
 
-            <div class="grid_3 alpha requestion_list">
+            <div class="span_3 alpha requestion_list">
                 <h3>Сводка</h3>
                 <div class="table-row clearfix">
                     <p>Получили места: {{ distributed_requestions_number }}</p>
@@ -86,7 +127,7 @@
                     <div>Свободных мест: {{ free_places }}</div>
                 </div>
             </div>
-            <div class="grid_3 omega legend">
+            <div class="span_3 omega legend">
                 <h3>Обозначения</h3>
                 <div class="decision_requestion">
                     <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
@@ -128,7 +169,7 @@
                 </form>
 
                 <h3 id="sadik_info_list">Информация о МДОУ</h3>
-
+                <div id="requestion_map"></div>
                 {% for sadik in sadik_list %}
                     <dl id="sadik_{{ sadik.id }}_description" style="display: none;">
                         <p>Название: {{ sadik|verbose_value }}</p>
