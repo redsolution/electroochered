@@ -12,14 +12,6 @@
 {{ block.super }}
     <script type="text/javascript">
         $(function(){$('.tooltip').tooltip();});
-        function blink(element_class){
-            $("."+element_class).animate({opacity:0.3},1000,"swing",function(){
-                $(this).animate({opacity:1},1000, "swing");});
-            window.setTimeout("blink('distributed_info')", 3000);
-        };
-        $(document).ready(function(){
-            blink("distributed_info");
-        });
     </script>
     {% with requestion.address.coords as point %}
         {% if point %}
@@ -36,18 +28,22 @@
 {% block title %}Страница заявки {{ requestion }}{% endblock %}
 
 {% block content %}
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
-        Заявление на регистрацию
-    </a>
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_info">
-        Заявление на изменение данных
-    </a>
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_preferred_sadiks">
-        Заявление на изменение приоритетных ДОУ
-    </a>
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=remove_registration">
-        Заявление на cнятие с учета
-    </a>
+    <div class="row requestion_blanks">
+        <div class="span12">
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
+            Заявление на регистрацию
+        </a>
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_info">
+            Заявление на изменение данных
+        </a>
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_preferred_sadiks">
+            Заявление на изменение приоритетных ДОУ
+        </a>
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=remove_registration">
+            Заявление на cнятие с учета
+        </a>
+        </div>
+    </div>
     {% include "operator/includes/requestion_info.html" %}
 
     <h2 class="page-header">Действия с заявкой</h2>
