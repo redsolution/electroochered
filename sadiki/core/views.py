@@ -19,21 +19,23 @@ class Frontpage(TemplateView):
     template_name = 'frontpage.html'
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_anonymous():
+        u = request.user
+        if u.is_anonymous():
             if not Sadik.objects.exists():
                 return self.render_to_response({})
             else:
-                return HttpResponseRedirect(reverse('anonym_frontpage'))
-        if request.user.is_supervisor():
-            return HttpResponseRedirect(reverse('supervisor_frontpage'))
-        elif request.user.is_operator():
-            return HttpResponseRedirect(reverse('operator_frontpage'))
-        elif request.user.is_requester():
-            return HttpResponseRedirect(reverse('account_frontpage'))
-        elif request.user.is_administrator():
-            return HttpResponseRedirect(reverse('sadiki_admin:index'))
+                result = 'anonym_frontpage'
+        elif u.is_supervisor():
+            result = 'supervisor_frontpage'
+        elif u.is_operator():
+            result = 'operator_frontpage'
+        elif u.is_requester():
+            result 'account_frontpage'
+        elif u.is_administrator():
+            result = 'sadiki_admin:index'
         else:
-            return HttpResponseRedirect(reverse('anonym_frontpage'))
+            result = 'anonym_frontpage'
+        return HttpResponseRedirect(reverse(result))
 
 
 class Settings(TemplateView):
