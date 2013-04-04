@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
-from django.core.servers.basehttp import FileWrapper
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
-from django.template.loader import render_to_string
 from django.utils import simplejson
 from django.views.generic.base import TemplateView, View
-from sadiki.core.models import Sadik, Requestion, Preference, \
+from sadiki.core.models import Sadik, Preference, \
     PREFERENCE_MUNICIPALITY_NAME, PREFERENCE_LOCAL_AUTHORITY, \
-    PREFERENCE_AUTHORITY_HEAD, PREFERENCE_MUNICIPALITY_NAME_GENITIVE
+    PREFERENCE_AUTHORITY_HEAD, PREFERENCE_MUNICIPALITY_NAME_GENITIVE, PREFERENCE_IMPORT_FINISHED
 from wkhtmltopdf.views import PDFTemplateResponse
-import StringIO
 import datetime
 
 
@@ -20,11 +17,10 @@ class Frontpage(TemplateView):
 
     def get(self, request, *args, **kwargs):
         u = request.user
+        result = 'anonym_frontpage'
         if u.is_anonymous():
-            if not Sadik.objects.exists():
+            if not Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED, value=True).exists():
                 return self.render_to_response({})
-            else:
-                result = 'anonym_frontpage'
         elif u.is_supervisor():
             result = 'supervisor_frontpage'
         elif u.is_operator():
@@ -33,8 +29,6 @@ class Frontpage(TemplateView):
             result = 'account_frontpage'
         elif u.is_administrator():
             result = 'sadiki_admin:index'
-        else:
-            result = 'anonym_frontpage'
         return HttpResponseRedirect(reverse(result))
 
 
