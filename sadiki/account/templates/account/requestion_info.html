@@ -51,6 +51,7 @@
         {% if requestion.status != STATUS_REQUESTER_NOT_CONFIRMED %}
             <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
         {% endif %}
+    {% endif %}
 <div class="row">
     <div class="span6">
             <div class="page-header"><h2>Информация о заявке</h2></div>
@@ -127,5 +128,4 @@
 
         <h2><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></h2>
 
-    {% endif %}
 {% endblock %}

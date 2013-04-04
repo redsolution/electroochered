@@ -11,9 +11,9 @@ from sadiki.account.forms import ProfileChangeForm, RequestionForm, \
     ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm, RequestionAddressForm
 from sadiki.core.models import Profile, Requestion, \
     BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
-    EvidienceDocument, STATUS_REQUESTER, BenefitCategory
+    EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
     CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS
 from sadiki.logger.models import Logger
@@ -175,7 +175,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         confirmed_after = Requestion.objects.queue().confirmed().count() - confirmed_before
         requestions_after = Requestion.objects.queue().count() - requestions_before
         offset = max(0, requestions_before - 20)
-        queue_chunk = Requestion.objects.queue()[offset:requestions_before + 20]
+        queue_chunk = Requestion.objects.queue().add_distributed_sadiks()[offset:requestions_before + 20]
 
         # Вычесть свою заявку
         requestions_after -= 1
@@ -183,6 +183,14 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             benefits_after -= 1
         if requestion.status == STATUS_REQUESTER:
             confirmed_after -= 1
+
+        # для заявок вычисляем возрастные группы
+        age_groups = AgeGroup.objects.all()
+        current_distribution_year = get_current_distribution_year()
+        for req in queue_chunk:
+            req.age_groups_calculated = req.age_groups(
+                age_groups=age_groups,
+                current_distribution_year=current_distribution_year)
 
         context = {
             'requestion': requestion,
