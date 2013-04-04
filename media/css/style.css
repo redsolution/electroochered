@@ -497,10 +497,6 @@ table.table.table-bordered tr.highlight td {
     text-decoration: none;
 }
 
-.header .logarea {
-    float: right;
-}
-
 .header .logarea .signup a,
 .header .logarea .signup a:visited,
 .header .logarea .signup a:focus,
@@ -511,7 +507,6 @@ table.table.table-bordered tr.highlight td {
 }
 
 .header .logarea .signup li{
-    float:left;
     margin-right: 10px;
     line-height: 45px;
 }
@@ -521,8 +516,9 @@ table.table.table-bordered tr.highlight td {
 }
 
 .dropdown{
-    height: 40px;
+    height: 42px;
     padding-top: 10px;
+    float: right;
 }
 
 .header .logarea .dropdown-toggle{
@@ -550,6 +546,7 @@ table.table.table-bordered tr.highlight td {
 }
 
 .dropdown-menu{
+    left: auto;
     right: 0px;
 }
 

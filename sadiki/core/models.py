@@ -1299,7 +1299,7 @@ class UserFunctions:
         except Profile.DoesNotExist:
             pass
         else:
-            if profile.first_name and profile.patronymic:
+            if profile.first_name or profile.patronymic:
                 return u'%s %s' % (profile.first_name, profile.patronymic)
 #        если не смогли получить имя отчество у профиля, то берем их у пользователя
         return u'%s %s' % (self.first_name or u'', self.last_name or u'')
