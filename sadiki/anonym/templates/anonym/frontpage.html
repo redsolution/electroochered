@@ -39,7 +39,7 @@
                     var m = L.marker(markers[i].location.reverse(), {
                         title: markers[i].name
                     });
-                    m.bindPopup('<b>'+markers[i].name+'</b><div>Адрес:'+markers[i].address+'</div><div>Телефон:'+ markers[i].phone +'</div><a href="'+ markers[i].url +'">Перейти к ДОУ</a>');
+                    m.bindPopup('<b>'+markers[i].name+'</b><div>Адрес: '+markers[i].address+'</div><div>Телефон: '+ markers[i].phone +'</div><a href="'+ markers[i].url +'">Перейти к ДОУ</a>');
                     markersLayer.addLayer(m);
                 }
                 map.addLayer(markersLayer);
