@@ -30,7 +30,7 @@ class Frontpage(TemplateView):
         elif u.is_operator():
             result = 'operator_frontpage'
         elif u.is_requester():
-            result 'account_frontpage'
+            result = 'account_frontpage'
         elif u.is_administrator():
             result = 'sadiki_admin:index'
         else:
