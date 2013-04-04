@@ -139,7 +139,7 @@ class WaitTimeStatistics(TemplateView):
             'max_birth_date': age_group.max_birth_date(), } for age_group
                 in AgeGroup.objects.all()]
         if groups:
-        #    добавляем самую малдшую возрастную группу
+        #    добавляем самую младшую возрастную группу
             small_group = {'name': '0-1 год', 'max_birth_date': datetime.date.today(),
                           'min_birth_date': groups[0]['max_birth_date']}
             groups.insert(0, small_group)
@@ -172,7 +172,7 @@ class WaitTimeStatistics(TemplateView):
                     requestions_numbers.append(None)
                     distributed_requestions_numbers.append(None)
                 else:
-    #                подсчтиываем кол-во заявок в очереди для данной группы и для данного интервала
+    #                подсчитываем кол-во заявок в очереди для данной группы и для данного интервала
                     requestions_for_group = requestions.filter_for_age(
                         min_birth_date=group['min_birth_date'],
                         max_birth_date=group['max_birth_date'])

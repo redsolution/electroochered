@@ -12,7 +12,7 @@ from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, PrefSadiks
 
 
 class RequestionPrefSadiksMixin(object):
-    u"""проверяем, что выбранные ДОУ из той области, куда хочет быть зачеслен пользователь"""
+    u"""проверяем, что выбранные ДОУ из той области, куда хочет быть зачислен пользователь"""
 
     def clean(self, *args, **kwargs):
         areas = self.cleaned_data.get('areas')
