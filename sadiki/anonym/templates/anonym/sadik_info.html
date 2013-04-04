@@ -55,33 +55,41 @@
 {% block content %}
     <h2>Контактные данные</h2>
     <div class="clearfix">
-        <dl class="sadik_contacts">
-            <dt>Полное наименование:</dt>
-                <dd>{{ sadik.name }}</dd>
-            <dt>Адрес:</dt>
-                <dd>{{ sadik.address|verbose_value }}</dd>
-            <dt>Номера телефонов:</dt>
-                <dd>{{ sadik.phone|verbose_value }}</dd>
-            <dt>Ф.И.О. руководителя:</dt>
-                <dd>{{ sadik.head_name|verbose_value }}</dd>
-            <dt>Веб-сайт:</dt>
-                <dd>
-                    {% if sadik.site %}
-                        <a href="{{ sadik.site }}">{{ sadik.site }}</a>
-                    {% else %}
-                        Не указан
-                    {% endif %}
-                </dd>
-            <dt>Электронная почта:</dt>
-                <dd>
-                    {% if sadik.email %}
-                        <a href="mailto:{{ sadik.email }}">{{ sadik.email }}</a>
-                    {% else %}
-                        Не указана
-                    {% endif %}
-                </dd>
-        </dl>
         {% if sadik.address.coords %}<div id="sadik_map"></div>{% endif %}
+        <dl class="sadik_contacts">
+            <dt>{{ sadik|get_field_verbose_name:'name' }}:</dt>
+                <dd>{{ sadik.name }}</dd>
+            <dt>{{ sadik|get_field_verbose_name:'address' }}:</dt>
+                <dd>{{ sadik.address|verbose_value }}</dd>
+            {% if sadik.phone %}
+                <dt>{{ sadik|get_field_verbose_name:'phone' }}:</dt>
+                <dd>{{ sadik.phone }}</dd>
+            {% endif %}
+            {% if sadik.head_name %}
+                <dt>{{ sadik|get_field_verbose_name:'head_name' }}:</dt>
+                <dd>{{ sadik.head_name }}</dd>
+            {% endif %}
+            {% if sadik.site %}
+                <dt>{{ sadik|get_field_verbose_name:'site' }}:</dt>
+                <dd><a href="{{ sadik.site }}">{{ sadik.site }}</a></dd>
+            {% endif %}
+            {% if sadik.email %}
+                <dt>{{ sadik|get_field_verbose_name:'email' }}:</dt>
+                <dd><a href="mailto:{{ sadik.email }}">{{ sadik.email }}</a></dd>
+            {% endif %}
+            {% if sadik.tech_level %}
+                <dt>{{ sadik|get_field_verbose_name:'tech_level' }}:</dt>
+                <dd>{{ sadik.tech_level }}</dd>
+            {% endif %}
+            {% if sadik.training_program %}
+                <dt>{{ sadik|get_field_verbose_name:'training_program' }}:</dt>
+                <dd>{{ sadik.training_program }}</dd>
+            {% endif %}
+            {% if sadik.extended_info %}
+                <dt>{{ sadik|get_field_verbose_name:'extended_info' }}:</dt>
+                <dd>{{ sadik.extended_info }}</dd>
+            {% endif %}
+        </dl>
     </div>
     <h2>ДОУ указан в качестве приоритетного</h2>
     <table class="table table-striped table-bordered table-condensed">

@@ -333,7 +333,7 @@ class Sadik(models.Model):
         upload_to=u'upload/sadiki/routeinfo/', blank=True, null=True)
     # Дополнительные поля
     extended_info = models.TextField(
-        u'дополнительная информация в формате HTML',
+        u'дополнительная информация',
         blank=True, null=True)
     active_registration = models.BooleanField(
         verbose_name=u'может быть указан как приоритетный', default=True)

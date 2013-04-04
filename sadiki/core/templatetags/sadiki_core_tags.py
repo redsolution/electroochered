@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.utils.text import capfirst
 from classytags.arguments import Argument, MultiKeywordArgument
 from classytags.core import Options, Tag
 from classytags.helpers import InclusionTag
@@ -264,3 +265,8 @@ class QueueTooltips(Tag):
         return ''
 
 register.tag(QueueTooltips)
+
+
+@register.filter
+def get_field_verbose_name(instance, arg):
+    return capfirst(instance._meta.get_field(arg).verbose_name)

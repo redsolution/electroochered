@@ -771,9 +771,8 @@ html, body {
 /*Sadik info*/
 
 .sadik_contacts{
-    float:left;
-    margin-right: 610px;
     min-height: 310px;
+    max-width: 900px;
 }
 
 .sadik_contacts dt{
@@ -791,8 +790,7 @@ html, body {
 #sadik_map{
     width: 570px;
     height: 300px;
-    position: absolute;
-    right: 30px;
+    float: right;
 }
 
 
