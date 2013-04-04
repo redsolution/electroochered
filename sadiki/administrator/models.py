@@ -357,6 +357,7 @@ class RequestionLogic(object):
         wb.save(path_to_file)
 
 class SadikLogic(object):
+    sadiks_identifiers = []
     errors = []
 
     def __init__(self, format_doc, area, fake=False):
@@ -371,6 +372,11 @@ class SadikLogic(object):
                     self.format_doc.start_line))
             else:
                 sadik_object, address_data, age_groups = self.format_doc.to_python(parsed_row)
+                if sadik_object.number in self.sadiks_identifiers:
+                    self.errors.append(ErrorRow(parsed_row,
+                        index + self.format_doc.start_line, ValidationError(u'ДОУ с номером "%s" уже встречается' % sadik_object.number)))
+                else:
+                    self.sadiks_identifiers.append(sadik_object.identifier)
                 self.import_sadik(sadik_object, address_data, age_groups)
 
     def import_sadik(self, sadik_obj, address_data, age_groups):
@@ -389,7 +395,7 @@ class SadikLogic(object):
         styles = get_xlwt_style_list(rb)
         for error in self.errors:
             row = rb_sheet.row(error.row_index)
-            style = xlwt.easyxf('pattern: pattern solid, fore_colour red; align: horiz centre, vert centre; borders: top thin, bottom thin, left thin, right thin;')
+            style = xlwt.easyxf('pattern: pattern solid, fore_colour orange; align: horiz centre, vert centre; borders: top thin, bottom thin, left thin, right thin;')
             for i, cell in enumerate(row):
                 style.num_format_str = styles[cell.xf_index].num_format_str
                 ws.write(error.row_index, i, cell.value, style)

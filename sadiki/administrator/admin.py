@@ -81,6 +81,8 @@ class CustomRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
 
 
 class AddressForm(forms.ModelForm):
+    town = forms.CharField(label=u"Населенный пункт", max_length=255, required=False)
+    block_number = forms.CharField(label=u'№ квартала', max_length=255, required=False)
     postindex = forms.IntegerField(label=u"Почтовый индекс", max_value=999999)
     street = forms.CharField(label=u"Улица", max_length=255)
     building_number = forms.CharField(label=u"Дом", max_length=255)
@@ -88,6 +90,8 @@ class AddressForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
         if self.instance and self.instance.id:
+            self.fields["town"].initial = self.instance.address.town
+            self.fields["block_number"].initial = self.instance.address.block_number
             self.fields["postindex"].initial = self.instance.address.postindex
             self.fields["street"].initial = self.instance.address.street
             self.fields["building_number"].initial = self.instance.address.building_number
@@ -430,12 +434,13 @@ class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
 class SadikAdmin(ModelAdminWithoutPermissionsMixin, CustomGeoAdmin):
     form = SadikAdminForm
     model = Sadik
-    fields = ('area', 'name', 'short_name', 'number', 'postindex', 'street',
+    fields = ('area', 'name', 'short_name', 'identifier', 'town', 'postindex',
+        'block_number', 'street',
         'building_number', 'coords', 'email', 'site',
         'head_name', 'phone', 'cast', 'tech_level', 'training_program',
         'route_info', 'extended_info', 'active_registration',
         'active_distribution', 'age_groups',)
-    list_display = ['name', 'number']
+    list_display = ['name', 'identifier']
     raw_id_fields = ['address']
 
     def save_model(self, request, obj, form, change):

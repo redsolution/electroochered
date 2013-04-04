@@ -381,13 +381,13 @@ class AgeGroupCellParser(CellParser):
         for age_group_identifier in age_groups_identifiers:
 #            проверяем есть ли льгота с таким названием и возвращаем, если есть
             try:
-                age_group = AgeGroup.objects.get(short_name=age_group_identifier.strip())
+                age_group = AgeGroup.objects.get(name=age_group_identifier.strip())
                 age_groups.append(age_group)
             except AgeGroup.DoesNotExist:
                 wrong_age_groups_identifiers.append(age_group_identifier)
         if wrong_age_groups_identifiers:
             raise ValidationError(
-                u'Следующие идентификаторы льгот не зарегистрированы в системе: %s' %
+                u'Следующие возрастные группы не зарегистрированы в системе: %s' %
                 u';'.join(wrong_age_groups_identifiers))
         else:
             return age_groups

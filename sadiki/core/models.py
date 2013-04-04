@@ -307,6 +307,7 @@ class Sadik(models.Model):
     name = models.CharField(u'полное название', max_length=255)
     short_name = models.CharField(u'короткое название', max_length=255)
     number = models.IntegerField(u'номер', null=True)
+    identifier = models.CharField(u'идентификатор', null=True, max_length=25)
     address = models.ForeignKey("Address", verbose_name=u"Адрес")
     email = models.CharField(u'электронная почта',
         max_length=255, blank=True)
