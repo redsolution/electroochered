@@ -235,7 +235,7 @@ class DecisionManager(OperatorPermissionMixin, View):
                     current_requestion.distribute_in_sadik_from_sadikchange(sadik)
                     Logger.objects.create_for_action(TRANSFER_APROOVED, extra={'user': None, 'obj': current_requestion})
                 messages.info(request, u'''
-                     Для заявки %s был назначен МДОУ %s
+                     Для заявки %s был назначен %s
                      ''' % (current_requestion.requestion_number, sadik))
                 return HttpResponseRedirect(reverse('decision_manager'))
         else:

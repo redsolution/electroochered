@@ -161,9 +161,9 @@ class PublicSearchForm(forms.Form):
         required=False, widget=forms.TextInput(attrs={'data-mask': '**-** 999999'}),
         help_text=u'Формат: II-ИВ 123456')
     parent_last_name = forms.CharField(label=u'Фамилия родителя',
-        required=False, widget=forms.TextInput(), help_text=u'Только для заявок поданных до запуска системы')
+        required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
     child_last_name = forms.CharField(label=u'Фамилия ребенка',
-        required=False, widget=forms.TextInput(), help_text=u'Только для заявок поданных до запуска системы')
+        required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
 
     field_map = {
         'birth_date': 'birth_date__exact',
@@ -206,7 +206,7 @@ class PublicSearchForm(forms.Form):
 class QueueFilterForm(forms.Form):
     requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
         widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}),
-        help_text=u"Укажите номер заявки к которой вы хотите перейти")
+        help_text=u"Укажите номер заявки, к которой вы хотите перейти")
     confirmed = forms.BooleanField(label=u'Документально подтвержденные',
         required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
     benefit_category = forms.ModelChoiceField(label=u'Категория льгот', required=False,
@@ -216,9 +216,9 @@ class QueueFilterForm(forms.Form):
         queryset=AgeGroup.objects.all(), required=False,
         help_text=u"При выборе в очереди будут отображаться заявки только этой возрастной категории")
     area = forms.ModelChoiceField(
-        label=u'Территориальная области в которую заявка может быть зачислена',
+        label=u'Территориальная область для зачисления',
         queryset=Area.objects.all(), empty_label=u"Весь муниципалитет",
-        required=False, help_text=u"При выборе в очереди будут отображаться заявки,\
-            которые указали возможность зачисления в данную территориальную область"
+        required=False, help_text=u"При выборе в очереди будут отображаться заявки, \
+            для которых указана возможность зачисления в эту территориальную область"
     )
 
