@@ -48,7 +48,9 @@
     {% if not requestion.editable %}
         <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
     {% else %}
-        {% if requestion.status != STATUS_REQUESTER_NOT_CONFIRMED %}
+        {% if not requestion.document_confirmed %}
+            <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявку, обратившись в РУО.</div>
+        {% else %}
             <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
         {% endif %}
     {% endif %}

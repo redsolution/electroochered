@@ -7,6 +7,9 @@
 {% endblock %} 
 
 {% block content %}
+    {% if request.user.get_profile.requestion_set.not_confirmed.exists %}
+        <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявки, обратившись в РУО.</div>
+    {% endif %}
     <div class="row">
     <div class="span5">
     <h2>Мой профиль</h2>
