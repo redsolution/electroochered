@@ -1146,7 +1146,6 @@ class Area(models.Model):
 
     name = models.CharField(verbose_name=u"Название", max_length=100)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
-    address = models.ForeignKey('Address', verbose_name=u'Адрес отделения')
     # Cache
     bounds = PolygonField(verbose_name=u'Границы области', blank=True, null=True)
 

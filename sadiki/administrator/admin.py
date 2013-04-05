@@ -387,24 +387,9 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
         obj.groups.remove(*other_groups)
 
 
-class AreaForm(AddressForm, forms.ModelForm):
-    class Meta:
-        model = Area
-
-
 class AreaAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
-    form = AreaForm
     model = Area
-    fields = ['name', 'postindex', 'street', 'building_number', 'ocato']
-    raw_id_fields = ['address', ]
-
-    def save_model(self, request, obj, form, change):
-        """
-        Given a model instance save it to the database.
-        """
-        address, created = form.get_address()
-        obj.address = address
-        obj.save()
+    fields = ['name', 'ocato']
 
 
 class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
