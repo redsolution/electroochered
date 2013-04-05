@@ -230,7 +230,6 @@ class Benefit(models.Model):
         verbose_name=u"Необходимые документы")
     sadik_related = models.ManyToManyField("Sadik",
         verbose_name=u"ДОУ в которых есть группы", blank=True, null=True,)
-    identifier = models.IntegerField(verbose_name=u"Идентификатор для импорта")
 
     def __unicode__(self):
         return self.name

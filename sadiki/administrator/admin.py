@@ -588,22 +588,12 @@ class BenefitAdminForm(forms.ModelForm):
         self.fields["evidience_documents"].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
 
-    def clean_identifier(self):
-        identifier = self.cleaned_data.get('identifier')
-        other_benefits = Benefit.objects.filter(identifier=identifier)
-        if self.instance.id:
-            other_benefits = other_benefits.exclude(id=self.instance.id)
-        if other_benefits.exists():
-            raise forms.ValidationError(u"Такой идентификатор уже используется")
-        else:
-            return identifier
-
 
 class BenefitAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = Benefit
     form = BenefitAdminForm
     exclude = ('sadik_related',)
-    list_display = ['name', 'identifier', 'category']
+    list_display = ['name', 'category']
     
 
 
