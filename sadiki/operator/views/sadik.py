@@ -92,7 +92,7 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
 
     def get_formset(self):
         return inlineformset_factory(Sadik, SadikGroup, form=SadikGroupForm,
-            fields=('cast', 'free_places', 'age_group'), extra=1, can_delete=False)
+            fields=('free_places', 'age_group'), extra=1, can_delete=False)
 
     def get(self, request, sadik):
         formset = self.get_formset()(instance=sadik,

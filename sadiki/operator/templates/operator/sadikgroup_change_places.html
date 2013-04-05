@@ -28,7 +28,6 @@
             <thead>
                 <tr>
                     <th>название</th>
-                    <th>Тип</th>
                     <th>Возрастная категория</th>
                     <th>Кол-во путевок</th>
                 </tr>
@@ -37,9 +36,6 @@
             {% for form in formset %}
                 <tr>
                     <td>{{ form.instance }}</td>
-                    <td>{{ form.cast }}
-                        {{ form.cast.erors }}
-                    </td>
                     <td>
                         {% if form.instance.pk %}
                             {{ instance.age_group }}
