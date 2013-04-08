@@ -135,7 +135,7 @@ class WaitTimeStatistics(TemplateView):
         requestions = Requestion.objects.all()
         max_child_age_months = settings.MAX_CHILD_AGE * 12
         current_datetime = datetime.datetime.now()
-        groups = [{"name": age_group.name, 'min_birth_date': age_group.min_birth_date(),
+        groups = [{"name": age_group.name, 'short_name': age_group.short_name,'min_birth_date': age_group.min_birth_date(),
             'max_birth_date': age_group.max_birth_date(), } for age_group
                 in AgeGroup.objects.all()]
         if groups:

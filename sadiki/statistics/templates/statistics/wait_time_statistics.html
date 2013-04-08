@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-    <h3>Учитываются только документально подтвержденные заявки</h3>
+    <h3 class="error">Учитываются только документально подтвержденные заявки</h3>
     <script type="text/javascript">
         google.load("visualization", "1", {packages: ["corechart"]});
         var requestions_numbers_by_groups = jQuery.parseJSON('{{ json.requestions_numbers_by_groups|safe }}');
@@ -67,18 +67,19 @@
         });
     </script>
     <div class="row">
-        <div id="group_choice" class="span3">
-            <h2>Возрастные группы</h2>
+        <div id="group_choice" class="span4">
+            <h3>Возрастные группы</h3>
             <ul>
             {% for group in groups %}
-                <li><label class="radio"><input type="radio" name="group" class="radio" value="{{ forloop.counter0 }}">{{ group.name }}</label></li>
+                <li><label class="radio"><input type="radio" name="group" class="radio" value="{{ forloop.counter0 }}">{{ group.name }}
+                    {% if group.short_name %} ({{ group.short_name }}){% endif %}</label></li>
             {% endfor %}
             <li><label class="radio"><input type="radio" name="group" class="radio" value="{{ groups|length }}" checked>Все заявки</label></li>
             </ul>
         </div>
         <div id="chart_div" class="span8"></div>
     </div>
-    <h2>Время ожидания для заявок, находящихся в очереди</h2>
+    <h3>Время ожидания для заявок, находящихся в очереди</h3>
     <h3 class="total_requestions_number">Всего заявок: {{ total_requestions_number }}</h3>
     <table class="table table-striped table-bordered table-condensed">
         <thead>
@@ -87,9 +88,9 @@
             <th colspan="{{ groups|length }}">Возрастная группа</th>
         </tr>
         <tr>
-            <th>Время ожидания в очереди(месяцы)</th>
+            <th>Время ожидания в очереди (месяцы)</th>
             {% for group in groups %}
-                <th>{{ group.name }}</th>
+                <th class="rigth-aligned">{{ group.short_name }}</th>
             {% endfor %}
         </tr>
         </thead>
@@ -97,7 +98,7 @@
             <tr>
                 <td>Итого</td>
                 {% for number in total_requestions_numbers_by_groups %}
-                    <td>{{ number }}</td>
+                    <td class="right-aligned">{{ number }}</td>
                 {% endfor %}
             </tr>
         </tfoot>
@@ -110,7 +111,7 @@
                     {% endwith %}
                 </td>
                 {% for number in requestions_numbers_for_interval %}
-                    <td>
+                    <td class="right-aligned">
                         {{ number|default_if_none:"-" }}
                     </td>
                 {% endfor %}
