@@ -523,7 +523,8 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
             return HttpResponseForbidden("Во время импорта нельзя изменять файлы с данными")
         extra_context = {'IMPORT_INITIAL': IMPORT_INITIAL, 'IMPORT_START': IMPORT_START,
              'IMPORT_FINISH': IMPORT_FINISH, 'IMPORT_ERROR': IMPORT_ERROR}
-        return super(ImportTaskAdmin, self).change_view(request, object_id, extra_context)
+        return super(ImportTaskAdmin, self).change_view(request=request,
+            object_id=object_id, extra_context=extra_context)
 
     @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
