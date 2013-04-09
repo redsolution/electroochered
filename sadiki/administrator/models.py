@@ -4,6 +4,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
+from django.core.files.storage import FileSystemStorage
 from django.db import models
 from django.template.loader import render_to_string
 from sadiki.administrator.import_plugins import INSTALLED_FORMATS, \
@@ -414,6 +415,10 @@ IMPORT_TASK_CHOICES = (
 )
 
 
+secure_static_storage = FileSystemStorage(
+    location=settings.SECURE_STATIC_ROOT, base_url='/adm/administrator/importtask/')
+
+
 class ImportTask(models.Model):
 
     class Meta:
@@ -421,7 +426,7 @@ class ImportTask(models.Model):
         verbose_name_plural = u'Файлы с данными'
 
     source_file = models.FileField(verbose_name=u'Файл с данными(в формате xls)',
-        upload_to=os.path.join(settings.UPLOAD_DIR, 'import_source'))
+        storage=secure_static_storage, upload_to=settings.IMPORT_STATIC_DIR)
     status = models.IntegerField(verbose_name=u"Статус", choices=IMPORT_TASK_CHOICES,
                                 default=0)
     errors = models.IntegerField(verbose_name=u'Количество ошибок при импортировании',
@@ -431,10 +436,10 @@ class ImportTask(models.Model):
     data_format = models.CharField(verbose_name=u'Модуль импорта',
         choices=INSTALLED_FORMATS, max_length=250)
     result_file = models.FileField(verbose_name=u'Результат обработки',
-        upload_to=os.path.join(settings.UPLOAD_DIR, 'import_results'),
+        storage=secure_static_storage, upload_to=settings.IMPORT_STATIC_DIR,
         blank=True, null=True)
     file_with_errors = models.FileField(verbose_name=u'Список ошибок',
-        upload_to=os.path.join(settings.UPLOAD_DIR, 'import_results'),
+        storage=secure_static_storage, upload_to=settings.IMPORT_STATIC_DIR,
         blank=True, null=True)
 
     def delete(self, *args, **kwds):
@@ -489,8 +494,8 @@ class ImportTask(models.Model):
                 new_filename, ext = os.path.splitext(os.path.basename(
                     self.source_file.path))
 
-                if not os.path.exists(os.path.join(settings.MEDIA_ROOT, self.file_with_errors.field.upload_to)):
-                    os.mkdir(os.path.join(settings.MEDIA_ROOT, self.file_with_errors.field.upload_to))
+                if not os.path.exists(os.path.join(settings.SECURE_STATIC_ROOT, self.file_with_errors.field.upload_to)):
+                    os.mkdir(os.path.join(settings.SECURE_STATIC_ROOT, self.file_with_errors.field.upload_to))
 
                 self.result_file.name = os.path.join(self.file_with_errors.field.upload_to,
                     new_filename + '_res' + ext)

@@ -2,6 +2,7 @@
 from attachment.admin import AttachmentImageInlines
 from attachment.forms import AttachmentImageForm
 from chunks.models import Chunk
+import os
 from django import template, forms
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
@@ -15,7 +16,7 @@ from django.core.urlresolvers import reverse, NoReverseMatch
 from django.db import transaction
 from django.db.models.query_utils import Q
 from django.forms.widgets import CheckboxSelectMultiple
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse, Http404
 from django.shortcuts import render_to_response
 from django.template.context import RequestContext
 from django.template.response import TemplateResponse
@@ -42,6 +43,8 @@ from sadiki.core.settings import BENEFIT_SYSTEM_MIN, IMMEDIATELY_DISTRIBUTION_NO
 from sadiki.core.utils import run_command
 import urllib
 import urlparse
+import mimetypes
+from sadiki.settings import SECURE_STATIC_ROOT
 
 csrf_protect_m = method_decorator(csrf_protect)
 
@@ -474,6 +477,8 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         my_urls = patterns('',
             url(r'^start_import/$', self.admin_site.admin_view(self.start_import), name="start_import"),
             url(r'^finish_import/$', self.admin_site.admin_view(self.finish_import), name="finish_import"),
+            url(r'^import_files/(?P<filename>[^\/]+\.\w*)$', self.admin_site.admin_view(self.secure_static),
+                name="secure_static"),
         )
         return my_urls + urls
 
@@ -515,6 +520,18 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
             Это действие нельзя будет отменить."""
         return render_to_response('administrator/ask_confirmation.html',
             {'message': message}, context_instance=RequestContext(request))
+
+    def secure_static(self, request, filename):
+        file_path = os.path.join(SECURE_STATIC_ROOT, settings.IMPORT_STATIC_DIR, filename)
+        if not os.path.exists(file_path):
+            raise Http404
+        f = open(file_path, 'r')
+        response = HttpResponse(content=f.read())
+        ext = os.path.splitext(filename)[1]
+        if ext and ext in mimetypes.types_map:
+            response['Content-Type'] = mimetypes.types_map[ext]
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        return response
 
     @csrf_protect_m
     @transaction.commit_on_success
