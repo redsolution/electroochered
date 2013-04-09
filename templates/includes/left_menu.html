@@ -9,15 +9,17 @@
     {# пункты меню для анонима #}
     {% if request.user.is_anonymous %}
         {% create_extend_list anonym_registration login reset_password_request as registration_urls %}
-        {% if about_registration_pages %}
-            {% create_extend_list registration_urls about_registration_pages.0.url as registration_urls %}
+        {% if  anonym_registration|check_url_availability:request.user %}
+            {% if about_registration_pages %}
+                {% create_extend_list registration_urls about_registration_pages.0.url as registration_urls %}
+            {% endif %}
+            <li {% if request.path in registration_urls %}class="active"{% endif %}>
+                <a href="{{ anonym_registration }}">
+                <i class="imgicon key"></i>
+                <p>Регистрация</p>
+                </a>
+            </li>
         {% endif %}
-        <li {% if request.path in registration_urls %}class="active"{% endif %}>
-            <a href="{{ anonym_registration }}">
-            <i class="imgicon key"></i>
-            <p>Регистрация</p>
-            </a>
-        </li>
     {% endif %}
     {# пункты меню оператора #}
     {% if request.user.is_operator %}
@@ -72,31 +74,37 @@
     {% if queue_howto_pages %}
         {% create_extend_list queue_urls queue_howto_pages.0.url as queue_urls %}
     {% endif %}
-    <li {% if request.path in queue_urls %}class="active"{% endif %} >
+    {% if  anonym_queue|check_url_availability:request.user %}
+        <li {% if request.path in queue_urls %}class="active"{% endif %} >
 
-        <a {% if request.user.is_operator %}href="{{ operator_queue }}" {% else %}href="{{ anonym_queue }}" {% endif %}>
-        <i class="imgicon search"></i>
-        <p>Просмотр очереди</p>
-        </a>
-    </li>
-    <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll %}class="active"{% endif %} >
-        <a href="{{ sadik_list }}">
-        <i class="imgicon house"></i>
-        <p>Список ДОУ</p>
-        </a>
-    </li>
+            <a {% if request.user.is_operator %}href="{{ operator_queue }}" {% else %}href="{{ anonym_queue }}" {% endif %}>
+            <i class="imgicon search"></i>
+            <p>Просмотр очереди</p>
+            </a>
+        </li>
+    {% endif %}
+    {% if  sadik_list|check_url_availability:request.user %}
+        <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll %}class="active"{% endif %} >
+            <a href="{{ sadik_list }}">
+            <i class="imgicon house"></i>
+            <p>Список ДОУ</p>
+            </a>
+        </li>
+    {% endif %}
     {# отчеты для оператора #}
     {% if request.user.is_operator %}
         <li {% if request.path == reports %}class="active"{% endif %}>
             <a href="{{ reports }}"><i class="imgicon flag"></i><p>Отчеты</p></a>
         </li>
     {% endif %}
-    <li {% if request.path == wait_time_statistics %}class="active"{% endif %} >
-        <a href="{{ wait_time_statistics }}">
-        <i class="imgicon graph"></i>
-        <p>Статистика</p>
-        </a>
-    </li>
+    {% if  wait_time_statistics|check_url_availability:request.user %}
+        <li {% if request.path == wait_time_statistics %}class="active"{% endif %} >
+            <a href="{{ wait_time_statistics }}">
+            <i class="imgicon graph"></i>
+            <p>Статистика</p>
+            </a>
+        </li>
+    {% endif %}
     {% get_flatpages "/about/" as about_pages %}
     {% if about_pages %}
         <li {% if request.path == about_pages.0.url %}class="active"{% endif %}>

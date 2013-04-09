@@ -1281,7 +1281,7 @@ class UserFunctions:
         u"""
         является ли пользователь администратором, оператором или супервайзером
         """
-        return any((self.is_operator(), self.is_administrator(),
+        return any((self.is_operator(), self.is_sadik_operator(), self.is_administrator(),
             self.is_supervisor()))
 
     def perms_for_area(self, areas):

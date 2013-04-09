@@ -32,7 +32,7 @@ from sadiki.core.admin import CustomGeoAdmin
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
     Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, \
-    PREFERENCE_SECTION_CHOICES, PREFERENCE_IMPORT_FINISHED, ChunkCustom
+    PREFERENCE_IMPORT_FINISHED, ChunkCustom
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME, \
     SUPERVISOR_PERMISSION, OPERATOR_PERMISSION, SADIK_OPERATOR_PERMISSION, \
@@ -339,7 +339,6 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     class Media:
         js = ("%sjs/admin/user.js" % settings.STATIC_URL,)
 
-
     def queryset(self, request):
         """
         Returns a QuerySet of all model instances that can be edited by the
@@ -589,7 +588,6 @@ class BenefitAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     form = BenefitAdminForm
     exclude = ('sadik_related',)
     list_display = ['name', 'category']
-    
 
 
 class AgeGroupForm(forms.ModelForm):

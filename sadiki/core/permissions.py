@@ -3,7 +3,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.template.context import RequestContext
-from sadiki.core.models import Requestion
+from sadiki.core.models import Requestion, Preference, PREFERENCE_IMPORT_FINISHED
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
 
 ADMINISTRATOR_PERMISSION = ('is_administrator', u'Администратор системы')
@@ -43,8 +43,15 @@ class RequirePermissionsMixin(object):
         """
         Return True if all requirements satisfied
         """
+        # если импорт не завершен, то доступ только у операторов
+        if (not Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists() and
+            (request.user.is_anonymous() or not request.user.is_administrative_person())):
+            return False
 #        пройдемся по всем элементам
-        return any([request.user.has_perm("auth.%s" % req) for req in self.required_permissions])
+        if self.required_permissions:
+            return any([request.user.has_perm("auth.%s" % req) for req in self.required_permissions])
+        else:
+            return True
 
     def dispatch(self, request, *args, **kwargs):
 #        если метод CHECK, то необходимо осуществить только проверку возможности выполнения

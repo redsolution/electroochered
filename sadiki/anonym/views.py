@@ -27,17 +27,13 @@ from sadiki.core.workflow import CREATE_PROFILE
 from sadiki.logger.models import Logger
 
 
-class Frontpage(TemplateView):
+class Frontpage(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/frontpage.html'
 
 
-class Registration(TemplateView, RequirePermissionsMixin):
+class Registration(RequirePermissionsMixin, TemplateView):
     u"""Регистрация пользователя в системе"""
     template_name = 'anonym/registration.html'
-
-    def check_permissions(self, request):
-        """Return True if user is anonymous"""
-        return request.user.is_anonymous()
 
     def get(self, request, *args, **kwargs):
         registration_form = RegistrationForm()
@@ -77,7 +73,7 @@ class Registration(TemplateView, RequirePermissionsMixin):
             return self.render_to_response(context)
 
 
-class Queue(ListView):
+class Queue(RequirePermissionsMixin, ListView):
     u"""Отображение очереди в район"""
     template_name = 'anonym/queue.html'
     queryset = Requestion.objects.queue().add_distributed_sadiks(
@@ -233,7 +229,7 @@ class Queue(ListView):
             return response
 
 
-class RequestionSearch(TemplateView):
+class RequestionSearch(RequirePermissionsMixin, TemplateView):
     u"""Публичный поиск заявок"""
     template_name = 'anonym/requestion_search.html'
     form = PublicSearchForm
@@ -312,7 +308,7 @@ class RequestionSearch(TemplateView):
         else:
             return self.render_to_response(context_data)
 
-class SadikList(TemplateView):
+class SadikList(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_list.html'
 
     def get(self, request):
@@ -329,7 +325,7 @@ class SadikList(TemplateView):
         return self.render_to_response({'sadik_list': sadik_list.filter(
             active_registration=True)})
 
-class SadikInfo(TemplateView):
+class SadikInfo(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_info.html'
 
     def get(self, request, sadik_id):

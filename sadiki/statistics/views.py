@@ -9,6 +9,7 @@ from django.views.generic.base import TemplateView
 from sadiki.core.models import Vacancies, Distribution, AgeGroup, Requestion, \
     STATUS_REQUESTER, STATUS_DECISION, STATUS_DISTRIBUTED, \
     VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED, DISTRIBUTION_STATUS_END
+from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.operator.views.base import OperatorPermissionMixin
 from sadiki.statistics.models import StatisticsArchive, DECISION_STATISTICS, \
@@ -128,7 +129,7 @@ class DistributionStatistics(Statistics):
     record_type = DISTRIBUTION_STATISTICS
 
 
-class WaitTimeStatistics(TemplateView):
+class WaitTimeStatistics(RequirePermissionsMixin, TemplateView):
     template_name = 'statistics/wait_time_statistics.html'
 
     def get(self, request):

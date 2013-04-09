@@ -1,13 +1,15 @@
 {% extends "anonym/base.html" %}
-{% load flatpages %}
+{% load flatpages sadiki_core_tags %}
 
 {% block content_menu %}
     {% url anonym_registration as anonym_registration_url %}
     {% url login as login_url %}
     <ul class="content-menu">
-        <li {% if request.path == anonym_registration_url %}class="active"{% endif %}>
-            <a href="{{ anonym_registration_url }}">Регистрация</a>
-        </li>
+        {% if anonym_registration_url|check_url_availability:request.user %}
+            <li {% if request.path == anonym_registration_url %}class="active"{% endif %}>
+                <a href="{{ anonym_registration_url }}">Регистрация</a>
+            </li>
+        {% endif %}
         <li {% if request.path == login_url %}class="active"{% endif %}>
             <a href="{{ login_url }}">Войти в систему</a>
         </li>

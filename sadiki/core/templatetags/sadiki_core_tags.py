@@ -88,7 +88,7 @@ class CheckUrlAvailability(Tag):
     options = Options(
         Argument('url', required=True),
         'as',
-        Argument('varname', required=True)
+        Argument('varname', required=True, resolve=False)
     )
 
     def render_tag(self, context, url, varname):
@@ -105,7 +105,7 @@ class ActionButtonForUrl(InclusionTag):
     по результатам отображается ссылка и может быть возвращен результат
     доступности
     {% action_button_for_url url [get_params par1 = 1 par2 = 2]
-        [options text = "text" hide_disabled = 1] [result result] %}
+        [options text = "text" hide_disabled = 1] [result result_var] %}
     """
 
     template = "core/template_tags/action_button_for_url.html"
