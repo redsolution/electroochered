@@ -139,11 +139,6 @@ class WaitTimeStatistics(RequirePermissionsMixin, TemplateView):
         groups = [{"name": age_group.name, 'short_name': age_group.short_name,'min_birth_date': age_group.min_birth_date(),
             'max_birth_date': age_group.max_birth_date(), } for age_group
                 in AgeGroup.objects.all()]
-        if groups:
-        #    добавляем самую младшую возрастную группу
-            small_group = {'name': '0-1 год', 'max_birth_date': datetime.date.today(),
-                          'min_birth_date': groups[0]['max_birth_date']}
-            groups.insert(0, small_group)
         wait_intervals = []
         from_months = 0
         for months in xrange(3, max_child_age_months + 1, 3):
@@ -151,9 +146,6 @@ class WaitTimeStatistics(RequirePermissionsMixin, TemplateView):
                         'from_months': from_months, 'to_months': months, }
             wait_intervals.append(interval)
             from_months = months
-    #    добавляем дополнительный интервал итого
-#        wait_intervals.append({'name': u'Итого', 'from_months': 0,
-#                               'to_months': max_child_age_months})
         requestions_numbers_by_groups = []
         distributed_requestions_numbers_by_groups = []
         total_requestions_numbers_by_groups = [0 for group in groups]
