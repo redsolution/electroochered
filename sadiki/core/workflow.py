@@ -595,7 +595,7 @@ ACTION_TEMPLATES.update({
     },
     VACANCY_DISTRIBUTED: {
         ANONYM_LOG: Template(u"""
-            Было завершено распределение в {{ sadik }}
+            Было завершено выделение места в {{ sadik }}
         """)
     }
 })

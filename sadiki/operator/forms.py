@@ -24,6 +24,7 @@ def select_list_from_qs(queryset, requestion):
         select_list.append((obj.id, u'%d мест %s' % (groups[0].free_places, unicode(obj))))
     return select_list
 
+
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""
     pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
@@ -45,6 +46,7 @@ class OperatorRequestionForm(RequestionForm):
         self.instance.status = STATUS_REQUESTER
         return super(OperatorRequestionForm, self).save(*args, **kwargs)
 
+
 class OperatorProfileRegistrationForm(ProfileRegistrationForm):
     u"""Форма создания пользовательского профиля через оператора"""
 
@@ -55,6 +57,7 @@ class OperatorProfileRegistrationForm(ProfileRegistrationForm):
         if commit:
             document.save()
         return document
+
 
 class OperatorRegistrationForm(RegistrationForm):
     u"""Форма для регистрации пользователя через оператора"""

@@ -32,12 +32,13 @@ class Command(BaseCommand):
             for vacancy in distribution.vacancies_set.filter(
                     status__in=(VACANCY_STATUS_PROVIDED,
                     VACANCY_STATUS_MANUALLY_DISTRIBUTING,
-                    VACANCY_STATUS_MANUALLY_CHANGED)):
+                    VACANCY_STATUS_MANUALLY_CHANGED)).select_related('sadik'):
                 vacancy.status = VACANCY_STATUS_DISTRIBUTED
                 vacancy.save()
                 requestion = vacancy.requestion_set.get(status=STATUS_DECISION)
 #                записываем в логи информацию о изменении статуса заявки(также должна высылаться почта)
                 Logger.objects.create_for_action(VACANCY_DISTRIBUTED,
+                    context_dict={'sadik': vacancy.sadik_group.sadik},
                     extra={'user': user, 'obj': requestion,
                            'vacancy': vacancy, })
             distribution.status = DISTRIBUTION_STATUS_END
