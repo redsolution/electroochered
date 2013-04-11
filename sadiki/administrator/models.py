@@ -305,7 +305,7 @@ class RequestionLogic(object):
         if type(sadik_number_list) is list:
             for sadik_number in sadik_number_list:
                 sadiks = Sadik.objects.filter(
-                    number=sadik_number,)
+                    identifier=sadik_number,)
                 if areas:
                     sadiks = sadiks.filter(area__in=[area.id for area in areas])
                 if sadiks.count() == 1:

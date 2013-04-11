@@ -110,9 +110,9 @@ class MultiSadikNumberCellParser(CellParser):
     parser_type = XL_CELL_TEXT
 
     def to_python(self):
-        sadiks = re.split('[,.]|;\s', self.value)
+        sadiks = re.split(';', self.value)
         try:
-            sadiks = [int(sadik.strip()) for sadik in sadiks if sadik]
+            sadiks = [sadik.strip() for sadik in sadiks if sadik]
         except ValueError:
             raise ValidationError(u'Неверный формат списка ДОУ: %s' % self.value)
         else:
