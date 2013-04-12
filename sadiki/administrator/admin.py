@@ -530,7 +530,7 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         ext = os.path.splitext(filename)[1]
         if ext and ext in mimetypes.types_map:
             response['Content-Type'] = mimetypes.types_map[ext]
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename.encode('utf-8')
         return response
 
     @csrf_protect_m
