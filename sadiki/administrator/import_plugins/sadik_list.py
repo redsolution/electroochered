@@ -43,9 +43,9 @@ sadik_list_cells = (
         (TextCellParser, ) + blank_empty_parsers}, # 15
     {'name':u'Учебные программы дополнительного образования', 'parsers':
         (TextCellParser, ) + blank_empty_parsers}, # 16
-    {'name':u'Возрастные группы', 'parsers': (AgeGroupCellParser,) + blank_empty_parsers}, # 17
     {'name':u'Дополнительная информация', 'parsers':
-        (TextCellParser, ) + blank_empty_parsers}, # 18
+        (TextCellParser, ) + blank_empty_parsers}, # 17
+    {'name':u'Возрастные группы', 'parsers': (AgeGroupCellParser,) + blank_empty_parsers}, # 18
 
     {'name':u'Широта', 'parsers': (DecimalNumberCellParser, DecimalTextCellParser)}, # 19
     {'name':u'Долгота', 'parsers': (DecimalNumberCellParser, DecimalTextCellParser)}, # 20
@@ -73,7 +73,7 @@ class SadikListFormat(Format):
             email=data_row[14],
             tech_level=data_row[15],
             training_program=data_row[16],
-            extended_info=data_row[18],
+            extended_info=data_row[17],
         )
         latitude = data_row[19]
         longtitude = data_row[20]
@@ -85,5 +85,5 @@ class SadikListFormat(Format):
             'building_number': data_row[11],
             'coords': Point(longtitude, latitude)
             }
-        age_groups = data_row[17] or AgeGroup.objects.all()
+        age_groups = data_row[18] or AgeGroup.objects.all()
         return sadik, address_data, age_groups

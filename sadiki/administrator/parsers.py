@@ -374,6 +374,8 @@ class AgeGroupCellParser(CellParser):
 
     def to_python(self):
         text = self.value.strip()
+        text = re.sub("\n", ' ', text)
+        text = re.sub("\s\s+", ' ', text)
 #        разбиваем по именам льгот
         age_groups_identifiers = text.split(';')
         age_groups = []
@@ -384,11 +386,11 @@ class AgeGroupCellParser(CellParser):
                 age_group = AgeGroup.objects.get(name=age_group_identifier.strip())
                 age_groups.append(age_group)
             except AgeGroup.DoesNotExist:
-                wrong_age_groups_identifiers.append(age_group_identifier)
+                wrong_age_groups_identifiers.append(u'"%s"' % age_group_identifier.strip())
         if wrong_age_groups_identifiers:
             raise ValidationError(
                 u'Следующие возрастные группы не зарегистрированы в системе: %s' %
-                u';'.join(wrong_age_groups_identifiers))
+                u'; '.join(wrong_age_groups_identifiers))
         else:
             return age_groups
 
