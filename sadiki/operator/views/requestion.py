@@ -584,7 +584,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
 
         if form.is_valid():
-            pre_status_change.send(sender=Requestion, user=request.user,
+            pre_status_change.send(sender=Requestion, request=request,
                 requestion=requestion, transition=self.transition, form=form)
 
             # Момент истины
@@ -598,7 +598,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 requestion.status = self.transition.dst
                 requestion.save()
 
-            post_status_change.send(sender=Requestion, user=request.user,
+            post_status_change.send(sender=Requestion, request=request,
                 requestion=requestion, transition=self.transition, form=form)
             return HttpResponseRedirect(self.redirect_to)
         else:

@@ -28,6 +28,7 @@
 """
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
+from django.contrib import messages
 from sadiki.account.forms import PreferredSadikForm
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
@@ -53,8 +54,8 @@ from sadiki.operator.forms import TempDistributionConfirmationForm, \
 import datetime
 
 
-pre_status_change = Signal(providing_args=['user', 'requestion', 'transition', 'form'])
-post_status_change = Signal(providing_args=['user', 'requestion', 'transition', 'form'])
+pre_status_change = Signal(providing_args=['request', 'requestion', 'transition', 'form'])
+post_status_change = Signal(providing_args=['request', 'requestion', 'transition', 'form'])
 
 
 def listen_transitions(*transition_indexes):
@@ -80,11 +81,11 @@ def listen_transitions(*transition_indexes):
 def after_remove_registration(sender, **kwargs):
     u"""Обработчик переводов № 38, 39, 41, 42 - Снятие заявки с учёта"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    log_extra = {'user': user, 'obj': requestion}
+    log_extra = {'user': request.user, 'obj': requestion}
     # Если заявитель не явился за путевой, освободить его место в группе
     if transition in (ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION):
         sadik_group = requestion.distributed_in_vacancy.sadik_group
@@ -102,8 +103,7 @@ def after_remove_registration(sender, **kwargs):
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
-
-    user.message_set.create(message=u'Заявка %s была снята с учета' % requestion.requestion_number)
+    messages.success(request, u'Заявка %s была снята с учета' % requestion.requestion_number)
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -113,7 +113,7 @@ def after_remove_registration(sender, **kwargs):
 def after_set_documental_confirmation(sender, **kwargs):
     u"""Обработчик перевода №3 - Подтверждение заявки"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
     other_requestions_with_document = requestion.set_ident_document_authentic()
@@ -121,10 +121,10 @@ def after_set_documental_confirmation(sender, **kwargs):
     context_dict = {'other_requestions': other_requestions_with_document}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict,
-        extra={'user': user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
-    user.message_set.create(message=u'Заявка %s была документально подтверждена' % requestion.requestion_number)
+        extra={'user': request.user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
+    messages.success(request, u'Заявка %s была документально подтверждена' % requestion.requestion_number)
     if other_requestions_with_document:
-        user.message_set.create(message=u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
+        messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
             ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
 
 
@@ -136,7 +136,7 @@ def after_set_temp_absent(sender, **kwargs):
     u"""Обработчик перевода №56 Временное отсутсвие (при временном зачислении)
     по уважиетльной причине. Например, поехал в отпуск на полгода"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
@@ -144,8 +144,8 @@ def after_set_temp_absent(sender, **kwargs):
     vacancy.status = VACANCY_STATUS_TEMP_ABSENT
     vacancy.save()
     Logger.objects.create_for_action(transition.index,
-        extra={'user': user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
-    user.message_set.create(message=u'''Заявка %s переведена
+        extra={'user': request.user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
+    messages.success(request, u'''Заявка %s переведена
     в статус отсутствия по уважительной причине''' % requestion.requestion_number)
 
 
@@ -156,13 +156,13 @@ def after_set_temp_absent(sender, **kwargs):
 def after_cancel_temp_absent(sender, **kwargs):
     u"""Обработчик перевода №40 Восстановление в очереди"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
     Logger.objects.create_for_action(transition.index,
-        extra={'user': user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
-    user.message_set.create(message=u'''Заявка %s была возвращена в ДОУ после отсутствия.
+        extra={'user': request.user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
+    messages.success(request, u'''Заявка %s была возвращена в ДОУ после отсутствия.
         ''' % requestion.requestion_number)
 
     temp_distributed_requestion = requestion.distributed_in_vacancy.get_distributed_requestion()
@@ -170,8 +170,8 @@ def after_cancel_temp_absent(sender, **kwargs):
         temp_distributed_requestion.status = STATUS_REQUESTER
         temp_distributed_requestion.save()
         Logger.objects.create_for_action(RETURN_TEMP_DISTRIBUTED,
-            extra={'user': user, 'obj': temp_distributed_requestion})
-        user.message_set.create(message=u'''Заявка %s была возвращена в очередь в связи с восстановлением
+            extra={'user': request.user, 'obj': temp_distributed_requestion})
+        messages.success(request, u'''Заявка %s была возвращена в очередь в связи с восстановлением
             временно отсутсвующей''' % requestion.requestion_number)
 
 
@@ -185,7 +185,7 @@ def after_cancel_temp_absent(sender, **kwargs):
 def after_decision_reject(sender, **kwargs):
     u"""Обработчик переводов №46, 52, 53 - возвращение заявки обратно в очередь"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
@@ -197,11 +197,11 @@ def after_decision_reject(sender, **kwargs):
     if transition.dst in (STATUS_WANT_TO_CHANGE_SADIK, STATUS_TEMP_DISTRIBUTED):
         requestion.distributed_in_vacancy = requestion.previous_distributed_in_vacancy
     # Журналирование
-    user.message_set.create(message=u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
+    messages.success(request, u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
     context_dict = {'status': requestion.get_status_display()}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict,
-        extra={'user': user, 'obj': requestion,
+        extra={'user': request.user, 'obj': requestion,
             'distribution_type': requestion.distribution_type},
         reason=form.cleaned_data.get('reason'))
 
@@ -215,18 +215,18 @@ def after_decision_reject(sender, **kwargs):
 def after_decision_to_distributed(sender, **kwargs):
     u"""Обработчик переводов №16,19,20 - зачисление в ДОУ"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
     requestion.vacate_previous_place()
     requestion.distributed_in_vacancy.status = VACANCY_STATUS_DISTRIBUTED
     requestion.distributed_in_vacancy.save()
-    user.message_set.create(message=u'''Заявка %s была зачислена в %s.
+    messages.success(request, u'''Заявка %s была зачислена в %s.
             ''' % (requestion.requestion_number,
                 requestion.distributed_in_vacancy.sadik_group.sadik))
     context_dict = {'status': requestion.get_status_display()}
-    log_extra = {'user': user, 'obj': requestion,
+    log_extra = {'user': request.user, 'obj': requestion,
         'distribution_type': requestion.distribution_type}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict, extra=log_extra,
@@ -240,17 +240,15 @@ def after_decision_to_distributed(sender, **kwargs):
 def after_decision_not_appear(sender, **kwargs):
     u"""Обработчик перевода №18 - Отметка о неявке"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    user.message_set.create(
-        message=u'Для заявки %s была отмечена неявка в ДОУ' % requestion.requestion_number
-    )
+    messages.success(request, u'Для заявки %s была отмечена неявка в ДОУ' % requestion.requestion_number)
     context_dict = {'status': requestion.get_status_display()}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict,
-        extra={'user': user, 'obj': requestion,
+        extra={'user': request.user, 'obj': requestion,
             'distribution_type': requestion.distribution_type},
         reason=form.cleaned_data.get('reason'))
 
@@ -262,15 +260,14 @@ def after_decision_not_appear(sender, **kwargs):
 def after_decision_absent(sender, **kwargs):
     u"""Обработчик перевода №18 - Отметка о неявке"""
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    user.message_set.create(
-        message=u"""Для заявки %s была отмечена невозможность
+    messages.success(request, u"""Для заявки %s была отмечена невозможность
             связаться с заявителем""" % requestion.requestion_number)
     context_dict = {'status': requestion.get_status_display()}
-    log_extra = {'user': user, 'obj': requestion,
+    log_extra = {'user': request.user, 'obj': requestion,
         'distribution_type': requestion.distribution_type}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict, extra=log_extra,
@@ -288,7 +285,7 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         """
         transition = kwargs['transition']
         form = kwargs['form']
-        user = kwargs['user']
+        request = kwargs['request']
         requestion = kwargs['requestion']
 
         sadik = form.cleaned_data.get("sadik")
@@ -299,9 +296,9 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         requestion.distributed_in_vacancy = vacancy
         requestion.save()
 
-        user.message_set.create(message=u'''Заявка %s была временно зачислена в %s.
+        messages.success(request, u'''Заявка %s была временно зачислена в %s.
                 ''' % (requestion.requestion_number, vacancy.sadik_group.sadik))
-        log_extra = {'user': user, 'obj': requestion, }
+        log_extra = {'user': request.user, 'obj': requestion, }
         Logger.objects.create_for_action(transition.index,
             extra=log_extra, reason=form.cleaned_data.get('reason'))
 
@@ -312,7 +309,7 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     def after_temp_distribution_cancel(sender, **kwargs):
         u"""Обработчик перевода № 48 - отмена временного зачисления"""
         transition = kwargs['transition']
-        user = kwargs['user']
+        request = kwargs['request']
         requestion = kwargs['requestion']
         form = kwargs['form']
 
@@ -321,10 +318,10 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         vacancy.save()
         requestion.status = STATUS_REQUESTER
         requestion.save()
-        user.message_set.create(message=u'Для заявки %s было отменено временное распределение'
+        messages.success(request, u'Для заявки %s было отменено временное распределение'
             % requestion.requestion_number)
         Logger.objects.create_for_action(transition.index,
-            extra={'user': user, 'obj': requestion, },
+            extra={'user': request.user, 'obj': requestion, },
             reason=form.cleaned_data.get('reason'))
 
 # Немедленное зачисление
@@ -336,15 +333,15 @@ if IMMEDIATELY_DECISION in (IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTI
     def after_immediately_decision(sender, **kwargs):
         transition = kwargs['transition']
         form = kwargs['form']
-        user = kwargs['user']
+        request = kwargs['request']
         requestion = kwargs['requestion']
 
         sadik = form.cleaned_data.get("sadik")
         vacancy = requestion.distribute_in_sadik(sadik)
-        user.message_set.create(message=u'Заявке %s было выделено место в %s.'
+        messages.success(request, u'Заявке %s было выделено место в %s.'
             % (requestion.requestion_number, vacancy.sadik_group.sadik))
         Logger.objects.create_for_action(transition.index,
-            extra={'user': user, 'obj': requestion, }, reason=form.cleaned_data.get('reason'))
+            extra={'user': request.user, 'obj': requestion, }, reason=form.cleaned_data.get('reason'))
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -353,18 +350,18 @@ if IMMEDIATELY_DECISION in (IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTI
 )
 def after_restore_requestion(sender, **kwargs):
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
     other_requestions_with_document = requestion.set_ident_document_authentic()
-    user.message_set.create(message=u'''Заявка %s была возвращена в очередь.
+    messages.success(request, u'''Заявка %s была возвращена в очередь.
                     ''' % requestion.requestion_number)
-    user.message_set.create(message=u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
+    messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
         ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
     Logger.objects.create_for_action(transition.index,
         context_dict={'other_requestions': other_requestions_with_document},
-        extra={'user': user, 'obj': requestion},
+        extra={'user': request.user, 'obj': requestion},
         reason=form.cleaned_data.get('reason'))
 
 
@@ -372,12 +369,12 @@ def after_restore_requestion(sender, **kwargs):
 @listen_transitions(WANT_TO_CHANGE_SADIK_DISTRIBUTED,)
 def after_want_to_change_sadik_distributed(sender, **kwargs):
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    user.message_set.create(message=u"Запрос на смену ДОУ был отменен")
-    log_extra = {'user': user, 'obj': requestion,
+    messages.success(request, u"Запрос на смену ДОУ был отменен")
+    log_extra = {'user': request.user, 'obj': requestion,
             'distribution_type': requestion.distribution_type,
             'removed_pref_sadiks': requestion.pref_sadiks.all()}
     Logger.objects.create_for_action(
@@ -389,7 +386,7 @@ def after_want_to_change_sadik_distributed(sender, **kwargs):
 @listen_transitions(WANT_TO_CHANGE_SADIK,)
 def after_want_to_change_sadik(sender, **kwargs):
     transition = kwargs['transition']
-    user = kwargs['user']
+    request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
@@ -397,11 +394,10 @@ def after_want_to_change_sadik(sender, **kwargs):
     requestion.registration_datetime = datetime.datetime.now()
     requestion.save()
 
-    user.message_set.create(
-        message=u'Заявка переведена в статус "Желает сменить ДОУ"')
+    messages.success(request, u'Заявка переведена в статус "Желает сменить ДОУ"')
     Logger.objects.create_for_action(
         transition.index,
-        extra={'user': user, 'obj': requestion,
+        extra={'user': request.user, 'obj': requestion,
             'added_pref_sadiks': requestion.pref_sadiks.all()},
         reason=form.cleaned_data.get('reason'))
 
