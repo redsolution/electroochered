@@ -41,6 +41,7 @@ from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionCheckIdentityMixin
 from django.forms.models import ModelFormMetaclass
 from sadiki.core.views import GenerateBlankBase
+from sadiki.operator.forms import ConfirmationForm
 
 
 class FrontPage(OperatorPermissionMixin, TemplateView):
@@ -537,6 +538,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
     def get_confirm_form(self, transition_index, requestion=None, data=None,
             initial=None):
         form_class = self.transition.confirmation_form_class
+        if not form_class:
+            form_class = ConfirmationForm
         if isinstance(form_class, ModelFormMetaclass):
             form = form_class(
                 requestion=requestion, data=data, initial=initial)

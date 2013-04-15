@@ -4,7 +4,6 @@ from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION, ET
 from sadiki.core.models import *
 from sadiki.core.permissions import OPERATOR_PERMISSION, DISTRIBUTOR_PERMISSION, REQUESTER_PERMISSION, SUPERVISOR_PERMISSION
 from sadiki.core.settings import *
-from sadiki.operator.forms import ConfirmationForm
 from sadiki.logger.models import ACCOUNT_LOG, ANONYM_LOG, OPERATOR_LOG
 
 
@@ -41,7 +40,7 @@ class Transition(object):
         self.comment = comment
         self.required_permissions = permissions
         self.permission_cb = permission_callback
-        self.confirmation_form_class = ConfirmationForm
+        self.confirmation_form_class = None
 
 
 class Workflow(object):

@@ -112,7 +112,7 @@ class Logger(models.Model):
     u"""
     хранение логов выполненных действий
     """
-
+    from sadiki.core.workflow import ACTION_CHOICES
     user = models.ForeignKey('auth.User', verbose_name=u"пользователь",
         null=True)
     reason = models.TextField(verbose_name=u"Основание",
@@ -129,16 +129,12 @@ class Logger(models.Model):
     vacancy = models.ForeignKey('core.Vacancies', null=True)
     age_groups = models.ManyToManyField('core.AgeGroup')
     profile = models.ForeignKey('core.Profile', null=True)
-    action_flag = models.IntegerField(verbose_name=u'Произведенное действие')
+    action_flag = models.IntegerField(verbose_name=u'Произведенное действие',
+                                      choices=ACTION_CHOICES)
     distribution_type = models.IntegerField(verbose_name=u'Тип распределения',
         choices=DISTRIBUTION_TYPE_CHOICES, null=True)
 
     objects = LoggerManager()
-
-    def __init__(self, *args, **kwargs):
-        from sadiki.core.workflow import ACTION_CHOICES
-        self._meta.get_field('action_flag').choices = ACTION_CHOICES
-        super(Logger, self).__init__(*args, **kwargs)
 
 
 class LoggerMessageQuerySet(models.query.QuerySet):
