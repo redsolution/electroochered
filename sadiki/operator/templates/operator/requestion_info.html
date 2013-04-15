@@ -28,6 +28,7 @@
 {% block title %}Страница заявки {{ requestion }}{% endblock %}
 
 {% block content %}
+    {% comment %}
     <div class="row requestion_blanks">
         <div class="span12">
         <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
@@ -44,6 +45,7 @@
         </a>
         </div>
     </div>
+    {% endcomment %}
     {% include "operator/includes/requestion_info.html" %}
 
     <h2 class="page-header">Действия с заявкой</h2>
