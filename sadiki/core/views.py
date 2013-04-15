@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import simplejson
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView, View
 from sadiki.core.models import Sadik, Preference, \
     PREFERENCE_MUNICIPALITY_NAME, PREFERENCE_LOCAL_AUTHORITY, \
@@ -69,6 +70,7 @@ class GenerateBlankBase(TemplateView):
         return response
 
 
+@csrf_exempt
 def sadiki_json(request):
     data = []
     for sadik in Sadik.objects.all():
