@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
+import sys
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.files.storage import FileSystemStorage
-from django.db import models
+from django.db import models, transaction
 from django.template.loader import render_to_string
+from django.utils.log import getLogger
 from sadiki.administrator.import_plugins import INSTALLED_FORMATS, \
     SADIKS_FORMATS
 from sadiki.administrator.utils import get_xlwt_style_list
@@ -406,12 +408,14 @@ IMPORT_INITIAL = 0
 IMPORT_START = 1
 IMPORT_FINISH = 2
 IMPORT_ERROR = 3
+IMPORT_FINISHED_WITH_ERRORS = 4
 
 IMPORT_TASK_CHOICES = (
     (IMPORT_INITIAL, u"Обработка не начата"),
     (IMPORT_START, u"Обработка начата"),
     (IMPORT_FINISH, u"Обработка завершена"),
-    (IMPORT_ERROR, u"Ошибка во время импорта"),
+    (IMPORT_FINISHED_WITH_ERRORS, u"Обработка завершена, были найдены ошибки"),
+    (IMPORT_ERROR, u"Ошибка во время обработки"),
 )
 
 
@@ -429,7 +433,7 @@ class ImportTask(models.Model):
         storage=secure_static_storage, upload_to=settings.IMPORT_STATIC_DIR)
     status = models.IntegerField(verbose_name=u"Статус", choices=IMPORT_TASK_CHOICES,
                                 default=0)
-    errors = models.IntegerField(verbose_name=u'Количество ошибок при импортировании',
+    errors = models.IntegerField(verbose_name=u'Количество ошибок',
         default=IMPORT_INITIAL)
     total = models.IntegerField(verbose_name=u'Количество записей', default=0)
     fake = models.BooleanField(verbose_name=u'Только проверка файла', default=True)
@@ -479,9 +483,11 @@ class ImportTask(models.Model):
             doc = xlrd.open_workbook(name, formatting_info=True)
         except xlrd.biffh.XLRDError:
             self.save_file_with_errors(
-                {'error_message': u"Неверный тип файла. Для импорта необходимо использовать файлы формат xls",
+                {'error_message': u"Неверный тип файла. Для импорта необходимо использовать файлы формата xls",
                  'media_root': settings.MEDIA_ROOT})
             self.errors = 1
+            self.status = IMPORT_FINISHED_WITH_ERRORS
+            self.save()
         else:
             format_doc = FormatClass(doc)
             if format_doc.sheet.ncols >= len(format_doc.cells):
@@ -489,8 +495,21 @@ class ImportTask(models.Model):
                     logic = SadikLogic(format_doc, None, self.fake)
                 else:
                     logic = RequestionLogic(format_doc, self.fake)
-                logic.validate()
-
+                logger = getLogger('django.request')
+                with transaction.commit_manually():
+                    try:
+                        logic.validate()
+                        if logic.errors:
+                            transaction.rollback()
+                        else:
+                            transaction.commit()
+                    except:
+                        transaction.rollback()
+                        logger.error('Import error', exc_info=sys.exc_info(),)
+                        self.status = IMPORT_ERROR
+                        self.save()
+                        transaction.commit()
+                        return logic
                 new_filename, ext = os.path.splitext(os.path.basename(
                     self.source_file.path))
 
@@ -505,9 +524,13 @@ class ImportTask(models.Model):
                 self.save_file_with_errors(
                     {'logic': logic, 'media_root': settings.MEDIA_ROOT})
 
-                self.status = IMPORT_FINISH
+
                 self.total = logic.format_doc.sheet.nrows - logic.format_doc.start_line
                 self.errors = len(logic.errors)
+                if self.errors:
+                    self.status = IMPORT_FINISHED_WITH_ERRORS
+                else:
+                    self.status = IMPORT_FINISH
                 self.save()
                 return logic
             else:
@@ -515,8 +538,8 @@ class ImportTask(models.Model):
                     {'error_message': u"Недостаточное количество столбцов",
                         'media_root': settings.MEDIA_ROOT})
                 self.errors = 1
-        self.status = IMPORT_FINISH
-        self.save()
+                self.status = IMPORT_FINISHED_WITH_ERRORS
+                self.save()
 
     def __unicode__(self):
         return u'Файл с данными %s' % self.get_data_format_display()

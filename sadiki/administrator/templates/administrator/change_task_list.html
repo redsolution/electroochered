@@ -60,7 +60,14 @@
                 <ul class="object-tools">
                     {% block object-tools-items %}
                         {% if not import_active %}
-                            {% if initial_tasks_exists %}
+                            {% if check_tasks_exists %}
+                                <li>
+                                <a href="{% url "admin:start_import_check" %}" class="link">
+                                    Запустить проверку
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if import_tasks_exists %}
                                 <li>
                                     <a href="{% url "admin:start_import" %}" class="link">
                                         Запустить импорт
@@ -72,18 +79,13 @@
                                 {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
                             </a>
                        </li>
-                       <li>
-                           <a href="{% url "admin:finish_import" %}" class="link">
-                               Завершить импорт
-                           </a>
-                       </li>
                         {% endif %}
                     {% endblock %}
                 </ul>
             {% endif %}
         {% endblock %}
         {% if import_active %}
-            <h1 style="color:red">Проводится импорт заявок</h1>
+            <h1 style="color:red">Выполняется задание.</h1>
             <a href=".">Страница автоматически обновится через <span id="countdown"></span> c.</a>
             <script type="text/javascript">
                 var delay = 30;

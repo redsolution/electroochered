@@ -5,3 +5,5 @@ INSTALLED_FORMATS = [
 ]
 
 SADIKS_FORMATS = ['sadiki.administrator.import_plugins.sadik_list.SadikListFormat', ]
+
+REQUESTION_FORMATS = [format[0] for format in INSTALLED_FORMATS if format[0] not in SADIKS_FORMATS]

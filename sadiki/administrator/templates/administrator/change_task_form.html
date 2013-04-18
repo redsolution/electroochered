@@ -68,7 +68,7 @@
     {% if add or original.status == STATUS_INITIAL %}
         <h2>Не обработан</h2>
     {% else %}
-        {% if original.status == IMPORT_FINISH %}
+        {% if original.status == IMPORT_FINISH or original.status == IMPORT_FINISHED_WITH_ERRORS %}
             <h2>Результат обработки</h2>
             <fieldset class="module aligned">
                 <div class="form-row">

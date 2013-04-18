@@ -2,17 +2,20 @@
 import sys
 from django.core.management.base import BaseCommand
 from django.utils.log import getLogger
-from sadiki.administrator.import_plugins import SADIKS_FORMATS
-from sadiki.administrator.models import ImportTask, IMPORT_START, IMPORT_ERROR
+from sadiki.administrator.import_plugins import SADIKS_FORMATS, REQUESTION_FORMATS
+from sadiki.administrator.models import ImportTask, IMPORT_START, IMPORT_ERROR, IMPORT_FINISH
 from django.db import transaction
+from sadiki.core.models import PREFERENCE_IMPORT_FINISHED, Preference
 
 logger = getLogger('django.request')
+
 
 class Command(BaseCommand):
     help = "Import requestions from file"
 
     def handle(self, *args, **options):
-        import_tasks = ImportTask.objects.filter(status=IMPORT_START)
+        import_tasks_ids = list(ImportTask.objects.filter(status=IMPORT_START).values_list('id', flat=True))
+        import_tasks = ImportTask.objects.filter(id__in=import_tasks_ids)
 #        первыми выполняем задания по импорту ДОУ
         sadik_list_tasks = import_tasks.filter(
             data_format__in=SADIKS_FORMATS)
@@ -34,3 +37,8 @@ class Command(BaseCommand):
                     transaction.commit()
                 else:
                     transaction.commit()
+        # если были импортированы заявки
+        if ImportTask.objects.filter(id__in=import_tasks_ids, status=IMPORT_FINISH,
+                                     data_format__in=REQUESTION_FORMATS, fake=False,
+                                    errors=0).exists():
+            Preference.objects.get_or_create(key=PREFERENCE_IMPORT_FINISHED)
