@@ -106,8 +106,10 @@ class AddressForm(forms.ModelForm):
         if defaults is None:
             defaults = {}
         return Address.objects.get_or_create(
+                town = self.cleaned_data.get("town"),
                 postindex=self.cleaned_data.get("postindex"),
                 street=self.cleaned_data.get("street"),
+                block_number = self.cleaned_data.get("block_number"),
                 building_number=self.cleaned_data.get("building_number"),
                 defaults=defaults)
 
