@@ -183,12 +183,14 @@ class PrefSadiksJS(SelectMultipleJS):
         sadiks_for_areas.update({"": [unicode(sadik.id) for sadik in Sadik.objects.all()]})
         areas_name=self.attrs.get('areas_name') or 'areas'
 #        TODO:как-нибудь переделать,чтобы работа с id_areas была нормальной
-        js = u"""
+        js = '''
             <script type="text/javascript">
                 //<![CDATA[
-                $(function(){
-                    $("#id_%s").filterOn("#id_%s", %s);
-                });
+                $(function(){{
+                    $("#id_{name}").filterOn("#id_{areas_name}", {sadiks_for_areas});
+                    $("#id_{areas_name}").change();
+                }});
                 //]]>
-            </script>""" % (name, areas_name, simplejson.dumps(sadiks_for_areas))
+            </script>'''.format(name=name, areas_name=areas_name,
+                            sadiks_for_areas=simplejson.dumps(sadiks_for_areas))
         return mark_safe(output+js)
