@@ -299,6 +299,12 @@ class OperatorAdminAddForm(OperatorAdminChangeForm):
 
 
 class ModelAdminWithoutPermissionsMixin(object):
+
+    class Media:
+        css = {
+                 'all': ('css/admin_override.css',)
+            }
+
     def has_add_permission(self, request):
         return True
 
@@ -315,8 +321,6 @@ verbose_user_type.short_description = 'Тип учетной записи'
 
 
 class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
-    model = User
-    change_form_template = "adm/user/operator_change_template.html"
     fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
         'is_active']}),
@@ -343,6 +347,9 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     list_filter = ()
 
     class Media:
+        css = {
+                 'all': ('css/admin_override.css',)
+            }
         js = ("%sjs/admin/user.js" % settings.STATIC_URL,)
 
     def queryset(self, request):
@@ -432,6 +439,7 @@ class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
 
 
 class SadikAdmin(ModelAdminWithoutPermissionsMixin, CustomGeoAdmin):
+
     form = SadikAdminForm
     model = Sadik
     fields = ('area', 'name', 'short_name', 'identifier', 'town', 'postindex',
