@@ -28,8 +28,8 @@
                     <span class="choice">{{ profile.user.email|verbose_value }}</span>
                 </div>
             </div>
-            {% readonly profile 'first_name' %}
             {% readonly profile 'last_name' %}
+            {% readonly profile 'first_name' %}
             {% readonly profile 'patronymic' %}
             {% readonly profile 'phone_number' %}
             {% readonly profile 'mobile_number' %}
