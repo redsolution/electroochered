@@ -57,7 +57,7 @@ class VerificationKey(models.Model):
             return False
 
     def send_email(self, subject, template, context):
-        context.update({'user': self.user, })
+        context.update({'user': self.user, 'VERIFICATION_KEY_DAYS': VERIFICATION_KEY_DAYS})
         context.update(scheme_and_domain())
         message = render_to_string(template, context)
         return send_mail(subject=subject,
