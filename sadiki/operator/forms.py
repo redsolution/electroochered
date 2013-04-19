@@ -89,7 +89,7 @@ class OperatorRegistrationForm(RegistrationForm):
 
 class OperatorSearchForm(PublicSearchForm):
     requestion_number = forms.CharField(label=u'Номер заявки в системе',
-        required=False, widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}))
+        required=False, widget=forms.TextInput(attrs={'data-mask': u'99999999-Б-999999999'}))
     birth_date = forms.DateField(label=u'Дата рождения ребёнка',
             widget=JqueryUIDateWidget(), required=False)
 

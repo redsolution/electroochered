@@ -158,7 +158,7 @@ class PublicSearchForm(forms.Form):
         label=u'Номер в списке у заявок, поданных до запуска системы',
         required=False, widget=forms.TextInput())
     document_number = forms.CharField(label=u'Номер свидетельства о рождении',
-        required=False, widget=forms.TextInput(attrs={'data-mask': '**-** 999999'}),
+        required=False, widget=forms.TextInput(),
         help_text=u'Формат: II-ИВ 123456')
     parent_last_name = forms.CharField(label=u'Фамилия родителя',
         required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
@@ -205,7 +205,7 @@ class PublicSearchForm(forms.Form):
 
 class QueueFilterForm(forms.Form):
     requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
-        widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}),
+        widget=forms.TextInput(attrs={'data-mask': u'99999999-Б-999999999'}),
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
     confirmed = forms.BooleanField(label=u'Документально подтвержденные',
         required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
