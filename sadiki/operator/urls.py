@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
+from django.views.decorators.csrf import csrf_exempt
 
 from sadiki.operator.views.requestion import Registration, RequestionSearch, \
     BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, ProfileChange, \
     RequestionChange, PreferredSadiksChange, DocumentsChange, \
     Queue, RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank
+    EmbedRequestionToProfile, GenerateBlank, RevalidateEmail
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange
 
@@ -23,6 +24,8 @@ urlpatterns = patterns('',
         name=u'operator_registration'),
     url(r'^requestion_search/$', RequestionSearch.as_view(),
         name=u'operator_requestion_search'),
+    url(r'^revalidate_email/(?P<profile_id>\d{1,7})/$',
+        csrf_exempt(RevalidateEmail.as_view()), name='revalidate_email'),
 
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',

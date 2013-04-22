@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+import json
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
@@ -27,7 +28,7 @@ from sadiki.core.models import STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED,
 from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
-from sadiki.core.utils import check_url, get_openlayers_js
+from sadiki.core.utils import check_url, get_openlayers_js, get_user_by_email
 from sadiki.core.workflow import REQUESTION_REGISTRATION, \
     CHANGE_PROFILE_BY_OPERATOR, CHANGE_BENEFITS, CHANGE_REQUESTION_BY_OPERATOR, \
     CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE
@@ -667,3 +668,24 @@ class GenerateBlank(OperatorRequestionMixin, GenerateBlankBase):
         'change_preferred_sadiks': u"operator/blanks/change_preferred_sadiks.html",
         'remove_registration': u"operator/blanks/remove_registration.html",
         }
+
+
+class RevalidateEmail(OperatorPermissionMixin, TemplateView):
+
+    def post(self, request, profile_id):
+        profile = get_object_or_404(Profile, id=profile_id)
+
+        if request.is_ajax():
+            if profile.user.email and not (get_user_by_email(profile.user.email) and
+                profile.email_verified):
+                verification_key_object = VerificationKey.objects.create_key(profile.user)
+                verification_key_object.send_email_verification()
+                return HttpResponse(content=json.dumps({
+                    'ok': True,
+                    'message': u"На адрес %s была выслана ссылка для доступа в личный кабинет" % profile.user.email,
+                }), mimetype='text/javascript')
+            else:
+                return HttpResponse(content=json.dumps({'ok': False}),
+                    mimetype='text/javascript')
+        else:
+            return HttpResponseBadRequest()

@@ -19,7 +19,7 @@ from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.fields import BooleanNextYearField, YearChoiceField, \
     AreaChoiceField, SplitDayMonthField
 from sadiki.core.utils import add_crc, calculate_luhn_digit, \
-    get_current_distribution_year, get_qs_attr
+    get_current_distribution_year, get_qs_attr, get_user_by_email
 from sadiki.core.validators import birth_date_validator, \
     registration_date_validator
 from south.modelsinspector import add_introspection_rules
@@ -1294,6 +1294,9 @@ class UserFunctions:
             return False
         else:
             return (user_area is None) or not areas or (user_area in areas)
+
+    def email_busy(self):
+        return bool(get_user_by_email(self.email))
 
     def get_verbose_name(self):
         u"""возвращает имя отчество пользователя с учетом типа учетки"""

@@ -20,14 +20,8 @@ class VerificationKeyManager(models.Manager):
                 self.get_query_set().get(key=key)
             except self.model.DoesNotExist:
                 break
-        try:
-            email_key = self.get_query_set().get(user=user)
-        except self.model.DoesNotExist:
-            email_key = self.model(user=user, key=key)
-        else:
-            email_key.key = key
-            email_key.unused = True
-            email_key.created = datetime.datetime.today()
+
+        email_key = self.model(user=user, key=key)
         email_key.save()
         return email_key
 

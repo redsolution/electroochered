@@ -12,6 +12,28 @@
 {{ block.super }}
     <script type="text/javascript">
         $(function(){$('.tooltip').tooltip();});
+        ;$(function(){
+            $('#revalidate').click(function(){
+                $(this).attr('disabled', 'disabled');
+                var button = this;
+                $.ajax($(this).attr('rel'), {
+                    type: 'POST',
+                    data: {},
+                    dataType:'json',
+                    success: function(data, textStatus, jqXHR){
+                        if (data.ok) {
+                            $('.messages ul').append('<li>' + data.message + '</li>');
+                            $(button).replaceWith('<span>Отправлено</span>');
+                        } else {
+                            $(button).replaceWith('<span class="red">Ошибка при отправке</span>');
+                        }
+                    },
+                    error: function(){
+                        $(button).replaceWith('<span class="red">Ошибка при отправке</span>');
+                    }
+                });
+            });
+        });
     </script>
     {% with requestion.address.coords as point %}
         {% if point %}

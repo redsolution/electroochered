@@ -429,11 +429,6 @@ table.table.table-bordered tr.highlight td {
 .uniForm .readOnlyLabel {
     color: #666;
     font-weight: normal;
-    max-width: 50%;
-}
-
-.uniForm .ctrlHolder div.readOnly{
-    max-width: 50%;
 }
 
 .uniForm .readOnly .choice {
@@ -441,9 +436,9 @@ table.table.table-bordered tr.highlight td {
 }
 
 .uniForm .readOnly .formHint {
-    position: absolute;
     right: 0;
     bottom: 0.3em;;
+    width: auto;
 }
 
 .uniForm label.checkbox{
