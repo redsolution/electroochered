@@ -23,13 +23,14 @@
                 shadowAnchor: [4, 62],  // the same for the shadow
             });
             {% with current_requestion.address.coords as point %}
-                var requestion_point = [{{ point.y }}, {{ point.x }}]
-                var requestion_marker = L.marker(requestion_point)
-                var point = [{{ point.y }}, {{ point.x }}]
+                {% if point %}
+                    var requestion_point = [{{ point.y }}, {{ point.x }}]
+                    var requestion_marker = L.marker(requestion_point)
+                {% else %}
+                    var requestion_marker = null
+                {% endif %}
             {% endwith %}
-            var map = new L.Map("requestion_map", {
-                center: L.latLng(point)
-            });
+            var map = new L.Map("requestion_map", {});
             var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
                 subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
             });
@@ -48,8 +49,13 @@
                     $("#requestion_map").show()
                     var sadik_point = [sadik_coords["y"], sadik_coords["x"]]
                     var sadik_marker = L.marker(sadik_point, {icon: sadikIcon});
-                    points = L.layerGroup([requestion_marker, sadik_marker]).addTo(map);
-                    map.fitBounds([requestion_point, sadik_point]);
+                    if (requestion_marker) {
+                        points = L.layerGroup([requestion_marker, sadik_marker]).addTo(map);
+                        map.fitBounds([requestion_point, sadik_point]);
+                    } else {
+                        points = L.layerGroup([sadik_marker]).addTo(map);
+                        map.fitBounds([sadik_point]);
+                    }
                 };
             });
             $('#select_sadik_form').trigger('change');
@@ -157,9 +163,9 @@
             {% if current_requestion %}
                 <h3>Заявка</h3>
                 <p>Дата рождения: {{ current_requestion.birth_date|date:"j M Y" }}</p>
-                <p>Адрес: {% if current_requestion.address %}{{ current_requestion.address }}{% else %}не указан{% endif %}</p>
-                <p>Тел.: {% if current_requestion.profile.telephone %}{{ current_requestion.profile.telephone }}{% else %}не указан{% endif %}</p>
-                <p>ФИО родителей: {{ current_requestion.profile.name_patronymic|verbose_value }}</p>
+                <p>Адрес: {{ current_requestion.address.text|verbose_value }}</p>
+                <p>Тел.: {% if current_requestion.profile.phone_number %}{{ current_requestion.profile.phone_number }}{% else %}не указан{% endif %}</p>
+                <p>ФИО родителей: {{ current_requestion.profile.fio|verbose_value }}</p>
                 <p>Возрастная группа: {{ current_requestion_age_groups.0 }}</p>
 
                 <form action="." method="POST" id="select_sadik_form">
@@ -173,8 +179,8 @@
                 {% for sadik in sadik_list %}
                     <dl id="sadik_{{ sadik.id }}_description" style="display: none;">
                         <p>Название: {{ sadik|verbose_value }}</p>
-                        <p>Адрес: {{ sadik.adress|verbose_value }}</p>
-                        <p>Телефон: {{ sadik.telephone|verbose_value }}</p>
+                        <p>Адрес: {{ sadik.address.text|verbose_value }}</p>
+                        <p>Телефон: {{ sadik.phone|verbose_value }}</p>
                         Возрастные группы:
                         <table class="table table-striped table-bordered table-condensed">
                             <tr>

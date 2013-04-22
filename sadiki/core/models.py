@@ -263,7 +263,7 @@ class Address(models.Model):
 
     @property
     def text(self):
-        if self.building_number:
+        if self.building_number and self.street:
             street = "%s," % self.street
         else:
             street = self.street
