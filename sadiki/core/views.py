@@ -19,10 +19,10 @@ class Frontpage(TemplateView):
     def get(self, request, *args, **kwargs):
         u = request.user
         result = 'anonym_frontpage'
-        if u.is_anonymous():
+        if u.is_anonymous() or u.is_requester():
             if not Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
                 return self.render_to_response({})
-        elif u.is_supervisor():
+        if u.is_supervisor():
             result = 'supervisor_frontpage'
         elif u.is_operator():
             result = 'operator_frontpage'

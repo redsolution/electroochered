@@ -37,35 +37,41 @@
     {# пункты меню заявителя #}
     {% if request.user.is_requester %}
         {# профиль #}
+        {% if account_frontpage|check_url_availability:request.user %}
         <li {% if request.path == account_profile_change or request.path == account_frontpage %}class="active"{% endif %} >
             <a href="{{ account_frontpage }}">
                 <i class="imgicon gear"></i>
                 <p>Ваш профиль</p>
             </a>
         </li>
+        {% endif %}
         {# заявки #}
         {% for requestion in request.user.get_profile.requestion_set.all %}
             {% url account_requestion_info requestion.id as account_requestion_info %}
-            {% url account_requestion_change requestion.id as account_requestion_change %}
-            {% url account_benefits_change requestion.id as account_benefits_change %}
-            {% url account_documents_change requestion.id as account_documents_change %}
-            {% url account_preferredsadiks_change requestion.id as account_preferredsadiks_change %}
-            {% url requestion_logs_for_account requestion.id as requestion_logs_for_account_url %}
-            {% create_extend_list account_requestion_change account_benefits_change account_documents_change account_preferredsadiks_change account_requestion_info requestion_logs_for_account_url as requestion_urls %}
-            <li {% if request.path in requestion_urls %}class="active"{% endif %} >
-            <a href="{{ account_requestion_info }}">
-                <i class="imgicon user"></i>
-                <p style="top: 84px;">{{ requestion }}</p>
-            </a>
-            </li>
+            {% if account_requestion_info|check_url_availability:request.user %}
+                {% url account_requestion_change requestion.id as account_requestion_change %}
+                {% url account_benefits_change requestion.id as account_benefits_change %}
+                {% url account_documents_change requestion.id as account_documents_change %}
+                {% url account_preferredsadiks_change requestion.id as account_preferredsadiks_change %}
+                {% url requestion_logs_for_account requestion.id as requestion_logs_for_account_url %}
+                {% create_extend_list account_requestion_change account_benefits_change account_documents_change account_preferredsadiks_change account_requestion_info requestion_logs_for_account_url as requestion_urls %}
+                <li {% if request.path in requestion_urls %}class="active"{% endif %} >
+                <a href="{{ account_requestion_info }}">
+                    <i class="imgicon user"></i>
+                    <p style="top: 84px;">{{ requestion }}</p>
+                </a>
+                </li>
+            {% endif %}
         {% endfor %}
         {# добавление заявки #}
-        <li {% if request.path == requestion_add_by_user %}class="active"{% endif %} >
-            <a href="{{ requestion_add_by_user }}">
-                <i class="imgicon add"></i>
-                <p>Добавить заявку</p>
-            </a>
-        </li>
+        {% if requestion_add_by_user|check_url_availability:request.user %}
+            <li {% if request.path == requestion_add_by_user %}class="active"{% endif %} >
+                <a href="{{ requestion_add_by_user }}">
+                    <i class="imgicon add"></i>
+                    <p>Добавить заявку</p>
+                </a>
+            </li>
+        {% endif %}
     {% endif %}
 
     {# общие для всех пользователей пункты #}

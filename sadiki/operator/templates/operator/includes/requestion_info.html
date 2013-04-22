@@ -86,9 +86,26 @@
             </div>
         </div>
         {% readonly profile 'phone_number' %}
-        {% if profile.email_verified %}
-            {% readonly profile.user 'email' 'Адрес электронной почты' %}
-        {% endif %}
+        <div class="ctrlHolder readOnly">
+            <span class="readOnlyLabel">Адрес электронной почты</span>
+            <div class="readOnly">
+                <span class="choice">
+                    {{ profile.user.email|verbose_value }}
+                </span>
+                {% if profile.user.email %}
+                    {% if profile.email_verified %}
+                        <p class="icon_text"><div class="icon yes" ></div>Адрес подтвержден</p>
+                    {% else %}
+                        {% if profile.user.email_busy %}
+                            <p class="important">Этот адрес занят другим пользователем</p>
+                        {% else %}
+                            <p class="icon_text"><div class="icon no" ></div>Адрес не подтвержден</p>
+                             <button id="revalidate" rel="{% url revalidate_email profile.id %}">Выслать подтверждение</button>
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
         {% if profile.mobile_number %}
             {% readonly profile 'mobile_number' %}
         {% endif %}
