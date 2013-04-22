@@ -49,7 +49,7 @@
         <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
     {% else %}
         {% if not requestion.document_confirmed %}
-            <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявку, обратившись в РУО.</div>
+            <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявку, обратившись в управление образования.</div>
         {% else %}
             <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
         {% endif %}
