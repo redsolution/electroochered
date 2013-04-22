@@ -22,14 +22,15 @@ class Frontpage(TemplateView):
         if u.is_anonymous() or u.is_requester():
             if not Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
                 return self.render_to_response({})
-        if u.is_supervisor():
-            result = 'supervisor_frontpage'
-        elif u.is_operator():
-            result = 'operator_frontpage'
-        elif u.is_requester():
-            result = 'account_frontpage'
-        elif u.is_administrator():
-            result = 'sadiki_admin:index'
+        if not u.is_anonymous():
+            if u.is_supervisor():
+                result = 'supervisor_frontpage'
+            elif u.is_operator():
+                result = 'operator_frontpage'
+            elif u.is_requester():
+                result = 'account_frontpage'
+            elif u.is_administrator():
+                result = 'sadiki_admin:index'
         return HttpResponseRedirect(reverse(result))
 
 
