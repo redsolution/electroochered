@@ -803,7 +803,7 @@ class Requestion(models.Model):
     agent_type = models.IntegerField(u'вид представительства',
         choices=AGENT_TYPE_CHOICES, help_text=u"Вид представительства заявителя\
             к ребенку")
-    birth_date = models.DateField(u'дата рождения ребенка', validators=[birth_date_validator])
+    birth_date = models.DateField(u'Дата рождения ребенка', validators=[birth_date_validator])
     last_name = models.CharField(u'фамилия ребёнка', max_length=255, null=True)
     first_name = models.CharField(u'имя ребёнка', max_length=255, null=True)
     patronymic = models.CharField(u'отчество ребёнка', max_length=255, null=True)
