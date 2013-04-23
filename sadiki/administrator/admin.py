@@ -512,7 +512,6 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         my_urls = patterns('',
             url(r'^start_import/$', self.admin_site.admin_view(self.start_import), name="start_import"),
             url(r'^start_import_check/$', self.admin_site.admin_view(self.start_import_check), name="start_import_check"),
-            # url(r'^finish_import/$', self.admin_site.admin_view(self.finish_import), name="finish_import"),
             url(r'^import_files/(?P<filename>[^\/]+\.\w*)$', self.admin_site.admin_view(self.secure_static),
                 name="secure_static"),
             url(r'^import_status/$', self.import_status, name="import_status"),
@@ -575,11 +574,14 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         if not os.path.exists(file_path):
             raise Http404
         f = open(file_path, 'r')
-        response = HttpResponse(content=f.read())
         ext = os.path.splitext(filename)[1]
         if ext and ext in mimetypes.types_map:
-            response['Content-Type'] = mimetypes.types_map[ext]
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename.encode('utf-8')
+            file_mimetype = mimetypes.types_map[ext]
+        else:
+            file_mimetype = ''
+        response = HttpResponse(content=f.read(), mimetype=file_mimetype)
+        response['Content-Type'] = mimetypes.types_map[ext]
+        response['Content-Disposition'] = 'filename=%s' % filename.encode('utf-8')
         return response
 
     @csrf_protect_m

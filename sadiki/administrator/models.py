@@ -13,7 +13,7 @@ from sadiki.administrator.import_plugins import INSTALLED_FORMATS, \
     SADIKS_FORMATS
 from sadiki.administrator.utils import get_xlwt_style_list
 from sadiki.core.importpath import importpath
-from sadiki.core.models import Requestion, Sadik, Address
+from sadiki.core.models import Requestion, Sadik, Address, EvidienceDocument
 from sadiki.core.utils import get_unique_username
 from xlutils.copy import copy
 import datetime
@@ -160,20 +160,6 @@ def validate_fields_length(obj):
                 (field.verbose_name, field.max_length))
     return errors
 
-#def validate_object(obj):
-#    errors=[]
-#    try:
-#        obj.full_clean()
-#    except ValidationError as e:
-#        for key, error_messages in e.message_dict.iteritems():
-#            if key != NON_FIELD_ERRORS:
-#                errors.append("%s: %s" % (obj._meta.get_field_by_name(key)[0].verbose_name,
-#                                          ";".join([error_message for error_message in error_messages])))
-#            else:
-#                errors.append([error_message for error_message in error_messages])
-#    return errors
-
-
 
 class RequestionLogic(object):
 
@@ -185,6 +171,7 @@ class RequestionLogic(object):
         self.format_doc = format_doc
         self.errors = []
         self.fake = fake
+        self.requestion_documents = []
 
     def validate(self):
         """
@@ -192,21 +179,20 @@ class RequestionLogic(object):
         if not - store error information
         """
         for index, parsed_row in enumerate(self.format_doc):
-            if any([issubclass(type(cell), Exception) for cell in parsed_row]):
-                self.errors.append(ErrorRow(parsed_row, index +
-                    self.format_doc.start_line))
+            cell_errors = any([issubclass(type(cell), Exception) for cell in parsed_row])
+            try:
+                self.validate_record(self.format_doc.to_python(parsed_row), cell_errors)
+            except ValidationError, e:
+                logic_errors = e
             else:
-                try:
-                    self.validate_record(self.format_doc.to_python(parsed_row))
-                except ValidationError, e:
-                    self.errors.append(ErrorRow(parsed_row,
-                        index + self.format_doc.start_line, e))
+                logic_errors = None
+            if cell_errors or logic_errors:
+                self.errors.append(ErrorRow(parsed_row, index + self.format_doc.start_line, logic_errors))
 
-    def validate_record(self, data_tuple):
+    def validate_record(self, data_tuple, cell_errors):
         from sadiki.core.workflow import REQUESTION_IMPORT
         from sadiki.core.workflow import IMPORT_PROFILE
-        requestion, profile, areas, sadik_number_list, address_data, benefits, document = data_tuple
-        errors = []
+        requestion, profile, areas, sadik_number_list, address_data, benefits, document, errors = data_tuple
         address = Address.objects.get_or_create(**address_data)[0]
         requestion.address = address
         requestion.profile = profile
@@ -215,38 +201,45 @@ class RequestionLogic(object):
             requestion.registration_datetime = datetime.datetime.combine(
                 requestion.registration_datetime, datetime.time(9, 0))
         requestion = self.change_registration_datetime_coincedence(requestion)
-        try:
-            self.validate_duplicate(requestion)
-        except ValidationError, e:
-            errors.extend(e.messages)
-        try:
-            self.validate_registration_date(requestion)
-        except ValidationError, e:
-            errors.extend(e.messages)
-        try:
-            self.validate_dates(requestion)
-        except ValidationError, e:
-            errors.extend(e.messages)
-        try:
-            preferred_sadiks = self.validate_sadik_list(requestion, areas, sadik_number_list)
-        except ValidationError, e:
-            errors.extend(e.messages)
-        try:
-            self.validate_admission_date(requestion)
-        except ValidationError, e:
-            errors.extend(e.messages)
+        if document:
+            try:
+                self.validate_document_duplicate(document)
+            except ValidationError, e:
+                errors.extend(e.messages)
+        if requestion.registration_datetime:
+            try:
+                self.validate_registration_date(requestion)
+            except ValidationError, e:
+                errors.extend(e.messages)
+        if requestion.registration_datetime and requestion.birth_date:
+            try:
+                self.validate_dates(requestion)
+            except ValidationError, e:
+                errors.extend(e.messages)
+        if sadik_number_list:
+            try:
+                preferred_sadiks = self.validate_sadik_list(areas, sadik_number_list)
+            except ValidationError, e:
+                errors.extend(e.messages)
+            try:
+                self.validate_admission_date(requestion)
+            except ValidationError, e:
+                errors.extend(e.messages)
+        else:
+            preferred_sadiks = []
         length_errors = []
         length_errors.extend(validate_fields_length(address))
         length_errors.extend(validate_fields_length(profile))
         length_errors.extend(validate_fields_length(requestion))
-        length_errors.extend(validate_fields_length(document))
+        if document:
+            length_errors.extend(validate_fields_length(document))
         if length_errors:
             errors.extend(length_errors)
         if errors:
             raise ValidationError(errors)
         else:
 #            ошибок нет, можно сохранять объекты
-            if not self.fake:
+            if not cell_errors and not self.fake:
                 user = User.objects.create_user(get_unique_username(), '')
                 permission = Permission.objects.get(codename=u'is_requester')
                 user.user_permissions.add(permission)
@@ -279,15 +272,19 @@ class RequestionLogic(object):
                     extra={'obj': requestion,
                         'added_pref_sadiks': preferred_sadiks})
 
-    def validate_duplicate(self, requestion):
-        if (all((requestion.first_name, requestion.last_name, requestion.patronymic)) and
-            Requestion.objects.filter(first_name=requestion.first_name,
-                last_name=requestion.last_name, patronymic=requestion.patronymic,
-                birth_date=requestion.birth_date).count() > 0):
-            raise ValidationError(u'Заявка уже встречается')
-#
+    def validate_document_duplicate(self, document):
+        errors = []
+        if document.document_number in self.requestion_documents:
+            errors.append(u'Заявка с документом "%s" уже встречается в файле' % document.document_number)
+        else:
+            self.requestion_documents.append(document.document_number)
+            if EvidienceDocument.objects.filter(document_number=document.document_number, confirmed=True).exists():
+                errors.append(u'Документ "%s" уже встречается в системе и подтвержден' % document.document_number)
+        if errors:
+            raise ValidationError(errors)
+
     def validate_registration_date(self, requestion):
-        u"""заявки должны быть поданы до 1 марта 2011"""
+        u"""заявки должны быть поданы до теукщей даты"""
         if datetime.date.today() <= requestion.registration_datetime.date():
             raise ValidationError(
                 u'Дата регистрации не может быть больше текущей даты.')
@@ -300,7 +297,7 @@ class RequestionLogic(object):
         if requestion.registration_datetime.date() < requestion.birth_date:
             raise ValidationError(u'Дата регистрации меньше даты рождения ребёнка.')
 
-    def validate_sadik_list(self, requestion, areas, sadik_number_list):
+    def validate_sadik_list(self, areas, sadik_number_list):
         u"""проверяем, номера ДОУ"""
         errors = []
         preferred_sadiks = []
@@ -370,17 +367,40 @@ class SadikLogic(object):
 
     def validate(self):
         for index, parsed_row in enumerate(self.format_doc):
-            if any([issubclass(type(cell), Exception) for cell in parsed_row]):
-                self.errors.append(ErrorRow(parsed_row, index +
-                    self.format_doc.start_line))
+            cell_errors = any([issubclass(type(cell), Exception) for cell in parsed_row])
+            try:
+                self.validate_record(self.format_doc.to_python(parsed_row), cell_errors=cell_errors)
+            except ValidationError, e:
+                logic_errors = e
             else:
-                sadik_object, address_data, age_groups = self.format_doc.to_python(parsed_row)
-                if sadik_object.number in self.sadiks_identifiers:
-                    self.errors.append(ErrorRow(parsed_row,
-                        index + self.format_doc.start_line, ValidationError(u'ДОУ с номером "%s" уже встречается' % sadik_object.number)))
-                else:
-                    self.sadiks_identifiers.append(sadik_object.identifier)
+                logic_errors = None
+            if cell_errors or logic_errors:
+                self.errors.append(ErrorRow(parsed_row, index + self.format_doc.start_line, logic_errors))
+
+    def validate_record(self, data_tuple, cell_errors):
+        sadik_object, address_data, age_groups = data_tuple
+        errors = []
+        if sadik_object.identifier:
+            try:
+                self.validate_identifier(sadik_object)
+            except ValidationError, e:
+                errors.extend(e.messages)
+        if errors:
+            raise ValidationError(errors)
+        else:
+            if not cell_errors:
                 self.import_sadik(sadik_object, address_data, age_groups)
+
+    def validate_identifier(self, sadik_object):
+        errors = []
+        if sadik_object.identifier in self.sadiks_identifiers:
+            errors.append(u'ДОУ с идентификатором "%s" уже встречается' % sadik_object.identifier)
+        else:
+            self.sadiks_identifiers.append(sadik_object.identifier)
+        if Sadik.objects.filter(identifier=sadik_object.identifier).exists():
+            errors.append(u'ДОУ с идентификатором "%s" уже есть в системе' % sadik_object.identifier)
+        if errors:
+            raise ValidationError(errors)
 
     def import_sadik(self, sadik_obj, address_data, age_groups):
         if not self.fake:

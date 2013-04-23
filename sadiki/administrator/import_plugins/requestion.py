@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from sadiki.administrator.models import Format
+from sadiki.administrator.models import Format, CellParserMismatch
 from sadiki.administrator.parsers import TextCellParser, IntegerNumberCellParser, \
     MultiSadikNumberCellParser, TextDecimalNumberCellParser, SexCellParser, \
     blank_empty_parsers, AgentTypeCellParser, BenefitsCellParser, none_parsers, \
@@ -25,9 +25,9 @@ cells = [
     
     {'name':u'Свидетельство о рождении', 'parsers':(DocumentTextCellParser, DocumentNumberCellParser)+blank_empty_parsers}, # 5
     
-    {'name':u'Фамилия ребёнка', 'parsers':(TextCellParser,) + blank_empty_parsers}, # 6
-    {'name':u'Имя ребёнка', 'parsers':(TextCellParser,) + blank_empty_parsers}, # 7
-    {'name':u'Отчество ребёнка', 'parsers':(TextCellParser,) + blank_empty_parsers}, # 8
+    {'name':u'Фамилия ребёнка', 'parsers':(TextCellParser,)}, # 6
+    {'name':u'Имя ребёнка', 'parsers':(TextCellParser,)}, # 7
+    {'name':u'Отчество ребёнка', 'parsers':(TextCellParser,)}, # 8
 
 #    дата рождения
     {'name':u'День рождения', 'parsers':(IntegerNumberCellParser, IntegerTextCellParser,)}, # 9
@@ -88,16 +88,31 @@ class RequestionFormat(Format):
     start_line = 2
     cells = cells
 
-    def to_python(self, data_row):
+    def to_python(self, data_row_with_errors):
         # Задать год зачисления текущим, если он не указан
-        try:
-            registration_date = datetime.date(data_row[4], data_row[3], data_row[2])
-        except ValueError, e:
-            raise ValidationError(u'Неверная дата регистрации: %s' % e)
-        try:
-            birth_date = datetime.date(data_row[11], data_row[10], data_row[9])
-        except ValueError, e:
-            raise ValidationError(u'Неверная дата рождения: %s' % e)
+        data_row = []
+        errors = []
+        for cell in data_row_with_errors:
+            if isinstance(cell, Exception):
+                data_row.append(None)
+            else:
+                data_row.append(cell)
+        if all((data_row[4], data_row[3], data_row[2])):
+            try:
+                registration_date = datetime.date(data_row[4], data_row[3], data_row[2])
+            except ValueError, e:
+                errors.append(u'Неверная дата регистрации: %s' % e)
+                registration_date = None
+        else:
+            registration_date = None
+        if all((data_row[11], data_row[10], data_row[9])):
+            try:
+                birth_date = datetime.date(data_row[11], data_row[10], data_row[9])
+            except ValueError, e:
+                errors.append(u'Неверная дата рождения: %s' % e)
+                birth_date = None
+        else:
+            birth_date = None
         requestion_data = {
             'number_in_old_list': data_row[0],
             'registration_datetime': registration_date,
@@ -151,4 +166,4 @@ class RequestionFormat(Format):
         requestion = Requestion(**requestion_data)
         profile = Profile(**profile_data)
         document = data_row[5]
-        return requestion, profile, areas, preferred, address_data, benefits, document
+        return requestion, profile, areas, preferred, address_data, benefits, document, errors

@@ -415,7 +415,7 @@ class DocumentParserMixin(object):
                     if re.match(document_template.regex, document_number):
                         return EvidienceDocument(template=document_template, document_number=document_number,
                             confirmed=True)
-        raise ValidationError('Номер документа %s не подходит ни под один шаблон' % document_number)
+        raise ValidationError(u'Номер документа %s не подходит ни под один шаблон' % document_number)
 
 
 class DocumentTextCellParser(DocumentParserMixin, TextCellParser):
