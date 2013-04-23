@@ -871,6 +871,10 @@ tr.dynamic-form .errorlist {
     margin-bottom: 15px;
 }
 
+.requestion_blanks div a{
+    margin-bottom: 5px;
+}
+
 /* Страница статистики */
 #group_choice ul{
     list-style-type: none;
@@ -879,4 +883,14 @@ tr.dynamic-form .errorlist {
 
 #group_choice ul li input{
     margin-right: 5px;
+}
+
+/* Главная страница оператора */
+.blanks_drafts {
+    font-size: 13pt;
+}
+
+.blanks_drafts li{
+    list-style-type: none;
+    margin-top: 3pt;
 }

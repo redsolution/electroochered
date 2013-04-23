@@ -52,6 +52,9 @@
 {% block content %}
     <div class="row requestion_blanks">
         <div class="span12">
+        <a target="_blank" class="btn" href="{{ STATIC_URL }}blanks/soglasie_na_obrabotku_pers_dannyh.pdf">
+            Согласие на обработку персональных данных
+        </a>
         <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
             Заявление на регистрацию
         </a>
