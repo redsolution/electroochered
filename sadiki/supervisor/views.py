@@ -133,7 +133,8 @@ class DistributionYearInfo(SupervisorBases):
 
     def get_context_data(self, **kwargs):
         context = super(DistributionYearInfo, self).get_context_data(**kwargs)
-        context.update({'current_distribution_year': get_current_distribution_year()})
+        context.update({'current_distribution_year': get_current_distribution_year(),
+                        'not_distributed_requestions_number': Requestion.objects.enrollment_in_progress().count()})
         return context
 
 
@@ -145,7 +146,7 @@ class StartDistributionYear(SupervisorBases):
         return (super(StartDistributionYear, self).check_permissions(
             request, *args, **kwargs) and
             get_current_distribution_year() != get_distribution_year() and
-            not Distribution.objects.active())
+            not Distribution.objects.active() and not Requestion.objects.enrollment_in_progress().exists())
 
     def dispatch(self, request):
         redirect_to = request.REQUEST.get('next', '')
@@ -183,13 +184,6 @@ class StartDistributionYear(SupervisorBases):
             Logger.objects.create_for_action(START_NEW_YEAR,
                 context_dict={},
                 extra={'user': request.user, 'obj': None})
-#            записываем в логи изменения заявок
-            for action in transitions_actions:
-                for requestion in action['requestions_list']:
-                    context_dict = {'status': requestion.get_status_display()}
-                    Logger.objects.create_for_action(action['transition'],
-                        context_dict=context_dict,
-                        extra={'user': request.user, 'obj': requestion})
             transaction.commit()
         return HttpResponseRedirect(redirect_to)
 

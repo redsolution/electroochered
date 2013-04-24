@@ -742,6 +742,10 @@ class RequestionQuerySet(models.query.QuerySet):
                 WHERE core_vacancies.id = core_requestion.distributed_in_vacancy_id)'''
             })
 
+    def enrollment_in_progress(self):
+        return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
+            STATUS_NOT_APPEAR_EXPIRE))
+
 
 class Requestion(models.Model):
     u"""Класс для заявки на зачисление в ДОУ"""
