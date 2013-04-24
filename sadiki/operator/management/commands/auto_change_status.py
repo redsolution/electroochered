@@ -17,11 +17,12 @@ class Command(BaseCommand):
         for requestion in Requestion.objects.filter(status=STATUS_NOT_APPEAR,
             status_change_datetime__lte=expiration_datetime):
             requestion.status = STATUS_NOT_APPEAR_EXPIRE
+            requestion.save()
             Logger.objects.create_for_action(NOT_APPEAR_EXPIRE,
                 extra={'user': None, 'obj': requestion})
         for requestion in Requestion.objects.filter(status=STATUS_ABSENT,
             status_change_datetime__lte=expiration_datetime):
             requestion.status = STATUS_ABSENT_EXPIRE
+            requestion.save()
             Logger.objects.create_for_action(ABSENT_EXPIRE,
                 extra={'user': None, 'obj': requestion})
-
