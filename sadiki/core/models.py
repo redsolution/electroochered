@@ -36,7 +36,6 @@ STATUS_WAIT_REVIEW = 1  # Ожидает рассмотрения
 STATUS_REJECTED = 2  # Заявление отклонено
 STATUS_REQUESTER_NOT_CONFIRMED = 3  # Очередник - не подтвержден
 STATUS_REQUESTER = 4  # Очередник
-STATUS_WANT_TO_CHANGE_SADIK = 5  # Желает сменить ДОУ
 STATUS_DECISION = 6  # Принято решение о зачислении(выделено место в ДОУ)
 STATUS_PASS_GRANTED = 9  # Выдана путевка (3Б,3В)
 STATUS_TEMP_PASS_TRANSFER = 12  # Выдана путевка на временной основе (4А)
@@ -48,7 +47,6 @@ STATUS_REMOVE_REGISTRATION = 17  # Снят с учёта
 STATUS_ARCHIVE = 18  # Архив
 STATUS_ON_DISTRIBUTION = 50  # На комплектовании
 STATUS_ON_TEMP_DISTRIBUTION = 51  # На временном комплектовании
-STATUS_ON_TRANSFER_DISTRIBUTION = 52  # На комплектовании перевода
 STATUS_NOT_APPEAR_EXPIRE = 53  # Сроки на обжалование неявки истекли
 STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутствия истекли
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
@@ -58,7 +56,6 @@ STATUS_CHOICES = (
     (STATUS_REJECTED, u'Заявление отклонено'),
     (STATUS_REQUESTER_NOT_CONFIRMED, u'Очередник - не подтвержден'),
     (STATUS_REQUESTER, u'Очередник'),
-    (STATUS_WANT_TO_CHANGE_SADIK, u'Желает сменить ДОУ'),
     (STATUS_DECISION, u'Выделено место'),
     (STATUS_PASS_GRANTED, u'Выдана путевка'),
 
@@ -72,7 +69,6 @@ STATUS_CHOICES = (
     (STATUS_ARCHIVE, u'Архивная'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
     (STATUS_ON_TEMP_DISTRIBUTION, u'На временном комплектовании'),
-    (STATUS_ON_TRANSFER_DISTRIBUTION, u'На комплектовании перевода'),
     (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
@@ -81,8 +77,7 @@ STATUS_CHOICES = (
 REQUESTION_MUTABLE_STATUSES = (
     STATUS_WAIT_REVIEW,
     STATUS_REQUESTER_NOT_CONFIRMED,
-    STATUS_REQUESTER,
-    STATUS_WANT_TO_CHANGE_SADIK)
+    STATUS_REQUESTER)
 
 REQUESTION_TYPE_OPERATOR = 0
 REQUESTION_TYPE_IMPORTED = 1
@@ -656,12 +651,10 @@ DISTRIBUTION_PROCESS_STATUSES = (
 
 DEFAULT_DISTRIBUTION_TYPE = 0
 PERMANENT_DISTRIBUTION_TYPE = 1
-TRANSFER_DISTRIBUTION_TYPE = 2
 
 DISTRIBUTION_TYPE_CHOICES = (
     (DEFAULT_DISTRIBUTION_TYPE, u'Обычное зачисление'),
     (PERMANENT_DISTRIBUTION_TYPE, u'Зачисление на постоянной основе'),
-    (TRANSFER_DISTRIBUTION_TYPE, u'Зачисление переводом'),
     )
 
 class RequestionQuerySet(models.query.QuerySet):
@@ -671,8 +664,6 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
-                        STATUS_WANT_TO_CHANGE_SADIK,
-                        STATUS_ON_TRANSFER_DISTRIBUTION,
                         STATUS_TEMP_DISTRIBUTED,
                         STATUS_ON_TEMP_DISTRIBUTION)).order_by(
                 '-benefit_category__priority', 'registration_datetime', 'id')
@@ -680,8 +671,7 @@ class RequestionQuerySet(models.query.QuerySet):
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
-            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,
-                STATUS_WANT_TO_CHANGE_SADIK)).order_by(
+            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,)).order_by(
                 '-benefit_category__priority', 'registration_datetime', 'id')
 
     def decision_requestions(self):
@@ -1002,27 +992,15 @@ class Requestion(models.Model):
         self.distribution_type = PERMANENT_DISTRIBUTION_TYPE
         return self._distribute_in_sadik(sadik)
 
-    def distribute_in_sadik_from_sadikchange(self, sadik):
-        u"""Зачисление переводом из другого ДОУ"""
-        self.distribution_type = TRANSFER_DISTRIBUTION_TYPE
-        return self._distribute_in_sadik(sadik)
-
     def permanent_distribution(self):
         return self.distribution_type == PERMANENT_DISTRIBUTION_TYPE
-
-    def transfer_distribution(self):
-        return self.distribution_type == TRANSFER_DISTRIBUTION_TYPE
 
     def get_vacancy_distributed(self):
         u"""
         возвращает путевку в которую заявка уже распределена
         """
-        if self.status in (STATUS_DISTRIBUTED,
-                STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TRANSFER_DISTRIBUTION):
+        if self.status == STATUS_DISTRIBUTED:
             return self.distributed_in_vacancy
-        elif (self.status in DISTRIBUTION_PROCESS_STATUSES and
-                self.distribution_type == TRANSFER_DISTRIBUTION_TYPE):
-            return self.previous_distributed_in_vacancy
         else:
             return None
 

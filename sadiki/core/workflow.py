@@ -88,14 +88,10 @@ REQUESTION_REGISTRATION = 0             # Регистрация через оп
 REQUESTION_IMPORT = 1                   # Импорт заявки
 ADD_REQUESTION = 2                      # Добавление заявки пользователем
 CONFIRM_REQUESTION = 3                  # Документальное подтверждение заявки
-WANT_TO_CHANGE_SADIK = 4                # Заявка на смену ДОУ
 ON_DISTRIBUTION = 5                     # Переход в комплектование
 DECISION = 6                            # Выделено место
 ON_DISTRIBUTION_RETURN = 7              # возврат в очередь нераспределенных
 IMMEDIATELY_DECISION = 8                # Выделено место(немедленное зачисление)
-ON_TRANSFER_DISTRIBUTION = 9            # Переход в комплектование заявки желающей сменить ДОУ
-TRANSFER_APROOVED = 10                  # Перевод одобрен
-IMMEDIATELY_TRANSFER_APROOVED = 11      # Перевод одобрен(немедленное зачисление)
 ON_TEMP_DISTRIBUTION = 12               # Переход в комплектование временно зачисленной заявки
 ON_TEMP_DISTRIBUTION_RETURN = 58        # Возврат в очередь нераспределенной временно зач-й
 PERMANENT_DECISION = 13                 # Выделение места временно зачисленному
@@ -119,7 +115,6 @@ ABSENT_REMOVE_REGISTRATION = 41         # Снять с учета при нев
 NOT_APPEAR_REMOVE_REGISTRATION = 42     # Снять с учета при неявке
 REMOVE_REGISTRATION_ARCHIVE = 43        # Помещение снятой заявки в архив
 DISTRIBUTED_ARCHIVE = 44                # Помещение распределенной заявки в архив
-WANT_TO_CHANGE_SADIK_DISTRIBUTED = 45   # Отказ от смены ДОУ
 DECISION_REQUESTER = 46                 # Отказ от места в ДОУ
 NOT_APPEAR_REQUESTER = 52               # Возврат в очередь после неявки
 ABSENT_REQUESTER = 53                   # Возврат в очередь при невозможности связаться
@@ -131,10 +126,6 @@ NOT_APPEAR_EXPIRE = 51                  # Истечение сроков обж
 REQUESTION_REJECT = 55                  # Истечение сроков на подтверждение документов
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
-#отказ от зачилсения переводника
-DECISION_WANT_TO_CHANGE_SADIK = 59      # Отказ от места в ДОУ
-NOT_APPEAR_WANT_TO_CHANGE_SADIK = 60    # Отказ от места в ДОУ после неявки
-ABSENT_WANT_TO_CHANGE_SADIK = 61        # Отказ от места в ДОУ после невозожности связаться 
 #отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
@@ -151,8 +142,6 @@ workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION,
     u'Регистрация через оператора',)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, CONFIRM_REQUESTION,
     u'Подтверждение документов', permissions=[OPERATOR_PERMISSION[0]])
-workflow.add(STATUS_DISTRIBUTED, STATUS_WANT_TO_CHANGE_SADIK, WANT_TO_CHANGE_SADIK,
-    u'Подача заявки на смену ДОУ', permissions=[OPERATOR_PERMISSION[0]])
 
 # 2) Комплектование
 # 2.1) Очередники
@@ -167,15 +156,6 @@ if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
     workflow.add(STATUS_REQUESTER, STATUS_DECISION, IMMEDIATELY_DECISION,
         u'Выделение места в ДОУ (немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
 
-# 2.2) Смена ДОУ
-workflow.add(STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TRANSFER_DISTRIBUTION,
-    ON_TRANSFER_DISTRIBUTION, u'Перевод в комплектование на перевод')
-workflow.add(STATUS_ON_TRANSFER_DISTRIBUTION, STATUS_DECISION,
-    TRANSFER_APROOVED, u'Выделение места в ДОУ переводнику')
-if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
-    workflow.add(STATUS_WANT_TO_CHANGE_SADIK, STATUS_DECISION,
-        IMMEDIATELY_TRANSFER_APROOVED,
-        u'Выделение места в ДОУ переводнику(немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 # 2.3) Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
@@ -251,8 +231,6 @@ workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_ARCHIVE,
 workflow.add(STATUS_DISTRIBUTED, STATUS_ARCHIVE, DISTRIBUTED_ARCHIVE,
     u'Архивация зачисленных')
 
-workflow.add(STATUS_WANT_TO_CHANGE_SADIK, STATUS_DISTRIBUTED,
-    WANT_TO_CHANGE_SADIK_DISTRIBUTED, u'Отказ от смены ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_REQUESTER, DECISION_REQUESTER,
     u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 workflow.add(STATUS_NOT_APPEAR, STATUS_REQUESTER, NOT_APPEAR_REQUESTER,
@@ -262,19 +240,6 @@ workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
     REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
 
-#отказ от зачисления переводом
-workflow.add(STATUS_DECISION, STATUS_WANT_TO_CHANGE_SADIK,
-    DECISION_WANT_TO_CHANGE_SADIK,
-    u'Отказ от места в ДОУ на постоянное основе',
-    permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
-workflow.add(STATUS_NOT_APPEAR, WANT_TO_CHANGE_SADIK,
-    NOT_APPEAR_WANT_TO_CHANGE_SADIK,
-    u'Отказ от места в ДОУ на постоянной основе после неявки',
-    permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
-workflow.add(STATUS_ABSENT, STATUS_WANT_TO_CHANGE_SADIK,
-    ABSENT_WANT_TO_CHANGE_SADIK,
-    u'Отказ от места в ДОУ на постоянной основе после отсутствия',
-    permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 
 # отказ от зачисления на постоянной основе
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
@@ -345,7 +310,7 @@ VACANCY_DISTRIBUTED = 110
 
 START_NEW_YEAR = 106
 
-DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION, TRANSFER_APROOVED]
+DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
 ACTION_CHOICES = [(transition.index, transition.comment) for transition in
                     workflow.transitions]

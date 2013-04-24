@@ -33,8 +33,8 @@ from sadiki.account.forms import PreferredSadikForm
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
-    STATUS_WANT_TO_CHANGE_SADIK, STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
-    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup, TRANSFER_DISTRIBUTION_TYPE
+    STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
+    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup
 from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
@@ -43,11 +43,10 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     TEMP_ABSENT_CANCEL, RETURN_TEMP_DISTRIBUTED, DECISION_REQUESTER, \
     NOT_APPEAR_REQUESTER, ABSENT_REQUESTER, DECISION_TEMP_DISTRIBUTED, \
     NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, \
-    DECISION_WANT_TO_CHANGE_SADIK, NOT_APPEAR_WANT_TO_CHANGE_SADIK, \
-    ABSENT_WANT_TO_CHANGE_SADIK, DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, \
+    DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
-    WANT_TO_CHANGE_SADIK_DISTRIBUTED, WANT_TO_CHANGE_SADIK, workflow
+    workflow
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, PreferredSadikConfirmationForm
@@ -175,8 +174,7 @@ def after_cancel_temp_absent(sender, **kwargs):
 @listen_transitions(
     DECISION_REQUESTER, NOT_APPEAR_REQUESTER, ABSENT_REQUESTER,
     DECISION_TEMP_DISTRIBUTED, NOT_APPEAR_TEMP_DISTRIBUTED,
-    ABSENT_TEMP_DISTRIBUTED, DECISION_WANT_TO_CHANGE_SADIK,
-    NOT_APPEAR_WANT_TO_CHANGE_SADIK, ABSENT_WANT_TO_CHANGE_SADIK,
+    ABSENT_TEMP_DISTRIBUTED
 )
 def after_decision_reject(sender, **kwargs):
     u"""Обработчик переводов №46, 52, 53 - возвращение заявки обратно в очередь"""
@@ -186,7 +184,7 @@ def after_decision_reject(sender, **kwargs):
     form = kwargs['form']
 
 #    если заявка уже была распределена, то возвращаем путевку на место
-    if transition.dst in (STATUS_WANT_TO_CHANGE_SADIK, STATUS_TEMP_DISTRIBUTED):
+    if transition.dst == STATUS_TEMP_DISTRIBUTED:
         requestion.distributed_in_vacancy = requestion.previous_distributed_in_vacancy
     # Журналирование
     messages.success(request, u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
@@ -356,43 +354,6 @@ def after_restore_requestion(sender, **kwargs):
         reason=form.cleaned_data.get('reason'))
 
 
-@receiver(post_status_change, sender=Requestion)
-@listen_transitions(WANT_TO_CHANGE_SADIK_DISTRIBUTED,)
-def after_want_to_change_sadik_distributed(sender, **kwargs):
-    transition = kwargs['transition']
-    request = kwargs['request']
-    requestion = kwargs['requestion']
-    form = kwargs['form']
-
-    messages.success(request, u"Запрос на смену ДОУ был отменен")
-    log_extra = {'user': request.user, 'obj': requestion,
-            'distribution_type': requestion.distribution_type,
-            'removed_pref_sadiks': requestion.pref_sadiks.all()}
-    Logger.objects.create_for_action(
-        transition.index, extra=log_extra,
-        reason=form.cleaned_data.get('reason'))
-
-
-@receiver(post_status_change, sender=Requestion)
-@listen_transitions(WANT_TO_CHANGE_SADIK,)
-def after_want_to_change_sadik(sender, **kwargs):
-    transition = kwargs['transition']
-    request = kwargs['request']
-    requestion = kwargs['requestion']
-    form = kwargs['form']
-
-#    при переводе заявка ставится в конец очереди
-    requestion.registration_datetime = datetime.datetime.now()
-    requestion.save()
-
-    messages.success(request, u'Заявка переведена в статус "Желает сменить ДОУ"')
-    Logger.objects.create_for_action(
-        transition.index,
-        extra={'user': request.user, 'obj': requestion,
-            'added_pref_sadiks': requestion.pref_sadiks.all()},
-        reason=form.cleaned_data.get('reason'))
-
-
 # ------------------------------------------------------
 # Функции дополнительной проеврки переходов (callback)
 # ------------------------------------------------------
@@ -410,8 +371,6 @@ def register_form(transition_index, form_cls):
     transition = workflow.get_transition_by_index(transition_index)
     transition.confirmation_form_class = form_cls
 
-
-register_form(WANT_TO_CHANGE_SADIK, PreferredSadikConfirmationForm)
 
 # Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
@@ -494,10 +453,3 @@ register_callback(
     (DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, ABSENT_DISTRIBUTED),
     permit_distribution)
 
-
-def permit_transfer_reject(user, requestion, transition, request=None, form=None):
-    return requestion.distribution_type == TRANSFER_DISTRIBUTION_TYPE
-
-register_callback((DECISION_WANT_TO_CHANGE_SADIK,
-    NOT_APPEAR_WANT_TO_CHANGE_SADIK, ABSENT_WANT_TO_CHANGE_SADIK,),
-    permit_transfer_reject)

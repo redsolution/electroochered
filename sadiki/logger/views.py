@@ -10,8 +10,8 @@ from sadiki.core.models import Requestion, Sadik, Area, STATUS_CHOICES, \
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CHANGE_PREFERRED_SADIKS, \
     CHANGE_PREFERRED_SADIKS_BY_OPERATOR, ADD_REQUESTION, REQUESTION_REGISTRATION, \
-    REQUESTION_IMPORT, WANT_TO_CHANGE_SADIK, IMMEDIATELY_PERMANENT_DECISION, \
-    PERMANENT_DECISION, TRANSFER_APROOVED, IMMEDIATELY_TRANSFER_APROOVED, DECISION, \
+    REQUESTION_IMPORT, IMMEDIATELY_PERMANENT_DECISION, \
+    PERMANENT_DECISION, DECISION, \
     TEMP_PASS_TRANSFER, TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, \
     PASS_GRANTED, DECISION_DISTRIBUTION, \
     PASS_DISTRIBUTED, \
@@ -30,8 +30,7 @@ DECISION_TRANSFERS = (DECISION, IMMEDIATELY_DECISION, PERMANENT_DECISION,
                      TEMP_PASS_TRANSFER)
 TEMP_DECISION_TRANSFERS = (TEMP_DISTRIBUTION_TRANSFER, TEMP_PASS_TRANSFER)
 DISTRIBUTION_TRANSFERS = (DECISION_DISTRIBUTION, PASS_DISTRIBUTED,)
-DISMISS_TRANSFERS = (DISTRIBUTED_ARCHIVE, TRANSFER_APROOVED,
-                     IMMEDIATELY_TRANSFER_APROOVED)
+DISMISS_TRANSFERS = (DISTRIBUTED_ARCHIVE,)
 
 
 class RequestionLogs(TemplateView):
@@ -165,23 +164,11 @@ def get_sadiks_requests_report_data(from_date, to_date, age_group):
             removed_pref_number = change_pref_logs.filter(
                 removed_pref_sadiks=sadik).count()
 
-            transfer_logs = logs.filter(
-                action_flag=WANT_TO_CHANGE_SADIK)
-#                укзан приоритетным при переводе
-            transfer_to_sadik_number = transfer_logs.filter(
-                added_pref_sadiks=sadik).count()
-#                кол-во переводов из ДОУ
-            transfer_from_sadik_number = transfer_logs.filter(
-                vacancy__sadik_group__sadik=sadik).count()
-#                всего прирост как приоритетный
-            total_pref_add = added_pref_number - removed_pref_number + \
-                transfer_to_sadik_number
+            total_pref_add = added_pref_number - removed_pref_number
             sadiks_info.append({'sadik_name': unicode(sadik),
                 'registration_set_pref_number': registration_set_pref_number,
                 'added_pref_number': added_pref_number,
                 'removed_pref_number': removed_pref_number,
-                'transfer_to_sadik_number': transfer_to_sadik_number,
-                'transfer_from_sadik_number': transfer_from_sadik_number,
                 'total_pref_add': total_pref_add,
                 })
         areas_info.append(
@@ -262,176 +249,3 @@ class ReportShow(OperatorPermissionMixin, TemplateView):
         context = {"report": self.report, "report_types": dict(REPORTS_CHOICES)}
         context.update(self.report.get_data())
         return self.render_to_response(context)
-
-
-#class ReportDecision(OperatorPermissionMixin, TemplateView):
-#    u"""Сведения о ходе комплектования (доукомплектования)"""
-#    template_name = "logger/report_decision.html"
-#
-#    def get(self, request):
-#        form = ReportForm()
-#        return self.render_to_response({'form': form})
-#
-#    def post(self, request):
-#        form = ReportForm(request.POST)
-#        context = {'form': form}
-#        if form.is_valid():
-#            areas_info = []
-#
-#            distribution_type = form.cleaned_data.get("distribution_type")
-##            определяем распределения по которым отображается отчет
-#            primary_distribution = Distribution.objects.filter(
-#                init_datetime__gte=get_current_distribution_year()
-#                ).order_by('init_datetime')[0]
-#            if distribution_type == "primary":
-##                либо только первое распределение в текущем году
-#                distributions = (primary_distribution,)
-#            else:
-##                либо все за текущий год, исключая первое
-#                distributions = Distribution.objects.filter(
-#                    init_datetime__gte=get_current_distribution_year(),
-#                    ).exclude(id=primary_distribution.id)
-##            получаем все действия выполненные для заданных распределений
-#            logs = Logger.objects.filter(vacancy__distribution__in=distributions)
-#
-##            логи для заданного промежутка времени
-#            from_date = form.cleaned_data['from_date']
-#            to_date = form.cleaned_data['to_date']
-#            one_day = datetime.timedelta(days=1)
-#            logs = logs.filter(Q(datetime__lt=to_date + one_day,
-#                datetime__gt=from_date - one_day))
-#
-#            for area in Area.objects.all():
-#                sadiks_info = []
-#                for sadik in area.sadik_set.all():
-#                    sadik_logs = logs.filter(vacancy__sadik_group__sadik=sadik)
-#                    sadik_info = {'sadik': sadik, }
-#        #            принято решений о комплектовании очередников(в т.ч. временно зач.)
-#                    decision_requester_number = sadik_logs.filter(
-#                        action_flag__in=DECISION_TRANSFERS + TEMP_DECISION_TRANSFERS,
-#                        ).count()
-#                    sadik_info.update(
-#                        {'decision_requester_number': decision_requester_number})
-#        #            принято решений о комплектовании переводом из другого ДОУ
-#                    decision_transfer_number = sadik_logs.filter(
-#                        action_flag__in=(TRANSFER_APROOVED,
-#                                         IMMEDIATELY_TRANSFER_APROOVED)).count()
-#                    sadik_info.update(
-#                        {'decision_transfer_number': decision_transfer_number})
-#        #            всего принято решений о комплектовании
-#                    total_decision_number = decision_requester_number + decision_transfer_number
-#                    sadik_info.update({'total_decision_number': total_decision_number})
-#        #            выдано постоянных путевок
-#                    pass_granted_number = sadik_logs.filter(
-#                        action_flag__in=(PASS_GRANTED, PASS_TRANSFER,
-#                                         PERMANENT_PASS_TRANSFER)).count()
-#                    sadik_info.update({'pass_granted_number': pass_granted_number})
-#        #            выдано временных путевок
-#                    temp_pass_granted_number = sadik_logs.filter(
-#                        action_flag=TEMP_PASS_TRANSFER).count()
-#                    sadik_info.update(
-#                        {'temp_pass_granted_number': temp_pass_granted_number})
-##                    всего выдано путевок
-#                    total_pass_granted_number = pass_granted_number + temp_pass_granted_number
-#                    sadik_info.update({'total_pass_granted_number': total_pass_granted_number})
-#        #            зачислено постоянно
-#                    distributed_number = sadik_logs.filter(
-#                        action_flag__in=DISTRIBUTION_TRANSFERS).count()
-#                    sadik_info.update({'distributed_number': distributed_number})
-#        #            зачислено временно
-#                    temp_distributed_number = sadik_logs.filter(
-#                        action_flag__in=(PERMANENT_DISTRIBUTION,
-#                                         PERMANENT_PASS_DISTRIBUTION)).count()
-#                    sadik_info.update(
-#                        {'temp_distributed_number': temp_distributed_number})
-##                    не удалось известить
-#                    absent_number = sadik_logs.filter(
-#                        action_flag__in=(
-#                            DECISION_ABSENT, PERMANENT_ABSENT, TRANSFER_ABSENT)
-#                        ).count()
-#                    sadik_info.update({'absent_number': absent_number})
-##                    не явился в ДОУ
-#                    not_appear_number = sadik_logs.filter(action_flag__in=(
-#                        DECISION_NOT_APPEAR, PERMANENT_NOT_APPEAR,
-#                        TRANSFER_NOT_APPEAR)).count()
-#                    sadik_info.update({'not_appear_number': not_appear_number})
-##                    истекли сроки обжалования
-#                    expired_number = sadik_logs.filter(action_flag__in=(
-#                        ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION)
-#                        ).count()
-#                    sadik_info.update({'expired_number': expired_number})
-#                    sadiks_info.append(sadik_info)
-#                areas_info.append({'area': area,
-#                                       'sadiks_info': sadiks_info})
-#            context.update({'areas_info': areas_info})
-#        return self.render_to_response(context)
-
-
-#class ReportQueueChanges(OperatorPermissionMixin, TemplateView):
-#    u"""Отчет о движении очереди"""
-#
-#    def get(self, request):
-#        form = ReportForm()
-#        return self.render_to_response({'form': form})
-#
-#    def post(self, request):
-#        form = ReportForm(request.POST)
-#        context = {'form': form}
-#        if form.is_valid():
-#            from_date = form.cleaned_data['from_date']
-#            to_date = form.cleaned_data['to_date']
-#            areas_info = []
-#            for area in Area.objects.all():
-#                sadiks_info = []
-#                for sadik in area.sadik_set.all():
-#                    sadik_info = {'sadik': sadik}
-#
-#        return self.render_to_response(context)
-
-
-#def save_report_for_places(distribution=None):
-#    distribution = Distribution.objects.latest('id')
-#    for age_group in AgeGroup.objects.all():
-#        areas_info = []
-#        for area in Area.objects.all():
-#            sadiks_info = []
-#            for sadik in area.sadik_set.all():
-#                sadik_info = {'sadik_name': sadik.name}
-#                groups = sadik.groups.active(
-#                    ).filter(age_group=age_group)
-#                groups_number = groups.count()
-#                sadik_info.update({"groups_number": groups_number})
-#                if groups_number > 0:
-#                    capacity = groups.aggregate(Sum('capacity'))['capacity__sum']
-#                    free_places = groups.aggregate(Sum('free_places'))['free_places__sum']
-#                    sadik_info.update(
-#                        {"capacity": capacity, "free_places": free_places})
-#                sadiks_info.append(sadik_info)
-#            areas_info.append({'area_name': area.name,
-#                'sadiks_info': sadiks_info})
-#        data = json.dumps(areas_info, cls=DjangoJSONEncoder)
-#        StatisticsArchive.objects.create(
-#            record_type=REPORT_PLACES_FOR_GROUP,
-#            data=data, date=distribution.start_datetime.date(),
-#            year=distribution.year, age_group=age_group)
-#
-#
-#def save_report_places_for_groups(distribution):
-#    areas_info = []
-#    for area in Area.objects.all():
-#        sadiks_info = []
-#        for sadik in area.sadik_set.all():
-#            sadik_info = []
-#            for age_group in AgeGroup.objects.all():
-#                groups = sadik.groups.filter(age_group=age_group)
-#                groups_number = groups.count()
-#                free_places = groups.aggregate(Sum('free_places'))['free_places__sum']
-#            sadik_info.append({'groups_number': groups_number,
-#                'free_places': free_places})
-#        sadiks_info.append(sadik_info)
-#    areas_info.append(sadiks_info)
-#    data = json.dumps(areas_info, cls=DjangoJSONEncoder)
-#    StatisticsArchive.objects.create(
-#            record_type=REPORT_PLACES_FOR_GROUP,
-#            data=data, date=distribution.start_datetime.date(),
-#            year=distribution.year, age_group=age_group)

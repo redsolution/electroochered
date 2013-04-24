@@ -3,8 +3,8 @@ from django.core.management.base import BaseCommand
 from itertools import izip
 from sadiki.core.models import Distribution, AgeGroup,\
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_AUTO, DISTRIBUTION_STATUS_START, \
-    STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TEMP_DISTRIBUTION, STATUS_TEMP_DISTRIBUTED,\
-    STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, STATUS_ON_TRANSFER_DISTRIBUTION, Sadik, SadikGroup, Requestion
+    STATUS_ON_TEMP_DISTRIBUTION, STATUS_TEMP_DISTRIBUTED,\
+    STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Sadik, SadikGroup, Requestion
 from sadiki.distribution.models import DataTable
 
 from sadiki.distribution.qs_filters import QueueByAge
@@ -16,7 +16,7 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py auto_distribution'''
 
     def handle(self, *args, **options):
-        from sadiki.core.workflow import DECISION, TRANSFER_APROOVED, PERMANENT_DECISION
+        from sadiki.core.workflow import DECISION, PERMANENT_DECISION
         auto_distributions = Distribution.objects.filter(
             status=DISTRIBUTION_STATUS_AUTO)
         if auto_distributions.exists():
@@ -67,12 +67,6 @@ class Command(BaseCommand):
                         requestion.save()
                         requestion.distribute_in_sadik_from_tempdistr(sadik_group.sadik)
                         Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': None, 'obj': requestion})
-
-                    if requestion.status == STATUS_WANT_TO_CHANGE_SADIK:
-                        requestion.status = STATUS_ON_TRANSFER_DISTRIBUTION
-                        requestion.save()
-                        requestion.distribute_in_sadik_from_sadikchange(sadik_group.sadik)
-                        Logger.objects.create_for_action(TRANSFER_APROOVED, extra={'user': None, 'obj': requestion})
 
             distribution.status = DISTRIBUTION_STATUS_START
             distribution.save()

@@ -11,7 +11,7 @@ from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion
     STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Vacancies, Sadik, \
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_ENDING, STATUS_DECISION, \
     SadikGroup, AgeGroup, STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION, \
-    STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TRANSFER_DISTRIBUTION, Area
+    Area
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year, run_command
 from sadiki.core.workflow import DISTRIBUTION_INIT
@@ -87,8 +87,6 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
                 status=STATUS_ON_DISTRIBUTION)
             Requestion.objects.filter(status=STATUS_TEMP_DISTRIBUTED).update(
                 status=STATUS_ON_TEMP_DISTRIBUTION)
-            Requestion.objects.filter(status=STATUS_WANT_TO_CHANGE_SADIK).update(
-                status=STATUS_ON_TRANSFER_DISTRIBUTION)
         return HttpResponseRedirect(reverse('decision_manager'))
 
 
@@ -101,8 +99,7 @@ class DecisionManager(OperatorPermissionMixin, View):
         info_dict = {}
         distribution = Distribution.objects.filter(status=DISTRIBUTION_STATUS_INITIAL)
         full_queue = Requestion.objects.queue().confirmed().filter(Q(
-            status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION,
-                STATUS_ON_TRANSFER_DISTRIBUTION),
+            status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION),
         ) | Q(
             status=STATUS_DECISION,
             distributed_in_vacancy__distribution=distribution
@@ -192,7 +189,7 @@ class DecisionManager(OperatorPermissionMixin, View):
         return {'pref_sadiks': pref_sadiks, 'any_sadiks': any_sadiks}
     
     def decision_manager(self, request):
-        from sadiki.core.workflow import DECISION, TRANSFER_APROOVED, PERMANENT_DECISION
+        from sadiki.core.workflow import DECISION, PERMANENT_DECISION
         
         queue_info_dict = self.queue_info()
         
@@ -233,9 +230,6 @@ class DecisionManager(OperatorPermissionMixin, View):
                     current_requestion.distribute_in_sadik_from_tempdistr(sadik)
                     Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': None, 'obj': current_requestion})
     
-                if current_requestion.status == STATUS_ON_TRANSFER_DISTRIBUTION:
-                    current_requestion.distribute_in_sadik_from_sadikchange(sadik)
-                    Logger.objects.create_for_action(TRANSFER_APROOVED, extra={'user': None, 'obj': current_requestion})
                 messages.info(request, u'''
                      Для заявки %s был назначен %s
                      ''' % (current_requestion.requestion_number, sadik))

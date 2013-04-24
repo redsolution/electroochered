@@ -12,8 +12,7 @@ from sadiki.core.models import Distribution, Sadik, SadikGroup, STATUS_DECISION,
     STATUS_REMOVE_REGISTRATION
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js
-from sadiki.core.workflow import CHANGE_SADIK_GROUP_PLACES, CHANGE_SADIK_INFO, \
-    TRANSFER_APROOVED
+from sadiki.core.workflow import CHANGE_SADIK_GROUP_PLACES, CHANGE_SADIK_INFO
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import SadikGroupForm, SadikForm, ChangeSadikForm
 
