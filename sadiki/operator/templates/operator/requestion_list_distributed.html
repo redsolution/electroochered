@@ -38,7 +38,7 @@
                         {% for requestion in requestions %}
                             <tr>
                                 <td>
-                                    {% if requestion.user.is_operator %}
+                                    {% if request.user.is_operator %}
                                         <a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a>
                                     {% else %}
                                         <p>{{ requestion }}</p>
