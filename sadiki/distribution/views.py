@@ -77,6 +77,8 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
 #            инициируем зачисление
             distribution = Distribution.objects.create(
                 year=get_current_distribution_year())
+            distribution.start_datetime = datetime.datetime.now()
+            distribution.save()
             Vacancies.objects.filter(distribution__isnull=True,
                 status__isnull=True).update(distribution=distribution)
             Logger.objects.create_for_action(DISTRIBUTION_INIT,

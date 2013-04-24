@@ -1,4 +1,5 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db import transaction
@@ -177,52 +178,8 @@ class StartDistributionYear(SupervisorBases):
                     status__in=action['from'])
                 action['requestions_list'] = list(requestions)
                 requestions.update(status=action['to'])
-#            сохраняем статистику по выделению мест и зачислению в архив
-            StatisticsArchive.objects.create_statistic_record(
-                type=DECISION_STATISTICS)
-            StatisticsArchive.objects.create_statistic_record(
-                type=DISTRIBUTION_STATISTICS)
-#            теперь начинаем новый учебный год
-            for age_group in AgeGroup.objects.all():
-                if age_group.next_age_group:
-#                    для всех ДОУ у которых есть новая возрастная группа переводим
-                    SadikGroup.objects.active().filter(
-                        sadik__age_groups=age_group.next_age_group,
-                        age_group=age_group
-                        ).update(age_group=age_group.next_age_group,
-                        year=distribution_year)
-#                    для тех, кому не повезло устанавливаем льготный перевод
-                    transfer_benefit_category = BenefitCategory.objects.get(
-                        priority=FACILITY_TRANSFER_CATEGORY)
-                    transfer_requestions = Requestion.objects.filter(
-                        distributed_in_vacancy__sadik_group__age_group=age_group,
-                        distributed_in_vacancy__sadik_group__active=True,
-                        status=STATUS_DISTRIBUTED).exclude(
-                        distributed_in_vacancy__sadik_group__sadik__age_groups=age_group.next_age_group
-                        )
-                    transfer_requestions_list = list(transfer_requestions)
-                    transfer_requestions.update(
-                            benefit_category=transfer_benefit_category,
-                            status=STATUS_WANT_TO_CHANGE_SADIK,
-                            registration_datetime=datetime.datetime.now())
-#                    а группы, которые не могут быть переведены в новый год
-#                    закрываем
-                    SadikGroup.objects.active().filter(
-                        age_group=age_group,
-                        ).exclude(
-                        sadik__age_groups=age_group.next_age_group
-                        ).update(active=False)
-                else:
-#                    если нет более старшей группы, то заявки в архив
-                    archive_requestions = Requestion.objects.filter(
-                        distributed_in_vacancy__sadik_group__age_group=age_group,
-                        distributed_in_vacancy__sadik_group__active=True
-                        )
-                    archive_requestions_list = list(archive_requestions)
-                    archive_requestions.update(status=STATUS_ARCHIVE)
-#                    а группы помечаем неактивными
-                    SadikGroup.objects.active().filter(
-                        age_group=age_group).update(active=False)
+#             закрываем все возрастные группы на текущий год
+            SadikGroup.objects.active().update(active=False)
             transaction.commit()
             Logger.objects.create_for_action(START_NEW_YEAR,
                 context_dict={},
@@ -234,16 +191,6 @@ class StartDistributionYear(SupervisorBases):
                     Logger.objects.create_for_action(action['transition'],
                         context_dict=context_dict,
                         extra={'user': request.user, 'obj': requestion})
-#            записываем в логи информацию о заявках переводниках
-            for requestion in transfer_requestions_list:
-                Logger.objects.create_for_action(
-                    action_flag=WANT_TO_CHANGE_SADIK,
-                    extra={'user': request.user, 'obj': requestion})
-#            записываем в логи информацию о заявках помещенных в архив
-            for requestion in archive_requestions_list:
-                Logger.objects.create_for_action(
-                    action_flag=DISTRIBUTED_ARCHIVE,
-                    extra={'user': request.user, 'obj': requestion})
             transaction.commit()
         return HttpResponseRedirect(redirect_to)
 

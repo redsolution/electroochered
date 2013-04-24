@@ -135,13 +135,9 @@ class SadikGroupForm(forms.ModelForm):
 
     def save(self, commit=True):
         free_places = self.cleaned_data.get('free_places')
-        if self.initial:
-            # изменение группы
-            places_difference = free_places - self.initial.get('free_places')
-            self.instance.capacity += places_difference
-        else:
+        self.instance.capacity = free_places
+        if not self.initial:
             # Создание новой группы
-            self.instance.capacity = free_places
             self.instance.year = get_current_distribution_year()
             self.instance.min_birth_date = self.cleaned_data['age_group'].min_birth_date()
             self.instance.max_birth_date = self.cleaned_data['age_group'].max_birth_date()

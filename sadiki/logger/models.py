@@ -37,13 +37,14 @@ class LoggerManager(models.Manager):
         context = Context(context_dict)
         if extra is None:
             extra = {}
+        log_dict = {'reason': reason,
+                'action_flag': action_flag,
+                'user': extra.get('user')
+                }
         obj = extra.get('obj')
-        log = Logger(
-                reason=reason,
-                action_flag=action_flag,
-                content_object=obj,
-                user=extra.get('user')
-            )
+        if obj:
+            log_dict.update({'content_object': obj})
+        log = Logger(**log_dict)
 #        к логу добавляем дополнительную информацию
         if isinstance(obj, Requestion):
             if obj.distributed_in_vacancy:

@@ -96,13 +96,13 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
 
     def get(self, request, sadik):
         formset = self.get_formset()(instance=sadik,
-            queryset=SadikGroup.objects.all())
+            queryset=SadikGroup.objects.active())
         return self.render_to_response(
             {'sadik': sadik, 'formset': formset})
 
     def post(self, request, sadik):
         formset = self.get_formset()(instance=sadik,
-            queryset=SadikGroup.objects.all(),
+            queryset=SadikGroup.objects.active(),
             data=request.POST)
         if formset.is_valid():
             if any(form.has_changed() for form in formset.forms):

@@ -289,7 +289,7 @@ class SadikQueryset(models.query.QuerySet):
 #        а как же prefetch_related? пока что используется dj 1.3, так что при случае можно будет заменить
         sadiks_dict = OrderedDict([(sadik.id, sadik) for sadik in self])
 #        и сразу захватим с собой имена возрастных групп
-        sadik_groups = SadikGroup.objects.filter(sadik__in=self
+        sadik_groups = SadikGroup.objects.active().filter(sadik__in=self
             ).select_related("age_group__name")
         if only_active:
             sadik_groups = sadik_groups.active()
@@ -1006,41 +1006,6 @@ class Requestion(models.Model):
         u"""Зачисление переводом из другого ДОУ"""
         self.distribution_type = TRANSFER_DISTRIBUTION_TYPE
         return self._distribute_in_sadik(sadik)
-
-    @transaction.commit_on_success
-    def swap_vacancies(self, target_requestion):
-        u"""Обмен путевками"""
-        source_requestion = self
-
-        # Пометить обменные путевки как измененные вручную
-        source_vacancy = source_requestion.distributed_in_vacancy
-        target_vacancy = target_requestion.distributed_in_vacancy
-        source_vacancy.status = VACANCY_STATUS_MANUALLY_CHANGED
-        source_vacancy.save()
-        target_vacancy.status = VACANCY_STATUS_MANUALLY_CHANGED
-        target_vacancy.save()
-
-        # Сам обмен заявками
-        source_requestion.distributed_in_vacancy, target_requestion.distributed_in_vacancy = \
-            target_requestion.distributed_in_vacancy, source_requestion.distributed_in_vacancy
-        target_requestion.save()
-        self.save()
-
-    def vacate_previous_place(self):
-        u"""
-        освобождает место, которое заявка занимала раньше на постоянной или
-        временной основе
-        """
-        # временное зачисление
-        if self.distribution_type == PERMANENT_DISTRIBUTION_TYPE:
-            vacancy = self.previous_distributed_in_vacancy
-            vacancy.status = VACANCY_STATUS_TEMP_ABSENT
-            vacancy.save()
-        # если зачисление перевдом, то освобождаем место в прошлом ДОУ
-        elif self.distribution_type == TRANSFER_DISTRIBUTION_TYPE:
-            sadik_group = self.previous_distributed_in_vacancy.sadik_group
-            sadik_group.free_places += 1
-            sadik_group.save()
 
     def permanent_distribution(self):
         return self.distribution_type == PERMANENT_DISTRIBUTION_TYPE

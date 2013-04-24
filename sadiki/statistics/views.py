@@ -39,7 +39,7 @@ def get_decision_statistics_data():
                 distribution=distribution, sadik_group__age_group=age_group)
             free_places_before = vacancies.count()
             places_decision = vacancies.filter(
-                status=VACANCY_STATUS_PROVIDED).count()
+                status__in=(VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED)).count()
             distribution_data.append(
                     {'free_places_before': free_places_before,
                      'places_decision': places_decision})
@@ -73,7 +73,7 @@ def get_distribution_statistics_data():
             vacancies = Vacancies.objects.filter(
                 distribution=distribution, sadik_group__age_group=age_group)
             places_decision = vacancies.filter(
-                status=VACANCY_STATUS_PROVIDED).count()
+                status__in=(VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED)).count()
             number_of_distributed = vacancies.filter(
                 status=VACANCY_STATUS_DISTRIBUTED).count()
             distribution_data.append(

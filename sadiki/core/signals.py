@@ -88,10 +88,6 @@ def after_remove_registration(sender, **kwargs):
     log_extra = {'user': request.user, 'obj': requestion}
     # Если заявитель не явился за путевой, освободить его место в группе
     if transition in (ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION):
-        sadik_group = requestion.distributed_in_vacancy.sadik_group
-        sadik_group.free_places += 1
-        sadik_group.save()
-        requestion.vacate_previous_place()
 #        запишем в логи какой тип распределения производился
         log_extra.update({'distribution_type': requestion.distribution_type})
     # убрать подтверждение с докумнетов
@@ -189,10 +185,6 @@ def after_decision_reject(sender, **kwargs):
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    # Пересчитать кол-во мест в группе
-    sadik_group = requestion.distributed_in_vacancy.sadik_group
-    sadik_group.free_places += 1
-    sadik_group.save()
 #    если заявка уже была распределена, то возвращаем путевку на место
     if transition.dst in (STATUS_WANT_TO_CHANGE_SADIK, STATUS_TEMP_DISTRIBUTED):
         requestion.distributed_in_vacancy = requestion.previous_distributed_in_vacancy
@@ -219,7 +211,6 @@ def after_decision_to_distributed(sender, **kwargs):
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    requestion.vacate_previous_place()
     requestion.distributed_in_vacancy.status = VACANCY_STATUS_DISTRIBUTED
     requestion.distributed_in_vacancy.save()
     messages.success(request, u'''Заявка %s была зачислена в %s.
