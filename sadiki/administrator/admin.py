@@ -724,6 +724,15 @@ class AttachmentImageFormCustom(AttachmentImageForm):
 class AttachmentImageInlinesCustom(AttachmentImageInlines):
     form = AttachmentImageFormCustom
 
+    def has_add_permission(self, request):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 class ChunkAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 
