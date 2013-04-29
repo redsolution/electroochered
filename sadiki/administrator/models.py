@@ -248,8 +248,9 @@ class RequestionLogic(object):
                 address.save()
                 requestion.profile = profile
                 requestion.save()
-                document.content_object = requestion
-                document.save()
+                if document:
+                    document.content_object = requestion
+                    document.save()
                 if areas:
                     requestion.areas.add(*areas)
                 for sadik in preferred_sadiks:

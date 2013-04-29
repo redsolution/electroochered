@@ -218,9 +218,7 @@ class IntegerTextCellParser(CellParser):
     parser_type = XL_CELL_TEXT
 
     def to_python(self):
-        text = self.value
-        text = re.sub("\n", '', text)
-        text = re.sub("\s", '', text)
+        text = self.value.strip()
         try:
             number = int(text)
         except ValueError:
@@ -250,7 +248,7 @@ class AgentTypeCellParser(CellParser):
     parser_type = XL_CELL_TEXT
 
     def to_python(self):
-        text = self.value
+        text = self.value.strip()
 #        получаем словарь с сопоставление наименования представительства и номера
         choices_dict = dict([(value, choice) for choice, value in
             AGENT_TYPE_CHOICES])
@@ -265,12 +263,13 @@ class BenefitsCellParser(CellParser):
     parser_type = XL_CELL_TEXT
 
     def to_python(self):
-        text = self.value
+        text = self.value.strip()
 #        разбиваем по именам льгот
         benefits_names = [name.strip() for name in text.split(';')]
         benefits = []
         wrong_benefit_names = []
         for benefit_name in benefits_names:
+            benefit_name = benefit_name.strip()
 #            проверяем есть ли льгота с таким названием и возвращаем, если есть
             try:
                 benefit = Benefit.objects.get(name=benefit_name)
@@ -308,6 +307,8 @@ class BenefitCategoryCellTextParser(
 class DesiredDateMixin(object):
     def to_python(self):
         year = super(DesiredDateMixin, self).to_python()
+        if year > (datetime.date.today().year + settings.MAX_CHILD_AGE):
+            raise ValidationError(u"Слишком большой желаемый год зачисления")
         if settings.DESIRED_DATE in (settings.DESIRED_DATE_SPEC_YEAR, settings.DESIRED_DATE_ANY):
             if year:
                 return datetime.date(year, 01, 01)
@@ -332,8 +333,6 @@ class AreaCellParser(CellParser):
 
     def to_python(self):
         text = self.value
-        text = re.sub("\n", ' ', text)
-        text = re.sub("\s\s+", ' ', text)
         text = text.strip()
         if text:
             try:
