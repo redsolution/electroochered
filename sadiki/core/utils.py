@@ -169,13 +169,13 @@ def run_command(command_name, *args):
     #if sys.argv[1] == 'test':
     #    management.call_command(command_name, *args)
     #else:
-    bin_django = join(settings.PROJECT_DIR, 'bin/django')
+    manage_file = join(settings.PROJECT_DIR, 'manage.py')
     lockname = join(settings.LOCK_DIR, command_name.replace(' ', '-').replace('/', '-'))
     if not exists(settings.LOCK_DIR):
         makedirs(settings.LOCK_DIR)
-    cmd_line = 'flock -n %(lockname)s -c "%(django)s %(command)s %(args)s"' % {
+    cmd_line = 'flock -n %(lockname)s -c "python %(manage_file)s %(command)s %(args)s"' % {
         'lockname': lockname,
-        'django': bin_django,
+        'manage_file': manage_file,
         'command': command_name,
         'args': u' '.join(args),
     }

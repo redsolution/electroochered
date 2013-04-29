@@ -11,7 +11,7 @@ from django.views.generic.base import TemplateView, View
 from sadiki.core.models import Sadik, Preference, \
     PREFERENCE_MUNICIPALITY_NAME, PREFERENCE_LOCAL_AUTHORITY, \
     PREFERENCE_AUTHORITY_HEAD, PREFERENCE_MUNICIPALITY_NAME_GENITIVE, PREFERENCE_IMPORT_FINISHED
-from xhtml2pdf import pisa
+import ho.pisa as pisa
 import datetime
 import StringIO
 

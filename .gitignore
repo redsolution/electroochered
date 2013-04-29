@@ -1,8 +1,6 @@
-*.bat
 *.orig
 *.pyc
 *.pyo
-*.sh
 *.sql
 .svn
 .project
@@ -11,6 +9,7 @@
 .idea/*
 .installed.cfg
 eturn-django-settings.ini
+local_env.py
 bin/*
 downloads/*
 eggs/*
@@ -26,3 +25,4 @@ doc/build
 static/*
 lock/*
 secure_static/
+ENV/*
