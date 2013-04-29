@@ -30,17 +30,19 @@ class Geocoder(object):
         return urllib.urlencode(kwargs)
 
     def geocode(self, query):
-#        try:
-        self.params['query'] = urllib.quote_plus(query.encode('utf-8'))
+        attempts = 0
+        while attempts < 3:
+            try:
+                self.params['query'] = urllib.quote_plus(query.encode('utf-8'))
 
-        url = self.base_url % self.params
+                url = self.base_url % self.params
 
-        data = urllib2.urlopen(url)
-        response = data.read()
+                data = urllib2.urlopen(url)
+                response = data.read()
 
-        return self.parse_response(response)
-#        except:  # WARNING! Except all!
-#            pass
+                return self.parse_response(response)
+            except Exception:
+                attempts += 1
 
     def parse_response(self, data):
         return data

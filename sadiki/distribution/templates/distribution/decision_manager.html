@@ -22,7 +22,7 @@
                 iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
                 shadowAnchor: [4, 62],  // the same for the shadow
             });
-            {% with current_requestion.address.coords as point %}
+            {% with current_requestion.location as point %}
                 {% if point %}
                     var requestion_point = [{{ point.y }}, {{ point.x }}]
                     var requestion_marker = L.marker(requestion_point)
@@ -163,7 +163,7 @@
             {% if current_requestion %}
                 <h3>Заявка</h3>
                 <p>Дата рождения: {{ current_requestion.birth_date|date:"j M Y" }}</p>
-                <p>Адрес: {{ current_requestion.address.text|verbose_value }}</p>
+                <p>Местоположение: {{ current_requestion.location_preference|verbose_value }}</p>
                 <p>Тел.: {% if current_requestion.profile.phone_number %}{{ current_requestion.profile.phone_number }}{% else %}не указан{% endif %}</p>
                 <p>ФИО родителей: {{ current_requestion.profile.fio|verbose_value }}</p>
                 <p>Возрастная группа: {{ current_requestion_age_groups.0 }}</p>

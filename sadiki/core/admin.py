@@ -34,7 +34,7 @@ class RequestionAdmin(admin.ModelAdmin):
     list_display = ('requestion_number', 'number_in_old_list', 'last_name',
         'first_name', 'patronymic')
     search_fields = ('profile__user__username', 'number_in_old_list')
-    raw_id_fields = ('profile', 'address')
+    raw_id_fields = ('profile', )
 
 
 class SadikAdmin(admin.ModelAdmin):

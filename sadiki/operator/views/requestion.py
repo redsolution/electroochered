@@ -12,8 +12,7 @@ from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView
 from sadiki.account.forms import ProfileChangeForm, BenefitsForm, \
-    ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm, \
-    RequestionAddressForm
+    ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm
 from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
     BenefitCategoryChange as AnonymBenefitCategoryChange, \
     RequestionChange as AnonymRequestionChange, \
@@ -68,7 +67,6 @@ class Registration(OperatorPermissionMixin, TemplateView):
             prefix="user")
         profile_form = OperatorProfileRegistrationForm(prefix="profile")
         requestion_form = OperatorRequestionForm(prefix="requestion")
-        address_form = RequestionAddressForm()
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm()
         else:
@@ -77,7 +75,6 @@ class Registration(OperatorPermissionMixin, TemplateView):
             'profile_form': profile_form,
             'requestion_form': requestion_form,
             'benefits_form': benefits_form,
-            'address_form': address_form,
             'openlayers_js': get_openlayers_js()}
         return self.render_to_response(context)
 
@@ -89,22 +86,18 @@ class Registration(OperatorPermissionMixin, TemplateView):
             prefix="profile")
         requestion_form = OperatorRequestionForm(request.POST,
             prefix="requestion")
-        address_form = RequestionAddressForm(request.POST)
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm(data=request.POST)
         else:
             benefits_form = BenefitCategoryForm(data=request.POST)
         if (registration_form.is_valid() and profile_form.is_valid() and
-            requestion_form.is_valid() and benefits_form.is_valid() and address_form.is_valid()):
+            requestion_form.is_valid() and benefits_form.is_valid()):
             user = registration_form.save()
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
             profile = profile_form.save(user=user)
-            address = address_form.save()
             requestion = requestion_form.save(profile=profile)
-            requestion.address = address
-            requestion.save()
             benefits_form.instance = requestion
             requestion = benefits_form.save()
             added_pref_sadiks = requestion_form.cleaned_data.get('pref_sadiks')
@@ -139,7 +132,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
 
         context = {'registration_form': registration_form,
             'profile_form': profile_form,
-            'requestion_form': requestion_form, 'address_form': address_form,
+            'requestion_form': requestion_form,
             'openlayers_js': get_openlayers_js()}
         return self.render_to_response(context)
 
@@ -207,13 +200,9 @@ class RequestionChange(OperatorRequestionCheckIdentityMixin,
     def post(self, request, requestion):
         form = ChangeRequestionForm(instance=requestion,
             data=request.POST)
-        address_form = RequestionAddressForm(instance=requestion.address, data=request.POST)
-        if form.is_valid() and address_form.is_valid():
-            if form.has_changed() or address_form.has_changed():
-                address = address_form.save()
-                requestion = form.save(commit=False)
-                requestion.address = address
-                requestion.save()
+        if form.is_valid():
+            if form.has_changed():
+                requestion = form.save()
 #                write logs
                 context_dict = {'changed_fields': form.changed_data,
                     'requestion': requestion}
@@ -228,7 +217,7 @@ class RequestionChange(OperatorRequestionCheckIdentityMixin,
                         kwargs={'requestion_id': requestion.id}))
         else:
             return self.render_to_response(
-                {'form': form, 'requestion': requestion, 'address_form': address_form,
+                {'form': form, 'requestion': requestion,
                  'openlayers_js': get_openlayers_js()})
 
 

@@ -33,6 +33,7 @@ class RequestionPrefSadiksMixin(object):
             raise forms.ValidationError(u'Необходимо указать приоритетные ДОУ или возможность зачисления в любой ДОУ')
         return super(RequestionPrefSadiksMixin, self).clean(*args, **kwargs)
 
+
 class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
@@ -47,7 +48,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
                         'birth_date', 'last_name', 'first_name',
                         'patronymic', 'sex', 'template',
                         'document_number',
-                        'pref_sadiks',]
+                        'pref_sadiks', 'location']
         if settings.DESIRED_DATE != settings.DESIRED_DATE_NO:
             _base_fields += ['admission_date',]
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
@@ -55,6 +56,9 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         fields = _base_fields
 
     def __init__(self, *args, **kwds):
+        map_widget = admin.site._registry[Address].get_map_widget(Address._meta.get_field_by_name('coords')[0])
+        self.base_fields['location'].widget = map_widget()
+        self.base_fields['location'].required = True
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\
             ребенка"
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
@@ -76,11 +80,17 @@ class ChangeRequestionForm(forms.ModelForm):
     class Meta:
         model = Requestion
         _base_fields = ('last_name', 'first_name',
-            'patronymic', 'sex',)
+            'patronymic', 'sex', 'location')
         if settings.DESIRED_DATE == settings.DESIRED_DATE_NO:
             fields = _base_fields
         else:
             fields = _base_fields + ('admission_date',)
+
+    def __init__(self, *args, **kwds):
+        map_widget = admin.site._registry[Address].get_map_widget(Address._meta.get_field_by_name('coords')[0])
+        self.base_fields['location'].widget = map_widget()
+        self.base_fields['location'].required = True
+        super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
 
 class ProfileChangeForm(forms.ModelForm):
@@ -134,8 +144,7 @@ class BaseRequestionsFormSet(BaseInlineFormSet):
             sadik = form_data.get('sadik', None)
             if sadik:
                 if sadik in sadiks:
-                    raise forms.ValidationError(u'Не должно быть совпадающих\
-                        ДОУ.')
+                    raise forms.ValidationError(u'Не должно быть совпадающих ДОУ.')
                 else:
                     sadiks.append(sadik)
 
@@ -159,18 +168,3 @@ class DocumentForm(ModelForm):
         super(DocumentForm, self).__init__(*args, **kwargs)
         self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
-
-
-class RequestionAddressForm(forms.ModelForm):
-
-    class Meta:
-        model = Address
-        fields = ('coords',)
-
-    def __init__(self, *args, **kwargs):
-        map_widget = admin.site._registry[Address].get_map_widget(Address._meta.get_field_by_name('coords')[0])
-        self.base_fields['coords'].widget = map_widget()
-        self.base_fields['coords'].required = True
-        self.base_fields['coords'].label = u"Местоположение"
-        self.base_fields['coords'].help_text = u"Относительно этого местоположения будут определятся ближайшие ДОУ"
-        super(RequestionAddressForm, self).__init__(*args, **kwargs)

@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from django.utils import simplejson
 from sadiki.account.forms import ProfileChangeForm, RequestionForm, \
-    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm, RequestionAddressForm
+    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm
 from sadiki.core.models import Profile, Requestion, \
     BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
     EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup
@@ -72,14 +72,12 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         context = self.get_context_data()
         form = RequestionForm()
-        address_form = RequestionAddressForm()
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm()
         else:
             benefits_form = BenefitCategoryForm()
         personal_data_approve_form = PersonalDataApproveForm()
-        context.update({'form': form, 'address_form': address_form,
-            'benefits_form': benefits_form,
+        context.update({'form': form, 'benefits_form': benefits_form,
             'personal_data_approve_form': personal_data_approve_form,
             'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
@@ -87,19 +85,15 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
         form = RequestionForm(request.POST)
-        address_form = RequestionAddressForm(request.POST)
         personal_data_approve_form = PersonalDataApproveForm(request.POST)
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm(data=request.POST)
         else:
             benefits_form = BenefitCategoryForm(data=request.POST)
         if (form.is_valid() and benefits_form.is_valid() and
-                address_form.is_valid() and personal_data_approve_form.is_valid()):
+               personal_data_approve_form.is_valid()):
             profile = request.user.get_profile()
-            address = address_form.save()
             requestion = form.save(profile=profile)
-            requestion.address = address
-            requestion.save()
             pref_sadiks = form.cleaned_data.get('pref_sadiks')
             benefits_form.instance = requestion
             requestion = benefits_form.save()
@@ -123,7 +117,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                          kwargs={'requestion_id': requestion.id}))
         else:
             context.update({'form': form, 'benefits_form': benefits_form,
-                'address_form': address_form,
                 'personal_data_approve_form': personal_data_approve_form,
                 'openlayers_js': get_openlayers_js()})
             return self.render_to_response(context)
@@ -216,20 +209,15 @@ class RequestionChange(AccountRequestionEditMixin, TemplateView):
 
     def get(self, request, requestion):
         form = ChangeRequestionForm(instance=requestion)
-        address_form = RequestionAddressForm(instance=requestion.address)
         return self.render_to_response({'requestion': requestion,
-            'form': form, 'address_form': address_form, 'openlayers_js': get_openlayers_js()})
+            'form': form, 'openlayers_js': get_openlayers_js()})
 
     def post(self, request, requestion):
         form = ChangeRequestionForm(instance=requestion,
             data=request.POST)
-        address_form = RequestionAddressForm(instance=requestion.address, data=request.POST)
-        if form.is_valid() and address_form.is_valid():
-            if form.has_changed() or address_form.has_changed():
-                address = address_form.save()
-                requestion = form.save(commit=False)
-                requestion.address = address
-                requestion.save()
+        if form.is_valid():
+            if form.has_changed():
+                requestion = form.save()
 #                write logs
                 context_dict = {'changed_fields': form.changed_data,
                     'requestion': requestion}
@@ -244,7 +232,7 @@ class RequestionChange(AccountRequestionEditMixin, TemplateView):
                         kwargs={'requestion_id': requestion.id}))
         else:
             return self.render_to_response(
-                {'form': form, 'requestion': requestion, 'address_form': address_form, 'openlayers_js': get_openlayers_js()})
+                {'form': form, 'requestion': requestion, 'openlayers_js': get_openlayers_js()})
 
 
 class BenefitsChange(AccountRequestionEditMixin, TemplateView):

@@ -12,8 +12,9 @@ from django.utils.log import getLogger
 from sadiki.administrator.import_plugins import INSTALLED_FORMATS, \
     SADIKS_FORMATS
 from sadiki.administrator.utils import get_xlwt_style_list
+from sadiki.core.geocoder import Yandex
 from sadiki.core.importpath import importpath
-from sadiki.core.models import Requestion, Sadik, Address, EvidienceDocument
+from sadiki.core.models import Requestion, Sadik, Address, EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY
 from sadiki.core.utils import get_unique_username
 from xlutils.copy import copy
 import datetime
@@ -170,8 +171,11 @@ class RequestionLogic(object):
         """
         self.format_doc = format_doc
         self.errors = []
+        self.new_identificators = []
         self.fake = fake
         self.requestion_documents = []
+        self.requestion_document_template = EvidienceDocumentTemplate.objects.filter(
+            destination=REQUESTION_IDENTITY)[0]
 
     def validate(self):
         """
@@ -181,7 +185,7 @@ class RequestionLogic(object):
         for index, parsed_row in enumerate(self.format_doc):
             cell_errors = any([issubclass(type(cell), Exception) for cell in parsed_row])
             try:
-                self.validate_record(self.format_doc.to_python(parsed_row), cell_errors)
+                self.validate_record(self.format_doc.to_python(parsed_row), cell_errors, index)
             except ValidationError, e:
                 logic_errors = e
             else:
@@ -189,12 +193,11 @@ class RequestionLogic(object):
             if cell_errors or logic_errors:
                 self.errors.append(ErrorRow(parsed_row, index + self.format_doc.start_line, logic_errors))
 
-    def validate_record(self, data_tuple, cell_errors):
+    def validate_record(self, data_tuple, cell_errors, row_index):
         from sadiki.core.workflow import REQUESTION_IMPORT
         from sadiki.core.workflow import IMPORT_PROFILE
         requestion, profile, areas, sadik_number_list, address_data, benefits, document, errors = data_tuple
-        address = Address.objects.get_or_create(**address_data)[0]
-        requestion.address = address
+        address = Address(**address_data)
         requestion.profile = profile
 #        если у заявки не указано время регистрации, то устанавливаем 9:00
         if type(requestion.registration_datetime) is datetime.date:
@@ -228,7 +231,6 @@ class RequestionLogic(object):
         else:
             preferred_sadiks = []
         length_errors = []
-        length_errors.extend(validate_fields_length(address))
         length_errors.extend(validate_fields_length(profile))
         length_errors.extend(validate_fields_length(requestion))
         if document:
@@ -245,12 +247,21 @@ class RequestionLogic(object):
                 user.user_permissions.add(permission)
                 profile.user = user
                 profile.save()
-                address.save()
+                requestion.location_properties = address.text
                 requestion.profile = profile
+                coords = requestion.geocode_address(Yandex)
+                if coords:
+                    requestion.set_location(coords)
                 requestion.save()
-                if document:
-                    document.content_object = requestion
-                    document.save()
+                if not document:
+                    document_number = "TMP_%07d" % row_index
+                    self.new_identificators.append({'row_index': row_index, 'document_number': document_number})
+                    document = EvidienceDocument(
+                        template=self.requestion_document_template,
+                        document_number=document_number, confirmed=True,
+                        fake=True)
+                document.content_object = requestion
+                document.save()
                 if areas:
                     requestion.areas.add(*areas)
                 for sadik in preferred_sadiks:
@@ -355,6 +366,9 @@ class RequestionLogic(object):
             for i, cell in enumerate(row):
                 style.num_format_str = styles[cell.xf_index].num_format_str
                 ws.write(error.row_index, i, cell.value, style)
+        for identificator in self.new_identificators:
+            ws.write(identificator["row_index"],
+                     self.format_doc.document_cell_index, identificator["document_number"])
         wb.save(path_to_file)
 
 class SadikLogic(object):

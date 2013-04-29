@@ -22,7 +22,7 @@
 
 {% block content %}
     <form action="." class="uniForm" method="POST">
-        {% if form.non_field_errors or benefits_form.non_field_errors or address_form.non_field_errors or personal_data_approve_form.non_field_errors %}
+        {% if form.non_field_errors or benefits_form.non_field_errors or personal_data_approve_form.non_field_errors %}
             <div id="errorMsg">
                 {% load i18n %}
                 <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
@@ -33,9 +33,6 @@
                     {% for error in benefits_form.non_field_errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
-                    {% for error in address_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
                     {% for error in personal_data_approve_form.non_field_errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
@@ -43,7 +40,6 @@
             </div>
         {% endif %}
         {% izenform form options notag=1 %}
-        {% izenform address_form options notag=1 %}
         {% izenform benefits_form options notag=1 %}
         {% izenform personal_data_approve_form options notag=1 %}
         {% submit "Добавить" %}

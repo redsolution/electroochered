@@ -20,7 +20,7 @@
 
 {% block content %}
     <form action="." class="uniForm" method="POST">
-        {% if registration_form.non_field_errors or profile_form.non_field_errors or requestion_form.non_field_errors or address_form.non_field_errors%}
+        {% if registration_form.non_field_errors or profile_form.non_field_errors or requestion_form.non_field_errors%}
             <div id="errorMsg">
                 {% load i18n %}
                 <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
@@ -34,9 +34,6 @@
                     {% for error in requestion_form.non_field_errors %}
                         <li>{{ error }}</li>
                     {% endfor %}
-                    {% for error in address_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
                 </ol>
             </div>
         {% endif %}
@@ -45,7 +42,6 @@
         {% izenform profile_form options notag=1 %}
         <h2>Информация о ребенке</h2>
         {% izenform requestion_form options notag=1 %}
-        {% izenform address_form options notag=1 %}
         {% izenform benefits_form options notag=1 %}
         {% submit "Зарегистрировать" %}
     </form>

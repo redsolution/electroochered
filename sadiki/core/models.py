@@ -8,6 +8,7 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction
@@ -144,6 +145,7 @@ class EvidienceDocumentQueryset(models.query.QuerySet):
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id)
 
+
 class EvidienceDocument(models.Model):
 
     class Meta:
@@ -158,6 +160,8 @@ class EvidienceDocument(models.Model):
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+    fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
+                               default=False)
 
     objects = query_set_factory(EvidienceDocumentQueryset)
 
@@ -817,7 +821,10 @@ class Requestion(models.Model):
         verbose_name=u"Категория льгот", null=True)
     pref_sadiks = models.ManyToManyField('Sadik')
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
-    address = models.ForeignKey('Address', null=True)
+    location = PointField(verbose_name=u'Местоположение', blank=True, null=True,
+                          help_text=u"Относительно этого местоположения будут определятся ближайшие ДОУ")
+    location_properties = models.CharField(verbose_name=u'Параметры местоположения',
+                                           max_length=250, blank=True, null=True)
 
     # Поля, назначаемые системой
     status_change_datetime = models.DateTimeField(
@@ -1080,6 +1087,15 @@ class Requestion(models.Model):
             EMBED_REQUESTION_TO_PROFILE,
             extra={'user': user, 'obj': self, 'profile': profile},
             reason=reason)
+
+    def geocode_address(self, geocoder_class):
+        geocoder = geocoder_class()
+        coords = geocoder.geocode(self.location_properties)
+        return coords
+
+    def set_location(self, coords):
+        coords = map(float, coords)
+        self.location = Point(*coords, srid=4326)
 
     def __unicode__(self):
         return self.requestion_number

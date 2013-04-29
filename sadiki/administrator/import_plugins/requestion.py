@@ -86,6 +86,7 @@ class RequestionFormat(Format):
 
     # xls reading options
     start_line = 2
+    document_cell_index = 5
     cells = cells
 
     def to_python(self, data_row_with_errors):
@@ -119,9 +120,7 @@ class RequestionFormat(Format):
             'birth_date': birth_date,
             'sex': data_row[12],
             'admission_date': data_row[27],
-            'last_name': data_row[6],
             'first_name': data_row[7],
-            'patronymic': data_row[8],
             'agent_type': data_row[24],
         }
         requestion_data.update({
@@ -133,13 +132,7 @@ class RequestionFormat(Format):
             areas = (area,)
         else:
             areas = ()
-        profile_data = {
-            'last_name': data_row[21],
-            'first_name': data_row[22],
-            'patronymic': data_row[23],
-            'phone_number': data_row[19],
-            'mobile_number': data_row[20]
-        }
+        profile_data = {}
         if data_row[26]:
             if type(data_row[26]) is int:
                 preferred = [data_row[26]]
