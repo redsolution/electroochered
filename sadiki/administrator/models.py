@@ -255,7 +255,8 @@ class RequestionLogic(object):
                 requestion.save()
                 if not document:
                     document_number = "TMP_%07d" % row_index
-                    self.new_identificators.append({'row_index': row_index, 'document_number': document_number})
+                    self.new_identificators.append({'row_index': row_index + self.format_doc.start_line,
+                                                    'document_number': document_number})
                     document = EvidienceDocument(
                         template=self.requestion_document_template,
                         document_number=document_number, confirmed=True,
@@ -481,19 +482,19 @@ class ImportTask(models.Model):
         storage=secure_static_storage, upload_to=settings.IMPORT_STATIC_DIR,
         blank=True, null=True)
 
-    def delete(self, *args, **kwds):
+    def delete_files(self, *args, **kwds):
         # Try to delete result file
-        if self.result_file and os.path.exists(self.result_file):
+        def try_delete_file(file_path):
             try:
-                os.remove(self.result_file)
+                os.remove(file_path)
             except IOError:
                 pass
-        if self.file_with_errors and os.path.exists(self.file_with_errors):
-            try:
-                os.remove(self.file_with_errors)
-            except IOError:
-                pass
-        return super(ImportTask, self).delete(*args, **kwds)
+        if self.source_file and os.path.exists(self.source_file.path):
+            try_delete_file(self.source_file.path)
+        if self.result_file and os.path.exists(self.result_file.path):
+            try_delete_file(self.result_file.path)
+        if self.file_with_errors and os.path.exists(self.file_with_errors.path):
+            try_delete_file(self.file_with_errors.path)
 
     def save_file_with_errors(self, context):
         new_filename, ext = os.path.splitext(os.path.basename(

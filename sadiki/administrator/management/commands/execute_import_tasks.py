@@ -5,7 +5,7 @@ from django.utils.log import getLogger
 from sadiki.administrator.import_plugins import SADIKS_FORMATS, REQUESTION_FORMATS
 from sadiki.administrator.models import ImportTask, IMPORT_START, IMPORT_ERROR, IMPORT_FINISH
 from django.db import transaction
-from sadiki.core.models import PREFERENCE_IMPORT_FINISHED, Preference
+from sadiki.core.models import PREFERENCE_IMPORT_FINISHED, Preference, PREFERENCE_REQUESTIONS_IMPORTED
 
 logger = getLogger('django.request')
 
@@ -41,4 +41,4 @@ class Command(BaseCommand):
         if ImportTask.objects.filter(id__in=import_tasks_ids, status=IMPORT_FINISH,
                                      data_format__in=REQUESTION_FORMATS, fake=False,
                                     errors=0).exists():
-            Preference.objects.get_or_create(key=PREFERENCE_IMPORT_FINISHED)
+            Preference.objects.get_or_create(key=PREFERENCE_REQUESTIONS_IMPORTED)

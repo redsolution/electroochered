@@ -34,7 +34,7 @@ from sadiki.core.admin import CustomGeoAdmin
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
     Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, \
-    PREFERENCE_IMPORT_FINISHED, ChunkCustom
+    PREFERENCE_IMPORT_FINISHED, ChunkCustom, PREFERENCE_REQUESTIONS_IMPORTED
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME, \
     SUPERVISOR_PERMISSION, OPERATOR_PERMISSION, SADIK_OPERATOR_PERMISSION, \
@@ -515,6 +515,7 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
             url(r'^import_files/(?P<filename>[^\/]+\.\w*)$', self.admin_site.admin_view(self.secure_static),
                 name="secure_static"),
             url(r'^import_status/$', self.import_status, name="import_status"),
+            url(r'^finish_import/$', self.finish_import, name="finish_import"),
         )
         return my_urls + urls
 
@@ -546,7 +547,7 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
                 reverse('admin:import_status',
                     current_app=self.admin_site.name))
         message = u"""Вы уверены, что хотите начать процесс импорта?
-            После импорта заявок будет закрыта возможность импорта и будет открыт публичный интерфейс.
+            После импорта заявок будет закрыта возможность импорта.
             Это действие нельзя будет отменить."""
         return TemplateResponse(request, 'administrator/ask_confirmation.html',
                                 {'message': message}, current_app=self.admin_site.name)
@@ -597,9 +598,32 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 
     @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
+        requestions_imported = Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()
         extra_context = {'import_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=False).exists(),
-                       'check_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True).exists(),}
+                       'check_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True).exists(),
+                       'requestions_imported': requestions_imported}
+        if requestions_imported:
+            extra_context.update(
+                {'import_requestion_task': ImportTask.objects.get(
+                    status=IMPORT_FINISH, data_format__in=REQUESTION_FORMATS, fake=False, errors=0)})
         return super(ImportTaskAdmin, self).changelist_view(request, extra_context)
+
+    @csrf_protect_m
+    def finish_import(self, request):
+        if not Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists():
+            raise HttpResponseForbidden(u"Заявки не были импортированы")
+        if request.method == "POST":
+            if request.POST['confirmation'] == 'yes':
+                for import_task in ImportTask.objects.all():
+                    import_task.delete_files()
+                Preference.objects.get_or_create(key=PREFERENCE_IMPORT_FINISHED)
+            return HttpResponseRedirect(
+                reverse('admin:import_status',
+                    current_app=self.admin_site.name))
+        message = u"""Вы уверены, что хотите завершить процедуру импорта? Убедитесь, что вы сохранили файл с результатми импорта.
+            После завершения импорта будет открыт публичный интерфейс."""
+        return TemplateResponse(request, 'administrator/ask_confirmation.html',
+                                {'message': message}, current_app=self.admin_site.name)
 
 
 benefit_category_query = (Q(priority__lt=BENEFIT_SYSTEM_MIN) &

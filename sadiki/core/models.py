@@ -1140,6 +1140,7 @@ PREFERENCE_EMAIL_KEY_VALID = "EMAIL_KEY_VALID"
 
 # настройки, изменяемые системой
 PREFERENCE_IMPORT_FINISHED = "IMPORT_STATUS_FINISHED"
+PREFERENCE_REQUESTIONS_IMPORTED = "REQUESTIONS_IMPORTED"
 
 PREFERENCE_CHOICES = (
     (PREFERENCE_MUNICIPALITY_NAME, u'Название муниципалитета'),
@@ -1147,6 +1148,7 @@ PREFERENCE_CHOICES = (
     (PREFERENCE_MUNICIPALITY_PHONE, u'Контактный телефон'),
     (PREFERENCE_EMAIL_KEY_VALID, u'Срок действия ключа для подтверждения почты(дней)'),
     (PREFERENCE_IMPORT_FINISHED, u'Статус завершения импорта'),
+    (PREFERENCE_REQUESTIONS_IMPORTED, u'Были импортированы заявки'),
     (PREFERENCE_LOCAL_AUTHORITY, u"""Наименование органа местного самоуправления, 
         осуществляющего управление в сфере образования (родительный падеж)"""),
     (PREFERENCE_AUTHORITY_HEAD, u"""ФИО главы органа местного самоуправления,
@@ -1162,7 +1164,7 @@ PREFERENCES_MAP = {
         PREFERENCE_AUTHORITY_HEAD
     ],
     PREFERENCE_SECTION_SYSTEM: [PREFERENCE_EMAIL_KEY_VALID],
-    PREFERENCE_SECTION_HIDDEN: [PREFERENCE_IMPORT_FINISHED],
+    PREFERENCE_SECTION_HIDDEN: [PREFERENCE_IMPORT_FINISHED, PREFERENCE_REQUESTIONS_IMPORTED],
 }
 
 

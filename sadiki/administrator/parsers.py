@@ -263,9 +263,12 @@ class BenefitsCellParser(CellParser):
     parser_type = XL_CELL_TEXT
 
     def to_python(self):
-        text = self.value.strip()
+        text = self.value
+        text = re.sub("\n", ' ', text)
+        text = re.sub("\s\s+", ' ', text)
+        text = text.strip()
 #        разбиваем по именам льгот
-        benefits_names = [name.strip() for name in text.split(';')]
+        benefits_names = text.split(';')
         benefits = []
         wrong_benefit_names = []
         for benefit_name in benefits_names:
@@ -333,6 +336,8 @@ class AreaCellParser(CellParser):
 
     def to_python(self):
         text = self.value
+        text = re.sub("\n", ' ', text)
+        text = re.sub("\s\s+", ' ', text)
         text = text.strip()
         if text:
             try:
@@ -372,9 +377,10 @@ class AgeGroupCellParser(CellParser):
     parser_type = XL_CELL_TEXT
 
     def to_python(self):
-        text = self.value.strip()
+        text = self.value
         text = re.sub("\n", ' ', text)
         text = re.sub("\s\s+", ' ', text)
+        text = text.strip()
 #        разбиваем по именам льгот
         age_groups_identifiers = text.split(';')
         age_groups = []
