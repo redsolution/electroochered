@@ -561,9 +561,8 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
             return HttpResponseRedirect(
                 reverse('admin:import_status',
                     current_app=self.admin_site.name))
-        message = u"""Вы уверены, что хотите начать процесс импорта?
-            После импорта заявок будет закрыта возможность импорта.
-            Это действие нельзя будет отменить."""
+        message = u"""Вы уверены, что импортируемый файл с заявками не содержит ошибок и вы хотите начать процесс импорта?
+            Операцию импорта можно проводить только один раз. Это действие нельзя будет отменить."""
         return TemplateResponse(request, 'administrator/ask_confirmation.html',
                                 {'message': message}, current_app=self.admin_site.name)
 
@@ -581,7 +580,8 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
             return HttpResponseRedirect(
                 reverse('admin:import_status',
                     current_app=self.admin_site.name))
-        message = u"""Вы уверены, что хотите начать процесс проверки данных?"""
+        message = u"""Вы уверены, что хотите начать операцию проверки данных?
+            Проверку данных можно проводить несколько раз. Проверку данных следует проводить до полного устранения ошибок."""
         return TemplateResponse(request, 'administrator/ask_confirmation.html',
                                 {'message': message}, current_app=self.admin_site.name)
 

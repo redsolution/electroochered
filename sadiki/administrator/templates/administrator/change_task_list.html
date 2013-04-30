@@ -95,9 +95,8 @@
             {% endif %}
         {% endblock %}
         {% if requestions_imported %}
-            <h2>Импорт заявок был произведен. Теперь вам необходимо сохранить файл с результатами и завершить импорт.
-            <a href="{{ import_requestion_task.result_file.url }}">Результаты импорта</a></h2>
-
+            <h2>Импорт заявок был произведен. Теперь вам необходимо сохранить файл «Результаты импорта» и завершить импорт
+            <div>Результаты импорта: <a href="{{ import_requestion_task.result_file.url }}"><button>Сохранить</button></a></div>
         {% else %}
             {% if import_active %}
                 <h1 style="color:red">Выполняется задание.</h1>
