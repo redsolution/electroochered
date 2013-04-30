@@ -81,9 +81,7 @@ class Yandex(Geocoder):
         soup = BeautifulStoneSoup(data)
         found = soup.ymaps.geoobjectcollection.metadataproperty.geocoderresponsemetadata.found.string
         if found != '0':
-            precision = soup.ymaps.geoobjectcollection.featuremember.geoobject.metadataproperty.geocodermetadata.precision.string
-            if precision == u'number' or precision == u'exact':
-                return tuple(soup.ymaps.geoobjectcollection.featuremember.geoobject.point.pos.string.split(' '))
+            return tuple(soup.ymaps.geoobjectcollection.featuremember.geoobject.point.pos.string.split(' '))
 
 
 class Google(Geocoder):
