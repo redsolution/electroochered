@@ -13,7 +13,7 @@ from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Profile, Address, \
     STATUS_REQUESTER
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
-from sadiki.core.widgets import JqueryUIDateWidget, PrefSadiksJS
+from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
 
 def select_list_from_qs(queryset, requestion):
@@ -28,10 +28,9 @@ def select_list_from_qs(queryset, requestion):
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""
     pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
-        required=False, widget=PrefSadiksJS(attrs={'areas_name': "requestion-areas"}),
+        required=False, widget=SelectMultipleJS(),
         queryset=Sadik.objects.filter(active_registration=True),
         help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
-
 
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(

@@ -832,8 +832,8 @@ class Requestion(models.Model):
 
     # Flags
     distribute_in_any_sadik = models.BooleanField(
-        verbose_name=u'Пользователь согласен на зачисление в ДОУ отличные от приоритетных',
-        default=True, help_text=u"""Снимите этот флаг, если согласны пропустить набор,
+        verbose_name=u'Пользователь согласен на зачисление в ДОУ, отличные от приоритетных, в выбранных территориальных областях',
+        default=False, help_text=u"""Снимите этот флаг, если согласны пропустить набор,
         если нет мест в выбранных Вами ДОУ""")
 
     objects = query_set_factory(RequestionQuerySet)

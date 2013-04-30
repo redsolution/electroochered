@@ -8,26 +8,14 @@ from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
     BenefitCategory, Address
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN
-from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, PrefSadiksJS
+from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
 
 class RequestionPrefSadiksMixin(object):
     u"""проверяем, что выбранные ДОУ из той области, куда хочет быть зачислен пользователь"""
 
     def clean(self, *args, **kwargs):
-        areas = self.cleaned_data.get('areas')
         pref_sadiks = self.cleaned_data.get("pref_sadiks")
-        areas = self.cleaned_data.get('areas')
-        if areas and pref_sadiks:
-            pref_sadiks_areas_set = set(pref_sadiks.values_list('area', flat=True))
-            requestion_areas_set = set([area.id for area in areas])
-            if not pref_sadiks_areas_set.issubset(requestion_areas_set):
-                raise forms.ValidationError(u"""Выбранные приоритетные ДОУ должны принадлежать
-                    к выбранным территориальным областям""")
-        elif not areas and not pref_sadiks:
-            raise forms.ValidationError(
-                u"""Если для зачисления указан весь муниципалитет, то
-                необходимо указать приоритетные ДОУ.""")
         distribute_in_any_sadik = self.cleaned_data.get('distribute_in_any_sadik')
         if not distribute_in_any_sadik and not pref_sadiks:
             raise forms.ValidationError(u'Необходимо указать приоритетные ДОУ или возможность зачисления в любой ДОУ')
@@ -38,7 +26,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
     pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
-        required=False, widget=PrefSadiksJS(),
+        required=False, widget=SelectMultipleJS(),
         queryset=Sadik.objects.filter(active_registration=True),
         help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
 
@@ -152,7 +140,7 @@ class BaseRequestionsFormSet(BaseInlineFormSet):
 class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
     pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите ДОУ',
         queryset=Sadik.objects.filter(active_registration=True),
-        required=False, widget=PrefSadiksJS())
+        required=False, widget=SelectMultipleJS())
 
     class Meta:
         model = Requestion

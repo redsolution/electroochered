@@ -170,27 +170,3 @@ class SelectMultipleJS(forms.SelectMultiple):
             output = mark_safe(output + js)
         return output
 
-
-class PrefSadiksJS(SelectMultipleJS):
-
-    def render(self, name, *args, **kwargs):
-        from sadiki.core.models import Sadik, Area
-        output = super(PrefSadiksJS, self).render(name, *args, **kwargs)
-        sadiks_for_areas = {}
-        for area in Area.objects.all():
-            sadiks_dict=[unicode(sadik.id) for sadik in area.sadik_set.filter(active_registration=True)]
-            sadiks_for_areas.update({unicode(area.id): sadiks_dict})
-        sadiks_for_areas.update({"": [unicode(sadik.id) for sadik in Sadik.objects.all()]})
-        areas_name=self.attrs.get('areas_name') or 'areas'
-#        TODO:как-нибудь переделать,чтобы работа с id_areas была нормальной
-        js = '''
-            <script type="text/javascript">
-                //<![CDATA[
-                $(function(){{
-                    $("#id_{name}").filterOn("#id_{areas_name}", {sadiks_for_areas});
-                    $("#id_{areas_name}").change();
-                }});
-                //]]>
-            </script>'''.format(name=name, areas_name=areas_name,
-                            sadiks_for_areas=simplejson.dumps(sadiks_for_areas))
-        return mark_safe(output+js)

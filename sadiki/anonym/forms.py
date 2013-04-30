@@ -198,7 +198,7 @@ class PublicSearchForm(forms.Form):
                 requestion_ct = ContentType.objects.get_for_model(Requestion)
                 requestion_ids = EvidienceDocument.objects.filter(content_type=requestion_ct,
                     confirmed=True, document_number=self.cleaned_data['document_number'],
-                    template__destination=REQUESTION_IDENTITY).values_list('id', flat=True)
+                    template__destination=REQUESTION_IDENTITY).values_list('object_id', flat=True)
                 filter_kwargs[self.field_map['document_number']] = requestion_ids
             return filter_kwargs
 
