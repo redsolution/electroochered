@@ -80,12 +80,26 @@
             <span class="readOnlyLabel">ФИО родителя</span>
             <div class="readOnly">
                     <span class="choice">
-                        {{ profile.last_name }} {{ profile.first_name }} {{ profile.patronymic }}
-                        ({{ requestion.get_agent_type_display }})
+                        {{ profile.fio|verbose_value }}
                     </span>
             </div>
         </div>
-        {% readonly profile 'phone_number' %}
+        <div class="ctrlHolder readOnly">
+            <span class="readOnlyLabel">Вид представительства</span>
+            <div class="readOnly">
+                    <span class="choice">
+                        {{ requestion.get_agent_type_display }}
+                    </span>
+            </div>
+        </div>
+        <div class="ctrlHolder readOnly">
+            <span class="readOnlyLabel">Основной телефон</span>
+            <div class="readOnly">
+                    <span class="choice">
+                        {{ profile.phone_number|verbose_value }}
+                    </span>
+            </div>
+        </div>
         <div class="ctrlHolder readOnly">
             <span class="readOnlyLabel">Адрес электронной почты</span>
             <div class="readOnly">
