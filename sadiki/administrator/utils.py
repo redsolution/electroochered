@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 import xlwt
 
 def get_xlwt_style_list(rdbook):
@@ -77,3 +78,9 @@ def get_xlwt_style_list(rdbook):
         #
         wt_style_list.append(wtxf)
     return wt_style_list
+
+
+def clean_str(text):
+    text = re.sub("\n", ' ', text)
+    text = re.sub("\s\s+", ' ', text)
+    return text.strip()

@@ -30,6 +30,7 @@ from django.views.decorators.csrf import csrf_protect
 from sadiki.administrator.import_plugins import REQUESTION_FORMATS
 from sadiki.administrator.models import ImportTask, IMPORT_INITIAL, IMPORT_START, \
     IMPORT_FINISH, IMPORT_ERROR, IMPORT_FINISHED_WITH_ERRORS
+from sadiki.administrator.utils import clean_str
 from sadiki.core.admin import CustomGeoAdmin
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
@@ -409,9 +410,20 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
         obj.groups.remove(*other_groups)
 
 
+class AreaAdminForm(forms.ModelForm):
+    model = Sadik
+
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
+
+
 class AreaAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = Area
+    form = AreaAdminForm
     fields = ['name', 'ocato']
+
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
 
 
 class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
@@ -436,6 +448,9 @@ class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
                 raise forms.ValidationError(
                     u"Во время распределения нельзя запретить зачисление в ДОУ")
         return active_distribution
+
+    def clean_identifier(self):
+        return clean_str(self.cleaned_data.get('identifier'))
 
 
 class SadikAdmin(ModelAdminWithoutPermissionsMixin, CustomGeoAdmin):
@@ -676,6 +691,9 @@ class BenefitAdminForm(forms.ModelForm):
         self.fields["evidience_documents"].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
 
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
+
 
 class BenefitAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = Benefit
@@ -698,6 +716,12 @@ class AgeGroupForm(forms.ModelForm):
             self.fields['sadiks'].initial = self.instance.sadik_set.all()
         else:
             self.fields['sadiks'].initial = Sadik.objects.all()
+
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
+
+    def clean_short_name(self):
+        return clean_str(self.cleaned_data.get('short_name'))
 
     def clean(self):
         from_age = self.cleaned_data.get('from_age')
