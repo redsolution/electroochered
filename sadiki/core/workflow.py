@@ -387,6 +387,7 @@ requestion_account_template = u"""
     {% if requestion.comment %}Комментарий: {{ requestion.comment }};{% endif %}
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
+    {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
     """
 
 requestion_anonym_template = u"""
@@ -480,6 +481,7 @@ ACTION_TEMPLATES.update({
                     {% if "first_name" in changed_fields %}Имя: {{ requestion.first_name }};{% endif %}
                     {% if "patronymic" in changed_fields %}Отчество: {{ requestion.patronymic }};{% endif %}
                     {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
+                    {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
                     '''),
         },
     CHANGE_REQUESTION_BY_OPERATOR: {
@@ -492,6 +494,7 @@ ACTION_TEMPLATES.update({
                     {% if "first_name" in changed_fields %}Имя: {{ requestion.first_name }};{% endif %}
                     {% if "patronymic" in changed_fields %}Отчество: {{ requestion.patronymic }};{% endif %}
                     {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
+                    {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
                     '''),
         },
     CHANGE_PROFILE: {
