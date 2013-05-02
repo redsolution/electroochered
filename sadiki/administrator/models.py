@@ -318,13 +318,11 @@ class RequestionLogic(object):
             for sadik_number in sadik_number_list:
                 sadiks = Sadik.objects.filter(
                     identifier=sadik_number,)
-                if areas:
-                    sadiks = sadiks.filter(area__in=[area.id for area in areas])
                 if sadiks.count() == 1:
                     preferred_sadiks.append(sadiks[0])
                 elif not sadiks.count():
                     errors.append(
-                        u'В данной территориальной области нет ДОУ с номером %s' % sadik_number)
+                        u'В системе нет ДОУ с номером %s' % sadik_number)
                 elif sadiks.count() >= 2:
                     errors.append(
                         u'В данной территориальной области есть несколько ДОУ с номером %s' % sadik_number)
