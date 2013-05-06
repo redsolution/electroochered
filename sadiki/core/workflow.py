@@ -379,11 +379,8 @@ ACTION_TEMPLATES.update({
 })
 
 requestion_account_template = u"""
-    {% if requestion.adent_type %}Вид представительства: {{ requestion.agent_type }};{% endif %}
     {% if requestion.sex %}Пол: {{ requestion.get_sex_display }};{% endif %}
-    {% if requestion.last_name %}Фамилия: {{ requestion.last_name }};{% endif %}
-    {% if requestion.first_name %}Имя: {{ requestion.first_name }};{% endif %}
-    {% if requestion.patronymic %}Отчество: {{ requestion.patronymic }};{% endif %}
+    {% if requestion.name %}Имя: {{ requestion.name }};{% endif %}
     {% if requestion.comment %}Комментарий: {{ requestion.comment }};{% endif %}
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
@@ -407,9 +404,7 @@ requestion_anonym_template = u"""
 
 registration_account_template = u"""
     {% if user.email %}Электронная почта:{{ user.email }}{% endif %}
-    {% if profile.last_name %}Фамилия: {{ profile.last_name }};{% endif %}
-    {% if profile.first_name %}Имя: {{ profile.first_name }};{% endif %}
-    {% if profile.patronymic %}Отчество: {{ profile.patronymic }};{% endif %}
+    {% if profile.nickname %}Псевдоним: {{ profile.nickname }};{% endif %}
     {% if profile.phone_number %}Основной телефон: {{ profile.phone_number }};{% endif %}
     {% if profile.mobile_number %}Дополнительный телефон: {{ profile.mobile_number }};{% endif %}
     {% with profile.get_identity_documents as document %}
@@ -421,9 +416,7 @@ registration_account_template = u"""
     """
 
 change_profile_account_template = u'''
-    {% if "last_name" in changed_data %}Фамилия: {{ profile.last_name }};{% endif %}
-    {% if "first_name" in changed_data %}Имя: {{ profile.first_name }};{% endif %}
-    {% if "patronymic" in changed_data %}Отчество: {{ profile.patronymic }};{% endif %}
+    {% if "nickname" in changed_data %}Псевдоним: {{ profile.nickname }};{% endif %}
     {% if "phone_number" in changed_data %}Телефон: {{ profile.phone_number }};{% endif %}
     {% if "mobile_number" in changed_data %}Мобильный телефон: {{ profile.mobile_number }};{% endif %}
     '''
@@ -477,9 +470,7 @@ ACTION_TEMPLATES.update({
                     '''),
         ACCOUNT_LOG:Template(u'''
                     {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
-                    {% if "last_name" in changed_fields %}Фамилия: {{ requestion.last_name }};{% endif %}
-                    {% if "first_name" in changed_fields %}Имя: {{ requestion.first_name }};{% endif %}
-                    {% if "patronymic" in changed_fields %}Отчество: {{ requestion.patronymic }};{% endif %}
+                    {% if "name" in changed_fields %}Имя: {{ requestion.name }};{% endif %}
                     {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
                     {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
                     '''),
@@ -490,9 +481,7 @@ ACTION_TEMPLATES.update({
                     '''),
         ACCOUNT_LOG:Template(u'''
                     {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
-                    {% if "last_name" in changed_fields %}Фамилия: {{ requestion.last_name }};{% endif %}
-                    {% if "first_name" in changed_fields %}Имя: {{ requestion.first_name }};{% endif %}
-                    {% if "patronymic" in changed_fields %}Отчество: {{ requestion.patronymic }};{% endif %}
+                    {% if "name" in changed_fields %}Имя: {{ requestion.name }};{% endif %}
                     {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
                     {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
                     '''),

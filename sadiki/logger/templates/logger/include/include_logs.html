@@ -13,6 +13,8 @@
     <tbody>
     {% with requset.user.is_administrative_person as administrative_user %}
         {% for log in logs %}
+            {% with log.loggermessage_set.all|logger_messages_for_user:request.user as log_messages %}
+            {% if log_messages %}
             <tr>
                 <td>{{ log.datetime }}</td>
                 <td>
@@ -27,12 +29,14 @@
                 </td>
                 <td>{{ log.get_action_flag_display }}</td>
                 <td>
-                    {% for log_message in log.loggermessage_set.all|logger_messages_for_user:request.user %}
+                    {% for log_message in log_messages %}
                         {{ log_message.message }}
                     {% endfor %}
                 </td>
                 <td>{{ log.reason|default:"Не указано" }}</td>
             </tr>
+            {% endif %}
+            {% endwith %}
         {% endfor %}
     {% endwith %}
     </tbody>
