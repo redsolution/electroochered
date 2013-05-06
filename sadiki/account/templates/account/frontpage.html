@@ -28,11 +28,7 @@
                     <span class="choice">{{ profile.user.email|verbose_value }}</span>
                 </div>
             </div>
-            {% readonly profile 'last_name' %}
-            {% readonly profile 'first_name' %}
-            {% readonly profile 'patronymic' %}
-            {% readonly profile 'phone_number' %}
-            {% readonly profile 'mobile_number' %}
+            {% readonly profile 'nickname' %}
             <div class="buttonHolder">
                 <a id="changeProfile" href="{% url account_profile_change %}" class="btn"><i class="icon-pencil"></i> Изменить</a>
             </div>

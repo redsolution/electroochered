@@ -604,12 +604,7 @@ class Profile(models.Model):
         unique=True)
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-    last_name = models.CharField(u'Фамилия', max_length=255, null=True,
-        help_text=u'Фамилия родителя (представителя)')
-    first_name = models.CharField(u'Имя', max_length=255, null=True,
-        help_text=u'Имя родителя (представителя)')
-    patronymic = models.CharField(u'Отчество', max_length=255, null=True,
-        help_text=u'Отчество родителя (представителя)')
+    nickname = models.CharField(u'Псевдоним', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Основной телефон', max_length=255,
@@ -619,10 +614,6 @@ class Profile(models.Model):
         max_length=255, blank=True, null=True,
         help_text=u"Дополнительный номер телефона для связи")
     sadiks = models.ManyToManyField('Sadik', null=True)
-
-    def fio(self):
-        return ' '.join(filter(None, (self.last_name, self.first_name,
-            self.patronymic)))
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
@@ -798,13 +789,8 @@ class Requestion(models.Model):
         'Vacancies', blank=True, null=True)
 
 #    Child info
-    agent_type = models.IntegerField(u'вид представительства',
-        choices=AGENT_TYPE_CHOICES, help_text=u"Вид представительства заявителя\
-            к ребенку")
     birth_date = models.DateField(u'Дата рождения ребенка', validators=[birth_date_validator])
-    last_name = models.CharField(u'фамилия ребёнка', max_length=255, null=True)
-    first_name = models.CharField(u'имя ребёнка', max_length=255, null=True)
-    patronymic = models.CharField(u'отчество ребёнка', max_length=255, null=True)
+    name = models.CharField(u'имя ребёнка', max_length=255, null=True)
     sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     cast = models.IntegerField(verbose_name=u'Тип заявки',
@@ -941,10 +927,6 @@ class Requestion(models.Model):
             age_groups = AgeGroup.objects.all()
         return filter(lambda group: group.min_birth_date(current_distribution_year) < self.birth_date <= group.max_birth_date(current_distribution_year),
             age_groups)
-
-    def fio(self):
-        return ' '.join(filter(None, (self.last_name, self.first_name,
-            self.patronymic)))
 
     def days_for_appeal(self):
         u"""
@@ -1270,8 +1252,8 @@ class UserFunctions:
         except Profile.DoesNotExist:
             pass
         else:
-            if profile.first_name or profile.patronymic:
-                return u'%s %s' % (profile.first_name, profile.patronymic)
+            if profile.nickname:
+                return profile.nickname
 #        если не смогли получить имя отчество у профиля, то берем их у пользователя
         return u'%s %s' % (self.first_name or u'', self.last_name or u'')
 

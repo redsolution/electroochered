@@ -61,10 +61,10 @@
                 <dt>Адрес электронной почты</dt>
                 <dd><h3>{{ requestion.profile.user.email|verbose_value }}</h3></dd>
                 <dt>Ребенок</dt>
-                <dd><h3>{{ requestion.fio|verbose_value }}</h3></dd>
+                <dd><h3>{{ requestion.name|verbose_value }}</h3></dd>
 
                 <dt>Родитель</dt>
-                <dd><h3>{{ requestion.profile.fio|verbose_value }}</h3></dd>
+                <dd><h3>{{ requestion.profile.nickname|verbose_value }}</h3></dd>
                 <dt>Возрастная категория</dt>
                 <dd>{{ requestion.age_groups.0|default:"Ваш ребенок не попадает ни в одну возрастную категорию, наверное, ему нужно подрасти" }}</dd>
             </dl>

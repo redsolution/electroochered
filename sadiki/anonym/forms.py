@@ -123,22 +123,10 @@ class ProfileRegistrationForm(FormWithDocument):
 
     class Meta:
         model = Profile
-        fields = ('last_name', 'first_name', 'patronymic',
-            'phone_number', 'mobile_number')
+        fields = ('nickname',)
 
     def __init__(self, *args, **kwds):
         super(ProfileRegistrationForm, self).__init__(*args, **kwds)
-        self.fields['phone_number'].widget = forms.TextInput(attrs={'data-mask': '+7-999-99-99999'})
-        self.fields['mobile_number'].widget = forms.TextInput(attrs={'data-mask': '+7-999-99-99999'})
-
-    def clean(self, *args, **kwargs):
-        cleaned_data = super(ProfileRegistrationForm, self).clean(
-            *args, **kwargs)
-        phone_number = cleaned_data.get('phone_number')
-        mobile_number = cleaned_data.get('mobile_number')
-        if not phone_number and not mobile_number:
-            raise forms.ValidationError(u'Должен быть указан телефон для связи.')
-        return cleaned_data
 
     def save(self, user, commit=True):
         profile = super(ProfileRegistrationForm, self).save(commit=False)
@@ -160,17 +148,14 @@ class PublicSearchForm(forms.Form):
     document_number = forms.CharField(label=u'Номер свидетельства о рождении',
         required=False, widget=forms.TextInput(),
         help_text=u'Формат: II-ИВ 123456')
-    parent_last_name = forms.CharField(label=u'Фамилия родителя',
-        required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
-    child_last_name = forms.CharField(label=u'Фамилия ребенка',
+    child_name = forms.CharField(label=u'Имя ребенка',
         required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
 
     field_map = {
         'birth_date': 'birth_date__exact',
         'registration_date': 'registration_datetime__range',
         'number_in_old_list': 'number_in_old_list__exact',
-        'parent_last_name': 'profile__last_name__icontains',
-        'child_last_name': 'last_name__icontains',
+        'child_name': 'name__icontains',
         'document_number': 'id__in'
     }
 
@@ -190,10 +175,8 @@ class PublicSearchForm(forms.Form):
                 )
             if 'number_in_old_list' in self.changed_data:
                 filter_kwargs[self.field_map['number_in_old_list']] = self.cleaned_data['number_in_old_list']
-            if 'parent_last_name' in self.changed_data:
-                filter_kwargs[self.field_map['parent_last_name']] = self.cleaned_data['parent_last_name']
-            if 'child_last_name' in self.changed_data:
-                filter_kwargs[self.field_map['child_last_name']] = self.cleaned_data['child_last_name']
+            if 'child_name' in self.changed_data:
+                filter_kwargs[self.field_map['child_name']] = self.cleaned_data['child_name']
             if 'document_number' in self.changed_data:
                 requestion_ct = ContentType.objects.get_for_model(Requestion)
                 requestion_ids = EvidienceDocument.objects.filter(content_type=requestion_ct,

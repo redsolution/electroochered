@@ -120,8 +120,7 @@ class RequestionFormat(Format):
             'birth_date': birth_date,
             'sex': data_row[12],
             'admission_date': data_row[27],
-            'first_name': data_row[7],
-            'agent_type': data_row[24],
+            'name': data_row[7],
         }
         requestion_data.update({
             'status':STATUS_REQUESTER,

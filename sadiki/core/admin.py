@@ -31,8 +31,7 @@ class AreaAdmin(CustomGeoAdmin):
     pass
 
 class RequestionAdmin(admin.ModelAdmin):
-    list_display = ('requestion_number', 'number_in_old_list', 'last_name',
-        'first_name', 'patronymic')
+    list_display = ('requestion_number', 'number_in_old_list', 'name')
     search_fields = ('profile__user__username', 'number_in_old_list')
     raw_id_fields = ('profile', )
 

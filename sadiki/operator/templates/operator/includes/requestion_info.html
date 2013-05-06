@@ -33,9 +33,9 @@
             </div>
         </div>
         <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">ФИО ребёнка</span>
+            <span class="readOnlyLabel">Имя ребенка</span>
             <div class="readOnly">
-                <span class="choice">{{ requestion.fio }}</span>
+                <span class="choice">{{ requestion.name|verbose_value }}</span>
             </div>
         </div>
         {% readonly requestion 'birth_date' %}
@@ -77,18 +77,10 @@
             {% endwith %}
         </div>
         <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">ФИО родителя</span>
+            <span class="readOnlyLabel">Псевдоним родителя</span>
             <div class="readOnly">
                     <span class="choice">
-                        {{ profile.fio|verbose_value }}
-                    </span>
-            </div>
-        </div>
-        <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">Вид представительства</span>
-            <div class="readOnly">
-                    <span class="choice">
-                        {{ requestion.get_agent_type_display }}
+                        {{ profile.nickname|verbose_value }}
                     </span>
             </div>
         </div>

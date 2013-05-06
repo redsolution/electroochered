@@ -32,9 +32,8 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
 
     class Meta:
         model = Requestion
-        _base_fields = ['areas', 'agent_type',
-                        'birth_date', 'last_name', 'first_name',
-                        'patronymic', 'sex', 'template',
+        _base_fields = ['areas', 'name',
+                        'birth_date', 'sex', 'template',
                         'document_number',
                         'pref_sadiks', 'location']
         if settings.DESIRED_DATE != settings.DESIRED_DATE_NO:
@@ -67,8 +66,7 @@ class ChangeRequestionForm(forms.ModelForm):
 
     class Meta:
         model = Requestion
-        _base_fields = ('last_name', 'first_name',
-            'patronymic', 'sex', 'location')
+        _base_fields = ('name', 'sex', 'location')
         if settings.DESIRED_DATE == settings.DESIRED_DATE_NO:
             fields = _base_fields
         else:
@@ -85,13 +83,7 @@ class ProfileChangeForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ('last_name', 'first_name', 'patronymic', 'phone_number',
-            'mobile_number')
-
-    def __init__(self, *args, **kwargs):
-        super(ProfileChangeForm, self).__init__(*args, **kwargs)
-        self.fields['phone_number'].widget = forms.TextInput(attrs={'data-mask': '+7-999-99-99999'})
-        self.fields['mobile_number'].widget = forms.TextInput(attrs={'data-mask': '+7-999-99-99999'})
+        fields = ('nickname',)
 
 
 class BenefitsForm(forms.ModelForm):

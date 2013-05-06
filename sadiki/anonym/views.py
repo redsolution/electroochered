@@ -239,8 +239,7 @@ class RequestionSearch(RequirePermissionsMixin, TemplateView):
         'registration_datetime__range': 2,
         'number_in_old_list__exact': 1,
         'id__in': 5,
-        'profile__last_name__icontains': 4,
-        'last_name__icontains': 3,
+        'name__icontains': 3,
     }
 
     def get_context_data(self, **kwargs):
