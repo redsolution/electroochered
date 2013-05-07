@@ -3,8 +3,10 @@
 {% block content %}
     <div class="header">
         <p>Начальнику {{ local_authority }} {{ authority_head }}</p>
-        <p>Заявитель: <span class="requester_info">{{ requestion.profile.fio }}</span></p>
-        <p>Контактный телефон: <span class="requester_info">{{ requestion.profile.phone_number }}</span></p>
+        <p>Заявитель:</p>
+        <p><span class="blank_field">{{ "&nbsp; "|multiply:80|safe }}</span>&nbsp;</p>
+        <p>Контактный телефон:</p>
+        <p><span class="blank_field">{{ "&nbsp; "|multiply:80|safe }}</span>&nbsp;</p>
         <p>Номер заявки в системе "Электроочередь": <span class="requester_info">{{ requestion.requestion_number }}</span></p>
     </div>
     <div class="content">
