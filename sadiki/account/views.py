@@ -15,7 +15,7 @@ from sadiki.core.models import Profile, Requestion, \
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
-    CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS
+    CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS, CHANGE_DOCUMENTS
 from sadiki.logger.models import Logger
 from sadiki.anonym.forms import PersonalDataApproveForm
 from sadiki.core.views import GenerateBlankBase
@@ -401,10 +401,18 @@ class DocumentsChange(AccountRequestionMixin, TemplateView):
             template__destination=BENEFIT_DOCUMENT))
 
         if formset.is_valid():
-            formset.save()
-            messages.info(request, u'''Документы были изменены''')
+            if formset.has_changed():
+                formset.save()
+                messages.info(request, u'''Документы были изменены''')
+                Logger.objects.create_for_action(
+                        CHANGE_DOCUMENTS,
+                        context_dict={'benefit_documents': requestion.evidience_documents().filter(
+                            template__destination=BENEFIT_DOCUMENT)},
+                        extra={'user': request.user, 'obj': requestion})
+            else:
+                messages.info(request, u'''Документы не были изменены''')
             return HttpResponseRedirect(reverse('account_requestion_info',
-                kwargs={'requestion_id': requestion.id}))
+                    kwargs={'requestion_id': requestion.id}))
         else:
             return self.render_to_response({
                 'formset': formset,

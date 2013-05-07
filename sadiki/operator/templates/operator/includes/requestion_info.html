@@ -123,12 +123,17 @@
 </div>
 <div class="uniForm">
 {% url operator_profile_change requestion.id as operator_profile_change_url%}
-{% if operator_profile_change_url|check_url_availability:request.user %}
-    <div class="buttonHolder">
+{% url operator_requestion_set_identity_document requestion.id as operator_set_identity_document %}
+<div class="buttonHolder">
+    {% if operator_set_identity_document|check_url_availability:request.user %}
+        <a href="{% url operator_requestion_set_identity_document requestion.id %}" class="btn"><i class="icon-pencil"></i>Указать документ</a>
+    {% endif %}
+    {% if operator_profile_change_url|check_url_availability:request.user %}
+
         <a href="{% url find_profile_for_requestion requestion_id=requestion.id %}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
         <a id="changeProfile" href="{% url operator_profile_change requestion.id %}" class="btn"><i class="icon-pencil"></i> Изменить</a>
-    </div>
-{% endif %}
+    {% endif %}
+</div>
 </div>
         
 <h2 class="page-header">Документы</h2>

@@ -30,7 +30,7 @@ from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.utils import check_url, get_openlayers_js, get_user_by_email
 from sadiki.core.workflow import REQUESTION_REGISTRATION, \
     CHANGE_PROFILE_BY_OPERATOR, CHANGE_BENEFITS, CHANGE_REQUESTION_BY_OPERATOR, \
-    CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE
+    CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE, CHANGE_DOCUMENTS_BY_OPERATOR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRegistrationForm, \
     OperatorProfileRegistrationForm, OperatorRequestionForm, OperatorSearchForm, \
@@ -393,10 +393,19 @@ class DocumentsChange(OperatorRequestionCheckIdentityMixin,
             instance=requestion)
 
         if formset.is_valid():
-            formset.save()
-            messages.info(request, u'''Документы были изменены''')
+            if formset.has_changed():
+                formset.save()
+                messages.info(request, u'''Документы были изменены''')
+                Logger.objects.create_for_action(
+                        CHANGE_DOCUMENTS_BY_OPERATOR,
+                        context_dict={'benefit_documents': requestion.evidience_documents().filter(
+                            template__destination=BENEFIT_DOCUMENT)},
+                        extra={'user': request.user, 'obj': requestion})
+
+            else:
+                messages.info(request, u'''Документы не были изменены''')
             return HttpResponseRedirect(reverse('operator_requestion_info',
-                kwargs={'requestion_id': requestion.id}))
+                    kwargs={'requestion_id': requestion.id}))
         else:
             return self.render_to_response({
                 'formset': formset,
@@ -416,7 +425,7 @@ class SetIdentityDocument(OperatorRequestionMixin, TemplateView):
         return super(SetIdentityDocument, self).dispatch(request, requestion_id)
 
     def check_permissions(self, request, requestion):
-        return (not requestion.evidience_documents().filter(
+        return (requestion.evidience_documents().filter(fake=True,
                 template__destination=REQUESTION_IDENTITY) and
             super(SetIdentityDocument, self).check_permissions(
                 request, requestion))
@@ -432,6 +441,14 @@ class SetIdentityDocument(OperatorRequestionMixin, TemplateView):
             data=request.POST)
         if form.is_valid():
             form.save()
+            # после указания документа можно удалить временный
+            requestion.evidience_documents().filter(fake=True).delete()
+            messages.info(request, u'Для заявки был указан идентифицирующий документ.')
+            Logger.objects.create_for_action(
+                CHANGE_DOCUMENTS_BY_OPERATOR,
+                context_dict={'requestion_documents': requestion.evidience_documents().filter(
+                    template__destination=REQUESTION_IDENTITY)},
+                extra={'user': request.user, 'obj': requestion})
             return HttpResponseRedirect(self.redirect_to)
         return self.render_to_response({'form': form, 'requestion': requestion,
             'redirect_to': self.redirect_to})

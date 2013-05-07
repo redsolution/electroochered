@@ -330,8 +330,8 @@ ACTION_CHOICES.extend(
     (CHANGE_BIRTHDATE, u"Изменение даты рождения"),
     (CHANGE_BENEFITS, u"Изменение льгот"),
     (CHANGE_BENEFITS_BY_OPERATOR, u"Изменение льгот оператором"),
-    (CHANGE_DOCUMENTS, u"Изменение льгот"),
-    (CHANGE_DOCUMENTS_BY_OPERATOR, u"Изменение льгот оператором"),
+    (CHANGE_DOCUMENTS, u"Изменение документов"),
+    (CHANGE_DOCUMENTS_BY_OPERATOR, u"Изменение документов оператором"),
     (CREATE_PROFILE, u"Регистрация профиля"),
     (CREATE_PROFILE_BY_OPERATOR, u"Регистрация профиля оператором"),
     (IMPORT_PROFILE, u"Импорт профиля"),
@@ -438,9 +438,20 @@ change_benefits_account_template = u"""
     {% endif %}
     """
 
-change_documents_account_template = Template(u"""
-    
-    """)
+change_documents_account_template = u"""
+    {% if benefit_documents %}
+        Документы для льгот:
+        {% for document in benefit_documents %}
+            {{ document.document_number }} ({{ document.template }});
+        {% endfor %}.
+    {% endif %}
+    {% if requestion_documents %}
+        Документы для льгот:
+        {% for document in requestion_documents %}
+            {{ document.document_number }} ({{ document.template }});
+        {% endfor %}.
+    {% endif %}
+    """
 
 ACTION_TEMPLATES.update({
     ADD_REQUESTION:{

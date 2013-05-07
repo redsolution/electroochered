@@ -34,7 +34,7 @@ class OperatorRequestionCheckIdentityMixin(object):
     def dispatch(self, request, requestion_id, *args, **kwargs):
         requestion = get_object_or_404(Requestion, id=requestion_id)
         if not isinstance(request, FakeWSGIRequest):
-            if not requestion.evidience_documents().filter(
+            if requestion.evidience_documents().filter(fake=True,
                 template__destination=REQUESTION_IDENTITY).exists():
                 return HttpResponseRedirect(
                     u'%s?next=%s' %
