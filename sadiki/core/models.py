@@ -262,11 +262,13 @@ class Address(models.Model):
 
     @property
     def text(self):
+        if self.town:
+            town = "%s," % self.town
         if self.building_number and self.street:
             street = "%s," % self.street
         else:
             street = self.street
-        address_elements = (self.town, self.block_number, street, self.building_number)
+        address_elements = (town, self.block_number, street, self.building_number)
         return u" ".join([el for el in address_elements if el])
 
     def __unicode__(self):
@@ -316,7 +318,7 @@ class Sadik(models.Model):
         max_length=255, blank=True)
     site = models.CharField(u'сайт', max_length=255, blank=True,
         null=True)
-    head_name = models.CharField(u'ФИО директора(заведующей)', max_length=255)
+    head_name = models.CharField(u'ФИО директора (заведующей)', max_length=255)
     phone = models.CharField(u'телефон', max_length=255,
         blank=True, null=True)
     cast = models.CharField(u'тип(категория) ДОУ', max_length=255, blank=True)
