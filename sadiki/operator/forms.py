@@ -97,8 +97,7 @@ class OperatorSearchForm(PublicSearchForm):
         'birth_date': 'birth_date__exact',
         'registration_date': 'registration_datetime__range',
         'number_in_old_list': 'number_in_old_list__exact',
-        'parent_last_name': 'profile__last_name__icontains',
-        'child_last_name': 'last_name__icontains',
+        'child_name': 'name__icontains',
         'document_number': 'id__in'
     }
 

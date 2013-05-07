@@ -150,8 +150,7 @@ class RequestionSearch(OperatorPermissionMixin, AnonymRequestionSearch):
         'registration_datetime__range': 2,
         'number_in_old_list__exact': 1,
         'id__in': 5,
-        'profile__last_name__icontains': 4,
-        'last_name__icontains': 3,
+        'name__icontains': 3,
         }
 
     def guess_more(self, initial_query):
