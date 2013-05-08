@@ -650,7 +650,7 @@ class BenefitCategoryAdminForm(forms.ModelForm):
     class Meta:
         model = BenefitCategory
         if settings.IMMEDIATELY_DISTRIBUTION == IMMEDIATELY_DISTRIBUTION_NO:
-            exclude = ('immediately_distribution_active')
+            exclude = ('immediately_distribution_active',)
 
     def clean_priority(self):
         priority = self.cleaned_data.get('priority')
