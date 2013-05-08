@@ -2,7 +2,7 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext, loader
 from django.views.generic import TemplateView
@@ -78,6 +78,41 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
             requestions.add_related_documents()
             if requestions:
                 requestions_by_sadiks.append([sadik, requestions])
+        if request.GET.get('type') == 'xls':
+            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            file_name = u'Raspredelenie_%s' % (distribution.end_datetime.strftime('%d-%m-%Y_%H-%M'))
+            response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
+            import xlwt
+            style = xlwt.XFStyle()
+            style.num_format_str = 'DD-MM-YYYY'
+            wb = xlwt.Workbook()
+            ws = wb.add_sheet(u'Результаты распределения')
+            header = [
+                u'Номер заявки',
+                u'Номер в списке',
+                u'Дата рождения',
+                u'Группа',
+                u'Документ',
+            ]
+            row_number = 0
+            for requestions_by_sadik in requestions_by_sadiks:
+                if requestions_by_sadik[1]:
+                    ws.write_merge(row_number, row_number, 0, 4, requestions_by_sadik[0].name)
+                    row_number += 1
+                    for column_number, element in enumerate(header):
+                        ws.write(row_number, column_number, element, style)
+                    row_number += 1
+                    for requestion in requestions_by_sadik[1]:
+                        row = [requestion.requestion_number, requestion.number_in_old_list, requestion.birth_date,
+                               unicode(requestion.distributed_in_vacancy.sadik_group)]
+                        if requestion.related_documents:
+                            document = requestion.related_documents[0]
+                            row.append("%s (%s)" % (document.document_number, document.template.name))
+                        for column_number, element in enumerate(row):
+                            ws.write(row_number, column_number, element, style)
+                        row_number += 1
+            wb.save(response)
+            return response
         return self.render_to_response({'current_distribution': distribution,
             'requestions_by_sadiks': requestions_by_sadiks})
 
