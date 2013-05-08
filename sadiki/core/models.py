@@ -147,6 +147,9 @@ class EvidienceDocumentQueryset(models.query.QuerySet):
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id)
 
+    def requestion_identity_documents(self):
+        return self.filter(template__destination=REQUESTION_IDENTITY)
+
 
 class EvidienceDocument(models.Model):
 
@@ -744,6 +747,20 @@ class RequestionQuerySet(models.query.QuerySet):
     def enrollment_in_progress(self):
         return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
             STATUS_NOT_APPEAR_EXPIRE))
+
+    def add_related_documents(self):
+#        а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
+#        а как же prefetch_related? пока что используется dj 1.3, так что при случае можно будет заменить
+        requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in self])
+#        и сразу захватим с собой имена возрастных групп
+        documents = EvidienceDocument.objects.filter(object_id__in=self.values_list('id', flat=True
+                ), content_type=ContentType.objects.get_for_model(Requestion)).requestion_identity_documents(
+            ).select_related('template__name')
+        relation_dict = {}
+        for document in documents:
+            relation_dict.setdefault(document.object_id, []).append(document)
+        for id, related_documents in relation_dict.items():
+            requestions_dict[id].related_documents = related_documents
 
 
 class Requestion(models.Model):

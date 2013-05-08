@@ -33,13 +33,35 @@ class DistributionInfo(RequirePermissionsMixin, TemplateView):
             pass
         else:
             return self.render_to_response({'ending_distribution': ending_distribution})
-        if not distribution_id:
-            return self.render_to_response(
-                {
-                    'finished_distributions': Distribution.objects.filter(
-                        status=DISTRIBUTION_STATUS_END).order_by('-end_datetime'),
-                    'distribution': Distribution.objects.active(),
-                })
+        return self.render_to_response(
+            {
+                'finished_distributions': Distribution.objects.filter(
+                    status=DISTRIBUTION_STATUS_END).order_by('-end_datetime'),
+                'distribution': Distribution.objects.active(),
+            })
+
+
+class EndedDistributions(OperatorPermissionMixin, TemplateView):
+    required_permissions = ['is_operator']
+    template_name = 'distribution/ended_distributions.html'
+
+    def get(self,request):
+        distributions = Distribution.objects.filter(status=DISTRIBUTION_STATUS_END)
+        return self.render_to_response({'distributions': distributions})
+
+
+
+class DistributionResults(OperatorPermissionMixin, TemplateView):
+    required_permissions = ['is_operator']
+    template_name = 'distribution/distribution_results.html'
+
+    def get(self, request, distribution_id):
+        try:
+            ending_distribution = Distribution.objects.get(status=DISTRIBUTION_STATUS_ENDING)
+        except Distribution.DoesNotExist:
+            pass
+        else:
+            return self.render_to_response({'ending_distribution': ending_distribution})
         distribution = get_object_or_404(Distribution, id=distribution_id)
         if distribution.status != DISTRIBUTION_STATUS_END:
             return HttpResponseForbidden(u'Распределение еще не было завершено')
@@ -51,7 +73,9 @@ class DistributionInfo(RequirePermissionsMixin, TemplateView):
             requestions = Requestion.objects.filter(
                 distributed_in_vacancy__distribution=distribution,
                 distributed_in_vacancy__sadik_group__sadik=sadik).order_by(
-                    '-birth_date').select_related('profile')
+                    '-birth_date').select_related('profile').select_related(
+                'distributed_in_vacancy__sadik_group__age_group')
+            requestions.add_related_documents()
             if requestions:
                 requestions_by_sadiks.append([sadik, requestions])
         return self.render_to_response({'current_distribution': distribution,
@@ -277,4 +301,4 @@ class DistributionEnd(OperatorPermissionMixin, TemplateView):
             start_distribution.to_datetime = datetime.datetime.now()
             start_distribution.save()
             run_command('end_distribution', request.user.username)
-        return HttpResponseRedirect(reverse('distribution_info', kwargs={'distribution_id': start_distribution.id}))
+        return HttpResponseRedirect(reverse('distribution_results', kwargs={'distribution_id': start_distribution.id}))

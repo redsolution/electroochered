@@ -1,0 +1,49 @@
+{% extends "distribution/distribution_base.html" %}
+{% load sadiki_core_tags %}
+
+{% block title %}Результаты распределения за {{ current_distribution.end_datetime|date:"d-M-Y" }}{% endblock %}
+
+{% block content %}
+    {% if ending_distribution %}
+        <h2 class="page-header">Выполняется завершение распределения.</h2>
+        <p>Подождите, пока система завершит распределение</p>
+        <a href=".">Страница автоматически обновится через <span id="countdown"></span> c.</a>
+        <script type="text/javascript">
+            var delay = 30;
+            function countdown(){
+                var counterEl = document.getElementById('countdown');
+                counterEl.textContent = delay;
+                delay--;
+                if (delay <0 ){window.location.reload()}
+                setTimeout(countdown, 1000);
+            }
+            countdown();
+        </script>
+    {% else %}
+        {% if requestions_by_sadiks %}
+        {% for requestions_by_sadik in requestions_by_sadiks %}
+            <h2>{{ requestions_by_sadik.0 }}</h2>
+            <table class="table table-striped table-bordered table-condensed">
+            <tr>
+                <th>Номер заявки</th>
+                <th>Номер в списках</th>
+                <th>Дата рождения</th>
+                <th>Группа</th>
+                <th>Документ</th>
+            </tr>
+            {% for requestion in requestions_by_sadik.1 %}
+                <tr>
+                    <td><a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a></td>
+                    <td>{{ requestion.number_in_old_list }}</td>
+                    <td>{{ requestion.birth_date }}</td>
+                    <td>{{ requestion.distributed_in_vacancy.sadik_group }}</td>
+                    {% with requestion.related_documents.0 as document %}
+                        <td>{{ document.document_number }} ({{ document.template.name }})</td>
+                    {% endwith %}
+                </tr>
+            {% endfor %}
+            </table>
+        {% endfor %}
+        {% endif %}
+    {% endif %}
+{% endblock %}

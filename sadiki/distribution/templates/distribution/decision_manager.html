@@ -162,10 +162,12 @@
             {% endif %}
             {% if current_requestion %}
                 <h3>Заявка</h3>
+                {% with current_requestion.evidience_documents.requestion_identity_documents.0 as document %}
+                    {% if document %}
+                        <p>Документ: {{ document.document_number }} ({{ document.template }})</p>
+                    {% endif %}
+                {% endwith %}
                 <p>Дата рождения: {{ current_requestion.birth_date|date:"j M Y" }}</p>
-                <p>Местоположение: {{ current_requestion.location_preference|verbose_value }}</p>
-                <p>Тел.: {% if current_requestion.profile.phone_number %}{{ current_requestion.profile.phone_number }}{% else %}не указан{% endif %}</p>
-                <p>ФИО родителей: {{ current_requestion.profile.fio|verbose_value }}</p>
                 <p>Возрастная группа: {{ current_requestion_age_groups.0 }}</p>
 
                 <form action="." method="POST" id="select_sadik_form">
