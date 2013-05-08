@@ -69,6 +69,13 @@
 {% with requestion.profile as profile %}
     <div class="uniForm">
         <div class="ctrlHolder readOnly">
+            <span class="readOnlyLabel">Имя пользователя</span>
+            <div class="readOnly">
+                <span class="choice">{{ profile.user.username }}</span>
+            </div>
+            <p class="formHint">Используется для входа в личный кабинет</p>
+        </div>
+        <div class="ctrlHolder readOnly">
             <span class="readOnlyLabel">Документ, удостоверяющий родителя</span>
             {% with profile.get_identity_documents.0 as profile_document %}
                 <div class="readOnly">
@@ -85,37 +92,21 @@
             </div>
         </div>
         <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">Основной телефон</span>
+            <span class="readOnlyLabel">Пароль</span>
             <div class="readOnly">
-                    <span class="choice">
-                        {{ profile.phone_number|verbose_value }}
+                        {% if profile.user.has_usable_password %}
+                            <span class="choice"><i title="Пароль задан" class="green icon-ok-circle"></i>Пароль задан</span>
+                        {% else %}
+                            <span class="choice"><i title="Пароль не задан" class="red icon-ban-circle"></i>Пароль не задан</span>
+                        {% endif %}
+                        <form id="reset_password_form" action="{% url generate_profile_password requestion_id=requestion.id %}" method="post" target="_blank">{% csrf_token %}
+                            {{ reset_password_form.as_ul }}
+                        </form>
+                        <button id="reset_password_btn" class="btn">Сгенерировать новый пароль</button>
                     </span>
             </div>
         </div>
-        <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">Адрес электронной почты</span>
-            <div class="readOnly">
-                <span class="choice">
-                    {{ profile.user.email|verbose_value }}
-                </span>
-                {% if profile.user.email %}
-                    {% if profile.email_verified %}
-                        <p class="icon_text"><div class="icon yes" ></div>Адрес подтвержден</p>
-                    {% else %}
-                        {% if profile.user.email_busy %}
-                            <p class="important">Этот адрес занят другим пользователем</p>
-                        {% else %}
-                            <p class="icon_text"><div class="icon no" ></div>Адрес не подтвержден</p>
-                             <button id="revalidate" rel="{% url revalidate_email profile.id %}">Выслать подтверждение</button>
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
-            </div>
-        </div>
-        {% if profile.mobile_number %}
-            {% readonly profile 'mobile_number' %}
-        {% endif %}
-        
+
     </div>
 
 {% endwith %}

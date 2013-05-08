@@ -10,6 +10,8 @@
     {% if request.user.get_profile.requestion_set.not_confirmed.exists %}
         <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявки, обратившись в управление образования.</div>
     {% endif %}
+    <h2>Ваш логин: <span class="green">{{ profile.user.username }}</span></h2>
+    <h3 class="red">Запомните его, он будет использоваться для авторизации в системе.</h3>
     <div class="row">
     <div class="span5">
     <h2>Мой профиль</h2>
@@ -21,12 +23,6 @@
                         <span class="choice">{% if profile_document %}{{ profile_document.template }}: {{ profile_document }}{% else %}Не указан{% endif %}</span>
                     </div>
                 {% endwith %}
-            </div>
-            <div class="ctrlHolder readOnly">
-                <span class="readOnlyLabel">Адрес электронной почты</span>
-                <div class="readOnly">
-                    <span class="choice">{{ profile.user.email|verbose_value }}</span>
-                </div>
             </div>
             {% readonly profile 'nickname' %}
             <div class="buttonHolder">

@@ -45,10 +45,6 @@
             <dl>
                 <dt>ФИО</dt>
                 <dd>{{ profile.fio }}</dd>
-                <dt>Адрес электронной почты</dt>
-                <dd>{{ profile.user.email|verbose_value }}</dd>
-                <dt>Адрес электронной почты подтвержден</dt>
-                <dd>{{ profile.email_verified|yesno:"Да, Нет" }}</dd>
                 <dt>Заявки, принадлежащие, профилю</dt>
                 <dd>
                     {% for requestion in profile.requestion_set.all %}

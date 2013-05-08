@@ -7,7 +7,7 @@ from django.utils.translation import ugettext_lazy as _
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area
-from sadiki.core.utils import get_user_by_email, get_unique_username
+from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
 import re
 
@@ -23,27 +23,17 @@ class PersonalDataApproveForm(forms.Form):
 
 class RegistrationForm(forms.ModelForm):
     u"""Форма регистрации для создания пользователя"""
-    email = forms.EmailField(label=u'Электронная почта',
-        help_text=u'''
-        Электронная почта необходима для регистрации в электронной системе.
-        Если у Вас нет адреса электронной почты, обратитесь к оператору управления образования для очной регистрации
-        ''')
     password1 = forms.CharField(label=_("Password"), widget=forms.PasswordInput,
-        help_text=u'Введите пароль от учётной записи в "Электронной очереди"')
+        help_text=u'Введите пароль для регистрации в "Электронной очереди"')
     password2 = forms.CharField(label=_("Password confirmation"), widget=forms.PasswordInput,
         help_text=_("Enter the same password as above, for verification."))
 
     class Meta:
         model = User
-        fields = ('email', 'password1', 'password2')
+        fields = ('password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super(RegistrationForm, self).__init__(*args, **kwargs)
-
-    def clean_email(self):
-        if get_user_by_email(self.cleaned_data.get('email', '')):
-            raise forms.ValidationError(u'Такой адрес электронной почты уже зарегистрирован.')
-        return self.cleaned_data['email']
 
     def clean_password1(self):
         if 'password1' in self.cleaned_data:

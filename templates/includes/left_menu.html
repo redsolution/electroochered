@@ -8,7 +8,7 @@
 <ul class="nav">
     {# пункты меню для анонима #}
     {% if request.user.is_anonymous %}
-        {% create_extend_list anonym_registration login reset_password_request as registration_urls %}
+        {% create_extend_list anonym_registration login as registration_urls %}
         {% if  anonym_registration|check_url_availability:request.user %}
             {% if about_registration_pages %}
                 {% create_extend_list registration_urls about_registration_pages.0.url as registration_urls %}

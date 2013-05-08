@@ -7,7 +7,7 @@ from sadiki.operator.views.requestion import Registration, RequestionSearch, \
     BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, ProfileChange, \
     RequestionChange, PreferredSadiksChange, DocumentsChange, \
     Queue, RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank, RevalidateEmail
+    EmbedRequestionToProfile, GenerateBlank, RevalidateEmail, GenerateProfilePassword
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange
 
@@ -24,8 +24,8 @@ urlpatterns = patterns('',
         name=u'operator_registration'),
     url(r'^requestion_search/$', RequestionSearch.as_view(),
         name=u'operator_requestion_search'),
-    url(r'^revalidate_email/(?P<profile_id>\d{1,7})/$',
-        csrf_exempt(RevalidateEmail.as_view()), name='revalidate_email'),
+    # url(r'^revalidate_email/(?P<profile_id>\d{1,7})/$',
+    #     csrf_exempt(RevalidateEmail.as_view()), name='revalidate_email'),
 
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',
@@ -51,6 +51,8 @@ urlpatterns = patterns('',
         RequestionStatusChange.as_view(), name=u'operator_requestion_status_change'),
     url(r'^request/(?P<requestion_id>\d{1,7})/generate_blank/$',
         GenerateBlank.as_view(), name=u'operator_generate_blank'),
+    url(r'^request/(?P<requestion_id>\d{1,7})/generate_profile_password/$',
+        GenerateProfilePassword.as_view(), name=u'generate_profile_password'),
 
     # Работа с садиками
     url(r'^dou/$',

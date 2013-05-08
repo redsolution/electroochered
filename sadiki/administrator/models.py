@@ -243,6 +243,8 @@ class RequestionLogic(object):
 #            ошибок нет, можно сохранять объекты
             if not cell_errors and not self.fake:
                 user = User.objects.create_user(get_unique_username(), '')
+                user.set_username_by_id()
+                user.save()
                 permission = Permission.objects.get(codename=u'is_requester')
                 user.user_permissions.add(permission)
                 profile.user = user

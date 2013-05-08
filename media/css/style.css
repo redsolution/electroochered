@@ -893,3 +893,7 @@ tr.dynamic-form .errorlist {
     list-style-type: none;
     margin-top: 3pt;
 }
+
+.confirmation-dialog{
+    display: none;
+}

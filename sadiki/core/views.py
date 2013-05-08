@@ -72,6 +72,16 @@ def fetch_resources(uri, rel):
 
     return path
 
+def generate_pdf(template_name, context_dict):
+    context = Context(context_dict)
+    template = get_template(template_name)
+    html = template.render(context)
+    result = StringIO.StringIO()
+    pdf = pisa.pisaDocument(
+        StringIO.StringIO(html.encode("UTF-8")), dest=result,
+        encoding='UTF-8', link_callback=fetch_resources)
+    return result
+
 
 class GenerateBlankBase(TemplateView):
     templates_by_type = {}
@@ -81,29 +91,21 @@ class GenerateBlankBase(TemplateView):
         if blank_type not in self.templates_by_type:
             raise Http404
         template_name = self.templates_by_type[blank_type]
-        template = get_template(template_name)
+
         local_authority = Preference.objects.get_or_none(key=PREFERENCE_LOCAL_AUTHORITY)
         authority_head = Preference.objects.get_or_none(key=PREFERENCE_AUTHORITY_HEAD)
         municipality_name = Preference.objects.get_or_none(
             key=PREFERENCE_MUNICIPALITY_NAME)
         municipality_name_genitive = Preference.objects.get_or_none(
             key=PREFERENCE_MUNICIPALITY_NAME_GENITIVE)
-        context = Context({'requestion': requestion, 'local_authority': local_authority,
+        context_dict = {'requestion': requestion, 'local_authority': local_authority,
             'authority_head': authority_head, 'media_root': settings.MEDIA_ROOT,
             'municipality_name': municipality_name,
             'municipality_name_genitive': municipality_name_genitive,
-            'current_datetime': datetime.datetime.now()})
-        html = template.render(context)
-        result = StringIO.StringIO()
-
-        pdf = pisa.pisaDocument(StringIO.StringIO(html.encode("UTF-8")),
-                                                dest=result,
-                                                encoding='UTF-8',
-                                                link_callback=fetch_resources)
-        if not pdf.err:
-            response = HttpResponse(result.getvalue(),
-                                                        mimetype='application/pdf')
-            return response
+            'current_datetime': datetime.datetime.now()}
+        result = generate_pdf(template_name, context_dict)
+        response = HttpResponse(result.getvalue(), mimetype='application/pdf')
+        return response
 
 
 @csrf_exempt

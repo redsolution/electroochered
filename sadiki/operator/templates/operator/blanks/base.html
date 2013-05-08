@@ -5,7 +5,7 @@
         <style type="text/css">
             @font-face {
                 font-family: Ubuntu;
-                src: url("{{ media_root }}/font/Ubuntu-Regular.ttf");
+                src: url("{{ media_root }}/font/UbuntuMono-R.ttf");
             }
             
             body {
@@ -14,7 +14,7 @@
                 height: 297mm;
                 margin: 5mm;
                 font-family: Ubuntu;
-                font-size: 10pt;
+                font-size: 11pt;
             }
             .header{
                 margin-left: 95mm;
@@ -29,6 +29,13 @@
             h2{
                 text-align: center;
                 margin-top: 10mm;
+                margin-bottom: 0mm;
+            }
+
+            h3{
+                margin-top: 0mm;
+                padding-top: 0mm;
+                text-align: center;
             }
             
             .footer{
@@ -49,10 +56,13 @@
             }
             
             .blank_field{
+                font-size: 6pt;
                 white-space-collapse: discard;
                 text-decoration: underline;
             }
         </style>
+        {% block extra_head %}
+        {% endblock %}
     </head>
     
     <body>

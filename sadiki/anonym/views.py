@@ -55,13 +55,13 @@ class Registration(RequirePermissionsMixin, TemplateView):
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
             profile = profile_form.save(user=user)
+            user.set_username_by_id()
+            user.save()
             user = authenticate(username=user.username,
                     password=registration_form.cleaned_data['password1'])
             if user is not None:
                 if user.is_active:
                     login(request, user)
-            verification_key_object = VerificationKey.objects.create_key(user)
-            verification_key_object.send_email_verification()
             Logger.objects.create_for_action(CREATE_PROFILE,
                 context_dict={'user': user, 'profile': profile},
                 extra={'user': request.user, 'obj': profile})

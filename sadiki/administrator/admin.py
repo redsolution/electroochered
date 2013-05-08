@@ -614,9 +614,10 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     @csrf_protect_m
     def changelist_view(self, request, extra_context=None):
         requestions_imported = Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()
+        import_active = ImportTask.objects.filter(status=IMPORT_START).exists()
         extra_context = {'import_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=False).exists(),
                        'check_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True).exists(),
-                       'requestions_imported': requestions_imported}
+                       'requestions_imported': requestions_imported, "import_active": import_active}
         if requestions_imported:
             extra_context.update(
                 {'import_requestion_task': ImportTask.objects.get(

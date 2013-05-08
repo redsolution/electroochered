@@ -60,14 +60,6 @@ class OperatorProfileRegistrationForm(ProfileRegistrationForm):
 
 class OperatorRegistrationForm(RegistrationForm):
     u"""Форма для регистрации пользователя через оператора"""
-    email = forms.EmailField(label=u'Электронная почта',
-        help_text=u'''
-            Если у пользователя есть электронная почта, то укажите её, чтобы 
-            пользователь впоследствии мог сам управлять своими заявками.''',
-        required=False)
-
-    class Meta(RegistrationForm.Meta):
-        fields = ('email',)
 
     def __init__(self, password=None, *args, **kwargs):
         super(OperatorRegistrationForm, self).__init__(*args, **kwargs)
@@ -307,8 +299,6 @@ class ProfileSearchForm(forms.Form):
         label=u'Номер заявки привязанной к данному профилю',
         required=False,
         widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}))
-    email = forms.EmailField(
-        label=u"Адрес электронной почты", required=False)
     last_name = forms.CharField(
         label=u'Фамилия родителя', required=False, widget=forms.TextInput())
     first_name = forms.CharField(
@@ -318,7 +308,6 @@ class ProfileSearchForm(forms.Form):
 
     field_map = {
         'requestion_number': 'requestion__requestion_number__exact',
-        'email': 'user__email__exact',
         'last_name': 'last_name__icontains',
         'first_name': 'first_name__icontains',
         'patronymic': 'patronymic__icontains',
@@ -333,8 +322,6 @@ class ProfileSearchForm(forms.Form):
             filter_kwargs = {}
             if 'requestion_number' in self.changed_data:
                 filter_kwargs[self.field_map['requestion_number']] = self.cleaned_data['requestion_number']
-            if 'email' in self.changed_data:
-                filter_kwargs[self.field_map['email']] = self.cleaned_data['email']
             if 'last_name' in self.changed_data:
                 filter_kwargs[self.field_map['last_name']] = self.cleaned_data['last_name']
             if 'first_name' in self.changed_data:
@@ -342,3 +329,7 @@ class ProfileSearchForm(forms.Form):
             if 'patronymic' in self.changed_data:
                 filter_kwargs[self.field_map['patronymic']] = self.cleaned_data['patronymic']
             return filter_kwargs
+
+
+class HiddenConfirmation(forms.Form):
+    action = forms.CharField(widget=forms.HiddenInput)

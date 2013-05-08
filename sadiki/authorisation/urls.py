@@ -16,10 +16,10 @@ urlpatterns = patterns('django.contrib.auth.views',
 )
 
 urlpatterns += patterns('',
-    url(r'^email_verification/(?P<key>\w{40})/$',
-        EmailVerification.as_view(), name='email_verification'),
-    url(r'^reset_password_request/$',
-        ResetPasswordRequest.as_view(), name='reset_password_request'),
-    url(r'^reset_password/(?P<key>\w{40})/$',
-        ResetPassword.as_view(), name='reset_password'),
+    # url(r'^email_verification/(?P<key>\w{40})/$',
+    #     EmailVerification.as_view(), name='email_verification'),
+    # url(r'^reset_password_request/$',
+    #     ResetPasswordRequest.as_view(), name='reset_password_request'),
+    # url(r'^reset_password/(?P<key>\w{40})/$',
+    #     ResetPassword.as_view(), name='reset_password'),
 )

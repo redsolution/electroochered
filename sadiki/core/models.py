@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from Crypto.Cipher import ARC4
+import random
 from chunks.models import Chunk
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -23,6 +24,7 @@ from sadiki.core.utils import add_crc, calculate_luhn_digit, \
     get_current_distribution_year, get_qs_attr, get_user_by_email
 from sadiki.core.validators import birth_date_validator, \
     registration_date_validator
+from sadiki.settings import REQUESTER_USERNAME_PREFIX
 from south.modelsinspector import add_introspection_rules
 import datetime
 import re
@@ -606,7 +608,7 @@ class Profile(models.Model):
         unique=True)
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-    nickname = models.CharField(u'Псевдоним', max_length=255, null=True)
+    nickname = models.CharField(u'Псевдоним', max_length=255, null=True, help_text=u"Как к Вам обращаться?")
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Основной телефон', max_length=255,
@@ -1258,6 +1260,13 @@ class UserFunctions:
                 return profile.nickname
 #        если не смогли получить имя отчество у профиля, то берем их у пользователя
         return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+
+    def set_username_by_id(self):
+        username = "%s_%d" % (REQUESTER_USERNAME_PREFIX, self.id)
+        new_username = username
+        while User.objects.filter(username=new_username).exists():
+            new_username = "%s_%s" % (username, random.randrange(1,999))
+        self.username = new_username
 
 
 def update_benefit_category(action, instance, **kwargs):

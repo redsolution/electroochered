@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
-from django.views.generic import TemplateView
+from django.views.generic import TemplateView, View
 from sadiki.account.forms import ProfileChangeForm, BenefitsForm, \
     ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm
 from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
@@ -35,12 +35,12 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRegistrationForm, \
     OperatorProfileRegistrationForm, OperatorRequestionForm, OperatorSearchForm, \
     DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, EmailForm, \
-    ProfileSearchForm, BaseConfirmationForm
+    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
 from django.forms.models import ModelFormMetaclass
-from sadiki.core.views import GenerateBlankBase
+from sadiki.core.views import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm
 
 
@@ -79,9 +79,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request):
-        temp_password = User.objects.make_random_password()
-        registration_form = OperatorRegistrationForm(data=request.POST,
-            password=temp_password, prefix="user")
+        registration_form = OperatorRegistrationForm(data=request.POST, prefix="user")
         profile_form = OperatorProfileRegistrationForm(request.POST,
             prefix="profile")
         requestion_form = OperatorRequestionForm(request.POST,
@@ -96,6 +94,8 @@ class Registration(OperatorPermissionMixin, TemplateView):
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
+            user.set_username_by_id()
+            user.save()
             profile = profile_form.save(user=user)
             requestion = requestion_form.save(profile=profile)
             benefits_form.instance = requestion
@@ -106,10 +106,6 @@ class Registration(OperatorPermissionMixin, TemplateView):
                           'areas': requestion_form.cleaned_data.get('areas')}
             context_dict.update(dict([(field, benefits_form.cleaned_data[field])
                 for field in benefits_form.changed_data]))
-#            если указан email, то отсылаем почту
-            if user.email:
-                verification_key_object = VerificationKey.objects.create_key(user)
-                verification_key_object.send_email_verification(password=temp_password)
             Logger.objects.create_for_action(CREATE_PROFILE,
                 context_dict={'user': user, 'profile': profile},
                 extra={'user': request.user, 'obj': profile})
@@ -178,10 +174,12 @@ class RequestionInfo(OperatorRequestionMixin, TemplateView):
 
     def get(self, request, requestion):
         context = self.get_context_data()
+        reset_password_form = HiddenConfirmation(initial={'action': 'reset_password'})
         context.update({
             'requestion': requestion,
             'STATUS_REQUESTER': STATUS_REQUESTER,
             'STATUS_DISTRIBUTED': STATUS_DISTRIBUTED,
+            'reset_password_form': reset_password_form,
             })
         if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED:
             context.update({'other_requestions_with_ident_document': requestion.other_requestions_with_ident_document()})
@@ -234,29 +232,16 @@ class ProfileChange(OperatorPermissionMixin, AnonymProfileChange):
         return super(AnonymProfileChange, self).dispatch(request, requestion)
 
     def get(self, request, requestion):
-        user_form = EmailForm(instance=requestion.profile.user)
         profile_form = ProfileChangeForm(instance=requestion.profile)
-        return self.render_to_response({'user_form': user_form, 'profile_form': profile_form, 'requestion': requestion})
+        return self.render_to_response({'profile_form': profile_form, 'requestion': requestion})
 
     def post(self, request, requestion):
-        user_form = EmailForm(instance=requestion.profile.user, data=request.POST)
         profile_form = ProfileChangeForm(instance=requestion.profile, data=request.POST)
-        if user_form.is_valid() and profile_form.is_valid():
-            if user_form.has_changed() or profile_form.has_changed():
+        if profile_form.is_valid():
+            if profile_form.has_changed():
                 message = u'Изменения в профиле сохранены.'
-                user = user_form.save(commit=False)
                 profile = profile_form.save()
-                if 'email' in user_form.changed_data and user.email:
-#                    отправляем сообщени на e-mail с сылкой для подтверждения
-                    temp_password = User.objects.make_random_password()
-                    user.set_password(temp_password)
-                    user.save()  # перед отправкой нужно сохранить e-mail
-                    verification_key_object = VerificationKey.objects.create_key(user)
-                    verification_key_object.send_email_change(password=temp_password)
-                    message += u" На адрес электронной почты выслано письмо для подтверждения."
-                else:
-                    user.save()
-                context_dict = {'changed_data': user_form.changed_data + profile_form.changed_data, 'profile': profile, 'user': user}
+                context_dict = {'changed_data': profile_form.changed_data, 'profile': profile}
                 Logger.objects.create_for_action(CHANGE_PROFILE_BY_OPERATOR,
                     context_dict=context_dict,
                     extra={'user': request.user, 'obj': profile})
@@ -266,7 +251,7 @@ class ProfileChange(OperatorPermissionMixin, AnonymProfileChange):
             return HttpResponseRedirect(reverse('operator_requestion_info',
                         kwargs={'requestion_id': requestion.id}))
         else:
-            return self.render_to_response({'user_form': user_form, 'profile_form': profile_form, 'requestion': requestion})
+            return self.render_to_response({'profile_form': profile_form, 'requestion': requestion})
 
 
 class BenefitsChange(OperatorRequestionCheckIdentityMixin,
@@ -619,7 +604,6 @@ class FindProfileForRequestion(OperatorRequestionCheckIdentityMixin,
     form = ProfileSearchForm
     field_weights = {
         'requestion__requestion_number__exact': 5,
-        'user__email__exact': 4,
         'last_name__icontains': 1,
         'first_name__icontains': 2,
         'patronymic__icontains': 3,
@@ -694,3 +678,20 @@ class RevalidateEmail(OperatorPermissionMixin, TemplateView):
                     mimetype='text/javascript')
         else:
             return HttpResponseBadRequest()
+
+
+class GenerateProfilePassword(OperatorPermissionMixin, View):
+
+    def post(self, request, requestion_id):
+        requestion = get_object_or_404(Requestion, id=requestion_id)
+        user = requestion.profile.user
+        form = HiddenConfirmation(request.POST)
+        if form.is_valid() and form.cleaned_data.get('action') == 'reset_password':
+            password = User.objects.make_random_password()
+            user.set_password(password)
+            user.save()
+            result = generate_pdf(template_name='operator/blanks/reset_password.html',
+                                  context_dict={'password': password, 'media_root': settings.MEDIA_ROOT,
+                                                'requestion': requestion})
+            response = HttpResponse(result.getvalue(), mimetype='application/pdf')
+            return response
