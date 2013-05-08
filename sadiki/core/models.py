@@ -1076,7 +1076,11 @@ class Requestion(models.Model):
 
     def geocode_address(self, geocoder_class):
         geocoder = geocoder_class()
-        coords = geocoder.geocode(self.location_properties)
+        if settings.REGION_NAME:
+            address = "%s, %s" % (settings.REGION_NAME, self.location_properties)
+        else:
+            address = self.location_properties
+        coords = geocoder.geocode(address)
         return coords
 
     def set_location(self, coords):

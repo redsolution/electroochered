@@ -39,7 +39,7 @@ cells = [
     {'name':u'Домашний адрес: почтовый индекс',
         'parsers': (PostIndexIntegerCellParser, PostIndexTextCellParser)}, # 13
     {'name':u'Домашний адрес: Населенный пункт',
-     'parsers': (TextCellParser,) + blank_empty_parsers}, # 14
+     'parsers': (TextCellParser,)}, # 14
     {'name':u'Домашний адрес: номер квартала', 'parsers':
         (TextCellParser, TextNumberCellParser) + blank_empty_parsers}, # 15
     {'name':u'Домашний адрес: улица', 'parsers':

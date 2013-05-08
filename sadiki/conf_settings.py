@@ -96,3 +96,5 @@ ETICKET = config.getint("options", "ETICKET")
 SPECIAL_TRANSITIONS = [int(transition) for transition in config.get("options", "SPECIAL_TRANSITIONS").split(',')]
 #название типа документа, которое используется при импорте
 DEFAULT_IMPORT_DOCUMENT_NAME = config.get('options', 'DEFAULT_IMPORT_DOCUMENT_NAME')
+# название области, используется при импорте
+REGION_NAME = config.get('options', 'REGION_NAME').decode('utf-8')
