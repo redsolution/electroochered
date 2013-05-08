@@ -14,7 +14,7 @@ from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from ordereddict import OrderedDict
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
-    ProfileRegistrationForm, QueueFilterForm, PersonalDataApproveForm
+    ProfileRegistrationForm, QueueFilterForm
 from sadiki.authorisation.models import VerificationKey
 from sadiki.conf_settings import SPECIAL_TRANSITIONS
 from sadiki.core.exceptions import RequestionHidden
@@ -38,18 +38,14 @@ class Registration(RequirePermissionsMixin, TemplateView):
     def get(self, request, *args, **kwargs):
         registration_form = RegistrationForm()
         profile_form = ProfileRegistrationForm()
-        personal_data_approve_form = PersonalDataApproveForm()
         context = {'registration_form': registration_form,
-            'profile_form': profile_form,
-            'personal_data_approve_form': personal_data_approve_form}
+            'profile_form': profile_form,}
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         registration_form = RegistrationForm(request.POST)
         profile_form = ProfileRegistrationForm(request.POST)
-        personal_data_approve_form = PersonalDataApproveForm(request.POST)
-        if (registration_form.is_valid() and profile_form.is_valid() and
-                personal_data_approve_form.is_valid()):
+        if (registration_form.is_valid() and profile_form.is_valid()):
             user = registration_form.save()
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
@@ -68,8 +64,7 @@ class Registration(RequirePermissionsMixin, TemplateView):
             return HttpResponseRedirect(reverse('frontpage'))
         else:
             context = {'registration_form': registration_form,
-                'profile_form': profile_form,
-                'personal_data_approve_form': personal_data_approve_form}
+                'profile_form': profile_form,}
             return self.render_to_response(context)
 
 

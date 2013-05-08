@@ -17,7 +17,6 @@ from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
     CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS, CHANGE_DOCUMENTS
 from sadiki.logger.models import Logger
-from sadiki.anonym.forms import PersonalDataApproveForm
 from sadiki.core.views import GenerateBlankBase
 
 
@@ -76,22 +75,18 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             benefits_form = BenefitsForm()
         else:
             benefits_form = BenefitCategoryForm()
-        personal_data_approve_form = PersonalDataApproveForm()
         context.update({'form': form, 'benefits_form': benefits_form,
-            'personal_data_approve_form': personal_data_approve_form,
             'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         context = self.get_context_data()
         form = RequestionForm(request.POST)
-        personal_data_approve_form = PersonalDataApproveForm(request.POST)
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm(data=request.POST)
         else:
             benefits_form = BenefitCategoryForm(data=request.POST)
-        if (form.is_valid() and benefits_form.is_valid() and
-               personal_data_approve_form.is_valid()):
+        if (form.is_valid() and benefits_form.is_valid()):
             profile = request.user.get_profile()
             requestion = form.save(profile=profile)
             pref_sadiks = form.cleaned_data.get('pref_sadiks')
@@ -117,7 +112,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                          kwargs={'requestion_id': requestion.id}))
         else:
             context.update({'form': form, 'benefits_form': benefits_form,
-                'personal_data_approve_form': personal_data_approve_form,
                 'openlayers_js': get_openlayers_js()})
             return self.render_to_response(context)
 

@@ -12,15 +12,6 @@ from sadiki.core.widgets import JqueryUIDateWidget
 import re
 
 
-class PersonalDataApproveForm(forms.Form):
-    approve_personal_data = forms.BooleanField(
-        label=u"""Я согласен(а), что для получения электронной услуги мои 
-            персональные данные будут обработаны в системе с соблюдением
-            требований закона РФ от 27.07.2006 № 152-ФЗ \"О персональных данных\"""",
-        help_text="Вам необходимо дать согласие для проведения регистрации",
-        required=True)
-
-
 class RegistrationForm(forms.ModelForm):
     u"""Форма регистрации для создания пользователя"""
     password1 = forms.CharField(label=_("Password"), widget=forms.PasswordInput,
