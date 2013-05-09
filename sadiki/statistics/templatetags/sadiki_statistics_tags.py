@@ -39,9 +39,10 @@ def show_wait_time_statistics():
         #        пробегаемся по группам и определяем кол-во заявок
         for i, group in enumerate(groups):
             delta = relativedelta(
-                current_datetime.date(), group['max_birth_date'])
+                current_datetime.date(), group['min_birth_date'])
             #            если для данной возрастной группы не может быть такого времени ожидания
-            if from_months > delta.years * 12 + delta.months:
+            if from_months > delta.years * 12 + delta.months or (from_months == delta.years * 12 + delta.months
+                                                                 and delta.days == 0):
                 requestions_numbers.append(None)
                 distributed_requestions_numbers.append(None)
             else:
