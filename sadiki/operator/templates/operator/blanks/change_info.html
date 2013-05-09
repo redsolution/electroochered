@@ -21,7 +21,7 @@
     </div>
     <table class="footer">
         <tr>
-            <td class="date">{{ requestion.registration_datetime|ru_strftime:"%d %B %Y г." }}</td>
+            <td class="date">{{ current_datetime|ru_strftime:"%d %B %Y г." }}</td>
             <td class="signature"><span class="blank_field">{{ "&nbsp; "|multiply:20|safe }}</span>&nbsp;/<span class="blank_field">{{ "&nbsp; "|multiply:20|safe }}</span>&nbsp;</td>
         </tr>
     </table>
