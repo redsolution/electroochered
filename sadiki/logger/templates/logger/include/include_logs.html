@@ -4,9 +4,9 @@
     <thead>
         <tr>
             <td>Дата изменения</td>
-            <td>Пользователь</td>
             <td>Тип изменения</td>
             <td>Изменения</td>
+            <td>Пользователь</td>
             <td>Основание</td>
         </tr>
     </thead>
@@ -17,6 +17,12 @@
             {% if log_messages %}
             <tr>
                 <td>{{ log.datetime }}</td>
+                <td>{{ log.get_action_flag_display }}</td>
+                <td>
+                    {% for log_message in log_messages %}
+                        {{ log_message.message }}
+                    {% endfor %}
+                </td>
                 <td>
                     {% comment %}
                     имя пользователя показываем для администраторов
@@ -26,12 +32,6 @@
                     {% if administrative_user or log.user.is_administrative_person or log.user == request.user%}
                         {{ log.user.get_verbose_name }}
                     {% endif %}
-                </td>
-                <td>{{ log.get_action_flag_display }}</td>
-                <td>
-                    {% for log_message in log_messages %}
-                        {{ log_message.message }}
-                    {% endfor %}
                 </td>
                 <td>{{ log.reason|default:"Не указано" }}</td>
             </tr>
