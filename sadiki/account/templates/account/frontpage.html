@@ -52,12 +52,7 @@
                 </div>
             </div>
 
-            <div class="ctrlHolder readOnly">
-                <span class="readOnlyLabel">Ребёнок</span>
-                <div class="readOnly">
-                    <span class="choice">{{ requestion.fio }}</span>
-                </div>
-            </div>
+            {% readonly requestion 'name' label 'Ребёнок' %}
 
             <div class="ctrlHolder readOnly">
                 <span class="readOnlyLabel">Возрастная категория</span>
