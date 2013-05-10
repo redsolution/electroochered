@@ -6,7 +6,7 @@ from sadiki.core.utils import get_user_by_email
 
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(label=u'Электронная почта или имя пользователя', max_length=75)
+    username = forms.CharField(label=u'Имя пользователя', max_length=75)
 
 
 class EmailResetForm(forms.Form):
