@@ -348,7 +348,8 @@ class AreaCellParser(CellParser):
             else:
                 return area
         else:
-            return u''
+            raise ValidationError(u"Неверный тип поля")
+
 
 
 #TODO: возможно вместо парсеров индекса нужно воспользоваться валидацией модели

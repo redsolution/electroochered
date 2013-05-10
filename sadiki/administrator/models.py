@@ -253,6 +253,10 @@ class RequestionLogic(object):
                 requestion.profile = profile
                 requestion.cast = REQUESTION_TYPE_IMPORTED
                 coords = requestion.geocode_address(Yandex)
+                if not coords:
+                    if settings.REGION_NAME:
+                        geocoder = Yandex()
+                        coords = geocoder.geocode(settings.REGION_NAME)
                 if coords:
                     requestion.set_location(coords)
                 requestion.save()

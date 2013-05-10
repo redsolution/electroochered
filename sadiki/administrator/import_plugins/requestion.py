@@ -16,7 +16,7 @@ import datetime
 
 cells = [
     {'name':u'Регистрационный № в очереди', 'parsers':(TextCellParser, TextDecimalNumberCellParser) + blank_empty_parsers}, # 0
-    {'name':u'Территориальная область', 'parsers':(AreaCellParser,) + blank_empty_parsers}, # 1
+    {'name':u'Территориальная область', 'parsers':(AreaCellParser,)}, # 1
     
 #    дата регистрации
     {'name':u'День регистрации', 'parsers':(IntegerNumberCellParser, IntegerTextCellParser,)}, # 2
