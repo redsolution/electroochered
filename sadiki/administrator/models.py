@@ -14,7 +14,7 @@ from sadiki.administrator.import_plugins import INSTALLED_FORMATS, \
 from sadiki.administrator.utils import get_xlwt_style_list
 from sadiki.core.geocoder import Yandex
 from sadiki.core.importpath import importpath
-from sadiki.core.models import Requestion, Sadik, Address, EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY
+from sadiki.core.models import Requestion, Sadik, Address, EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, REQUESTION_TYPE_IMPORTED
 from sadiki.core.utils import get_unique_username
 from xlutils.copy import copy
 import datetime
@@ -251,6 +251,7 @@ class RequestionLogic(object):
                 profile.save()
                 requestion.location_properties = address.text
                 requestion.profile = profile
+                requestion.cast = REQUESTION_TYPE_IMPORTED
                 coords = requestion.geocode_address(Yandex)
                 if coords:
                     requestion.set_location(coords)

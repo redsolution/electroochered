@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
@@ -23,7 +23,7 @@ from sadiki.anonym.views import Queue as AnonymQueue, \
 from sadiki.authorisation.models import VerificationKey
 from sadiki.core.models import STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED, \
     STATUS_DISTRIBUTED, Requestion, EvidienceDocument, BENEFIT_DOCUMENT, \
-    REQUESTION_IDENTITY, BenefitCategory, Profile
+    REQUESTION_IDENTITY, BenefitCategory, Profile, REQUESTION_TYPE_IMPORTED
 from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
@@ -35,7 +35,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRegistrationForm, \
     OperatorProfileRegistrationForm, OperatorRequestionForm, OperatorSearchForm, \
     DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, EmailForm, \
-    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation
+    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
@@ -695,3 +695,23 @@ class GenerateProfilePassword(OperatorPermissionMixin, View):
                                                 'requestion': requestion})
             response = HttpResponse(result.getvalue(), mimetype='application/pdf')
             return response
+
+
+class ChangeRequestionLocation(OperatorPermissionMixin, View):
+
+    def post(self, request, requestion_id):
+        requestion = get_object_or_404(Requestion, id=requestion_id)
+        if requestion.cast != REQUESTION_TYPE_IMPORTED:
+            raise Http404
+        if request.is_ajax():
+            location_form = ChangeLocationForm(instance=requestion, data=request.POST)
+            if location_form.is_valid():
+                if location_form.has_changed():
+                    location_form.save()
+                return HttpResponse(content=json.dumps({'ok': True}),
+                        mimetype='text/javascript')
+            return HttpResponse(content=json.dumps({'ok': False}),
+                        mimetype='text/javascript')
+
+        else:
+            return HttpResponseBadRequest()

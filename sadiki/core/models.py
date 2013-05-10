@@ -818,7 +818,7 @@ class Requestion(models.Model):
     sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     cast = models.IntegerField(verbose_name=u'Тип заявки',
-        choices=REQUESTION_TYPE_CHOICES, default=0)
+        choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
     status = models.IntegerField(verbose_name=u'Статус', choices=STATUS_CHOICES,
         null=True, default=STATUS_REQUESTER_NOT_CONFIRMED)
     registration_datetime = models.DateTimeField(

@@ -11,7 +11,7 @@ from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Profile, Address, \
-    STATUS_REQUESTER
+    STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
@@ -43,6 +43,7 @@ class OperatorRequestionForm(RequestionForm):
     
     def save(self, *args, **kwargs):
         self.instance.status = STATUS_REQUESTER
+        self.instance.cast = REQUESTION_TYPE_OPERATOR
         return super(OperatorRequestionForm, self).save(*args, **kwargs)
 
 
@@ -333,3 +334,15 @@ class ProfileSearchForm(forms.Form):
 
 class HiddenConfirmation(forms.Form):
     action = forms.CharField(widget=forms.HiddenInput)
+
+
+class ChangeLocationForm(forms.ModelForm):
+
+    class Meta:
+        model = Requestion
+        fields = ('location',)
+
+    def __init__(self, *args, **kwargs):
+
+        super(ChangeLocationForm, self).__init__(*args, **kwargs)
+        self.fields['location'].widget = forms.HiddenInput()

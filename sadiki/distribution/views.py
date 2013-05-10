@@ -11,12 +11,13 @@ from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion
     STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Vacancies, Sadik, \
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_ENDING, STATUS_DECISION, \
     SadikGroup, AgeGroup, STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION, \
-    Area
+    Area, REQUESTION_TYPE_IMPORTED
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year, run_command
 from sadiki.core.workflow import DISTRIBUTION_INIT
 from sadiki.distribution.forms import SelectSadikForm
 from sadiki.logger.models import Logger
+from sadiki.operator.forms import ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin
 import datetime
 
@@ -204,6 +205,8 @@ class DecisionManager(OperatorPermissionMixin, View):
             if requestions_with_places.exists():
                 current_requestion = requestions_with_places[0]
                 info_dict.update({'current_requestion': current_requestion,
+                    'current_requestion_imported': current_requestion.cast == REQUESTION_TYPE_IMPORTED,
+                    'location_form': ChangeLocationForm(instance=current_requestion),
                     'current_requestion_age_groups': current_requestion.age_groups(
                         current_distribution_year=current_distribution_year)})
                 current_requestion_index = full_queue.requestions_before(

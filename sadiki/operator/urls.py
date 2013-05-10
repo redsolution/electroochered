@@ -7,7 +7,7 @@ from sadiki.operator.views.requestion import Registration, RequestionSearch, \
     BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, ProfileChange, \
     RequestionChange, PreferredSadiksChange, DocumentsChange, \
     Queue, RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank, RevalidateEmail, GenerateProfilePassword
+    EmbedRequestionToProfile, GenerateBlank, RevalidateEmail, GenerateProfilePassword, ChangeRequestionLocation
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange
 
@@ -46,6 +46,8 @@ urlpatterns = patterns('',
         FindProfileForRequestion.as_view(), name=u'find_profile_for_requestion'),
     url(r'^request/(?P<requestion_id>\d{1,7})/embed_to_profile/(?P<profile_id>\d{1,7})/$',
         EmbedRequestionToProfile.as_view(), name=u'embed_requestion_to_profile'),
+    url(r'^request/(?P<requestion_id>\d{1,7})/change_location/$',
+        ChangeRequestionLocation.as_view(), name=u'change_requestion_location'),
     # Смена статуса заявки
     url(r'^request/(?P<requestion_id>\d{1,7})/status-(?P<dst_status>\d{1,3})/$',
         RequestionStatusChange.as_view(), name=u'operator_requestion_status_change'),

@@ -329,6 +329,10 @@ table.table.table-bordered tr.highlight td {
     line-height: 32px;
 }
 
+.errorlist li{
+    color: #A60000;
+}
+
 /*** Uni Forms overrides ***/
 
 #errorMsg h3 {
@@ -566,6 +570,14 @@ table.table.table-bordered tr.highlight td {
 
 .current_group {
     color: #008000;
+}
+
+.location_save_actions{
+    height: 25px;
+}
+
+.loaction_save_actions span{
+    text-align: center;
 }
 
 /**** Футер ****/
