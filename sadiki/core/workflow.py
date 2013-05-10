@@ -293,6 +293,7 @@ CREATE_PROFILE = 85
 CREATE_PROFILE_BY_OPERATOR = 86
 IMPORT_PROFILE = 87
 EMBED_REQUESTION_TO_PROFILE = 88
+CHANGE_REQUESTION_LOCATION = 89
 
 
 #Распределение
@@ -338,6 +339,7 @@ ACTION_CHOICES.extend(
     (CREATE_PROFILE_BY_OPERATOR, u"Регистрация профиля оператором"),
     (IMPORT_PROFILE, u"Импорт профиля"),
     (EMBED_REQUESTION_TO_PROFILE, u"Прикрепление заявки к профилю"),
+    (CHANGE_REQUESTION_LOCATION, u"Изменение местоположения заявки во время распределения"),
 #    Распределения
     (DISTRIBUTION_INIT, u'Начало распределения'),
     (DISTRIBUTION_AUTO, u'Начало автоматического комплектования'),
@@ -455,6 +457,10 @@ change_documents_account_template = u"""
     {% endif %}
     """
 
+decision_distribution_anonym = u"""Было завершено зачисление в {{ sadik }}"""
+decision_not_appear_anonym = u"""Заявитель не явился в назначенный срок для зачисления в {{ sadik }}"""
+decision_requster_anonym = u"""Заявитель отказался от выделенного места в {{ sadik }}. Заявка была возвращена в очередь"""
+
 ACTION_TEMPLATES.update({
     ADD_REQUESTION:{
         ACCOUNT_LOG:Template(requestion_account_template + change_benefits_account_template),
@@ -499,6 +505,11 @@ ACTION_TEMPLATES.update({
                     {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
                     '''),
         },
+    CHANGE_REQUESTION_LOCATION:{
+        ACCOUNT_LOG: Template(u"""
+            {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        """)
+    },
     CHANGE_PROFILE: {
         ACCOUNT_LOG: Template(change_profile_account_template),
         },
@@ -566,6 +577,26 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(u"""
             Было завершено выделение места в {{ sadik }}
         """)
+    },
+    DECISION_DISTRIBUTION: {
+        ANONYM_LOG: Template(decision_distribution_anonym)
+    },
+    NOT_APPEAR_DISTRIBUTED: {
+        ANONYM_LOG: Template(decision_distribution_anonym)
+    },
+    DECISION_REQUESTER: {
+        ANONYM_LOG: Template(decision_requster_anonym)
+    },
+    NOT_APPEAR_REQUESTER: {
+        ANONYM_LOG: Template(decision_requster_anonym)
+    },
+    DECISION_NOT_APPEAR: {
+        ANONYM_LOG: Template(decision_not_appear_anonym)
+    },
+    DECISION: {
+        ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
     }
+
+
 })
 

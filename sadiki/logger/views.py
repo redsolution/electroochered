@@ -46,7 +46,6 @@ class RequestionLogs(TemplateView):
         logs_with_messages = []
         for log in logs:
             messages = log.loggermessage_set.filter_for_user(request.user)
-            print log.action_flag
             if log.action_flag in STATUS_CHANGE_TRANSITIONS or messages:
                 logs_with_messages.append([log, messages])
         return self.render_to_response({'logs_with_messages': logs_with_messages, 'requestion': requestion})

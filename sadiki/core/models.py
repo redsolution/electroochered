@@ -1283,7 +1283,10 @@ class UserFunctions:
             if profile.nickname:
                 return profile.nickname
 #        если не смогли получить имя отчество у профиля, то берем их у пользователя
-        return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+        if self.first_name or self.last_name:
+            return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+        else:
+            return self.username
 
     def set_username_by_id(self):
         username = "%s_%d" % (REQUESTER_USERNAME_PREFIX, self.id)

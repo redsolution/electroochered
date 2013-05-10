@@ -23,14 +23,14 @@ from sadiki.anonym.views import Queue as AnonymQueue, \
 from sadiki.authorisation.models import VerificationKey
 from sadiki.core.models import STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED, \
     STATUS_DISTRIBUTED, Requestion, EvidienceDocument, BENEFIT_DOCUMENT, \
-    REQUESTION_IDENTITY, BenefitCategory, Profile, REQUESTION_TYPE_IMPORTED
+    REQUESTION_IDENTITY, BenefitCategory, Profile, REQUESTION_TYPE_IMPORTED, STATUS_ON_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.utils import check_url, get_openlayers_js, get_user_by_email
 from sadiki.core.workflow import REQUESTION_REGISTRATION, \
     CHANGE_PROFILE_BY_OPERATOR, CHANGE_BENEFITS, CHANGE_REQUESTION_BY_OPERATOR, \
-    CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE, CHANGE_DOCUMENTS_BY_OPERATOR
+    CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE, CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRegistrationForm, \
     OperatorProfileRegistrationForm, OperatorRequestionForm, OperatorSearchForm, \
@@ -701,13 +701,17 @@ class ChangeRequestionLocation(OperatorPermissionMixin, View):
 
     def post(self, request, requestion_id):
         requestion = get_object_or_404(Requestion, id=requestion_id)
-        if requestion.cast != REQUESTION_TYPE_IMPORTED:
+        if requestion.cast != REQUESTION_TYPE_IMPORTED or requestion.status != STATUS_ON_DISTRIBUTION:
             raise Http404
         if request.is_ajax():
             location_form = ChangeLocationForm(instance=requestion, data=request.POST)
             if location_form.is_valid():
                 if location_form.has_changed():
                     location_form.save()
+                    Logger.objects.create_for_action(CHANGE_REQUESTION_LOCATION,
+                        context_dict={'changed_fields': location_form.changed_data,
+                    'requestion': requestion},
+                        extra={'user': request.user, 'obj': requestion})
                 return HttpResponse(content=json.dumps({'ok': True}),
                         mimetype='text/javascript')
             return HttpResponse(content=json.dumps({'ok': False}),

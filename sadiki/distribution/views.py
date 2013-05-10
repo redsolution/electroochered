@@ -290,11 +290,13 @@ class DecisionManager(OperatorPermissionMixin, View):
                     current_requestion.save()
                 if current_requestion.status == STATUS_ON_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_requester(sadik)
-                    Logger.objects.create_for_action(DECISION, extra={'user': None, 'obj': current_requestion})
+                    Logger.objects.create_for_action(
+                        DECISION, extra={'user': request.user, 'obj': current_requestion},
+                        context_dict={"sadik": current_requestion.distributed_in_vacancy.sadik_group.sadik})
     
                 if current_requestion.status == STATUS_ON_TEMP_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_tempdistr(sadik)
-                    Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': None, 'obj': current_requestion})
+                    Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': request.user, 'obj': current_requestion})
     
                 messages.info(request, u'''
                      Для заявки %s был назначен %s

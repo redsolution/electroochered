@@ -188,7 +188,7 @@ def after_decision_reject(sender, **kwargs):
         requestion.distributed_in_vacancy = requestion.previous_distributed_in_vacancy
     # Журналирование
     messages.success(request, u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
-    context_dict = {'status': requestion.get_status_display()}
+    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict,
         extra={'user': request.user, 'obj': requestion,
@@ -214,7 +214,7 @@ def after_decision_to_distributed(sender, **kwargs):
     messages.success(request, u'''Заявка %s была зачислена в %s.
             ''' % (requestion.requestion_number,
                 requestion.distributed_in_vacancy.sadik_group.sadik))
-    context_dict = {'status': requestion.get_status_display()}
+    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
     log_extra = {'user': request.user, 'obj': requestion,
         'distribution_type': requestion.distribution_type}
     Logger.objects.create_for_action(transition.index,
@@ -234,7 +234,7 @@ def after_decision_not_appear(sender, **kwargs):
     form = kwargs['form']
 
     messages.success(request, u'Для заявки %s была отмечена неявка в ДОУ' % requestion.requestion_number)
-    context_dict = {'status': requestion.get_status_display()}
+    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict,
         extra={'user': request.user, 'obj': requestion,
@@ -452,4 +452,3 @@ def permit_distribution(user, requestion, transition, request=None, form=None):
 register_callback(
     (DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, ABSENT_DISTRIBUTED),
     permit_distribution)
-
