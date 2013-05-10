@@ -32,7 +32,6 @@
         <th>Дата регистрации</th>
         <th id="benefit-categories-row">Категория льгот <span class="icon-question-sign"></span></th>
         <th id="requestion-status-row">Статус заявки <span class="icon-question-sign"></span></th>
-        <th>Выделено место</th>
         <th id="special-actions-row">Особые действия <span class="icon-question-sign"></span></th>
     </tr>
     </thead>
@@ -43,12 +42,23 @@
             <td>{{ requestion.birth_date }}</td>
             <td>{{ requestion.registration_datetime }}</td>
             <td>{{ requestion.benefit_category }}</td>
-            <td>{{ requestion.get_status_display }}</td>
+            <td>{{ requestion.get_status_display }}
             {% if requestion.status == STATUS_DECISION %}
-                <td class="distributed_sadik"><a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a></td>
-            {% else %}
-                <td></td>
-            {% endif %}
+                в {{ requestion.sadik_name }}
+                <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a>
+                {% else %}
+                    {% if requestion.status == STATUS_DISTRIBUTED %}
+                        в {{ requestion.sadik_name }}
+                        <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home green"></i></a>
+                    {% else %}
+                        {% if requestion.status in NOT_APPEAR_STATUSES %}
+                            (осталось {{ requestion.days_for_appeal }} дней)
+                            <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home red"></i></a>
+
+                        {% endif %}
+                    {% endif %}
+                {% endif %}
+            </td>
             <td>
                 {{ requestion.action_log.get_action_flag_display }}
             </td>

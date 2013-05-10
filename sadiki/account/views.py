@@ -11,7 +11,7 @@ from sadiki.account.forms import ProfileChangeForm, RequestionForm, \
     ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm
 from sadiki.core.models import Profile, Requestion, \
     BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
-    EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup
+    EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
@@ -189,6 +189,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'requestions_after': requestions_after,
             'queue': queue_chunk,
             'offset': offset,
+            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
+            'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
         }
 

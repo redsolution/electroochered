@@ -178,8 +178,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
              u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
-workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
-             u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
+# workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
+#              u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_NOT_APPEAR, DECISION_NOT_APPEAR,
              u'Неявка в ДОУ', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_DISTRIBUTED, ABSENT_DISTRIBUTED,

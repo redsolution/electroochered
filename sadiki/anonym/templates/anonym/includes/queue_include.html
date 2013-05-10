@@ -27,7 +27,19 @@
             <td>
                 {{ requestion.get_status_display }}
                 {% if requestion.status == STATUS_DECISION %}
+                в {{ requestion.sadik_name }}
                 <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a>
+                {% else %}
+                    {% if requestion.status == STATUS_DISTRIBUTED %}
+                        в {{ requestion.sadik_name }}
+                        <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home green"></i></a>
+                    {% else %}
+                        {% if requestion.status in NOT_APPEAR_STATUSES %}
+                            (осталось {{ requestion.days_for_appeal }} дней)
+                            <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home red"></i></a>
+
+                        {% endif %}
+                    {% endif %}
                 {% endif %}
             </td>
             <td>

@@ -15,12 +15,11 @@ from django.views.generic.base import TemplateView
 from ordereddict import OrderedDict
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     ProfileRegistrationForm, QueueFilterForm
-from sadiki.authorisation.models import VerificationKey
 from sadiki.conf_settings import SPECIAL_TRANSITIONS
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
-    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference
+    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
@@ -199,6 +198,8 @@ class Queue(RequirePermissionsMixin, ListView):
             'target_requestion': self.requestion,
             'offset': (page.number - 1) * page_size,
             'STATUS_DECISION': STATUS_DECISION,
+            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
+            'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'import_finished': Preference.objects.filter(
                 key=PREFERENCE_IMPORT_FINISHED).exists()
         }

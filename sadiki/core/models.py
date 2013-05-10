@@ -666,8 +666,11 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
+                        STATUS_DISTRIBUTED,
                         STATUS_TEMP_DISTRIBUTED,
-                        STATUS_ON_TEMP_DISTRIBUTION)).order_by(
+                        STATUS_ON_TEMP_DISTRIBUTION,
+                        STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
+                        )).order_by(
                 '-benefit_category__priority', 'registration_datetime', 'id')
 
     def not_distributed(self):
