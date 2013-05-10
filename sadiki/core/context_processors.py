@@ -22,7 +22,7 @@ def municipality_settings(request):
         MUNICIPALITY_NAME_GENITIVE = Preference.objects.get(section=PREFERENCE_SECTION_MUNICIPALITY,
             key=PREFERENCE_MUNICIPALITY_NAME_GENITIVE)
     except Preference.DoesNotExist:
-        MUNICIPALITY_NAME_GNITIVE = None
+        MUNICIPALITY_NAME_GENITIVE = None
     try:
         MUNICIPALITY_PHONE = Preference.objects.get(section=PREFERENCE_SECTION_MUNICIPALITY,
             key=PREFERENCE_MUNICIPALITY_PHONE)
