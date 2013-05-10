@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from sadiki.core import models as core_models
-from sadiki.conf_settings import config
-from sadiki.core.models import Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCE_MUNICIPALITY_PHONE, PREFERENCE_MUNICIPALITY_NAME
+from sadiki.core.models import Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCE_MUNICIPALITY_PHONE, \
+    PREFERENCE_MUNICIPALITY_NAME_GENITIVE
+
 
 def constants(request):
     u"""
@@ -18,13 +19,13 @@ def constants(request):
 def municipality_settings(request):
     u"""Все элементы конфигурационного файла из раздела municipality передаются в шаблон"""
     try:
-        MUNICIPALITY_NAME = Preference.objects.get(section=PREFERENCE_SECTION_MUNICIPALITY,
-            key=PREFERENCE_MUNICIPALITY_NAME)
+        MUNICIPALITY_NAME_GENITIVE = Preference.objects.get(section=PREFERENCE_SECTION_MUNICIPALITY,
+            key=PREFERENCE_MUNICIPALITY_NAME_GENITIVE)
     except Preference.DoesNotExist:
-        MUNICIPALITY_NAME = None
+        MUNICIPALITY_NAME_GNITIVE = None
     try:
         MUNICIPALITY_PHONE = Preference.objects.get(section=PREFERENCE_SECTION_MUNICIPALITY,
             key=PREFERENCE_MUNICIPALITY_PHONE)
     except Preference.DoesNotExist:
         MUNICIPALITY_PHONE = None
-    return {'MUNICIPALITY_NAME': MUNICIPALITY_NAME, 'MUNICIPALITY_PHONE': MUNICIPALITY_PHONE}
+    return {'MUNICIPALITY_NAME_GENITIVE': MUNICIPALITY_NAME_GENITIVE, 'MUNICIPALITY_PHONE': MUNICIPALITY_PHONE}
