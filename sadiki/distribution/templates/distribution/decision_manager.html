@@ -17,8 +17,15 @@
     <script>
         var sadiks_coords = {{ sadiks_coords|safe }};
         $(document).ready(function(){
-            var sadikIcon = L.icon({
+            var activeSadikIcon = L.icon({
                 iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62],  // the same for the shadow
+            });
+            var inactiveSadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon-gray.png',
 
                 iconSize:     [22, 23], // size of the icon
                 iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
@@ -74,6 +81,7 @@
                     requestion_marker = L.marker(requestion_point)
                     $('#change_location_form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
                 });
+                // запрос на изменение координат
                 $.ajax($('#change_location_form').attr('action'), {
                     type: 'POST',
                     data: $('#change_location_form').serialize(),
@@ -92,11 +100,6 @@
                         $('#location_not_saved').show();
                     }
                 });
-                $.post($('#change_location_form').attr('action'), $('#change_location_form').serialize()).done(function(data) {
-                    console.log('success');
-                    $('#location_saving').hide();
-                    $('#location_saved').show();
-                })
             });
             $('#select_sadik_form #id_accept_location').change(function(){
                 if ($(this).is(':checked')) {
@@ -111,14 +114,24 @@
                 points.clearLayers();
                 var sadik_id = $(this).find('option:selected').val();
                 $('#sadik_'  + sadik_id + '_description').show().siblings('dl').hide();
+                //список ДОУ для отображения на карте
+                var sadiks_markers = [];
+                for (var key in sadiks_coords){
+                    var coords = sadiks_coords[key];
+                    var point = [coords["y"], coords["x"]];
+                    var marker = L.marker(point, {icon: inactiveSadikIcon});
+                    sadiks_markers.push(marker);
+                }
+                //и выбранный ДОУ
                 var sadik_coords = sadiks_coords[sadik_id]
                 if ($.isEmptyObject(sadik_coords)) {
                     $("#requestion_map").hide()
                 } else {
                     $("#requestion_map").show()
                     var sadik_point = [sadik_coords["y"], sadik_coords["x"]]
-                    var sadik_marker = L.marker(sadik_point, {icon: sadikIcon});
-                    points = L.layerGroup([sadik_marker]).addTo(map);
+                    var sadik_marker = L.marker(sadik_point, {icon: activeSadikIcon, zIndexOffset: 1000});
+                    sadiks_markers.push(sadik_marker)
+                    points = L.layerGroup(sadiks_markers).addTo(map);
                     if (requestion_marker) {
                         map.fitBounds([requestion_point, sadik_point]);
                     } else {
