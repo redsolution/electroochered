@@ -101,7 +101,7 @@
                             {{ requestion.registration_datetime|date:"H:i d-M-Y" }}
                         </td>
                         <td class="centered">
-                            {{ requestion.admission_date|date:"d-M-Y" }}
+                            {{ requestion.admission_date.year }}
                         </td>
                     </tr>
                 {% endfor %}
@@ -117,7 +117,7 @@
                             {{ requestion.registration_datetime|date:"H:i d-M-Y" }}
                         </td>
                         <td class="centered">
-                            {{ requestion.admission_date|date:"d-M-Y" }}
+                            {{ requestion.admission_date.year }}
                         </td>
                     </tr>
                 {% endfor %}

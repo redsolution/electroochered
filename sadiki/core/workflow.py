@@ -396,7 +396,7 @@ requestion_anonym_template = u"""
     {% endfor %}
     {% if requestion.birth_date %}Дата рождения: {{ requestion.birth_date }};{% endif %}
     {% if not requestion.distribute_in_any_sadik == None %}Зачислять в любой ДОУ: {{ requestion.distribute_in_any_sadik|yesno:"Да, Нет" }};{% endif %}
-    {% if requestion.admission_date %}Желаемая дата поступления: {{ requestion.admission_date }};{% endif %}
+    {% if requestion.admission_date %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
     {% if pref_sadiks %}
         Приоритетные МДОУ: {% for sadik in pref_sadiks %}{{ sadik }};{% endfor %}
     {% endif %}
@@ -477,7 +477,7 @@ ACTION_TEMPLATES.update({
     },
     CHANGE_REQUESTION: {
         ANONYM_LOG:Template(u'''
-                    {% if "admission_date" in changed_fields %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
+                    {% if "admission_date" in changed_fields %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
                     '''),
         ACCOUNT_LOG:Template(u'''
                     {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
@@ -488,7 +488,7 @@ ACTION_TEMPLATES.update({
         },
     CHANGE_REQUESTION_BY_OPERATOR: {
         ANONYM_LOG:Template(u'''
-                    {% if "admission_date" in changed_fields %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
+                    {% if "admission_date" in changed_fields %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
                     '''),
         ACCOUNT_LOG:Template(u'''
                     {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
