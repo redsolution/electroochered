@@ -185,4 +185,7 @@ class QueueFilterForm(forms.Form):
         required=False, help_text=u"При выборе в очереди будут отображаться заявки, \
             для которых указана возможность зачисления в эту территориальную область"
     )
-
+    without_facilities = forms.BooleanField(
+        label=u"Сортировать очередь", required=False,
+        widget=forms.Select(choices=((False, u'в порядке очерёдности'),
+                                     (True, u'в порядке подачи заявлений'))))
