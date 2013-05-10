@@ -17,7 +17,7 @@ from sadiki.core.workflow import CHANGE_PREFERRED_SADIKS, \
     PASS_DISTRIBUTED, \
     workflow, DISTRIBUTED_ARCHIVE, DECISION_ABSENT, \
     DECISION_NOT_APPEAR, \
-    ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION
+    ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION, STATUS_CHANGE_TRANSITIONS
 from sadiki.logger.forms import ReportAgeGroupForm, ReportDateForm
 from sadiki.logger.models import Logger, Report, \
     REPORT_FILLABILITY, REPORTS_CHOICES, REPORT_TRANSITIONS, REPORT_STATUSES, \
@@ -43,7 +43,13 @@ class RequestionLogs(TemplateView):
         requestion = get_object_or_404(Requestion, id=requestion_id)
         logs = Logger.objects.filter(content_type=ContentType.objects.get_for_model(Requestion),
             object_id=requestion.id).order_by('datetime')
-        return self.render_to_response({'logs': logs, 'requestion': requestion})
+        logs_with_messages = []
+        for log in logs:
+            messages = log.loggermessage_set.filter_for_user(request.user)
+            print log.action_flag
+            if log.action_flag in STATUS_CHANGE_TRANSITIONS or messages:
+                logs_with_messages.append([log, messages])
+        return self.render_to_response({'logs_with_messages': logs_with_messages, 'requestion': requestion})
 
 
 class RequestionLogsForAccount(AccountPermissionMixin, RequestionLogs):

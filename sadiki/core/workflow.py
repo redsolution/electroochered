@@ -312,6 +312,8 @@ START_NEW_YEAR = 106
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
+STATUS_CHANGE_TRANSITIONS = [transition.index for transition in workflow.transitions]
+
 ACTION_CHOICES = [(transition.index, transition.comment) for transition in
                     workflow.transitions]
 
