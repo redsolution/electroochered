@@ -284,6 +284,10 @@ class DecisionManager(OperatorPermissionMixin, View):
             if form.is_valid():
                 sadik_id = form.cleaned_data.get('sadik', None)
                 sadik = Sadik.objects.get(id=sadik_id)
+                # удаляем адрес
+                if current_requestion.cast == REQUESTION_TYPE_IMPORTED:
+                    current_requestion.location_properties = None
+                    current_requestion.save()
                 if current_requestion.status == STATUS_ON_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_requester(sadik)
                     Logger.objects.create_for_action(DECISION, extra={'user': None, 'obj': current_requestion})
