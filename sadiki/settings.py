@@ -166,7 +166,7 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 # ------ TinyMCE ------
 
-TINYMCE_JS_URL = '%stiny_mce/tiny_mce.js' % STATIC_URL
+TINYMCE_JS_URL = '%s/tinymce/jscripts/tiny_mce/tiny_mce.js' % STATIC_URL
 
 TINYMCE_DEFAULT_CONFIG = {
     'mode': 'exact',
