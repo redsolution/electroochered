@@ -124,7 +124,7 @@ class Queue(RequirePermissionsMixin, ListView):
 
                 # Обработка формы вручную
                 if form.cleaned_data.get('confirmed', None):
-                    queryset = queryset.filter(status=STATUS_REQUESTER)
+                    queryset = queryset.confirmed()
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter(birth_date__gte=age_group.min_birth_date(),
