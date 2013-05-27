@@ -5,10 +5,12 @@
     <tr>
         <th>№</th>
         <th>Номер заявки</th>
+        <th>Территориальная область</th>
         <th>Дата рождения</th>
         <th>Дата регистрации</th>
         <th id="benefit-categories-row">Категория льгот <span class="icon-question-sign"></span></th>
         <th id="age-groups-row">Возрастная категория <span class="icon-question-sign"></span></th>
+        <th id="admission-date">Желаемый год поступления</th>
         <th id="requestion-status-row">Статус заявки <span class="icon-question-sign"></span></th>
         <th id="special-actions-row">Особые действия <span class="icon-question-sign"></span></th>
     </tr>
@@ -17,12 +19,16 @@
         {% for requestion in object_list %}
         <tr {% if target_requestion.id == requestion.id %}class="highlight" id="target" {% endif %}>
             <td>{{ forloop.counter|add:offset }}</td>
-            <td><a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a></td>
+            <td>{% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}</td>
+            <td>{{ requestion.areas.all.0 }}</td>
             <td>{{ requestion.birth_date }}</td>
             <td>{{ requestion.registration_datetime }}</td>
             <td>{{ requestion.benefit_category }}</td>
             <td>
                 {{ requestion.age_groups_calculated.0.short_name }}
+            </td>
+            <td>
+                {{ requestion.admission_date.year }}
             </td>
             <td>
                 {{ requestion.get_status_display }}

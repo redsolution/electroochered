@@ -72,7 +72,7 @@ class Queue(RequirePermissionsMixin, ListView):
     template_name = 'anonym/queue.html'
     queryset = Requestion.objects.queue().add_distributed_sadiks(
         # TODO: ОЧЕНЬ долго работает.
-        ).select_related('benefit_category__priority')
+        ).select_related('benefit_category__priority').prefetch_related('areas')
     paginate_by = 200
     form = QueueFilterForm
     requestion = None  # Заявка, найденная через форму поиска
