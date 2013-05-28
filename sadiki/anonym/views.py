@@ -321,6 +321,7 @@ class SadikList(RequirePermissionsMixin, TemplateView):
         return self.render_to_response({'sadik_list': sadik_list.filter(
             active_registration=True)})
 
+
 class SadikInfo(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_info.html'
 
@@ -337,18 +338,19 @@ class SadikInfo(RequirePermissionsMixin, TemplateView):
         }
         age_groups = AgeGroup.objects.all()
         requestions_numbers_by_groups = []
+        current_distribution_year = get_current_distribution_year()
         for group in age_groups:
             requestions_numbers_by_groups.append(requestions.filter_for_age(
-                min_birth_date=group.min_birth_date(), max_birth_date=group.max_birth_date()).count())
-#        список распределенных заявок с путевками в работающие группы этого ДОУ
-        distributed_for_groups = []
-        for sadik_group in sadik.groups.active():
-            distributed_requestions = Requestion.objects.filter(
-                status=STATUS_DISTRIBUTED,
-                distributed_in_vacancy__sadik_group=sadik_group,)
-            if distributed_requestions:
-                distributed_for_groups.append(
-                    (sadik_group, distributed_requestions))
+                min_birth_date=group.min_birth_date(current_distribution_year=current_distribution_year),
+                max_birth_date=group.max_birth_date(current_distribution_year=current_distribution_year)).count())
+       # список распределенных заявок с путевками в работающие группы этого ДОУ
+        distributed_requestions = Requestion.objects.provided_places().filter(
+            distributed_in_vacancy__sadik_group__sadik=sadik).select_related(
+            'benefit_category__name', 'distributed_in_vacancy__sadik_group').order_by('-decision_datetime')
+        distributed_for_groups = OrderedDict([(sadik_group, []) for sadik_group in
+                                              sadik.groups.all().select_related('age_group')])
+        for requestion in distributed_requestions:
+            distributed_for_groups[requestion.distributed_in_vacancy.sadik_group].append(requestion)
         return self.render_to_response({
             'sadik': sadik,
             'requestions_statistics': requestions_statistics,

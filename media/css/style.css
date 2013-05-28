@@ -15,6 +15,10 @@
     color: #468847;
 }
 
+.blue {
+    color: #0088cc;
+}
+
 .imgicon {
     background-image: url('../img/icons_bw.png');
     background-repeat: none;
@@ -802,6 +806,10 @@ html, body {
     width: 570px;
     height: 300px;
     float: right;
+}
+
+.sadik_info_distributed .status{
+    width: 30%;
 }
 
 

@@ -1,6 +1,5 @@
-<tr>
-    <td><a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a></td>
-    <td>{{ requestion.registration_datetime }}</td>
-    <td>{{ requestion.birth_date }}</td>
-    <td>{{ requestion.distributed_in_vacancy.distribution.end_datetime }}</td>
-</tr>
+{% extends "anonym/includes/sadik_info_distributed_include.html" %}
+
+{% block requestion_number %}
+    <a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a>
+{% endblock %}

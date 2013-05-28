@@ -1,6 +1,42 @@
-<tr>
-    <td><a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a></td>
-    <td>{{ requestion.registration_datetime }}</td>
-    <td>{{ requestion.birth_date }}</td>
-    <td>{{ requestion.distributed_in_vacancy.distribution.end_datetime }}</td>
-</tr>
+<table class="table table-striped table-bordered table-condensed sadik_info_distributed">
+    <thead>
+    <tr>
+        <td>№</td>
+        <td>Номер заявки</td>
+        <td>Дата рождения</td>
+        <td>Дата регистрации</td>
+        <td>Категория льгот</td>
+        <td>Дата выделения места</td>
+        <td>Дата зачисления</td>
+        <td class="status">Статус заявки</td>
+    </tr>
+    </thead>
+    <tbody>
+        {% for requestion in requestions %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}</td>
+                <td>{{ requestion.birth_date }}</td>
+                <td>{{ requestion.registration_datetime }}</td>
+                <td>{{ requestion.benefit_category }}</td>
+                <td>{{ requestion.decision_datetime.date }}</td>
+                <td>{{ requestion.distribution_datetime.date }}</td>
+                <td>
+                    {{ requestion.get_status_display }}
+                    {% if requestion.status == STATUS_DECISION %}
+                    <i class="icon-home blue"></i>
+                    {% else %}
+                        {% if requestion.status == STATUS_DISTRIBUTED %}
+                            <i class="icon-home green"></i>
+                        {% else %}
+                            {% if requestion.status == STATUS_NOT_APPEAR or requestion.status == STATUS_NOT_APPEAR_EXPIRE %}
+                                (осталось {{ requestion.days_for_appeal }} дней)
+                                <i class="icon-home red"></i>
+                            {% endif %}
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

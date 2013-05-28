@@ -132,29 +132,15 @@
         </tbody>
     </table>
     {% if distributed_for_groups %}
-        <h2>Дети, посещающие ДОУ</h2>
+        <h2>Список детей для которых было выделено место в ДОУ</h2>
         {% with request.user.is_operator as user_is_operator %}
-        {% for sadik_group, requestions  in distributed_for_groups %}
-        <h3>{{ sadik_group }}</h3>
-        <table class="table table-striped table-bordered table-condensed">
-            <thead>
-            <tr>
-                <td>Номер заявки</td>
-                <td>Дата постановки в очередь</td>
-                <td>Дата рождения</td>
-                <td>Дата окончания распределения</td>
-            </tr>
-            </thead>
-            <tbody>
-                {% for requestion in requestions %}
-                    {% if user_is_operator %}
-                        {% include "operator/includes/sadik_info_distributed_include.html" %}
-                    {% else %}
-                        {% include "anonym/includes/sadik_info_distributed_include.html" %}
-                    {% endif %}
-                {% endfor %}
-            </tbody>
-        </table>
+        {% for sadik_group, requestions  in distributed_for_groups.iteritems %}
+            <h3>{{ sadik_group.age_group.name }} ({{ sadik_group.age_group.short_name }}) за {{ sadik_group.year.year }} год</h3>
+            {% if user_is_operator %}
+                {% include "operator/includes/sadik_info_distributed_include.html" %}
+            {% else %}
+                {% include "anonym/includes/sadik_info_distributed_include.html" %}
+            {% endif %}
         {% endfor %}
         {% endwith %}
     {% endif %}

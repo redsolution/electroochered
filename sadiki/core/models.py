@@ -684,6 +684,13 @@ class RequestionQuerySet(models.query.QuerySet):
             status=STATUS_DECISION).order_by(
                 '-benefit_category__priority', 'registration_datetime', 'id')
 
+    def provided_places(self):
+        u"""
+        Заявки которые занимают место в ДОУ(выделено место, зачислена, не явился(но еще не снят с учета))
+        """
+        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED,
+                                       STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE))
+
     def not_confirmed(self):
         u"""заявки для которых не установлено документальное подтверждение"""
         return self.filter(status__in=NOT_CONFIRMED_STATUSES)
@@ -839,6 +846,10 @@ class Requestion(models.Model):
     # Поля, назначаемые системой
     status_change_datetime = models.DateTimeField(
         verbose_name=u'дата и время последнего изменения статуса', blank=True, null=True)
+    decision_datetime = models.DateTimeField(
+        verbose_name=u'дата и время выделения места', blank=True, null=True)
+    distribution_datetime = models.DateTimeField(
+        verbose_name = u"дата и время окончательного зачисления", blank=True, null=True)
 
     # Flags
     distribute_in_any_sadik = models.BooleanField(
@@ -1042,8 +1053,12 @@ class Requestion(models.Model):
             return self.distributed_in_vacancy
 
     def save(self, *args, **kwargs):
-        u"""Если сохраняется в первый раз(добавление заявки), то определяем статус
-        и генерируем номер заявки"""
+        u"""
+        Осуществляется проверка возможности изменения статуса.
+        Сохраняется дата последнего изменения статуса, дата выделения места и дата зачисления.
+        Если сохраняется в первый раз(добавление заявки), то определяем статус
+        и генерируем номер заявки
+        """
 #        проверяем изменился ли статус
         if self.id:
             status = Requestion.objects.get(id=self.id).status
@@ -1065,7 +1080,12 @@ class Requestion(models.Model):
             from sadiki.core.workflow import workflow
             if self.status not in workflow.available_transition_statuses(status):
                 raise TransitionNotRegistered
-
+            # если заявке было выделено место или она окончательно зачислена, то сохраняем дату и время
+            if self.status == STATUS_DECISION:
+                self.decision_datetime = datetime.datetime.now()
+            elif self.status == STATUS_DISTRIBUTED:
+                self.distribution_datetime = datetime.datetime.now()
+            # сохраняем дату и время последнего изменения статуса
             self.status_change_datetime = datetime.datetime.now()
         super(Requestion, self).save(*args, **kwargs)
         if not self.requestion_number:
