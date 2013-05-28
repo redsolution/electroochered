@@ -3,6 +3,7 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
+from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
 from sadiki.account.forms import RequestionForm, PreferredSadikForm
 from sadiki.administrator.admin import SadikAdminForm
@@ -10,7 +11,7 @@ from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     ProfileRegistrationForm, FormWithDocument
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
-    VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Profile, Address, \
+    VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Address, \
     STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
@@ -109,30 +110,47 @@ class OperatorSearchForm(PublicSearchForm):
         else:
             return self.cleaned_data
 
+def get_sadik_group_form(sadik):
+    class SadikGroupForm(forms.ModelForm):
 
-class SadikGroupForm(forms.ModelForm):
+        age_group = forms.ModelChoiceField(queryset=AgeGroup.objects.exclude(
+                    id__in=sadik.groups.active().values_list('age_group__id', flat=True)),
+            label=u'Возрастная категория')
 
-    age_group = forms.ModelChoiceField(queryset=AgeGroup.objects.all(),
-        label=u'Возрастная категория')
+        def __init__(self, *args, **kwds):
+            super(SadikGroupForm, self).__init__(*args, **kwds)
+            # Для новых групп исключить изменение возрастной категории
+            if self.instance.pk:
+                del self.fields['age_group']
 
-    def __init__(self, *args, **kwds):
-        super(SadikGroupForm, self).__init__(*args, **kwds)
-        # Для новых групп исключить изменение возрастной категории
-        if self.instance.pk:
-            del self.fields['age_group']
+        class Meta:
+            model = SadikGroup
 
-    class Meta:
-        model = SadikGroup
+        def save(self, commit=True):
+            free_places = self.cleaned_data.get('free_places')
+            self.instance.capacity = free_places
+            if not self.initial:
+                # Создание новой группы
+                self.instance.year = get_current_distribution_year()
+                self.instance.min_birth_date = self.cleaned_data['age_group'].min_birth_date()
+                self.instance.max_birth_date = self.cleaned_data['age_group'].max_birth_date()
+            return super(SadikGroupForm, self).save(commit)
+    return SadikGroupForm
 
-    def save(self, commit=True):
-        free_places = self.cleaned_data.get('free_places')
-        self.instance.capacity = free_places
-        if not self.initial:
-            # Создание новой группы
-            self.instance.year = get_current_distribution_year()
-            self.instance.min_birth_date = self.cleaned_data['age_group'].min_birth_date()
-            self.instance.max_birth_date = self.cleaned_data['age_group'].max_birth_date()
-        return super(SadikGroupForm, self).save(commit)
+
+class BaseSadikGroupFormSet(BaseInlineFormSet):
+    def clean(self):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        age_groups = []
+        for i in range(0, self.total_form_count()):
+            form = self.forms[i]
+            age_group = form.cleaned_data.get('age_group')
+            if age_group:
+                if age_group in age_groups:
+                    raise forms.ValidationError(u"В ДОУ не может быть двух одинаковых возрастных групп")
+                age_groups.append(age_group)
 
 
 class SadikForm(forms.Form):

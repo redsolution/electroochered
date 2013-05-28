@@ -23,6 +23,16 @@
     <h1>Выделение мест в группы {{ sadik }}</h1>
     <form method="post" action="." class="uniForm places_form">
         {{ formset.management_form }}
+        {% if formset.non_form_errors %}
+            <div id="errorMsg">
+                {% load i18n %}
+                <ol>
+                    {% for error in formset.non_form_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ol>
+            </div>
+        {% endif %}
         {% if formset.forms %}
         <table class="table table-striped table-bordered table-condensed">
             <thead>

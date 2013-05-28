@@ -14,7 +14,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js
 from sadiki.core.workflow import CHANGE_SADIK_GROUP_PLACES, CHANGE_SADIK_INFO
 from sadiki.logger.models import Logger
-from sadiki.operator.forms import SadikGroupForm, SadikForm, ChangeSadikForm
+from sadiki.operator.forms import get_sadik_group_form, SadikForm, ChangeSadikForm, BaseSadikGroupFormSet
 
 
 class SadikOperatorPermissionMixin(RequirePermissionsMixin):
@@ -89,18 +89,19 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
             super(SadikGroupChangePlaces, self).check_permissions(request, sadik)
             and sadik.active_distribution == True and not Distribution.objects.active())
 
-    def get_formset(self):
-        return inlineformset_factory(Sadik, SadikGroup, form=SadikGroupForm,
-            fields=('free_places', 'age_group'), extra=1, can_delete=False)
+    def get_formset(self, sadik):
+        return inlineformset_factory(Sadik, SadikGroup, form=get_sadik_group_form(sadik=sadik),
+                                     formset=BaseSadikGroupFormSet,
+                                     fields=('free_places', 'age_group'), extra=1, can_delete=False)
 
     def get(self, request, sadik):
-        formset = self.get_formset()(instance=sadik,
+        formset = self.get_formset(sadik=sadik)(instance=sadik,
             queryset=SadikGroup.objects.active())
         return self.render_to_response(
             {'sadik': sadik, 'formset': formset})
 
     def post(self, request, sadik):
-        formset = self.get_formset()(instance=sadik,
+        formset = self.get_formset(sadik=sadik)(instance=sadik,
             queryset=SadikGroup.objects.active(),
             data=request.POST)
         if formset.is_valid():
