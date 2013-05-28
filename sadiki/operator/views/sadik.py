@@ -126,7 +126,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
     template_name = "operator/requestion_list_distributed.html"
     required_permissions = ["is_operator", "is_sadik_operator"]
 
-    def get(self, request):
+    def get(self, request, sadik_id):
 #        получаем ДОУ для данного района в которых есть заявки с выделенными местами
         profile = request.user.get_profile()
         sadiks_query = Sadik.objects.filter(
@@ -139,12 +139,20 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
             'distribution_started': Distribution.objects.filter(
                 status=DISTRIBUTION_STATUS_START).exists(),
         }
-        if sadiks_query.count() == 1:
+        if sadik_id:
+            sadik = get_object_or_404(Sadik, id=sadik_id)
+            form = SadikForm(sadiks_query=sadiks_query)
+            context.update({
+                'form': form,
+            })
+        elif sadiks_query.count() == 1:
             sadik = sadiks_query[0]
         else:
             form = SadikForm(sadiks_query=sadiks_query, data=request.GET)
             if form.is_valid():
                 sadik = form.cleaned_data.get('sadik')
+                if sadik:
+                    return HttpResponseRedirect(reverse('requestion_list_enroll', kwargs={'sadik_id': sadik.id}))
             else:
                 form = SadikForm(sadiks_query=sadiks_query)
                 sadik = None

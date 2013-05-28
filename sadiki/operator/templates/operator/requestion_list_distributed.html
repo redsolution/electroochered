@@ -10,7 +10,8 @@
     {% if form %}
         <div class="row">
             <div class="content span8 offset2">
-                {% izenform form options method='GET' submit="Выбрать" %}
+                {% url requestion_list_enroll as requestion_list_enroll_url %}
+                {% izenform form options method='GET' action=requestion_list_enroll_url submit="Выбрать" %}
             </div>
         </div>
     {% endif %}
@@ -18,7 +19,8 @@
         <h3 class="important">Во время распределения заявки не могут быть возвращены в очередь</h3>
     {% endif %}
     {% if sadik %}
-        <h3>{{ sadik }}</h3>
+        <h2>{{ sadik }}</h2>
+        {% if requestions_by_groups %}
         <div class="decision_requestions_list clearfix">
             {% for group, requestions in requestions_by_groups %}
                 {% if requestions %}
@@ -60,7 +62,7 @@
                                 <td>
                                     {{ requestion.get_status_display }}
                                     {% if requestion.status in appeal_statuses %}
-                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p> 
+                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -79,5 +81,8 @@
                 {% endif %}
             {% endfor %}
         </div>
+        {% else %}
+            <h3>Нет доступных для зачисления заявок</h3>
+        {% endif %}
    {% endif %}
 {% endblock content %}

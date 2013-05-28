@@ -63,6 +63,6 @@ urlpatterns = patterns('',
         SadikInfoChange.as_view(), name=u'sadik_info_change'),
     url(r'^dou/(?P<sadik_id>\d{1,7})/places/$',
         SadikGroupChangePlaces.as_view(), name=u'sadikgroup_change_places'),
-    url(r'^dou/requests/$',
+    url(r'^dou/(?:(?P<sadik_id>\d{1,7})/)?requests/$',
         RequestionListEnrollment.as_view(), name=u'requestion_list_enroll'),
 )
