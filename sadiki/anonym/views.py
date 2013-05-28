@@ -115,7 +115,6 @@ class Queue(RequirePermissionsMixin, ListView):
             form_data.pop('page')
         except KeyError:
             pass
-
         if form_data:
             form = self.form(query_dict)
             if form.is_valid():
@@ -127,8 +126,8 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = queryset.confirmed()
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
-                    queryset = queryset.filter(birth_date__gte=age_group.min_birth_date(),
-                        birth_date__lt=age_group.max_birth_date())
+                    queryset = queryset.filter_for_age(min_birth_date=age_group.min_birth_date(),
+                                                       max_birth_date=age_group.max_birth_date())
                 if form.cleaned_data.get('benefit_category', None):
                     queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
                 if form.cleaned_data.get('area', None):
