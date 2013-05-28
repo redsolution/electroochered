@@ -305,9 +305,12 @@ class RequestionLogic(object):
 
     def validate_registration_date(self, requestion):
         u"""заявки должны быть поданы до теукщей даты"""
-        if datetime.date.today() <= requestion.registration_datetime.date():
+        if datetime.date.today() < requestion.registration_datetime.date():
             raise ValidationError(
                 u'Дата регистрации не может быть больше текущей даты.')
+        elif datetime.date.today() == requestion.registration_datetime.date():
+            raise ValidationError(
+                u'Дата регистрации не может совпадать с текущей датой.')
 
     def validate_dates(self, requestion):
         u"""проверка, что дата рождения попадает в диапазон для зачисления и
