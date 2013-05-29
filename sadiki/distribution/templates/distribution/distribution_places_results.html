@@ -1,0 +1,32 @@
+{% extends "distribution/distribution_base.html" %}
+{% load sadiki_core_tags %}
+
+{% block title %}Результаты распределения за {{ current_distribution.end_datetime|date:"d-M-Y H:i" }}{% endblock %}
+
+{% block content %}
+    {% if sadiks_with_groups %}
+    {% for sadik, groups_with_places in sadiks_with_groups.iteritems %}
+        <h3>{{ sadik.short_name }}</h3>
+        <table class="table table-striped table-bordered table-condensed places-table">
+            <thead>
+                <tr>
+                    <th>Возрастная категория</th>
+                    <th class="capacity">Выделено мест</th>
+                    <th class="free-places">Свободных мест</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for group, places in groups_with_places.iteritems %}
+                <tr>
+                    <td>{{ group.age_group }} за {{ group.year.year }} год (с {{ group.min_birth_date }} по {{ group.max_birth_date }})</td>
+                    <td>{{ places.capacity }}</td>
+                    <td>{{ places.free_places }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endfor %}
+    {% else %}
+        <h2>В данном распределении не были выделены свободные места</h2>
+    {% endif %}
+{% endblock %}

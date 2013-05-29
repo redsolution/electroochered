@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext, loader
 from django.views.generic import TemplateView
 from django.views.generic.base import View
+from ordereddict import OrderedDict
 from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion, \
     STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Vacancies, Sadik, \
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_ENDING, STATUS_DECISION, \
@@ -51,9 +52,7 @@ class EndedDistributions(OperatorPermissionMixin, TemplateView):
         return self.render_to_response({'distributions': distributions})
 
 
-
 class DistributionResults(OperatorPermissionMixin, TemplateView):
-    required_permissions = ['is_operator']
     template_name = 'distribution/distribution_results.html'
 
     def get(self, request, distribution_id):
@@ -116,6 +115,37 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
             return response
         return self.render_to_response({'current_distribution': distribution,
             'requestions_by_sadiks': requestions_by_sadiks})
+
+
+class DistributionPlacesResults(OperatorPermissionMixin, TemplateView):
+    template_name = "distribution/distribution_places_results.html"
+
+    def get(self, request, distribution_id):
+        try:
+            ending_distribution = Distribution.objects.get(status=DISTRIBUTION_STATUS_ENDING)
+        except Distribution.DoesNotExist:
+            pass
+        else:
+            return self.render_to_response({'ending_distribution': ending_distribution})
+        distribution = get_object_or_404(Distribution, id=distribution_id)
+        if distribution.status != DISTRIBUTION_STATUS_END:
+            return HttpResponseForbidden(u'Распределение еще не было завершено')
+        context = {'current_distribution': distribution}
+        sadiks = Sadik.objects.filter(groups__vacancies__distribution=distribution).distinct()
+        sadiks.add_related_groups()
+        sadiks_with_groups = OrderedDict()
+        for sadik in sadiks:
+            sadik_groups_with_places = OrderedDict()
+            for sadik_group in sadik.related_groups:
+                sadik_groups_with_places[sadik_group] = {'free_places': 0, 'capacity': 0}
+            sadiks_with_groups[sadik] = sadik_groups_with_places
+        vacancies = Vacancies.objects.filter(distribution=distribution).select_related('sadik_group', 'sadik_group__sadik')
+        for vacancy in vacancies:
+            sadiks_with_groups[vacancy.sadik_group.sadik][vacancy.sadik_group]['capacity'] += 1
+            if vacancy.status is None:
+                sadiks_with_groups[vacancy.sadik_group.sadik][vacancy.sadik_group]['free_places'] += 1
+        context.update({'sadiks_with_groups': sadiks_with_groups, })
+        return self.render_to_response(context)
 
 
 class DistributionInit(OperatorPermissionMixin, TemplateView):

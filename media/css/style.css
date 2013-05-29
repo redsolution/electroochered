@@ -917,3 +917,11 @@ tr.dynamic-form .errorlist {
 .confirmation-dialog{
     display: none;
 }
+
+/* Таблица с информацией о свободных местах */
+.places-table .free-places{
+    width: 20%;
+}
+.places-table .capacity{
+    width: 20%;
+}

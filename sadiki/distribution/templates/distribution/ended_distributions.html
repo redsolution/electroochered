@@ -1,14 +1,27 @@
 {% extends "distribution/distribution_base.html" %}
 {% load sadiki_core_tags %}
 
-{% block title %}Результаты распределения за {{ current_distribution.end_datetime|date:"d-M-Y" }}{% endblock %}
+{% block title %}Результаты распределения{% endblock %}
 
 {% block content %}
     {% if distributions %}
         <ul class="blanks_drafts">
-        {% for distribution in distributions %}
-            <li><a href="{% url distribution_results distribution_id=distribution.id %}">Распределение за {{ distribution.end_datetime|date:"d-M-Y" }}</a></li>
-        {% endfor %}
+        <table class="table table-striped table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>Распределение</th>
+                    <th></th>
+                    <th></th>
+                </tr>
+            </thead>
+            {% for distribution in distributions %}
+                <tr>
+                    <td>{{ distribution.end_datetime|date:"d-M-Y H:i" }}</td>
+                    <td><a href="{% url distribution_results distribution_id=distribution.id %}">Список заявок</a></td>
+                    <td><a href="{% url distribution_places_results distribution_id=distribution.id %}">Информация по местам</a></td>
+                </tr>
+            {% endfor %}
+        </table>
         </ul>
     {% else %}
         <h3>Нет завершенных распределений</h3>

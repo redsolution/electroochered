@@ -1,7 +1,7 @@
 {% extends "distribution/distribution_base.html" %}
 {% load sadiki_core_tags %}
 
-{% block title %}Результаты распределения за {{ current_distribution.end_datetime|date:"d-M-Y" }}{% endblock %}
+{% block title %}Результаты распределения за {{ current_distribution.end_datetime|date:"d-M-Y H:i" }}{% endblock %}
 
 {% block content %}
     {% if ending_distribution %}
@@ -45,6 +45,8 @@
             {% endfor %}
             </table>
         {% endfor %}
+        {% else %}
+            <h2>В данном распределении не было распределено ни одной заявки</h2>
         {% endif %}
     {% endif %}
 {% endblock %}
