@@ -1,6 +1,21 @@
 {% extends "admin/base_site.html" %}
 
+{% block content_title %}
+    <h1>Статус импорта</h1>
+{% endblock %}
+
 {% block content %}
+    {% block object_tools %}
+        <ul class="object-tools">
+        {% if requestions_imported %}
+            <li>
+                <a href="{% url admin:finish_import %}" class="link">
+                    Завершить импорт
+                </a>
+            </li>
+        {% endif %}
+        </ul>
+    {% endblock %}
     <div class="row">
         <div class="span8 offset2">
         {% if import_active %}
@@ -18,7 +33,12 @@
                 countdown();
             </script>
         {% else %}
-            <h2>Процесс импорта был завершен, дальнейший импорт заявок невозможен. Также был открыт публичный интерфейс.</h2>
+            {% if requestions_imported %}
+                <h2>Импорт заявок был произведен. Теперь вам необходимо сохранить файл «Результаты импорта» и завершить импорт
+                <div>Результаты импорта: <a href="{{ import_requestion_task.result_file.url }}"><button>Сохранить</button></a></div>
+            {% else %}
+                <h2>Процесс импорта был завершен, дальнейший импорт заявок невозможен. Также был открыт публичный интерфейс.</h2>
+            {% endif %}
         {% endif %}
         </div>
     </div>

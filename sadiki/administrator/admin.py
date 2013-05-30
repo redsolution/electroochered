@@ -495,6 +495,20 @@ class ImportTaskForm(forms.ModelForm):
             raise forms.ValidationError(u"""Уже есть задание для импорта заявок, вы не можете задать более одного.""")
         return fake
 
+    def clean(self):
+        if self.instance.status != IMPORT_INITIAL:
+            raise forms.ValidationError(u"Нельзя изменять задание обработка которого уже проведена")
+        return self.cleaned_data
+
+
+def import_status_check(func):
+    def wrapper(self, *args, **kwargs):
+        if (ImportTask.objects.filter(status=IMPORT_START).exists() or
+                Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()):
+            return HttpResponseRedirect(reverse('admin:import_status',
+                    current_app=self.admin_site.name))
+        return func(self, *args, **kwargs)
+    return wrapper
 
 class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = ImportTask
@@ -538,22 +552,29 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 
     @csrf_protect_m
     def import_status(self, request):
+        if Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
+            return HttpResponseRedirect(reverse('admin:index',
+                    current_app=self.admin_site.name))
         import_active = ImportTask.objects.filter(status=IMPORT_START).exists()
         import_finished = self.import_finished()
-        if import_finished or import_active:
-            return TemplateResponse(request, 'administrator/import_status.html',
-                {'import_finished': import_finished, 'import_active': import_active,},
-                current_app=self.admin_site.name)
-        else:
+        requestions_imported = Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()
+        app_label = self.model._meta.app_label
+        context = {'import_finished': import_finished, 'import_active': import_active, 'app_label': app_label}
+        if requestions_imported:
+            if requestions_imported:
+                context.update(
+                    {'requestions_imported': requestions_imported,
+                     'import_requestion_task': ImportTask.objects.get(
+                        status=IMPORT_FINISH, data_format__in=REQUESTION_FORMATS, fake=False, errors=0)})
+        elif not import_finished and not import_active:
             return HttpResponseRedirect(reverse("admin:administrator_importtask_changelist",
                         current_app=self.admin_site.name))
+        return TemplateResponse(request, 'administrator/import_status.html',
+                context, current_app=self.admin_site.name)
 
     @csrf_protect_m
+    @import_status_check
     def start_import(self, request):
-        if self.import_finished():
-            return HttpResponseForbidden(u"Процесс импорта был завершен")
-        if ImportTask.objects.filter(status=IMPORT_START).exists():
-            return HttpResponseForbidden(u"Импорт заявок уже проводится")
         if request.method == "POST":
             if request.POST['confirmation'] == 'yes':
                 ImportTask.objects.filter(status=IMPORT_INITIAL, fake=False
@@ -568,11 +589,8 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
                                 {'message': message}, current_app=self.admin_site.name)
 
     @csrf_protect_m
+    @import_status_check
     def start_import_check(self, request):
-        if self.import_finished():
-            return HttpResponseForbidden(u"Процесс импорта был завершен")
-        if ImportTask.objects.filter(status=IMPORT_START).exists():
-            return HttpResponseForbidden(u"Импорт заявок уже проводится")
         if request.method == "POST":
             if request.POST['confirmation'] == 'yes':
                 ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True
@@ -602,10 +620,15 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         return response
 
     @csrf_protect_m
+    @import_status_check
+    @transaction.commit_on_success
+    def add_view(self, *args, **kwargs):
+        return super(ImportTaskAdmin, self).add_view(*args, **kwargs)
+
+    @csrf_protect_m
+    @import_status_check
     @transaction.commit_on_success
     def change_view(self, request, object_id, extra_context=None):
-        if ImportTask.objects.filter(status=IMPORT_START).exists():
-            return HttpResponseForbidden("Во время импорта нельзя изменять файлы с данными")
         extra_context = {'IMPORT_INITIAL': IMPORT_INITIAL, 'IMPORT_START': IMPORT_START,
              'IMPORT_FINISH': IMPORT_FINISH, 'IMPORT_ERROR': IMPORT_ERROR,
              'IMPORT_FINISHED_WITH_ERRORS': IMPORT_FINISHED_WITH_ERRORS}
@@ -613,29 +636,25 @@ class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
             object_id=object_id, extra_context=extra_context)
 
     @csrf_protect_m
+    @import_status_check
     def changelist_view(self, request, extra_context=None):
-        requestions_imported = Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()
-        import_active = ImportTask.objects.filter(status=IMPORT_START).exists()
         extra_context = {'import_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=False).exists(),
-                       'check_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True).exists(),
-                       'requestions_imported': requestions_imported, "import_active": import_active}
-        if requestions_imported:
-            extra_context.update(
-                {'import_requestion_task': ImportTask.objects.get(
-                    status=IMPORT_FINISH, data_format__in=REQUESTION_FORMATS, fake=False, errors=0)})
+                       'check_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True).exists(),}
         return super(ImportTaskAdmin, self).changelist_view(request, extra_context)
 
     @csrf_protect_m
     def finish_import(self, request):
         if not Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists():
-            raise HttpResponseForbidden(u"Заявки не были импортированы")
+            return HttpResponseForbidden(u"Заявки не были импортированы")
+        elif Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
+            return HttpResponseForbidden(u"Импорт был завершен")
         if request.method == "POST":
             if request.POST['confirmation'] == 'yes':
                 for import_task in ImportTask.objects.all():
                     import_task.delete_files()
                 Preference.objects.get_or_create(key=PREFERENCE_IMPORT_FINISHED)
             return HttpResponseRedirect(
-                reverse('admin:import_status',
+                reverse('admin:index',
                     current_app=self.admin_site.name))
         message = u"""Вы уверены, что хотите завершить процедуру импорта? Убедитесь, что вы сохранили файл с результатми импорта.
             После завершения импорта будет открыт публичный интерфейс."""

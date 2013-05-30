@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_modify adminmedia %}
+{% load i18n admin_modify adminmedia sadiki_core_tags %}
 
 {% block extrahead %}{{ block.super }}
 <script type="text/javascript" src="../../../jsi18n/"></script>
@@ -40,6 +40,14 @@
 </div>
 {% endif %}{% endblock %}
 
+{% block content_title %}
+    {% if not add and original.status != IMPORT_INITIAL %}
+        <h1>Задание обработано</h1>
+    {% else %}
+        {{ block.super }}
+    {% endif %}
+{% endblock %}
+
 {% block content %}<div id="content-main">
 {% block object-tools %}
 {% if change %}{% if not is_popup %}
@@ -51,24 +59,50 @@
 {% if not add and original.status == IMPORT_START %}
     <h1>Проводится импорт</h1>
 {% else %}
-    <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.module_name }}_form">{% block form_top %}{% endblock %}
-    <div>
-    {% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
-    {% if save_on_top %}{% submit_row %}{% endif %}
-    {% if errors %}
-        <p class="errornote">
-        {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
-        </p>
-        <ul class="errorlist">{% for error in adminform.form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
-    {% endif %}
+    {% if add or original.status == IMPORT_INITIAL %}
+        <form {% if has_file_field %}enctype="multipart/form-data" {% endif %}action="{{ form_url }}" method="post" id="{{ opts.module_name }}_form">{% block form_top %}{% endblock %}
+        <div>
+        {% if is_popup %}<input type="hidden" name="_popup" value="1" />{% endif %}
+        {% if save_on_top %}{% submit_row %}{% endif %}
+        {% if errors %}
+            <p class="errornote">
+            {% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+            </p>
+            <ul class="errorlist">{% for error in adminform.form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>
+        {% endif %}
 
-    {% for fieldset in adminform %}
-      {% include "admin/includes/fieldset.html" %}
-    {% endfor %}
-    {% if add or original.status == STATUS_INITIAL %}
+        {% for fieldset in adminform %}
+          {% include "admin/includes/fieldset.html" %}
+        {% endfor %}
         <h2>Не обработан</h2>
+        {% block after_field_sets %}{% endblock %}
+
+        {% for inline_admin_formset in inline_admin_formsets %}
+            {% include inline_admin_formset.opts.template %}
+        {% endfor %}
+
+        {% block after_related_objects %}{% endblock %}
+        {% csrf_token %}
+        {% submit_row %}
+        </div>
+        </form>
     {% else %}
+        <form><div>
         {% if original.status == IMPORT_FINISH or original.status == IMPORT_FINISHED_WITH_ERRORS %}
+            <fieldset class="module aligned">
+                <div class="form-row">
+                    <label>Исходный файл</label>
+                    <p><a href="{{ original.source_file.url }}" target="_blank">Скачать</a></p>
+                </div>
+                <div class="form-row">
+                    <label>{{ original|get_field_verbose_name:'fake' }}</label>
+                    <p>{{ original.fake|yesno:"Да,Нет" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>{{ original|get_field_verbose_name:'data_format' }}</label>
+                    <p>{{ original.get_data_format_display }}</p>
+                </div>
+            </fieldset>
             <h2>Результат обработки</h2>
             <fieldset class="module aligned">
                 <div class="form-row">
@@ -98,16 +132,8 @@
             {% endif %}
             
         {% endif %}
+        </div></form>
     {% endif %}
-    {% block after_field_sets %}{% endblock %}
-
-    {% for inline_admin_formset in inline_admin_formsets %}
-        {% include inline_admin_formset.opts.template %}
-    {% endfor %}
-
-    {% block after_related_objects %}{% endblock %}
-    {% csrf_token %}
-    {% submit_row %}
 
     {% if adminform and add %}
        <script type="text/javascript">document.getElementById("{{ adminform.first_field.auto_id }}").focus();</script>
@@ -117,6 +143,5 @@
     {% prepopulated_fields_js %}
 
     </div>
-    </form></div>
 {% endif %}
 {% endblock %}
