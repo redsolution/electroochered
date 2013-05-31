@@ -500,6 +500,15 @@ class ImportTaskForm(forms.ModelForm):
             raise forms.ValidationError(u"Нельзя изменять задание обработка которого уже проведена")
         return self.cleaned_data
 
+    def save(self, *args, **kwargs):
+        # если был изменен исходный файл для существующего задания, то нужно удалить файлы
+        if 'source_file' in self.changed_data and self.instance.id:
+            original_task = ImportTask.objects.get(id=self.instance.id)
+            original_task.delete_files()
+            self.instance.result_file = None
+            self.instance.file_with_errors = None
+        return super(ImportTaskForm, self).save(*args, **kwargs)
+
 
 def import_status_check(func):
     def wrapper(self, *args, **kwargs):
