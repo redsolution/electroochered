@@ -267,13 +267,15 @@ class Address(models.Model):
 
     @property
     def text(self):
+        address_elements = []
         if self.town:
             town = "%s," % self.town
+            address_elements.append(town)
         if self.building_number and self.street:
             street = "%s," % self.street
         else:
             street = self.street
-        address_elements = (town, self.block_number, street, self.building_number)
+        address_elements.extend([self.block_number, street, self.building_number])
         return u" ".join([el for el in address_elements if el])
 
     def __unicode__(self):
