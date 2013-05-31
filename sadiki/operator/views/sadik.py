@@ -11,7 +11,7 @@ from sadiki.core.models import Distribution, Sadik, SadikGroup, STATUS_DECISION,
     DISTRIBUTION_STATUS_START, Requestion, STATUS_REQUESTER, STATUS_DISTRIBUTED, \
     STATUS_REMOVE_REGISTRATION
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import CHANGE_SADIK_GROUP_PLACES, CHANGE_SADIK_INFO
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import get_sadik_group_form, SadikForm, ChangeSadikForm, BaseSadikGroupFormSet
@@ -89,12 +89,27 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
             super(SadikGroupChangePlaces, self).check_permissions(request, sadik)
             and sadik.active_distribution == True and not Distribution.objects.active())
 
+    def create_default_sadikgroups(self, sadik):
+        u'''
+        Для ДОУ создаются возрастные группы, если они не существуют
+        '''
+        age_groups = sadik.age_groups.all()
+        age_groups_created_ids = sadik.groups.active().values_list('age_group_id', flat=True)
+        for age_group in age_groups:
+            if age_group.id not in age_groups_created_ids:
+                sadik_group = SadikGroup(sadik=sadik, age_group=age_group, year=get_current_distribution_year(),)
+                sadik_group.min_birth_date = age_group.min_birth_date()
+                sadik_group.max_birth_date = age_group.max_birth_date()
+                sadik_group.save()
+
     def get_formset(self, sadik):
         return inlineformset_factory(Sadik, SadikGroup, form=get_sadik_group_form(sadik=sadik),
                                      formset=BaseSadikGroupFormSet,
-                                     fields=('free_places', 'age_group'), extra=1, can_delete=False)
+                                     fields=('free_places',), extra=0, can_delete=False)
 
     def get(self, request, sadik):
+        # создаем возрастные группы
+        self.create_default_sadikgroups(sadik)
         formset = self.get_formset(sadik=sadik)(instance=sadik,
             queryset=SadikGroup.objects.active())
         return self.render_to_response(
