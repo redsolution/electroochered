@@ -348,6 +348,18 @@ class Sadik(models.Model):
         verbose_name=u"Возрастные группы")
     objects = query_set_factory(SadikQueryset)
 
+    def get_number(self):
+        result = re.match(ur'^\D*(\d+)\D*$', self.short_name)
+        if result:
+            return result.group(1)
+        else:
+            return None
+
+    def save(self, *args, **kwargs):
+        # обновляем номер ДОУ
+        self.number = self.get_number()
+        return super(Sadik, self).save(*args, **kwargs)
+
     def __unicode__(self):
         return self.short_name or self.name
 
