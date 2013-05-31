@@ -57,24 +57,32 @@ class SadikListFormat(Format):
     start_line = 2
     cells = sadik_list_cells
 
-    def to_python(self, data_row):
+    def to_python(self, data_row_with_errors):
+        data_row = []
+        for cell in data_row_with_errors:
+            if isinstance(cell, Exception):
+                data_row.append(None)
+            else:
+                data_row.append(cell)
         last_name = data_row[4]
         first_name = data_row[5]
         patronymic = data_row[6]
         full_name = ' '.join([el for el in (last_name, first_name, patronymic) if el])
-        sadik = Sadik(
-            area=data_row[0],
-            name=data_row[1],
-            short_name=data_row[2],
-            identifier=data_row[3],
-            head_name=full_name,
-            phone=data_row[12],
-            site=data_row[13],
-            email=data_row[14],
-            tech_level=data_row[15],
-            training_program=data_row[16],
-            extended_info=data_row[17],
-        )
+        sadik_data = {
+            "name": data_row[1],
+            "short_name": data_row[2],
+            "identifier": data_row[3],
+            "head_name": full_name,
+            "phone": data_row[12],
+            "site": data_row[13],
+            "email": data_row[14],
+            "tech_level": data_row[15],
+            "training_program": data_row[16],
+            "extended_info": data_row[17],
+        }
+        if data_row[0]:
+            sadik_data.update({"area": data_row[0]})
+        sadik = Sadik(**sadik_data)
         latitude = data_row[19]
         longtitude = data_row[20]
         address_data = {
@@ -83,7 +91,8 @@ class SadikListFormat(Format):
             'block_number': data_row[9],
             'street': data_row[10],
             'building_number': data_row[11],
-            'coords': Point(longtitude, latitude)
             }
+        if longtitude and latitude:
+            address_data.update({'coords': Point(longtitude, latitude)})
         age_groups = data_row[18] or AgeGroup.objects.all()
         return sadik, address_data, age_groups
