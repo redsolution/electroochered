@@ -164,6 +164,14 @@ DATE_INPUT_FORMATS = ('%Y-%m-%d', "%Y/%m/%d")
 #Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# ------ trustedhtml ------
+
+# Object tags (swf players an so on) from these sites are allowed
+TRUSTEDHTML_OBJECT_SITES = [
+    'youtube.com',
+    'www.youtube.com',
+]
+
 # ------ TinyMCE ------
 
 TINYMCE_JS_URL = '%s/tinymce/jscripts/tiny_mce/tiny_mce.js' % STATIC_URL
@@ -180,10 +188,10 @@ TINYMCE_DEFAULT_CONFIG = {
     'theme_advanced_buttons3': 'visualaid,tablecontrols,|,blockquote,del,ins,|,preview,code',
     'theme_advanced_toolbar_location': 'top',
     'theme_advanced_toolbar_align': 'left',
-    'extended_valid_elements': 'noindex',
     'custom_elements': 'noindex',
     'external_image_list_url': 'images/',
     'external_link_list_url': 'links/',
+    'extended_valid_elements': 'noindex,iframe[src|style|width|height|scrolling|marginwidth|marginheight|frameborder]',
 }
 
 #attachment прикреплен к Chunk через админку, т.к. не нашел поддержки второй админки в настройках приложения
