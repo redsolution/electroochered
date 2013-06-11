@@ -626,7 +626,6 @@ class Profile(models.Model):
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
     first_name = models.CharField(u'Имя', max_length=255, null=True)
-    nickname = models.CharField(u'Псевдоним', max_length=255, null=True, help_text=u"Как к Вам обращаться?")
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
@@ -1330,9 +1329,6 @@ class UserFunctions:
             profile = self.get_profile()
         except Profile.DoesNotExist:
             pass
-        else:
-            if profile.nickname:
-                return profile.nickname
 #        если не смогли получить имя отчество у профиля, то берем их у пользователя
         if self.first_name or self.last_name:
             return u'%s %s' % (self.first_name or u'', self.last_name or u'')

@@ -7,7 +7,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from django.utils import simplejson
-from sadiki.account.forms import ProfileChangeForm, RequestionForm, \
+from sadiki.account.forms import RequestionForm, \
     ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm
 from sadiki.core.models import Profile, Requestion, \
     BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
@@ -118,37 +118,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             context.update({'form': form, 'benefits_form': benefits_form,
                 'openlayers_js': get_openlayers_js()})
             return self.render_to_response(context)
-
-
-class ProfileChange(AccountPermissionMixin, TemplateView):
-    u"""Изменение профиля пользователем"""
-    template_name = 'account/profile_change.html'
-
-    def dispatch(self, request):
-        profile = get_object_or_404(Profile, user=request.user.pk)
-        return super(ProfileChange, self).dispatch(request, profile)
-
-    def get(self, request, profile):
-        form = ProfileChangeForm(instance=profile)
-        return self.render_to_response({'form': form})
-
-    def post(self, request, profile):
-        form = ProfileChangeForm(instance=profile, data=request.POST)
-        if form.is_valid():
-            if form.has_changed:
-                profile = form.save()
-#                write logs
-                context_dict = {"changed_data": form.changed_data,
-                    "profile": profile}
-                Logger.objects.create_for_action(CHANGE_PROFILE,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': profile})
-                messages.success(request, u'Изменения в профиле сохранены')
-            else:
-                messages.warning(request, u'Профиль не был изменен')
-            return HttpResponseRedirect(reverse('account_frontpage'))
-        else:
-            return self.render_to_response({'form': form})
 
 
 class RequestionInfo(AccountRequestionMixin, TemplateView):

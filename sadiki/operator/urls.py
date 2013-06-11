@@ -4,7 +4,7 @@ from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
 
 from sadiki.operator.views.requestion import Registration, RequestionSearch, \
-    BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, ProfileChange, \
+    BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, \
     RequestionChange, PreferredSadiksChange, DocumentsChange, \
     Queue, RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
     EmbedRequestionToProfile, GenerateBlank, RevalidateEmail, GenerateProfilePassword, ChangeRequestionLocation
@@ -30,8 +30,6 @@ urlpatterns = patterns('',
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',
         RequestionInfo.as_view(), name=u'operator_requestion_info'),
-    url(r'^request/(?P<requestion_id>\d{1,7})/change_profile/$',
-        ProfileChange.as_view(), name=u'operator_profile_change'),
     url(r'^request/(?P<requestion_id>\d{1,7})/benefits/$',
         change_benefits_view, name=u'operator_benefits_change'),
     url(r'^request/(?P<requestion_id>\d{1,7})/edit/$',

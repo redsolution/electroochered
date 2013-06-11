@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
-from sadiki.account.views import RequestionAdd, ProfileChange, RequestionChange, \
+from sadiki.account.views import RequestionAdd, RequestionChange, \
     BenefitsChange, PreferredSadiksChange, AccountFrontPage, RequestionInfo, \
     DocumentsChange, BenefitCategoryChange, GenerateBlank
 
@@ -12,8 +12,6 @@ else:
 
 urlpatterns = patterns('',
     url(r'^$', AccountFrontPage.as_view(), name='account_frontpage'),
-    url(r'^edit/$', ProfileChange.as_view(),
-        name=u'account_profile_change'),
     url(r'^request/add/$', RequestionAdd.as_view(),
         name=u'requestion_add_by_user'),
     url(r'^request/(?P<requestion_id>\d{1,7})/$',

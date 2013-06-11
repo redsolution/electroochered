@@ -408,7 +408,6 @@ requestion_anonym_template = u"""
 
 registration_account_template = u"""
     {% if user.email %}Электронная почта:{{ user.email }}{% endif %}
-    {% if profile.nickname %}Псевдоним: {{ profile.nickname }};{% endif %}
     {% if profile.phone_number %}Основной телефон: {{ profile.phone_number }};{% endif %}
     {% if profile.mobile_number %}Дополнительный телефон: {{ profile.mobile_number }};{% endif %}
     {% with profile.get_identity_documents as document %}
@@ -420,7 +419,6 @@ registration_account_template = u"""
     """
 
 change_profile_account_template = u'''
-    {% if "nickname" in changed_data %}Псевдоним: {{ profile.nickname }};{% endif %}
     {% if "phone_number" in changed_data %}Телефон: {{ profile.phone_number }};{% endif %}
     {% if "mobile_number" in changed_data %}Мобильный телефон: {{ profile.mobile_number }};{% endif %}
     '''

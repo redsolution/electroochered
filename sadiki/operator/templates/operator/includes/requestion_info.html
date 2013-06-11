@@ -84,14 +84,6 @@
             {% endwith %}
         </div>
         <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">Псевдоним родителя</span>
-            <div class="readOnly">
-                    <span class="choice">
-                        {{ profile.nickname|verbose_value }}
-                    </span>
-            </div>
-        </div>
-        <div class="ctrlHolder readOnly">
             <span class="readOnlyLabel">Пароль</span>
             <div class="readOnly">
                         {% if profile.user.has_usable_password %}
@@ -142,16 +134,14 @@
 </div>
 </div>
 <div class="uniForm">
-{% url operator_profile_change requestion.id as operator_profile_change_url%}
 {% url operator_requestion_set_identity_document requestion.id as operator_set_identity_document %}
+{% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
 <div class="buttonHolder">
     {% if operator_set_identity_document|check_url_availability:request.user %}
         <a href="{% url operator_requestion_set_identity_document requestion.id %}" class="btn"><i class="icon-pencil"></i>Указать документ</a>
     {% endif %}
-    {% if operator_profile_change_url|check_url_availability:request.user %}
-
-        <a href="{% url find_profile_for_requestion requestion_id=requestion.id %}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
-        <a id="changeProfile" href="{% url operator_profile_change requestion.id %}" class="btn"><i class="icon-pencil"></i> Изменить</a>
+    {% if find_profile_for_requestion_url|check_url_availability:request.user %}
+        <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
     {% endif %}
 </div>
 </div>

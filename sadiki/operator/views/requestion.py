@@ -11,13 +11,13 @@ from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
-from sadiki.account.forms import ProfileChangeForm, BenefitsForm, \
+from sadiki.account.forms import BenefitsForm, \
     ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm
 from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
     BenefitCategoryChange as AnonymBenefitCategoryChange, \
     RequestionChange as AnonymRequestionChange, \
     PreferredSadiksChange as AnonymPreferredSadiksChange, \
-    DocumentsChange as AnonymDocumentsChange, ProfileChange as AnonymProfileChange
+    DocumentsChange as AnonymDocumentsChange
 from sadiki.anonym.views import Queue as AnonymQueue, \
     RequestionSearch as AnonymRequestionSearch
 from sadiki.authorisation.models import VerificationKey
@@ -219,42 +219,6 @@ class RequestionChange(OperatorRequestionCheckIdentityMixin,
             return self.render_to_response(
                 {'form': form, 'requestion': requestion,
                  'openlayers_js': get_openlayers_js()})
-
-
-class ProfileChange(OperatorPermissionMixin, AnonymProfileChange):
-    u"""
-    изменение профиля оператором
-    """
-    template_name = 'operator/profile_change.html'
-
-    def check_permissions(self, request, profile):
-        return super(AnonymProfileChange, self).check_permissions(request)
-
-    def dispatch(self, request, requestion_id):
-        requestion = get_object_or_404(Requestion, id=requestion_id)
-        return super(AnonymProfileChange, self).dispatch(request, requestion)
-
-    def get(self, request, requestion):
-        profile_form = ProfileChangeForm(instance=requestion.profile)
-        return self.render_to_response({'profile_form': profile_form, 'requestion': requestion})
-
-    def post(self, request, requestion):
-        profile_form = ProfileChangeForm(instance=requestion.profile, data=request.POST)
-        if profile_form.is_valid():
-            if profile_form.has_changed():
-                message = u'Изменения в профиле сохранены.'
-                profile = profile_form.save()
-                context_dict = {'changed_data': profile_form.changed_data, 'profile': profile}
-                Logger.objects.create_for_action(CHANGE_PROFILE_BY_OPERATOR,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': profile})
-                messages.info(request, message)
-            else:
-                messages.info(request, u'Профиль не был изменен')
-            return HttpResponseRedirect(reverse('operator_requestion_info',
-                        kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response({'profile_form': profile_form, 'requestion': requestion})
 
 
 class BenefitsChange(OperatorRequestionCheckIdentityMixin,

@@ -79,13 +79,6 @@ class ChangeRequestionForm(forms.ModelForm):
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
 
-class ProfileChangeForm(forms.ModelForm):
-
-    class Meta:
-        model = Profile
-        fields = ('nickname',)
-
-
 class BenefitsForm(forms.ModelForm):
 
     benefits = forms.ModelMultipleChoiceField(label=u'Льготы для заявки',

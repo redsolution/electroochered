@@ -1,4 +1,4 @@
-{% extends 'account/profile_base.html' %}
+{% extends 'account/base.html' %}
 
 {% load zenforms sadiki_core_tags %}
 
@@ -23,10 +23,6 @@
                         <span class="choice">{% if profile_document %}{{ profile_document.template }}: {{ profile_document }}{% else %}Не указан{% endif %}</span>
                     </div>
                 {% endwith %}
-            </div>
-            {% readonly profile 'nickname' %}
-            <div class="buttonHolder">
-                <a id="changeProfile" href="{% url account_profile_change %}" class="btn"><i class="icon-pencil"></i> Изменить</a>
             </div>
             {% if vkontakte_association %}
                 <h3>

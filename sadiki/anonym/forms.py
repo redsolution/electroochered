@@ -104,7 +104,7 @@ class ProfileRegistrationForm(FormWithDocument):
 
     class Meta:
         model = Profile
-        fields = ('nickname',)
+        fields = ()
 
     def __init__(self, *args, **kwds):
         super(ProfileRegistrationForm, self).__init__(*args, **kwds)
