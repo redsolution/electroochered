@@ -699,8 +699,7 @@ class RequestionQuerySet(models.query.QuerySet):
                         STATUS_TEMP_DISTRIBUTED,
                         STATUS_ON_TEMP_DISTRIBUTION,
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
-                        )).order_by(
-                '-benefit_category__priority', 'registration_datetime', 'id')
+                        ))
 
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
@@ -808,6 +807,7 @@ class Requestion(models.Model):
     class Meta:
         verbose_name = u'Заявка в очереди'
         verbose_name_plural = u'Заявки в очереди'
+        ordering = ['-benefit_category__priority', 'registration_datetime', 'id']
 
     areas = AreaChoiceField('Area',
         verbose_name=u'Предпочитаемые территориальные области',

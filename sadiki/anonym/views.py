@@ -19,7 +19,7 @@ from sadiki.conf_settings import SPECIAL_TRANSITIONS
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
-    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE
+    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
@@ -70,7 +70,7 @@ class Registration(RequirePermissionsMixin, TemplateView):
 class Queue(RequirePermissionsMixin, ListView):
     u"""Отображение очереди в район"""
     template_name = 'anonym/queue.html'
-    queryset = Requestion.objects.queue().add_distributed_sadiks(
+    queryset = Requestion.objects.add_distributed_sadiks(
         # TODO: ОЧЕНЬ долго работает.
         ).select_related('benefit_category__priority').prefetch_related('areas')
     paginate_by = 200
@@ -130,10 +130,15 @@ class Queue(RequirePermissionsMixin, ListView):
                                                        max_birth_date=age_group.max_birth_date())
                 if form.cleaned_data.get('benefit_category', None):
                     queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
-                if form.cleaned_data.get('area', None):
+                area = form.cleaned_data.get('area')
+                if area:
                     queryset = queryset.filter(
-                        Q(areas=form.cleaned_data['area']) |
-                        Q(areas__isnull=True))
+                        (Q(areas=area) |
+                        Q(areas__isnull=True)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
+                        Q(distributed_in_vacancy__sadik_group__sadik__area=area) & Q(status__in=DISTRIBUTION_PROCESS_STATUSES))
+                    )
+                else:
+                    queryset = queryset.queue()
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
 
@@ -152,9 +157,9 @@ class Queue(RequirePermissionsMixin, ListView):
 
                 return queryset, form
             else:
-                return queryset, form
+                return queryset.queue(), form
         else:
-            return queryset, self.form()
+            return queryset.queue(), self.form()
 
     def get_context_data(self, **kwargs):
         queryset = kwargs.pop('object_list')
