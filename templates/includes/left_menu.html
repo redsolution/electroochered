@@ -98,11 +98,6 @@
         </li>
     {% endif %}
     {# отчеты для оператора #}
-    {% if request.user.is_operator %}
-        <li {% if request.path == reports %}class="active"{% endif %}>
-            <a href="{{ reports }}"><i class="imgicon flag"></i><p>Отчеты</p></a>
-        </li>
-    {% endif %}
     {% if  wait_time_statistics|check_url_availability:request.user %}
         <li {% if request.path == wait_time_statistics %}class="active"{% endif %} >
             <a href="{{ wait_time_statistics }}">
