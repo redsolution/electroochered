@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*- 
 from django.contrib import messages
 from django.contrib.auth import get_backends, login
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
+from django.contrib.auth.views import password_change
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
@@ -9,6 +10,7 @@ from django.views.generic.base import TemplateView
 from sadiki.authorisation.forms import EmailResetForm
 from sadiki.authorisation.models import VerificationKey
 from sadiki.core.utils import get_user_by_email
+
 
 class EmailVerification(TemplateView):
     u"""Изменение заявки пользователем"""
@@ -88,3 +90,15 @@ class ResetPassword(TemplateView):
                 u"Пароль пользователя успешно изменён." % user)
             return HttpResponseRedirect(reverse('frontpage'))
         return self.render_to_response({'form': form, 'username': user.email})
+
+
+def password_change_custom(request):
+    u"""
+    Если у пользователя не задан пароль, то не нужно запрашивать его
+    """
+    if request.user.has_usable_password():
+        password_change_form = PasswordChangeForm
+    else:
+        password_change_form = SetPasswordForm
+    template_name = u'authorisation/passwd.html'
+    return password_change(request, template_name=template_name, password_change_form=password_change_form)

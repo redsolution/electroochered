@@ -21,6 +21,7 @@
                 </div>
             {% endif %}
             {% izenform form options notag=1 %}
+            <a href="{% url socialauth_begin 'vkontakte-oauth2' %}"><img src="{{ STATIC_URL }}img/vkontakte.png"/></a>
             {% submit "Войти" %}
         </form>
         </div>

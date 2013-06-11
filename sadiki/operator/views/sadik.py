@@ -136,6 +136,8 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
             {'sadik': sadik, 'formset': formset})
 
 
+
+
 class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
     u"""список заявок, которым выделены места для выставления статуса зачисления"""
     template_name = "operator/requestion_list_distributed.html"

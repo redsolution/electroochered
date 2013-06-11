@@ -175,6 +175,9 @@ class RequestionInfo(OperatorRequestionMixin, TemplateView):
     def get(self, request, requestion):
         context = self.get_context_data()
         reset_password_form = HiddenConfirmation(initial={'action': 'reset_password'})
+        vkontakte_associations = requestion.profile.user.social_auth.filter(provider='vkontakte-oauth2')
+        if vkontakte_associations:
+            context.update({'vkontakte_association': vkontakte_associations[0]})
         context.update({
             'requestion': requestion,
             'STATUS_REQUESTER': STATUS_REQUESTER,

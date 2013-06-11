@@ -106,7 +106,36 @@
                     </span>
             </div>
         </div>
+        {% if vkontakte_association %}
+                <h3>
+                    К данной учетной записи привязан аккаунт ВКонтакте:
+                    <a target="_blank" href="http://vk.com/id{{ vkontakte_association.uid }}">{{ vkontakte_association.uid }}</a>
+                    {% if profile.user.has_usable_password %}
+                        <a href="{% url operator_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id %}?next={{ request.get_full_path }}">Отвязать</a>
+                    {% else %}
+                        <p>Чтобы отвязать учетную запись ВКонтакте у пользователя должен быть задан пароль.</p>
+                    {% endif %}
 
+                </h3>
+                {% if profile.first_name or profile.phone_number or profile.skype %}
+                    <div class="vkontakte-info">
+                        <h2>Информация, полученная из ВКонтакте</h2>
+                        {% readonly profile 'first_name' %}
+                        {% readonly profile 'phone_number' %}
+                        {% readonly profile 'skype' %}
+                        <div class="buttonHolder">
+                            <a id="changeProfile" href="{% url operator_social_auth_update_data user_id=profile.user.id %}?next={{ request.get_full_path }}" class="btn"><i class="icon-pencil"></i>Обновить</a>
+                            <a id="changeProfile" href="{% url operator_social_auth_clean_data user_id=profile.user.id %}?next={{ request.get_full_path }}" class="btn"><i class="icon-pencil"></i>Удалить</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="buttonHolder">
+                        <a id="changeProfile" href="{% url operator_social_auth_update_data user_id=profile.user.id %}?next={{ request.get_full_path }}" class="btn"><i class="icon-pencil"></i>Получить данные</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <h2>К этой учетной записи не привязан аккаунт ВКонтакте.
+            {% endif %}
     </div>
 
 {% endwith %}

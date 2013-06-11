@@ -625,15 +625,19 @@ class Profile(models.Model):
         unique=True)
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
+    first_name = models.CharField(u'Имя', max_length=255, null=True)
     nickname = models.CharField(u'Псевдоним', max_length=255, null=True, help_text=u"Как к Вам обращаться?")
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
-    phone_number = models.CharField(u'Основной телефон', max_length=255,
+    phone_number = models.CharField(u'Телефон для связи', max_length=255,
         blank=False, null=True,
         help_text=u"Номер телефона для связи")
     mobile_number = models.CharField(u'Дополнительный телефон',
         max_length=255, blank=True, null=True,
         help_text=u"Дополнительный номер телефона для связи")
+    skype = models.CharField(u'Skype',
+        max_length=255, blank=True, null=True,
+        help_text=u"Учетная запись в сервисе Skype")
     sadiks = models.ManyToManyField('Sadik', null=True)
 
     def get_identity_documents(self):
@@ -644,6 +648,18 @@ class Profile(models.Model):
         return (self.area == sadik.area if self.area else True
             and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
+
+    def social_auth_clean_data(self):
+        self.phone_number = None
+        self.first_name = None
+        self.skype = None
+
+    def update_vkontakte_data(self, data):
+        self.first_name = data.get('first_name')
+        self.phone_number = data.get('home_phone')
+        self.skype = data.get('skype')
+
+
 
     def __unicode__(self):
         return self.user.username

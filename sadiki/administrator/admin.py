@@ -758,7 +758,7 @@ class AgeGroupForm(forms.ModelForm):
         to_age = self.cleaned_data.get('to_age')
         if (from_age and to_age and from_age >= to_age):
             raise forms.ValidationError(
-                "Минимальный возраст должен быть меньше максимального")
+                u"Минимальный возраст должен быть меньше максимального")
         return self.cleaned_data
 
     def save(self, commit=True):

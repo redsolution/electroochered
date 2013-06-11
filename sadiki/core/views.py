@@ -122,3 +122,18 @@ def sadiki_json(request):
                 'url': reverse('sadik_info', args=[sadik.id, ])
             })
     return HttpResponse(simplejson.dumps(data), mimetype='text/json')
+
+
+class VkontakteFrame(TemplateView):
+    u"""
+    Отображение текущих настроек системы
+    """
+
+    template_name = 'vkontakte.html'
+
+    def get_context_data(self, **kwargs):
+        return {'settings': settings}
+
+    def get(self, request):
+        print request.GET
+        return super(VkontakteFrame, self).get(request)

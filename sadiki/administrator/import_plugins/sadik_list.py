@@ -57,13 +57,7 @@ class SadikListFormat(Format):
     start_line = 2
     cells = sadik_list_cells
 
-    def to_python(self, data_row_with_errors):
-        data_row = []
-        for cell in data_row_with_errors:
-            if isinstance(cell, Exception):
-                data_row.append(None)
-            else:
-                data_row.append(cell)
+    def to_python(self, data_row):
         last_name = data_row[4]
         first_name = data_row[5]
         patronymic = data_row[6]

@@ -53,10 +53,14 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
     template_name = 'account/frontpage.html'
 
     def get_context_data(self, **kwargs):
-        return {
+        context = {
             'params': kwargs,
             'profile': self.request.user.profile,
         }
+        vkontakte_associations = self.request.user.social_auth.filter(provider='vkontakte-oauth2')
+        if vkontakte_associations:
+            context.update({'vkontakte_association': vkontakte_associations[0]})
+        return context
 
 
 class RequestionAdd(AccountPermissionMixin, TemplateView):

@@ -10,6 +10,7 @@ from settings import VERIFICATION_KEY_DAYS
 import datetime
 import random
 
+
 class VerificationKeyManager(models.Manager):
     def create_key(self, user):
         u"""В базе данных создается новый ключ для пользователя"""
@@ -86,3 +87,4 @@ class VerificationKey(models.Model):
             }
         self.send_email(u'Сброс пароля',
             'authorisation/emails/recovery_password.txt', context)
+

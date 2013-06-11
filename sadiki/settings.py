@@ -77,6 +77,7 @@ MIDDLEWARE_CLASSES = [
     'sadiki.core.middleware.SettingsJSMiddleware',
 #    'sadiki.core.middleware.LogPIDMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
+    'sadiki.social_auth_custom.middleware.SocialAuthExceptionMiddlewareCustom',
 ]
 
 ROOT_URLCONF = 'sadiki.urls'
@@ -102,14 +103,15 @@ INSTALLED_APPS = [
     'sadiki.statistics',
     'sadiki.distribution',
     'sadiki.custom_flatpages',
+    'sadiki.social_auth_custom',
 #    'sadiki.feedback',
     'south',
     'pytils',
-#    'tastypie',
     'zenforms',
     'chunks',
     'tinymce',
     'trustedhtml',
+    'social_auth',
     'attachment',
 ]
 
@@ -146,6 +148,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 AUTHENTICATION_BACKENDS = (
+    'sadiki.social_auth_custom.backens.vkontakte_custom.VKontakteOAuth2BackendCustom',
     'django.contrib.auth.backends.ModelBackend',
     'sadiki.authorisation.backends.EmailAuthBackend',
 )
@@ -160,6 +163,8 @@ DATETIME_FORMAT = 'Y-m-d H:i'
 SHORT_DATE_FORMAT = 'Y-m-d'
 DATETIME_FORMAT = 'Y-m-d H:i'
 DATE_INPUT_FORMATS = ('%Y-%m-%d', "%Y/%m/%d")
+
+LOGIN_URL = '/auth/login/'
 
 #Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -203,3 +208,28 @@ POSTGIS_VERSION = (1, 4, 0)
 LOCK_DIR = os.path.join(PROJECT_DIR, 'lock')
 
 REQUESTER_USERNAME_PREFIX = 'requester'
+
+SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['username', 'email', 'first_name', 'last_name', ]
+
+VK_APP_ID = '3694887'
+VK_API_SECRET = 'cN5QsEuPZtDGXqtqt3NL'
+
+VK_EXTRA_SCOPE = ['offline', ]
+VK_EXTRA_DATA = ['contacts', 'connections', ]
+
+# SOCIAL_AUTH_FORCE_POST_DISCONNECT = True
+# SOCIAL_AUTH_USER_MODEL = 'sadiki.social_auth_custom.models.UserSocialAuthCustom'
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_auth.backends.pipeline.social.social_auth_user',
+    'social_auth.backends.pipeline.user.get_username',
+    'sadiki.social_auth_custom.pipeline.user.create_user',
+    # 'social_auth.backends.pipeline.user.create_user',
+    'social_auth.backends.pipeline.social.associate_user',
+    'social_auth.backends.pipeline.social.load_extra_data',
+    'social_auth.backends.pipeline.user.update_user_details',
+    'sadiki.social_auth_custom.pipeline.user.check_single_association',
+    'sadiki.social_auth_custom.pipeline.user.update_user_info',
+)
+
+LOGIN_ERROR_URL = '/auth/login/'

@@ -4,6 +4,7 @@ from django.contrib.auth.backends import ModelBackend
 #from django.forms.fields import email_re
 from sadiki.core.utils import get_user_by_email
 
+
 class EmailAuthBackend(ModelBackend):
 
     def authenticate(self, username=None, password=None):

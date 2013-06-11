@@ -5,13 +5,13 @@ from sadiki.conf_settings import *
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
-INSTALLED_APPS += [
-    'django_extensions',
-    'debug_toolbar',
-#    'sadiki.import_data',
-]
+# INSTALLED_APPS += [
+#     'django_extensions',
+#     'debug_toolbar',
+# #    'sadiki.import_data',
+# ]
 
-MIDDLEWARE_CLASSES += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
+# MIDDLEWARE_CLASSES += ['debug_toolbar.middleware.DebugToolbarMiddleware', ]
 CACHE_BACKEND = "locmem://"
 
 INTERNAL_IPS = ('127.0.0.1',)
