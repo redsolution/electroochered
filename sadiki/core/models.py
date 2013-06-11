@@ -851,7 +851,8 @@ class Requestion(models.Model):
 
 #    Child info
     birth_date = models.DateField(u'Дата рождения ребенка', validators=[birth_date_validator])
-    name = models.CharField(u'имя ребёнка', max_length=255, null=True)
+    name = models.CharField(u'имя ребёнка', max_length=255, null=True,
+                            help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
     sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     cast = models.IntegerField(verbose_name=u'Тип заявки',
