@@ -3,6 +3,7 @@ from datetime import timedelta
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
@@ -188,4 +189,7 @@ class QueueFilterForm(forms.Form):
     without_facilities = forms.BooleanField(
         label=u"Сортировать очередь", required=False,
         widget=forms.Select(choices=((False, u'в порядке очерёдности'),
-                                     (True, u'в порядке подачи заявлений'))))
+                                     (True, u'в порядке подачи заявлений'))),
+        help_text=mark_safe(u"""В порядке очередности заявки отображаются исходя из приоритета категории льгот:
+            внеочередная, первоочередная, заявки без льгот.<br>
+            В порядке подачи заявлений заявке отображаются только хронологически."""))
