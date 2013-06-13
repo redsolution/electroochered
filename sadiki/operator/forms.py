@@ -9,6 +9,7 @@ from sadiki.account.forms import RequestionForm, PreferredSadikForm
 from sadiki.administrator.admin import SadikAdminForm
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     ProfileRegistrationForm, FormWithDocument
+from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Address, \
@@ -82,7 +83,7 @@ class OperatorRegistrationForm(RegistrationForm):
 
 class OperatorSearchForm(PublicSearchForm):
     requestion_number = forms.CharField(label=u'Номер заявки в системе',
-        required=False, widget=forms.TextInput(attrs={'data-mask': u'99999999-Б-999999999'}))
+        required=False, widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}))
     birth_date = forms.DateField(label=u'Дата рождения ребёнка',
             widget=JqueryUIDateWidget(), required=False)
 
@@ -315,38 +316,35 @@ class EmailForm(forms.ModelForm):
 
 class ProfileSearchForm(forms.Form):
     requestion_number = forms.CharField(
-        label=u'Номер заявки привязанной к данному профилю',
+        label=u'Номер заявки, привязанной к профилю',
         required=False,
-        widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}))
-    last_name = forms.CharField(
-        label=u'Фамилия родителя', required=False, widget=forms.TextInput())
-    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}))
+    parent_first_name = forms.CharField(
         label=u'Имя родителя', required=False, widget=forms.TextInput())
-    parent_last_name = forms.CharField(
-        label=u'Отчество родителя', required=False, widget=forms.TextInput())
 
     field_map = {
         'requestion_number': 'requestion__requestion_number__exact',
-        'last_name': 'last_name__icontains',
-        'first_name': 'first_name__icontains',
-        'patronymic': 'patronymic__icontains',
+        'parent_first_name': 'first_name__icontains',
     }
 
     def __init__(self, *args, **kwds):
         super(ProfileSearchForm, self).__init__(*args, **kwds)
         self.reverse_field_map = dict((v, k) for k, v in self.field_map.iteritems())
 
+    def clean(self):
+        if not any([value for value in self.cleaned_data.itervalues()]):
+            raise forms.ValidationError(u"Необходимо указать хотя бы один параметр для поиска.")
+        return self.cleaned_data
+
     def build_query(self):
         if self.cleaned_data:
             filter_kwargs = {}
-            if 'requestion_number' in self.changed_data:
-                filter_kwargs[self.field_map['requestion_number']] = self.cleaned_data['requestion_number']
-            if 'last_name' in self.changed_data:
-                filter_kwargs[self.field_map['last_name']] = self.cleaned_data['last_name']
-            if 'first_name' in self.changed_data:
-                filter_kwargs[self.field_map['first_name']] = self.cleaned_data['first_name']
-            if 'patronymic' in self.changed_data:
-                filter_kwargs[self.field_map['patronymic']] = self.cleaned_data['patronymic']
+            requestion_number = self.cleaned_data.get('requestion_number')
+            parent_first_name = self.cleaned_data.get('parent_first_name')
+            if requestion_number:
+                filter_kwargs[self.field_map['requestion_number']] = requestion_number
+            if parent_first_name:
+                filter_kwargs[self.field_map['parent_first_name']] = parent_first_name
             return filter_kwargs
 
 

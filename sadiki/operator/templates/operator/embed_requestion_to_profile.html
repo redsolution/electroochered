@@ -12,12 +12,12 @@
             <div class="page-header"><h2>Информация о заявке {{ requestion }}</h2></div>
             {% with params.requestion as requestion %}
             <dl>
-                <dt>ФИО ребенка</dt>
-                <dd>{{ requestion.fio }}</dd>
                 <dt>Территориальная область:</dt>
                 <dd>{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</dd>
                 <dt>Дата рождения:</dt>
                 <dd>{{ requestion.birth_date }}</dd>
+                <dt>Дата регистрации:</dt>
+                <dd>{{ requestion.registration_datetime }}</dd>
                 <dt>Статус:</dt>
                 <dd>{{ requestion.get_status_display }}</dd>
                 <dt>Льготы:</dt>
@@ -43,8 +43,10 @@
             <div class="page-header"><h2>Информация о профиле</h2></div>
             {% with params.profile as profile %}
             <dl>
-                <dt>ФИО</dt>
-                <dd>{{ profile.fio }}</dd>
+                <dt>Имя пользователя</dt>
+                <dd>{{ profile.user.username }}</dd>
+                <dt>Имя родителя</dt>
+                <dd>{{ profile.first_name|verbose_value }}</dd>
                 <dt>Заявки, принадлежащие, профилю</dt>
                 <dd>
                     {% for requestion in profile.requestion_set.all %}

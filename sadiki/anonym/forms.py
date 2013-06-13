@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area
@@ -170,7 +171,7 @@ class PublicSearchForm(forms.Form):
 
 class QueueFilterForm(forms.Form):
     requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
-        widget=forms.TextInput(attrs={'data-mask': u'99999999-Б-999999999'}),
+        widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
     confirmed = forms.BooleanField(label=u'Документально подтвержденные',
         required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")

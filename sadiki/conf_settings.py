@@ -98,3 +98,5 @@ SPECIAL_TRANSITIONS = [int(transition) for transition in config.get("options", "
 DEFAULT_IMPORT_DOCUMENT_NAME = config.get('options', 'DEFAULT_IMPORT_DOCUMENT_NAME')
 # название области, используется при импорте
 REGION_NAME = config.get('options', 'REGION_NAME').decode('utf-8')
+# маска для номера заявки(используется в модуле для jquery)
+REQUESTION_NUMBER_MASK = config.get('options', 'REQUESTION_NUMBER_MASK').decode('utf-8')

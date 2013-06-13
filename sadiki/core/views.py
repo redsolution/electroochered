@@ -135,5 +135,4 @@ class VkontakteFrame(TemplateView):
         return {'settings': settings}
 
     def get(self, request):
-        print request.GET
         return super(VkontakteFrame, self).get(request)

@@ -571,15 +571,26 @@ class FindProfileForRequestion(OperatorRequestionCheckIdentityMixin,
     form = ProfileSearchForm
     field_weights = {
         'requestion__requestion_number__exact': 5,
-        'last_name__icontains': 1,
-        'first_name__icontains': 2,
-        'patronymic__icontains': 3,
+        'first_name__icontains': 1,
     }
+
+    def get_context_data(self, **kwargs):
+        return {
+            'params': kwargs,
+            'requestion': kwargs.get('requestion'),
+            'form': self.form(),
+        }
 
 
 class EmbedRequestionToProfile(OperatorRequestionCheckIdentityMixin,
         OperatorRequestionEditMixin, TemplateView):
     template_name = u"operator/embed_requestion_to_profile.html"
+
+    def get_context_data(self, **kwargs):
+        return {
+            'requestion': kwargs.get('requestion'),
+            'params': kwargs
+        }
 
     def check_permissions(self, request, requestion, profile):
         if super(EmbedRequestionToProfile, self).check_permissions(

@@ -282,10 +282,8 @@ class RequestionSearch(RequirePermissionsMixin, TemplateView):
 
     def post(self, request, **kwargs):
         form = self.form(request.POST)
-        context_data = {
-            'form': form,
-            'params': kwargs,
-        }
+        context_data = self.get_context_data(**kwargs)
+        context_data['form'] = form
         if form.is_valid():
             query = form.build_query()
             results = self.initial_query.filter(**query)
