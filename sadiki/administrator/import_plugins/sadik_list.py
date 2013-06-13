@@ -10,7 +10,7 @@ sadik_list_cells = (
     {'name':u'Территориальная область', 'parsers':(AreaCellParser,)}, # 0
     {'name':u'Полное название', 'parsers': (TextCellParser,)}, # 1
     {'name':u'Короткое название', 'parsers': (TextCellParser,)}, # 2
-    {'name':u'Номер', 'parsers': (TextNumberCellParser, TextCellParser)}, # 3
+    {'name':u'Идентификатор', 'parsers': (TextNumberCellParser, TextCellParser)}, # 3
 
 #    директор
     {'name':u'Фамилия директора', 'parsers':
@@ -56,8 +56,13 @@ class SadikListFormat(Format):
     # xls reading options
     start_line = 2
     cells = sadik_list_cells
-
-    def to_python(self, data_row):
+    def to_python(self, data_row_with_errors):
+        data_row = []
+        for cell in data_row_with_errors:
+            if isinstance(cell, Exception):
+                data_row.append(None)
+            else:
+                data_row.append(cell)
         last_name = data_row[4]
         first_name = data_row[5]
         patronymic = data_row[6]
