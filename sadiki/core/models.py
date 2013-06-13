@@ -746,7 +746,15 @@ class RequestionQuerySet(models.query.QuerySet):
         заявкой ``instance`` в выдаче с сортировкой **включая** саму заявку.
         """
         if self.ordered:
-            order_fields = self.query.order_by
+            # copy from django.db.models.sql.compiler method get_ordering of SQLCompiler class
+            if self.query.extra_order_by:
+                order_fields = self.query.extra_order_by
+            elif not self.query.default_ordering:
+                order_fields = self.query.order_by
+            else:
+                order_fields = (self.query.order_by
+                                or self.query.model._meta.ordering
+                                or [])
 
             q_object = None
             for n, current_sort_param in enumerate(order_fields):

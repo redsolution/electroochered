@@ -86,7 +86,7 @@ class Queue(RequirePermissionsMixin, ListView):
 
         if page is None:
             if self.requestion:
-                page = (self.queryset.queue().requestions_before(self.requestion).count() / page_size) + 1
+                page = (self.queryset.requestions_before(self.requestion).count() / page_size) + 1
             else:
                 # Номер страницы по умолчанию 1
                 page = 1
