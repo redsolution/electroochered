@@ -113,11 +113,13 @@
         <h2>Список детей для которых было выделено место в ДОУ</h2>
         {% with request.user.is_operator as user_is_operator %}
         {% for sadik_group, requestions  in distributed_for_groups.iteritems %}
-            <h3>{{ sadik_group.age_group.name }} ({{ sadik_group.age_group.short_name }}) за {{ sadik_group.year.year }} год</h3>
-            {% if user_is_operator %}
-                {% include "operator/includes/sadik_info_distributed_include.html" %}
-            {% else %}
-                {% include "anonym/includes/sadik_info_distributed_include.html" %}
+            {% if requestions %}
+                <h3>{{ sadik_group.age_group.name }} ({{ sadik_group.age_group.short_name }}) за {{ sadik_group.year.year }} год</h3>
+                {% if user_is_operator %}
+                    {% include "operator/includes/sadik_info_distributed_include.html" %}
+                {% else %}
+                    {% include "anonym/includes/sadik_info_distributed_include.html" %}
+                {% endif %}
             {% endif %}
         {% endfor %}
         {% endwith %}
