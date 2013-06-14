@@ -109,10 +109,15 @@
         </tr>
         </tbody>
     </table>
-    {% if distributed_for_groups %}
+    {% if groups_with_distributed_requestions %}
         <h2>Список детей для которых было выделено место в ДОУ</h2>
         {% with request.user.is_operator as user_is_operator %}
-        {% for sadik_group, requestions  in distributed_for_groups.iteritems %}
+        {% if user_is_operator %}
+            <a target="_blank" class="btn" href="{% url distributed_requestions_for_sadik sadik_id=sadik.id %}">
+            Сохранить отчет
+            </a>
+        {% endif %}
+        {% for sadik_group, requestions  in groups_with_distributed_requestions.iteritems %}
             {% if requestions %}
                 <h3>{{ sadik_group.age_group.name }} ({{ sadik_group.age_group.short_name }}) за {{ sadik_group.year.year }} год</h3>
                 {% if user_is_operator %}

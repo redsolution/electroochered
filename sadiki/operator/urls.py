@@ -9,7 +9,7 @@ from sadiki.operator.views.requestion import Registration, RequestionSearch, \
     Queue, RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
     EmbedRequestionToProfile, GenerateBlank, RevalidateEmail, GenerateProfilePassword, ChangeRequestionLocation
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
-    RequestionListEnrollment, SadikInfoChange
+    RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
 
 if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
     change_benefits_view = BenefitsChange.as_view()
@@ -63,4 +63,6 @@ urlpatterns = patterns('',
         SadikGroupChangePlaces.as_view(), name=u'sadikgroup_change_places'),
     url(r'^dou/(?:(?P<sadik_id>\d{1,7})/)?requests/$',
         RequestionListEnrollment.as_view(), name=u'requestion_list_enroll'),
+    url(r'^dou/(?P<sadik_id>\d{1,7})/distributed_requestions/$',
+        DistributedRequestionsForSadik.as_view(), name=u'distributed_requestions_for_sadik'),
 )

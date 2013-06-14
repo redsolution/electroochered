@@ -370,6 +370,31 @@ class Sadik(models.Model):
                 sadik_group.max_birth_date = age_group.max_birth_date()
                 sadik_group.save()
 
+    def get_groups_with_distributed_requestions(self):
+        u"""
+        Возвращает ordereddict {sadik_group: [distributed_requestion_1, distributed_requestion_2]}
+        возрастные группы в которых нет заявок с выделенными местами опускаются
+        словарь отсортирован по возрастным группам(год, минимальная дата ождения по убыванию),
+        заявки по дате выделения места по убыванию
+        """
+        distributed_requestions = Requestion.objects.provided_places().filter(
+            distributed_in_vacancy__sadik_group__sadik=self).select_related(
+            'benefit_category__name', 'distributed_in_vacancy__sadik_group',
+            'distributed_in_vacancy__sadik_group__age_group').order_by('-decision_datetime')
+        distributed_requestions.add_related_documents()
+        groups_with_distributed_requestions = {}
+        # собираем все заявки в словарь
+        for requestion in distributed_requestions:
+            sadik_group = requestion.distributed_in_vacancy.sadik_group
+            if sadik_group not in groups_with_distributed_requestions:
+                groups_with_distributed_requestions[sadik_group] = []
+            groups_with_distributed_requestions[requestion.distributed_in_vacancy.sadik_group].append(requestion)
+        # сортируем словарь
+        groups_with_distributed_requestions = OrderedDict(sorted(groups_with_distributed_requestions.items(),
+                               key=lambda (sadik_group, requestions): (sadik_group.year, sadik_group.min_birth_date),
+                               reverse=True))
+        return groups_with_distributed_requestions
+
     def save(self, *args, **kwargs):
         # обновляем номер ДОУ
         self.number = self.get_number()

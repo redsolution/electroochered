@@ -347,17 +347,11 @@ class SadikInfo(RequirePermissionsMixin, TemplateView):
                 min_birth_date=group.min_birth_date(current_distribution_year=current_distribution_year),
                 max_birth_date=group.max_birth_date(current_distribution_year=current_distribution_year)).count())
        # список распределенных заявок с путевками в работающие группы этого ДОУ
-        distributed_requestions = Requestion.objects.provided_places().filter(
-            distributed_in_vacancy__sadik_group__sadik=sadik).select_related(
-            'benefit_category__name', 'distributed_in_vacancy__sadik_group').order_by('-decision_datetime')
-        distributed_for_groups = OrderedDict([(sadik_group, []) for sadik_group in
-                                              sadik.groups.all().select_related('age_group')])
-        for requestion in distributed_requestions:
-            distributed_for_groups[requestion.distributed_in_vacancy.sadik_group].append(requestion)
+        groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
         return self.render_to_response({
             'sadik': sadik,
             'requestions_statistics': requestions_statistics,
             'requestions_numbers_by_groups': requestions_numbers_by_groups,
             'groups': age_groups,
-            'distributed_for_groups': distributed_for_groups,
+            'groups_with_distributed_requestions': groups_with_distributed_requestions,
         })

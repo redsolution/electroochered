@@ -2,7 +2,7 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from ordereddict import OrderedDict
@@ -123,8 +123,6 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
             {'sadik': sadik, 'formset': formset})
 
 
-
-
 class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
     u"""список заявок, которым выделены места для выставления статуса зачисления"""
     template_name = "operator/requestion_list_distributed.html"
@@ -184,3 +182,57 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
                             "STATUS_REQUESTER": STATUS_REQUESTER})
             return self.render_to_response(context)
         return self.render_to_response(context)
+
+
+class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
+    required_permissions = ["is_operator", "is_sadik_operator"]
+
+    def get(self, request, sadik_id):
+        sadik = Sadik.objects.get(id=sadik_id)
+        groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
+
+        response = HttpResponse(mimetype='application/vnd.ms-excel')
+        file_name = u'Sadik_%s' % sadik.number
+        response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
+        import xlwt
+        style = xlwt.XFStyle()
+        style.num_format_str = 'DD-MM-YYYY'
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet(u'Результаты распределения')
+        header = [
+            u'№',
+            u'Номер заявки',
+            u'Документ',
+            u'Имя ребенка',
+            u'Дата рождения',
+            u'Дата регистрации',
+            u'Категория льгот',
+            u'Статус заявки',
+        ]
+        ws.write_merge(0, 0, 0, len(header), sadik.name)
+        row_number = 1
+        for sadik_group, requestions in groups_with_distributed_requestions.iteritems():
+            sadik_group_name = u"{name} ({short_name}) за {year} год".format(
+                name=sadik_group.age_group.name, short_name=sadik_group.age_group.short_name,
+                year=sadik_group.year.year)
+            ws.write_merge(row_number, row_number, 0, len(header), sadik_group_name)
+            row_number += 1
+            for column_number, element in enumerate(header):
+                ws.write(row_number, column_number, element, style)
+            row_number += 1
+            for i, requestion in enumerate(requestions, start=1):
+                if requestion.related_documents:
+                    document = requestion.related_documents[0]
+                    document_number = u"{0} ({1})".format(document.document_number, document.template.name)
+                else:
+                    document_number = u''
+                row = [unicode(i), requestion.requestion_number, document_number, requestion.name, requestion.birth_date,
+                       requestion.registration_datetime.date(), unicode(requestion.benefit_category),
+                       requestion.get_status_display()]
+                for el in row:
+                    print el.__class__
+                for column_number, element in enumerate(row):
+                    ws.write(row_number, column_number, element, style)
+                row_number += 1
+        wb.save(response)
+        return response
