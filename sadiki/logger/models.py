@@ -98,6 +98,10 @@ class LoggerManager(models.Manager):
                     message=message,
                     from_email=None, recipient_list=[obj.profile.user.email, ])
 
+    def filter_for_object(self, obj):
+        content_type = ContentType.objects.get_for_model(obj)
+        return self.filter(content_type=content_type, object_id=obj.id)
+
 ANONYM_LOG = logging.DEBUG
 ACCOUNT_LOG = logging.INFO
 OPERATOR_LOG = logging.WARNING

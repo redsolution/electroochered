@@ -357,6 +357,19 @@ class Sadik(models.Model):
         else:
             return None
 
+    def create_default_sadikgroups(self):
+        u'''
+        Для ДОУ создаются возрастные группы, если они не существуют
+        '''
+        age_groups = self.age_groups.all()
+        age_groups_created_ids = self.groups.active().values_list('age_group_id', flat=True)
+        for age_group in age_groups:
+            if age_group.id not in age_groups_created_ids:
+                sadik_group = SadikGroup(sadik=self, age_group=age_group, year=get_current_distribution_year(),)
+                sadik_group.min_birth_date = age_group.min_birth_date()
+                sadik_group.max_birth_date = age_group.max_birth_date()
+                sadik_group.save()
+
     def save(self, *args, **kwargs):
         # обновляем номер ДОУ
         self.number = self.get_number()

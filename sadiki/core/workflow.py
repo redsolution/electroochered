@@ -126,6 +126,7 @@ NOT_APPEAR_EXPIRE = 51                  # Истечение сроков обж
 REQUESTION_REJECT = 55                  # Истечение сроков на подтверждение документов
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
+DISTRIBUTION_BY_RESOLUTION = 58
 #отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
@@ -178,6 +179,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
              u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
+workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION, u'Зачисление по резолюции Начальника',
+             permissions=[SUPERVISOR_PERMISSION[0]])
 # workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
 #              u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_NOT_APPEAR, DECISION_NOT_APPEAR,
@@ -593,6 +596,12 @@ ACTION_TEMPLATES.update({
     },
     DECISION: {
         ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
+    },
+    DISTRIBUTION_BY_RESOLUTION: {
+        ANONYM_LOG: Template(
+            u"""Зачислен в {{ sadik }}. Должность резолюционера: {{ resolutioner_post }}.
+            ФИО резолюционера: {{ resolutioner_fio }}. Номер документа: {{ resolution_number }}.
+            """)
     }
 
 

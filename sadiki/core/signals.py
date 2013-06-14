@@ -34,7 +34,7 @@ from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
     STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
-    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup
+    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup, Vacancies
 from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
@@ -46,11 +46,12 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
-    workflow
+    workflow, DISTRIBUTION_BY_RESOLUTION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, PreferredSadikConfirmationForm
 import datetime
+from sadiki.supervisor.forms import DistributionByResolutionForm
 
 
 pre_status_change = Signal(providing_args=['request', 'requestion', 'transition', 'form'])
@@ -354,6 +355,24 @@ def after_restore_requestion(sender, **kwargs):
         reason=form.cleaned_data.get('reason'))
 
 
+# Зачисление по резолюции
+@receiver(post_status_change, sender=Requestion)
+@listen_transitions(DISTRIBUTION_BY_RESOLUTION,)
+def after_distribution_by_resolution(sender, **kwargs):
+    transition = kwargs['transition']
+    request = kwargs['request']
+    form = kwargs['form']
+    requestion = kwargs['requestion']
+    sadik = form.cleaned_data.get('sadik')
+    sadik.create_default_sadikgroups()
+    sadik_group = requestion.get_sadik_groups(sadik)[0]
+    vacancy = Vacancies.objects.create(sadik_group=sadik_group, status=VACANCY_STATUS_DISTRIBUTED)
+    requestion.distributed_in_vacancy = vacancy
+    requestion.save()
+    Logger.objects.create_for_action(transition.index, context_dict=form.cleaned_data,
+                                     extra={'user': request.user, 'obj': requestion,},
+                                     reason=form.cleaned_data.get('reason'))
+
 # ------------------------------------------------------
 # Функции дополнительной проеврки переходов (callback)
 # ------------------------------------------------------
@@ -452,3 +471,6 @@ def permit_distribution(user, requestion, transition, request=None, form=None):
 register_callback(
     (DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, ABSENT_DISTRIBUTED),
     permit_distribution)
+
+# Зачисление по резолюции
+register_form(DISTRIBUTION_BY_RESOLUTION, DistributionByResolutionForm)
