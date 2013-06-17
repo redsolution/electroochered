@@ -5,6 +5,8 @@ django-classy-tags ==0.3.4.1
 redsolutioncms.django-trusted-html >=0.1,<0.2
 ordereddict ==1.1
 redsolutioncms.django-tinymce-attachment >=0.4, <0.5
+django-social-auth ==0.7.23
+
 
 # use system in production
 Django>=1.4, <1.5
