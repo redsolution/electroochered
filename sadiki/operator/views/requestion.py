@@ -33,7 +33,7 @@ from sadiki.core.workflow import REQUESTION_REGISTRATION, \
     CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE, CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRegistrationForm, \
-    OperatorProfileRegistrationForm, OperatorRequestionForm, OperatorSearchForm, \
+    OperatorRequestionForm, OperatorSearchForm, \
     DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, EmailForm, \
     ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin, \
@@ -65,14 +65,12 @@ class Registration(OperatorPermissionMixin, TemplateView):
     def get(self, request):
         registration_form = OperatorRegistrationForm(
             prefix="user")
-        profile_form = OperatorProfileRegistrationForm(prefix="profile")
         requestion_form = OperatorRequestionForm(prefix="requestion")
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm()
         else:
             benefits_form = BenefitCategoryForm()
         context = {'registration_form': registration_form,
-            'profile_form': profile_form,
             'requestion_form': requestion_form,
             'benefits_form': benefits_form,
             'openlayers_js': get_openlayers_js()}
@@ -80,23 +78,20 @@ class Registration(OperatorPermissionMixin, TemplateView):
 
     def post(self, request):
         registration_form = OperatorRegistrationForm(data=request.POST, prefix="user")
-        profile_form = OperatorProfileRegistrationForm(request.POST,
-            prefix="profile")
         requestion_form = OperatorRequestionForm(request.POST,
             prefix="requestion")
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm(data=request.POST)
         else:
             benefits_form = BenefitCategoryForm(data=request.POST)
-        if (registration_form.is_valid() and profile_form.is_valid() and
-            requestion_form.is_valid() and benefits_form.is_valid()):
+        if registration_form.is_valid() and requestion_form.is_valid() and benefits_form.is_valid():
             user = registration_form.save()
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
             user.set_username_by_id()
             user.save()
-            profile = profile_form.save(user=user)
+            profile = Profile.objects.create(user=user)
             requestion = requestion_form.save(profile=profile)
             benefits_form.instance = requestion
             requestion = benefits_form.save()
@@ -127,7 +122,6 @@ class Registration(OperatorPermissionMixin, TemplateView):
 
 
         context = {'registration_form': registration_form,
-            'profile_form': profile_form,
             'requestion_form': requestion_form,
             'openlayers_js': get_openlayers_js()}
         return self.render_to_response(context)

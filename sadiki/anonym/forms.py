@@ -102,24 +102,6 @@ class FormWithDocument(forms.ModelForm):
         return cleaned_data
 
 
-class ProfileRegistrationForm(FormWithDocument):
-
-    class Meta:
-        model = Profile
-        fields = ()
-
-    def __init__(self, *args, **kwds):
-        super(ProfileRegistrationForm, self).__init__(*args, **kwds)
-
-    def save(self, user, commit=True):
-        profile = super(ProfileRegistrationForm, self).save(commit=False)
-        profile.user = user
-        if commit:
-            profile.save()
-            self.create_document(profile)
-        return profile
-
-
 class PublicSearchForm(forms.Form):
     birth_date = forms.DateField(label=u'Дата рождения ребёнка',
         widget=JqueryUIDateWidget(), required=True)

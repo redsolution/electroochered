@@ -8,7 +8,7 @@ from django.forms.widgets import CheckboxSelectMultiple
 from sadiki.account.forms import RequestionForm, PreferredSadikForm
 from sadiki.administrator.admin import SadikAdminForm
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
-    ProfileRegistrationForm, FormWithDocument
+    FormWithDocument
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
@@ -47,18 +47,6 @@ class OperatorRequestionForm(RequestionForm):
         self.instance.status = STATUS_REQUESTER
         self.instance.cast = REQUESTION_TYPE_OPERATOR
         return super(OperatorRequestionForm, self).save(*args, **kwargs)
-
-
-class OperatorProfileRegistrationForm(ProfileRegistrationForm):
-    u"""Форма создания пользовательского профиля через оператора"""
-
-    def create_document(self, profile, commit=True):
-        document = super(OperatorProfileRegistrationForm, self).create_document(
-            profile, commit=False)
-        document.confirmed = True
-        if commit:
-            document.save()
-        return document
 
 
 class OperatorRegistrationForm(RegistrationForm):
