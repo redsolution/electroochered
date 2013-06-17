@@ -171,10 +171,11 @@ def load_urlpatterns(context):
     from sadiki.statistics.urls import urlpatterns as statictics_patterns
     from sadiki.logger.urls import urlpatterns as logger_patterns
     from sadiki.distribution.urls import urlpatterns as distribution_patterns
+    from sadiki.core.urls import urlpatterns as core_patterns
 
     all_patterns = anonym_patterns + auth_patterns + operator_patterns \
                    + supervisor_patterns + statictics_patterns + account_patterns \
-                   + logger_patterns + distribution_patterns
+                   + logger_patterns + distribution_patterns + core_patterns
     extra_context = {}
 
     for pattern in all_patterns:

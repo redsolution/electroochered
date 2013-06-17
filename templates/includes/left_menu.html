@@ -23,8 +23,8 @@
     {% endif %}
     {# пункты меню оператора #}
     {% if request.user.is_operator %}
-        <li {% if request.path == operator_registration %}class="active"{% endif %}>
-            <a href="{{ operator_registration }}"><i class="imgicon key"></i><p>Добавить заявку</p></a>
+        <li {% if request.path == anonym_registration %}class="active"{% endif %}>
+            <a href="{{ anonym_registration }}"><i class="imgicon key"></i><p>Добавить заявку</p></a>
         </li>
     {% endif %}
     {# пункты меню оператора и оператора ДОУ #}
@@ -76,14 +76,14 @@
 
     {# общие для всех пользователей пункты #}
 
-    {% create_extend_list anonym_queue operator_queue anonym_requestion_search operator_requestion_search as queue_urls %}
+    {% create_extend_list anonym_queue anonym_requestion_search as queue_urls %}
     {% if queue_howto_pages %}
         {% create_extend_list queue_urls queue_howto_pages.0.url as queue_urls %}
     {% endif %}
     {% if  anonym_queue|check_url_availability:request.user %}
         <li {% if request.path in queue_urls %}class="active"{% endif %} >
 
-            <a {% if request.user.is_operator %}href="{{ operator_queue }}" {% else %}href="{{ anonym_queue }}" {% endif %}>
+            <a href="{{ anonym_queue }}">
             <i class="imgicon search"></i>
             <p>Просмотр очереди</p>
             </a>

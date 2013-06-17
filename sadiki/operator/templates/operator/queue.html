@@ -2,15 +2,15 @@
 {% load paginate sadiki_core_tags flatpages %}
 
 {% block content_menu %}
-    {% url operator_queue as queue_url %}
-    {% url operator_requestion_search as operator_requestion_search_url %}
+    {% url anonym_queue as queue_url %}
+    {% url anonym_requestion_search as requestion_search_url %}
     {% url sadik_list as sadik_list_url %}
     <ul class="content-menu">
         <li {% if request.path == queue_url %}class="active"{% endif %}>
             <a href="{{ queue_url }}">Очередь</a>
         </li>
-        <li {% if request.path == operator_requestion_search_url %}class="active"{% endif %}>
-            <a href="{{ operator_requestion_search_url }}">Поиск заявки</a>
+        <li {% if request.path == requestion_search_url %}class="active"{% endif %}>
+            <a href="{{ requestion_search_url }}">Поиск заявки</a>
         </li>
         {% get_flatpages "/queue_howto/" as queue_howto_pages %}
         {% if queue_howto_pages %}

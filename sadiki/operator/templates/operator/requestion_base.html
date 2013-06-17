@@ -6,7 +6,7 @@
     {% url operator_benefits_change requestion.id as operator_benefits_change_url %}
     {% url operator_preferredsadiks_change requestion.id as operator_preferredsadiks_change_url %}
     {% url operator_documents_change requestion.id as operator_documents_change_url %}
-    {% url requestion_logs_for_operator requestion.id as logs_url %}
+    {% url requestion_logs requestion.id as logs_url %}
 
     <ul class="content-menu">
         <li {% if request.path == operator_requestion_info_url %}class="active"{% endif %}>

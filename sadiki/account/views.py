@@ -17,7 +17,7 @@ from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
     CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS, CHANGE_DOCUMENTS
 from sadiki.logger.models import Logger
-from sadiki.core.views import GenerateBlankBase
+from sadiki.core.views_base import GenerateBlankBase
 
 
 class AccountPermissionMixin(RequirePermissionsMixin):

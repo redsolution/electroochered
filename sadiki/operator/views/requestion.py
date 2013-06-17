@@ -40,7 +40,7 @@ from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
 from django.forms.models import ModelFormMetaclass
-from sadiki.core.views import GenerateBlankBase, generate_pdf
+from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm
 
 

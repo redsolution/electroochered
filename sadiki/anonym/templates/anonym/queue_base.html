@@ -30,16 +30,16 @@
 
 {% block content_menu %}
     {% url anonym_queue as queue_url %}
-    {% url anonym_requestion_search as anonym_requestion_search_url %}
+    {% url anonym_requestion_search as requestion_search_url %}
     <ul class="content-menu">
         {% if queue_url|check_url_availability:request.user %}
             <li {% if request.path == queue_url %}class="active"{% endif %}>
                 <a href="{{ queue_url }}">Очередь</a>
             </li>
         {% endif %}
-        {% if anonym_requestion_search_url|check_url_availability:request.user %}
-            <li {% if request.path == anonym_requestion_search_url %}class="active"{% endif %}>
-                <a href="{{ anonym_requestion_search_url }}">Поиск заявки</a>
+        {% if requestion_search_url|check_url_availability:request.user %}
+            <li {% if request.path == requestion_search_url %}class="active"{% endif %}>
+                <a href="{{ requestion_search_url }}">Поиск заявки</a>
             </li>
         {% endif %}
         {% get_flatpages "/queue_howto/" as queue_howto_pages %}

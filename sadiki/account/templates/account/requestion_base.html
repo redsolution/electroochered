@@ -11,7 +11,7 @@
     {% url account_benefits_change requestion.id as account_benefits_change_url %}
     {% url account_preferredsadiks_change requestion.id as account_preferredsadiks_change_url %}
     {% url account_documents_change requestion.id as account_documents_change_url %}
-    {% url requestion_logs_for_account requestion.id as requestion_logs_for_account_url %}
+    {% url requestion_logs requestion.id as requestion_logs_for_account_url %}
     <ul class="content-menu">
         <li {% if request.path == account_requestion_info_url %}class="active"{% endif %}>
             <a href="{{ account_requestion_info_url }}">Информация о заявке</a>

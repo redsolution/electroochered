@@ -19,11 +19,6 @@ else:
 urlpatterns = patterns('',
     # Общие функции
     url(r'^$', FrontPage.as_view(), name='operator_frontpage'),
-    url(r'^queue/$', Queue.as_view(), name='operator_queue'),
-    url(r'^registration/$', Registration.as_view(),
-        name=u'operator_registration'),
-    url(r'^requestion_search/$', RequestionSearch.as_view(),
-        name=u'operator_requestion_search'),
     # url(r'^revalidate_email/(?P<profile_id>\d{1,7})/$',
     #     csrf_exempt(RevalidateEmail.as_view()), name='revalidate_email'),
 
