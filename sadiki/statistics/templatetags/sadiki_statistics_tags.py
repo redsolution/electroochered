@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import F, Q
 from django.utils import simplejson
 from sadiki.core.models import Requestion, STATUS_REQUESTER, \
-    STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION
+    STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, DISTRIBUTION_PROCESS_STATUSES
 
 register = template.Library()
 
@@ -55,7 +55,7 @@ def show_wait_time_statistics():
                                                  relativedelta(months=from_months)) &
                     Q(registration_datetime__gt=current_datetime -
                                                 relativedelta(months=to_months)),
-                    status=STATUS_REQUESTER).count()
+                    status__in=(STATUS_REQUESTER, STATUS_ON_DISTRIBUTION)).count()
                 requestions_numbers.append(requestions_number)
                 #                    для группы прибавляем общее кол-во заявок в ней
                 total_requestions_numbers_by_groups[i] += requestions_number
@@ -67,7 +67,7 @@ def show_wait_time_statistics():
                     Q(registration_datetime__gt=F(
                         'distributed_in_vacancy__distribution__end_datetime') +
                                                 datetime.timedelta(days=-30 * to_months)),
-                    status__in=(STATUS_DECISION, STATUS_DISTRIBUTED)).count()
+                    status__in=(STATUS_DISTRIBUTED, ) + DISTRIBUTION_PROCESS_STATUSES).count()
                 distributed_requestions_numbers.append(distributed_requestions_number)
                 #        для данного интервала список кол-ва заявок по группам
         requestions_numbers_by_groups.append(requestions_numbers)
