@@ -32,6 +32,7 @@ from sadiki.administrator.models import ImportTask, IMPORT_INITIAL, IMPORT_START
     IMPORT_FINISH, IMPORT_ERROR, IMPORT_FINISHED_WITH_ERRORS
 from sadiki.administrator.utils import clean_str
 from sadiki.core.admin import CustomGeoAdmin
+from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
     Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, \
@@ -120,9 +121,8 @@ class AddressWithMapForm(AddressForm):
 
     def __init__(self, *args, **kwargs):
         super(AddressWithMapForm, self).__init__(*args, **kwargs)
-        map_widget = admin.site._registry[Address].get_map_widget(
-            Address._meta.get_field_by_name('coords')[0])
         self.fields["coords"].widget = map_widget()
+        self.fields['coords'].error_messages.update(location_errors)
         if self.instance and self.instance.id:
             self.fields["coords"].initial = self.instance.address.coords
 

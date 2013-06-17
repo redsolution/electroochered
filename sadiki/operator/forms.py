@@ -11,6 +11,7 @@ from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     FormWithDocument
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
+from sadiki.core.geo_field import location_errors, map_widget
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Address, \
     STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion
@@ -206,8 +207,8 @@ class ChangeSadikForm(SadikAdminForm):
             'active_distribution', 'age_groups',)
         
     def __init__(self, *args, **kwargs):
-        map_widget = admin.site._registry[Address].get_map_widget(Address._meta.get_field_by_name('coords')[0])
         self.base_fields['coords'].widget = map_widget()
+        self.base_fields['coords'].error_messages.update(location_errors)
         super(ChangeSadikForm, self).__init__(*args, **kwargs)
 
     def save(self, commit=True):
