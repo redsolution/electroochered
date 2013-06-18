@@ -16,7 +16,7 @@
     </script>
 {% endblock %}
 
-{% block content_title %}<h1>{% block title %}Регистрация пользователя{% endblock %}</h1>{% endblock %}
+{% block content_title %}<h1>{% block title %}Регистрация заявки{% endblock %}</h1>{% endblock %}
 
 {% block content %}
     <form action="." class="uniForm" method="POST">
@@ -37,7 +37,6 @@
                 </ol>
             </div>
         {% endif %}
-        <h2>Данные для входа</h2>
         {% izenform registration_form options notag=1%}
         <h2>Информация о ребенке</h2>
         {% izenform requestion_form options notag=1 %}

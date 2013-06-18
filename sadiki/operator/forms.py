@@ -50,26 +50,6 @@ class OperatorRequestionForm(RequestionForm):
         return super(OperatorRequestionForm, self).save(*args, **kwargs)
 
 
-class OperatorRegistrationForm(RegistrationForm):
-    u"""Форма для регистрации пользователя через оператора"""
-
-    def __init__(self, password=None, *args, **kwargs):
-        super(OperatorRegistrationForm, self).__init__(*args, **kwargs)
-        self.fields.pop('password1')
-        self.fields.pop('password2')
-        self.password = password
-
-    def save(self, commit=True):
-        user = super(OperatorRegistrationForm, self).save(commit=False)
-        if user.email and self.password:
-            user.set_password(self.password)
-        else:
-            user.set_unusable_password()
-        if commit:
-            user.save()
-        return user
-
-
 class OperatorSearchForm(PublicSearchForm):
     requestion_number = forms.CharField(label=u'Номер заявки в системе',
         required=False, widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}))
