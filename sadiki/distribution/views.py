@@ -184,7 +184,7 @@ class DecisionManager(OperatorPermissionMixin, View):
     u"""Обертка для распределения заявок"""
     required_permissions = ['is_distributor']
     
-    def anonym_queue(self):
+    def queue_info(self):
         u"""Собирается информация о очереди"""
         info_dict = {}
         distribution = Distribution.objects.filter(status=DISTRIBUTION_STATUS_INITIAL)
@@ -283,18 +283,18 @@ class DecisionManager(OperatorPermissionMixin, View):
     def decision_manager(self, request):
         from sadiki.core.workflow import DECISION, PERMANENT_DECISION
         
-        anonym_queue_dict = self.anonym_queue()
+        queue_info_dict = self.queue_info()
         
-        if not anonym_queue_dict['queue']:
+        if not queue_info_dict['queue']:
     #        если очереди нет, то оператор не может работать с заявками
             return render_to_response('distribution/decision_manager.html',
-                anonym_queue_dict, context_instance=RequestContext(request),)
+                queue_info_dict, context_instance=RequestContext(request),)
     
         # Сортировка "остальных" садиков, если у ребенка задан location
     #    if current_requestion.location:
     #        from sadiki.templatetags.sadiki_tags import distance_tag
     #        any_sadiks = sorted(any_sadiks, key=lambda x: distance_tag(current_requestion.location, x.location)['distance'])
-        current_requestion = anonym_queue_dict['current_requestion']
+        current_requestion = queue_info_dict['current_requestion']
         sadiks_info_dict = self.sadiks_for_requestion(current_requestion)
         any_sadiks = sadiks_info_dict['any_sadiks']
         pref_sadiks = sadiks_info_dict['pref_sadiks']
@@ -335,14 +335,14 @@ class DecisionManager(OperatorPermissionMixin, View):
         else:
             form = SelectSadikForm(current_requestion,
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query)
-        anonym_queue_dict.update({'sadik_list': sadiks_query,
+        queue_info_dict.update({'sadik_list': sadiks_query,
             'select_sadik_form': form,
             "sadiks_coords": dict([(sadik.id, {"x": sadik.address.coords.x, "y": sadik.address.coords.y})
                                    if sadik.address and sadik.address.coords else (sadik.id, {})
                                    for sadik in sadiks_query]),
         })
         return render_to_response('distribution/decision_manager.html',
-            anonym_queue_dict, context_instance=RequestContext(request),
+            queue_info_dict, context_instance=RequestContext(request),
         )
     
     def get(self, *args, **kwargs):
