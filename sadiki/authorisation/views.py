@@ -4,7 +4,7 @@ from django.contrib.auth import get_backends, login
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
 from django.contrib.auth.views import password_change
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from sadiki.authorisation.forms import EmailResetForm
@@ -92,13 +92,11 @@ class ResetPassword(TemplateView):
         return self.render_to_response({'form': form, 'username': user.email})
 
 
-def password_change_custom(request):
+def password_set(request):
     u"""
     Если у пользователя не задан пароль, то не нужно запрашивать его
     """
-    if request.user.has_usable_password():
-        password_change_form = PasswordChangeForm
-    else:
-        password_change_form = SetPasswordForm
-    template_name = u'authorisation/passwd.html'
-    return password_change(request, template_name=template_name, password_change_form=password_change_form)
+    if request.user.password and request.user.has_usable_password():
+        return Http404
+    return password_change(request, template_name=u'authorisation/passwd_set.html',
+                           password_change_form=SetPasswordForm)

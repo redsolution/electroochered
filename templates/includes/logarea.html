@@ -3,7 +3,11 @@
         <ul>
             <li class="dropdown">
                 <ul class="dropdown-menu">
-                    <li><a href="{% url passwd %}"><i class="icon-key"></i> Смена пароля</a></li>
+                    {% if request.user.password and request.user.has_usable_password %}
+                        <li><a href="{% url passwd %}"><i class="icon-key"></i> Смена пароля</a></li>
+                    {% else %}
+                        <li><a href="{% url passwd_set %}"><i class="icon-key"></i> Задать пароль</a></li>
+                    {% endif %}
                     <li class="divider"></li>
                     <li><a href="{% url logout %}"><i class="icon-off"></i> Выход</a></li>
                 </ul>

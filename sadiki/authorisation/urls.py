@@ -3,19 +3,21 @@ from django.conf.urls.defaults import patterns, url
 from forms import LoginForm
 
 # django generic views
-from sadiki.authorisation.views import password_change_custom
+from sadiki.authorisation.views import password_set
 
 urlpatterns = patterns('django.contrib.auth.views',
     url(r'^login/$', 'login',
             {'template_name': 'authorisation/login.html', 'authentication_form': LoginForm},
         name='login'),
+    url(r'^passwd/$', 'password_change',
+            {'template_name': 'authorisation/passwd.html'}, name='passwd'),
     url(r'^passwd/done/$', 'password_change_done',
             {'template_name': 'authorisation/passwd_done.html'}, name='passwd_done'),
     url(r'^logout/$', 'logout', {'next_page': '/', }, name="logout"),
 )
 
 urlpatterns += patterns('',
-    url(r'^passwd/$', password_change_custom, name='passwd'),
+    url(r'^passwd_set/$', password_set, name='passwd_set'),
     # url(r'^email_verification/(?P<key>\w{40})/$',
     #     EmailVerification.as_view(), name='email_verification'),
     # url(r'^reset_password_request/$',
