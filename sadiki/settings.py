@@ -227,7 +227,7 @@ SOCIAL_AUTH_PIPELINE = (
     # 'social_auth.backends.pipeline.user.create_user',
     'social_auth.backends.pipeline.social.associate_user',
     'social_auth.backends.pipeline.social.load_extra_data',
-    'social_auth.backends.pipeline.user.update_user_details',
+    # 'social_auth.backends.pipeline.user.update_user_details',
     'sadiki.social_auth_custom.pipeline.user.check_single_association',
     'sadiki.social_auth_custom.pipeline.user.update_user_info',
 )
