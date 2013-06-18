@@ -76,14 +76,6 @@
             <p class="formHint">Используется для входа в личный кабинет</p>
         </div>
         <div class="ctrlHolder readOnly">
-            <span class="readOnlyLabel">Документ, удостоверяющий родителя</span>
-            {% with profile.get_identity_documents.0 as profile_document %}
-                <div class="readOnly">
-                    <span class="choice">{% if profile_document %}{{ profile_document.template }}: {{ profile_document }}{% else %}Не указан{% endif %}</span>
-                </div>
-            {% endwith %}
-        </div>
-        <div class="ctrlHolder readOnly">
             <span class="readOnlyLabel">Пароль</span>
             <div class="readOnly">
                         {% if profile.user.has_usable_password %}

@@ -16,14 +16,6 @@
     <div class="span5">
     <h2>Мой профиль</h2>
         <div class="uniForm">
-            <div class="ctrlHolder readOnly">
-                <span class="readOnlyLabel">Документ, удостоверяющий родителя</span>
-                {% with profile.get_identity_documents.0 as profile_document %}
-                    <div class="readOnly">
-                        <span class="choice">{% if profile_document %}{{ profile_document.template }}: {{ profile_document }}{% else %}Не указан{% endif %}</span>
-                    </div>
-                {% endwith %}
-            </div>
             {% if vkontakte_association %}
                 <h3>
                     К вашей учетной записи привязан аккаунт ВКонтакте:
