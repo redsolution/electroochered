@@ -284,6 +284,8 @@ class EmailForm(forms.ModelForm):
 
 
 class ProfileSearchForm(forms.Form):
+    username = forms.CharField(label=u"Имя пользователя", required=False,
+                               help_text=u'Имя, используемое пользователем для входа в систему')
     requestion_number = forms.CharField(
         label=u'Номер заявки, привязанной к профилю',
         required=False,
@@ -292,6 +294,7 @@ class ProfileSearchForm(forms.Form):
         label=u'Имя родителя', required=False, widget=forms.TextInput())
 
     field_map = {
+        'username': 'user__username__exact',
         'requestion_number': 'requestion__requestion_number__exact',
         'parent_first_name': 'first_name__icontains',
     }
@@ -310,6 +313,9 @@ class ProfileSearchForm(forms.Form):
             filter_kwargs = {}
             requestion_number = self.cleaned_data.get('requestion_number')
             parent_first_name = self.cleaned_data.get('parent_first_name')
+            username = self.cleaned_data.get('username')
+            if username:
+                filter_kwargs[self.field_map['username']] = username
             if requestion_number:
                 filter_kwargs[self.field_map['requestion_number']] = requestion_number
             if parent_first_name:
