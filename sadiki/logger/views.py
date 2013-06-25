@@ -2,6 +2,7 @@
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
+from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Requestion
 from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
     PERMANENT_DECISION, DECISION, \
@@ -39,3 +40,22 @@ class RequestionLogs(TemplateView):
             elif request.user.is_requester():
                 self.template_name = "logger/requestion_logs_for_account.html"
         return self.render_to_response({'logs_with_messages': logs_with_messages, 'requestion': requestion})
+
+
+class AccountLogs(AccountPermissionMixin, TemplateView):
+    template_name = 'logger/account_logs.html'
+
+    def get(self, request):
+        profile = request.user.get_profile()
+        requestions = profile.requestion_set.all()
+        requestions_with_logs = []
+        for requestion in requestions:
+            logs = Logger.objects.filter(content_type=ContentType.objects.get_for_model(Requestion),
+            object_id=requestion.id).order_by('datetime')
+            logs_with_messages = []
+            for log in logs:
+                messages = log.loggermessage_set.filter_for_user(request.user)
+                if log.action_flag in STATUS_CHANGE_TRANSITIONS or messages:
+                    logs_with_messages.append([log, messages])
+            requestions_with_logs.append([requestion, logs_with_messages])
+        return self.render_to_response({'requestions_with_logs': requestions_with_logs})

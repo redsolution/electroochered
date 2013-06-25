@@ -1128,6 +1128,9 @@ class Requestion(models.Model):
         if self.status in DISTRIBUTION_PROCESS_STATUSES:
             return self.distributed_in_vacancy
 
+    def position_in_queue(self):
+        return Requestion.objects.queue().requestions_before(self).count() + 1
+
     def save(self, *args, **kwargs):
         u"""
         Осуществляется проверка возможности изменения статуса.

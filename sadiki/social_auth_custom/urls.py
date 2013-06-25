@@ -3,7 +3,7 @@ from django.conf.urls.defaults import patterns, url
 
 # social_auth
 from django.contrib.auth.decorators import login_required
-from sadiki.social_auth_custom.views import AccountSocialAuthCleanData, OperatorSocialAuthCleanData, AccountSocialAuthUpdateData, OperatorSocialAuthUpdateData, AccountSocialAuthDisconnect, OperatorSocialAuthDisconnect
+from sadiki.social_auth_custom.views import AccountSocialAuthCleanData, OperatorSocialAuthCleanData, AccountSocialAuthUpdateData, OperatorSocialAuthUpdateData, AccountSocialAuthDisconnect, OperatorSocialAuthDisconnect, AccountSocialAuthDataUpdate, AccountSocialAuthDataRemove
 from social_auth.decorators import dsa_view
 from social_auth.views import auth, complete
 
@@ -27,4 +27,8 @@ urlpatterns = patterns('',
         AccountSocialAuthUpdateData.as_view(), name='account_social_auth_update_data'),
     url(r'^operator_update_data/(?P<user_id>\d{1,7})/$',
         OperatorSocialAuthUpdateData.as_view(), name='operator_social_auth_update_data'),
+    url(r'^account_social_data_update/$',
+        AccountSocialAuthDataUpdate.as_view(), name='account_social_data_update'),
+    url(r'^account_social_data_remove/$',
+        AccountSocialAuthDataRemove.as_view(), name='account_social_data_remove'),
 )

@@ -8,10 +8,10 @@ from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
-    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm
+    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm, ChangeRequestionBaseForm, PreferredSadikWithAreasNameForm
 from sadiki.core.models import Profile, Requestion, \
     BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
-    EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE
+    EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
@@ -124,7 +124,66 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
 
     def get(self, request, requestion):
-        return self.render_to_response(self.get_context_data(requestion))
+        context = self.get_context_data(requestion)
+        change_requestion_form = ChangeRequestionBaseForm(instance=requestion)
+        change_benefits_form = BenefitsForm(instance=requestion)
+        pref_sadiks_form = PreferredSadikWithAreasNameForm(instance=requestion)
+        context.update({
+            'change_requestion_form': change_requestion_form,
+            'change_benefits_form': change_benefits_form,
+            'pref_sadiks_form': pref_sadiks_form,
+        })
+        return self.render_to_response(context)
+
+    def post(self, request, requestion):
+        context = self.get_context_data(requestion)
+        change_requestion_form = ChangeRequestionBaseForm(request.POST, instance=requestion)
+        change_benefits_form = BenefitsForm(request.POST, instance=requestion)
+        pref_sadiks_form = PreferredSadikWithAreasNameForm(request.POST, instance=requestion)
+        if not requestion.editable:
+            messages.error(request, u'Заявка %s не может быть изменена' % requestion)
+            return HttpResponseRedirect(reverse('account_requestion_info', args=[requestion.id]))
+        if all((change_requestion_form.is_valid(), change_benefits_form.is_valid(), pref_sadiks_form.is_valid())):
+            if change_requestion_form.has_changed():
+                change_requestion_form.save()
+                context_dict = {'changed_fields': change_requestion_form.changed_data,
+                    'requestion': requestion}
+                Logger.objects.create_for_action(CHANGE_REQUESTION,
+                    context_dict=context_dict,
+                    extra={'user': request.user, 'obj': requestion})
+            # изменение льгот возможно только для документально неподтврежденных
+            if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED:
+                if change_benefits_form.has_changed():
+                    change_benefits_form.save()
+                    context_dict = dict([(field, change_benefits_form.cleaned_data[field])
+                    for field in change_benefits_form.changed_data])
+                    context_dict.update({"requestion": requestion})
+                    Logger.objects.create_for_action(CHANGE_BENEFITS,
+                        context_dict=context_dict,
+                        extra={'user': request.user, 'obj': requestion})
+            if pref_sadiks_form.has_changed():
+                pref_sadiks = set(requestion.pref_sadiks.all())
+                pref_sadiks_form.save()
+                new_pref_sadiks = set(requestion.pref_sadiks.all())
+                added_pref_sadiks = new_pref_sadiks - pref_sadiks
+                removed_pref_sadiks = pref_sadiks - new_pref_sadiks
+                context_dict = {
+                    'changed_data': pref_sadiks_form.changed_data,
+                    'pref_sadiks': requestion.pref_sadiks.all(),
+                    'distribute_in_any_sadik': requestion.distribute_in_any_sadik}
+                Logger.objects.create_for_action(CHANGE_PREFERRED_SADIKS,
+                    context_dict=context_dict,
+                    extra={'user': request.user, 'obj': requestion,
+                        'added_pref_sadiks': added_pref_sadiks,
+                        'removed_pref_sadiks': removed_pref_sadiks})
+            messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
+            return HttpResponseRedirect(reverse('account_requestion_info', kwargs={'requestion_id': requestion.id}))
+        context.update({
+            'change_requestion_form': change_requestion_form,
+            'change_benefits_form': change_benefits_form,
+            'pref_sadiks_form': pref_sadiks_form,
+        })
+        return self.render_to_response(context)
 
     def get_context_data(self, requestion, **kwargs):
         before = Requestion.objects.queue().requestions_before(requestion)
@@ -151,6 +210,19 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             req.age_groups_calculated = req.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
+        pref_sadiks_ids = requestion.pref_sadiks.all().values_list('id', flat=True)
+        sadiks_location_data = {}
+        for sadik in Sadik.objects.all():
+            if sadik.address.coords:
+                sadiks_location_data.update({sadik.id: {
+                    'id': sadik.id,
+                    'location': sadik.address.coords.tuple,
+                    'address': sadik.address.text,
+                    'phone': sadik.phone,
+                    'name': sadik.short_name,
+                    'number': sadik.number,
+                    'url': reverse('sadik_info', args=[sadik.id, ]),
+                }})
 
         context = {
             'requestion': requestion,
@@ -165,6 +237,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
+            'sadiks_location_data': simplejson.dumps(sadiks_location_data),
+            'pref_sadiks_ids': pref_sadiks_ids,
         }
 
         context.update(kwargs)

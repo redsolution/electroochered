@@ -1,0 +1,37 @@
+{% extends 'account/base.html' %}
+
+{% load zenforms sadiki_core_tags %}
+
+{% block content_title %}
+    <h1>{% block title %}Личный кабинет{% endblock %}</h1>
+{% endblock %}
+
+{% block content_menu %}
+    {% load_urlpatterns %}
+    {% url anonym_queue as queue_url %}
+    {% url anonym_requestion_search as requestion_search_url %}
+    <ul class="content-menu">
+        <li {% if request.path == account_frontpage %}class="active"{% endif %}>
+            <a href="{{ account_frontpage }}">Мой профиль</a>
+        </li>
+        {% for requestion in request.user.get_profile.requestion_set.all %}
+            {% url account_requestion_info requestion.id as account_requestion_info_url %}
+            {% url account_benefits_change requestion.id as account_benefits_change_url %}
+            {% url account_requestion_change requestion.id as account_requestion_change_url %}
+            {% url account_preferredsadiks_change requestion.id as account_preffered_sadiks_change_url %}
+            {% url account_documents_change requestion.id as account_documents_change_url %}
+            {% create_extend_list account_requestion_info_url account_benefits_change_url account_requestion_change_url account_preffered_sadiks_change_url account_documents_change_url as requestion_urls %}
+            <li {% if request.path in requestion_urls %}class="active"{% endif %}>
+                <a href="{{ account_requestion_info_url }}">{{ requestion.requestion_number }}</a>
+            </li>
+        {% endfor %}
+        <li {% if request.path == requestion_add_by_user %}class="active"{% endif %}>
+            <a href="{{ requestion_add_by_user }}">Добавить заявку
+                <img class='requestion-add-menu' src="{{ STATIC_URL }}img/requestion_add_menu.png"/>
+            </a>
+        </li>
+        <li {% if request.path == account_logs %}class="active"{% endif %}>
+            <a href="{{ account_logs }}">История изменений</a>
+        </li>
+    </ul>
+{% endblock %}

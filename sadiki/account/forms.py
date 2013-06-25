@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.contrib.gis.forms.fields import GeometryField
 from django.forms.models import BaseInlineFormSet, ModelForm
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
+from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
@@ -64,8 +65,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         return requestion
 
 
-class ChangeRequestionForm(forms.ModelForm):
-
+class ChangeRequestionBaseForm(forms.ModelForm):
     class Meta:
         model = Requestion
         _base_fields = ('name', 'sex', 'location')
@@ -73,6 +73,9 @@ class ChangeRequestionForm(forms.ModelForm):
             fields = _base_fields
         else:
             fields = _base_fields + ('admission_date',)
+
+
+class ChangeRequestionForm(ChangeRequestionBaseForm):
 
     def __init__(self, *args, **kwds):
         self.base_fields['location'].widget = map_widget()
@@ -135,6 +138,12 @@ class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
             _base_fields = _base_fields + ('distribute_in_any_sadik',)
         fields = _base_fields
+
+
+class PreferredSadikWithAreasNameForm(PreferredSadikForm):
+    pref_sadiks = SadikWithAreasNameField(
+        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
+        required=False, widget=SelectMultipleJS())
 
 
 class DocumentForm(ModelForm):

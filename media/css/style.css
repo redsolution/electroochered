@@ -744,7 +744,7 @@ html, body {
 }
 
 .content-header{
-    border-bottom: 1px #dddddd solid;
+    border-bottom: 1px #bfd0bf solid;
     padding-left: 30px;
 }
 
@@ -754,14 +754,20 @@ html, body {
 }
 
 .content-menu{
-    margin:0px 0px 6px 0px;
+    padding-left: 16px;
+    margin:2px 0px 4px 0px;
 }
 
 .content-menu li{
     list-style: none;
     display: inline;
-    padding: 7px 10px;
-    margin: 0px 10px 0px 0px ;
+    height: 14px;
+    padding: 7px 10px 5px 10px;
+    border: 1px #bfd0bf solid;
+}
+
+.content-menu li:not(:first-child){
+    border-left: none;
 }
 
 .content-menu li a{
@@ -770,7 +776,6 @@ html, body {
 
 .content-menu li.active{
     background-color: #FFFFFF;
-    border: 1px #DDDDDD solid;
     border-bottom: 1px #FFFFFF solid;
 }
 
@@ -924,4 +929,244 @@ tr.dynamic-form .errorlist {
 }
 .places-table .capacity{
     width: 20%;
+}
+
+.requestion-info .block-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 17px;
+}
+
+.requestion-block{
+    padding-left: 10px;
+    margin-bottom: 40px;
+}
+
+.requestion-block.gray{
+    background-color: #fbfcfe;
+}
+
+.requestion-info .field-label{
+    font-size: 16px;
+    color: #a9a9a9;
+}
+
+.requestion-info .field-label.changed{
+    color: #A60000;
+}
+
+.requestion-info .field-value{
+    margin-top: 8px;
+    font-size: 25px;
+    min-height: 30px;
+    margin-bottom: 0px;
+}
+
+.requestion-info .field-value .value{
+    vertical-align: top;
+}
+
+.requestion-info [class*="span"]{
+    margin-left: 0px;
+    padding-left: 0px;
+}
+
+.vkontakte-info{
+    margin-top: 34px;
+    padding-top: 21px;
+    border-top: 2px #eeeeee solid;
+}
+
+.requestion-info .split-line{
+    border-top: 2px #eeeeee solid;
+    margin-bottom: 10px;
+}
+
+.requestion-queue .queue-info{
+    color: #999999;
+    margin-bottom: 10px;
+}
+
+.requestion-queue .queue-info p{
+    margin: 0px;
+    padding: 0px;
+}
+
+.requestion-queue .queue-info .number{
+    color: #327fbd;
+}
+
+.vkontakte-info .controls{
+    min-height: 32px;
+}
+
+.vkontakte-info p{
+    font-size: 16px;
+}
+
+.vkontakte-info .loading{
+    display: none;
+}
+
+.requestion-info .action-link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.requestion-info a.link-with-image img{
+    float: left;
+}
+
+.requestion-info .status-not-approved{
+    color: #d90000;
+    font-size: 10px;
+    display: block;
+}
+
+.requestion-info .status-approved{
+    color: #00b22d;
+    font-size: 10px;
+    display: block;
+}
+
+.requestion-info .requestion-add{
+    line-height: 20px;
+}
+
+.title-notification{
+    width:50px;
+    margin-left: 50px;
+}
+
+.document-info img{
+    float: left;
+    margin-top: 3px;
+}
+
+.document-info .field-value{
+    line-height: normal;
+    margin-left: 30px;
+}
+
+.requestion-map-header{
+    margin: 35px 0px 10px 0px;
+    font-size: 16px;
+    color: #b20000;
+    text-decoration: underline;
+}
+
+#account-requestion-map{
+    width: 470px;
+    height: 300px;
+    margin-bottom: 10px;
+}
+
+.requestion-info .pref-sadiks{
+    margin-left: 0px;
+    margin-top: 14px;
+    color: #327fbd;
+    list-style-type: none;
+}
+
+.requestion-info .pref-sadiks li{
+    margin-top: 1px;
+}
+
+.requestion-info .pref-sadiks li a{
+    border-bottom: 2px solid;
+    font-size: 18px !important;
+}
+
+.requestion-queue{
+    margin-top: 20px;
+}
+
+
+.requestion-queue .split-line{
+    border-top: 1px #eeeeee solid;
+}
+
+.requestion-queue .block-head{
+    font-size: 26px;
+    color: #327fbd;
+    line-height: normal;
+}
+
+.requestion-info .row{
+    margin-left: 0px;
+}
+
+.requestion-form .hidden-input input, .requestion-form .hidden-input select{
+    display: none;
+}
+
+.requestion-form input, .requestion-form select{
+    padding: 0px 0px;
+    border: 1px solid #d7d7d7;
+    background: #fff;
+}
+
+.requestion-form input{
+    margin-top: -6px;
+}
+
+.requestion-form select{
+    margin-top: -7px;
+    margin-left: -5px;
+}
+
+.requestion-form select{
+    width: 100%
+}
+
+.requestion-form .bsmSelect{
+    margin: 0px;
+}
+
+.requestion-form .bsmListItem{
+    width: 100%;
+}
+
+.notification-area{
+    margin-bottom: 20px;
+}
+
+.buttonHolder .social-button{
+    float: left;
+}
+
+.requestion-add-menu{
+    margin: 0px -7px -3px 4px;
+}
+
+#location-header{
+    margin-bottom: 10px;
+}
+
+#requestion-form button[type=submit]{
+    margin-top: 5px;
+    float: right;
+}
+
+.field .benefits-list{
+    list-style-type: none;
+    margin-left: 0px;
+}
+
+/*Leaflet draw*/
+.leaflet-draw-actions a{
+    width: 60px !important;
+}
+
+.form-disabled .field-value a{
+    display: none;
+}
+
+.sadiks-block{
+    margin-top: 20px
+}
+
+.requestion-info.right-block .field{
+    margin-bottom: 10px;
 }

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+import json
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden
+from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView, View
 from sadiki.account.views import AccountPermissionMixin
@@ -32,6 +33,76 @@ class AccountSocialAuthCleanData(AccountPermissionMixin, TemplateView):
         else:
             messages.error(request, u'Данные из ВКонтакте не были удалены.')
         return HttpResponseRedirect(redirect_to)
+
+
+class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
+
+    def post(self, request):
+        if request.is_ajax():
+            profile = request.user.get_profile()
+            field = request.POST.get("field")
+            if field == "first_name":
+                profile.first_name = None
+            elif field == "phone_number":
+                profile.phone_number = None
+            elif field == "skype":
+                profile.skype = None
+            else:
+                return HttpResponse(content=json.dumps({'ok': False}),
+                        mimetype='text/javascript')
+            profile.save()
+            return HttpResponse(content=json.dumps({'ok': True}),
+                    mimetype='text/javascript')
+        else:
+            return HttpResponseBadRequest()
+
+
+class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
+
+    def get_user_social_auth(self, user):
+        user_social_auth_query = user.social_auth.filter(provider='vkontakte-oauth2')
+        if user_social_auth_query:
+            return user_social_auth_query[0]
+        else:
+            return None
+
+    def dispatch(self, request, *args, **kwargs):
+        redirect_to = request.REQUEST.get('next', '')
+        redirect_to = check_url(redirect_to, reverse('frontpage'))
+        user = request.user
+        user_social_auth = self.get_user_social_auth(user)
+        if not user_social_auth:
+            raise Http404
+        return super(AccountSocialAuthDataUpdate, self).dispatch(request, user, user_social_auth)
+
+    def post(self, request, user, user_social_auth):
+        if request.is_ajax():
+            profile = user.get_profile()
+            access_token = user_social_auth.tokens.get('access_token')
+            uid = user_social_auth.uid
+            fields = ','.join(VK_DEFAULT_DATA + setting('VK_EXTRA_DATA', []))
+            params = {'access_token': access_token,
+                      'fields': fields,
+                      'uids': uid}
+            data = vkontakte_api('users.get', params).get('response')[0]
+            field = request.POST.get("field")
+            if field == "first_name":
+                field_value = data.get('first_name')
+                profile.first_name = field_value
+            elif field == "phone_number":
+                field_value = data.get('home_phone')
+                profile.phone_number = field_value
+            elif field == "skype":
+                field_value = data.get('skype')
+                profile.skype = field_value
+            else:
+                return HttpResponse(content=json.dumps({'ok': False}),
+                        mimetype='text/javascript')
+            profile.save()
+            return HttpResponse(content=json.dumps({'ok': True, 'field_value': field_value}),
+                    mimetype='text/javascript')
+        else:
+            return HttpResponseBadRequest()
 
 
 class OperatorSocialAuthCleanData(OperatorPermissionMixin, AccountSocialAuthCleanData):

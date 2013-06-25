@@ -1,111 +1,186 @@
-{% extends 'account/base.html' %}
+{% extends 'account/account_base.html' %}
 
 {% load zenforms sadiki_core_tags %}
 
-{% block content_title %}
-    <h1>{% block title %}Личный кабинет{% endblock %}</h1>
-{% endblock %} 
+{% block bottomjs %}
+    {{ block.super }}
+    <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
+    <script>
+        var el;
+        // csrf
+        var csrftoken = $.cookie('csrftoken');
+        function csrfSafeMethod(method) {
+            // these HTTP methods do not require CSRF protection
+            return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+        }
+        $.ajaxSetup({
+            crossDomain: false, // obviates need for sameOrigin test
+            beforeSend: function(xhr, settings) {
+                if (!csrfSafeMethod(settings.type)) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
+        });
+
+        function social_data_update(element){
+            el = element;
+            var element = $(element);
+            var field_value_element = element.closest('.field-value')
+            field_value_element.children('.controls').children('.buttons').hide()
+            field_value_element.children('.controls').children('.loading').show()
+            $.ajax("{% url account_social_data_update %}", {
+                    type: 'POST',
+                    data: {field: element.attr('id')},
+                    dataType:'json',
+                    success: function(data, textStatus, jqXHR){
+                        if (data.ok) {
+                            var value_element = field_value_element.children('.value')
+                            if (data.field_value) {
+                                value_element.html(data.field_value)
+                            } else {
+                                value_element.html('Не задано')
+                            }
+                        }
+                    },
+                    error: function(){
+                    },
+                    complete: function(jqXHR, textStatus){
+                        field_value_element.children('.controls').children('.loading').hide()
+                        field_value_element.children('.controls').children('.buttons').show()
+                    }
+            })
+        }
+        function social_data_remove(element){
+            var element = $(element);
+            var field_value_element = element.closest('.field-value')
+            field_value_element.children('.controls').children('.buttons').hide()
+            field_value_element.children('.controls').children('.loading').show()
+            field_value_element.children('.buttons').hide()
+            field_value_element.children('.loading').show()
+            $.ajax("{% url account_social_data_remove %}", {
+                    type: 'POST',
+                    data: {field: element.attr('id')},
+                    dataType:'json',
+                    success: function(data, textStatus, jqXHR){
+                        if (data.ok) {
+                            field_value_element.children('.value').html('Не задано')
+                        }
+                    },
+                    error: function(){
+                    },
+                    complete: function(jqXHR, textStatus){
+                        field_value_element.children('.controls').children('.loading').hide()
+                        field_value_element.children('.controls').children('.buttons').show()
+                    }
+            })
+        }
+        $(document).ready(function(){
+            $("#social-data-public-form input").change(function(){
+                $.post($("#social-data-public-form").attr('action'), $("#social-data-public-form").serialize())
+            })
+        })
+    </script>
+{% endblock bottomjs %}
 
 {% block content %}
-    {% if request.user.get_profile.requestion_set.not_confirmed.exists %}
-        <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявки, обратившись в управление образования.</div>
-    {% endif %}
-    <h2>Ваш логин: <span class="green">{{ profile.user.username }}</span></h2>
-    <h3 class="red">Запомните его, он будет использоваться для авторизации в системе.</h3>
+    <div class="notification-area">
+        {% if request.user.get_profile.requestion_set.not_confirmed.exists %}
+            <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявки, обратившись в управление образования.</div>
+        {% endif %}
+    </div>
     <div class="row">
-    <div class="span5">
-    <h2>Мой профиль</h2>
-        <div class="uniForm">
+    <div class="span6">
+        <div class="requestion-info">
+            <label class="field-label">Логин:</label>
+            <p class="field-value">{{ profile.user.username }}</p>
+
+        <div class="vkontakte-info">
             {% if vkontakte_association %}
-                <h3>
-                    К вашей учетной записи привязан аккаунт ВКонтакте:
-                    <a target="_blank" href="http://vk.com/id{{ vkontakte_association.uid }}">{{ vkontakte_association.uid }}</a>
-                    {% if user.has_usable_password %}
-                        <a href="{% url account_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id %}">Отвязать</a>
-                    {% else %}
-                        <p>Чтобы отвязать учетную запись ВКонтакте у пользователя должен быть задан пароль.</p>
-                    {% endif %}
-                </h3>
-                {% if profile.first_name or profile.phone_number or profile.skype %}
-                    <div class="vkontakte-info">
-                        <h2>Информация, полученная из ВКонтакте</h2>
-                        {% readonly profile 'first_name' %}
-                        {% readonly profile 'phone_number' %}
-                        {% readonly profile 'skype' %}
-                        <div class="buttonHolder">
-                            <a id="changeProfile" href="{% url account_social_auth_update_data %}" class="btn"><i class="icon-pencil"></i>Обновить</a>
-                            <a id="changeProfile" href="{% url account_social_auth_clean_data %}" class="btn"><i class="icon-pencil"></i>Удалить</a>
-                        </div>
-                    </div>
+                <div class="field">
+                    <label class="field-label">Имя:</label>
+                    <p class="field-value">
+                        <span class="value">{{ profile.first_name|verbose_value }}</span>
+                        <span class="controls">
+                        <span class="buttons">
+                            <a href="#" id="first_name" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                            <a href="#" id="first_name" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                        </span>
+                        <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
+                        </span>
+                    </p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Телефон:</label>
+                    <p class="field-value">
+                        <span class="value">{{ profile.phone_number|verbose_value }}</span>
+                        <span class="controls">
+                            <span class="buttons">
+                                <a href="#" id="phone_number" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                                <a href="#" id="phone_number" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                            </span>
+                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
+                        </span>
+                    </p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Skype:</label>
+                    <p class="field-value">
+                        <span class="value">{{ profile.skype|verbose_value }}</span>
+                        <span class="controls">
+                            <span class="buttons">
+                                <a href="#" id="skype" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                                <a href="#" id="skype" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                            </span>
+                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
+                        </span>
+                    </p>
+                </div>
+                {% if request.user.password and request.user.has_usable_password %}
+                    <a class="link-with-image action-link" href="{% url account_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id %}"><img src="{{ STATIC_URL }}img/vkontakte.png"/>Отвязать аккаунт</a>
                 {% else %}
-                    <div class="buttonHolder">
-                        <a id="changeProfile" href="{% url account_social_auth_update_data %}" class="btn"><i class="icon-pencil"></i>Получить данные</a>
-                    </div>
+                    <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
                 {% endif %}
             {% else %}
-                <h2>К этой учетной записи не привязан аккаунт ВКонтакте.
-                Привязать аккаунт <a href="{% url socialauth_connect 'vkontakte-oauth2' %}"><img src="{{ STATIC_URL }}img/vkontakte.png"/></a></h2>
-            {% endif %}
+                <p>К этой учетной записи не привязан аккаунт ВКонтакте</p>
 
+                <a class="action-link link-with-image" href="{% url socialauth_connect 'vkontakte-oauth2' %}">
+                    <img src="{{ STATIC_URL }}img/vkontakte.png"/>
+                    Привязать аккаунт
+                </a>
+            {% endif %}
+        </div>
         </div>
     </div>
-    <div class="span6">
-    <h2>Ваши заявки</h2>
-    {% for requestion in request.user.get_profile.requestion_set.all %}
-        <div class="uniForm">
-            <h3 class="page-header">Заявка № {{ requestion.requestion_number }}</h3>
-
-
-            <div class="ctrlHolder readOnly">
-                <span class="readOnlyLabel">Дата постановки на учёт</span>
-                <div class="readOnly">
-                    <span class="choice">{{ requestion.registration_datetime }}</span>
+    <div class="span5">
+        <div class="requestion-info">
+            <div class="block-head">Мои заявки:</div>
+            {% for requestion in profile.requestion_set.all %}
+                <div class="requestion-block {% cycle "white" "gray" %}">
+                <label class="field-label">№ заявки:</label>
+                <p class="field-value"><a href="{% url account_requestion_info requestion_id=requestion.id %}">{{ requestion.requestion_number }}</a></p>
+                <label class="field-label">Имя:</label>
+                <p class="field-value">{{ requestion.name }}</p>
+                <label class="field-label">Дата рождения:</label>
+                <p class="field-value">{{ requestion.birth_date }}</p>
+                <label class="field-label">Статус:</label>
+                {% if requestion.document_confirmed %}
+                    <p class="field-value">{{ requestion.get_status_display }}</p>
+                {% else %}
+                    <p class="field-value">
+                        <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                        {{ requestion.get_status_display }}
+                        <span class="status-not-approved">Статус не подтвержден оператором</span>
+                    </p>
+                {% endif %}
+                <label class="field-label">Ваш порядковый номер в очереди:</label>
+                <p class="field-value">{{ requestion.position_in_queue }}</p>
                 </div>
-                    <p class="formHint">Время ожидания: {{ requestion.registration_datetime|timesince }}</p>
-            </div>
-
-            <div class="ctrlHolder readOnly">
-                <span class="readOnlyLabel">Статус заявки</span>
-                <div class="readOnly">
-                    <span class="choice">{{ requestion.get_status_display }}</span>
-                </div>
-            </div>
-
-            {% readonly requestion 'name' label 'Ребёнок' %}
-
-            <div class="ctrlHolder readOnly">
-                <span class="readOnlyLabel">Возрастная категория</span>
-                <div class="readOnly">
-                    <span class="choice">
-                    {% if requestion.age_groups %}
-                        {{ requestion.age_groups.0 }}
-                    {% else %}
-                        Отсутствует
-                    {% endif %}
-                    </span>
-                </div>
-                <p class="formHint">Возрастная категория меняется автоматически по мере взросления</p>
-            </div>
-
-
-            <div class="buttonHolder">
-                <div class="btn-group">
-                {% url account_requestion_info requestion.id as info_url %}
-                {% action_button_for_url info_url options text="<i class='icon-info-sign'></i> Страница заявки" %}
-
-                {% url account_requestion_change requestion.id as change_url %}
-                {% action_button_for_url change_url options text="<i class='icon-pencil'></i> Изменить заявку" %}
-
-                {% url account_benefits_change requestion.id as benefits_url %}
-                {% action_button_for_url benefits_url options text="<i class='icon-star'></i> Изменить льготы" %}
-                </div>
-            </div>
+            {% endfor %}
+            <a class="link-with-image requestion-add action-link" href="{% url requestion_add_by_user %}">
+                <img src="{{ STATIC_URL }}img/icon_add.fw.png"/>
+                Добавить заявку
+            </a>
         </div>
-    {% empty %}
-        <p>Вы не подали ни одной завки</p>
-    {% endfor %}
-        <hr />
-        <a class="btn" id="addRequestion" href="{% url requestion_add_by_user %}"><i class="icon-plus"></i> Добавить заявку</a>
     </div>
     </div>
 {% endblock %}
