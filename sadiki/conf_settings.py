@@ -100,3 +100,6 @@ DEFAULT_IMPORT_DOCUMENT_NAME = config.get('options', 'DEFAULT_IMPORT_DOCUMENT_NA
 REGION_NAME = config.get('options', 'REGION_NAME').decode('utf-8')
 # маска для номера заявки(используется в модуле для jquery)
 REQUESTION_NUMBER_MASK = config.get('options', 'REQUESTION_NUMBER_MASK').decode('utf-8')
+# авторизация через ВКонтакте
+VK_APP_ID = config.get('options', 'VK_APP_ID')
+VK_API_SECRET = config.get('options', 'VK_API_SECRET')
