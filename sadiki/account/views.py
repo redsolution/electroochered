@@ -106,11 +106,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 'user': request.user, 'obj': requestion,
                 'added_pref_sadiks': pref_sadiks})
             messages.info(request, u'Добавлена заявка %s' % requestion.requestion_number)
-#            если были заданы типы льгот, то редирект на изменение документов
-            if (settings.FACILITY_STORE == settings.FACILITY_STORE_YES and
-                requestion.benefit_category != BenefitCategory.objects.category_without_benefits()):
-                return HttpResponseRedirect(reverse("account_benefits_change", kwargs={'requestion_id': requestion.id}))
-    #            иначе на страницу с информацией о заявке
             return HttpResponseRedirect(
                 reverse('account_requestion_info',
                          kwargs={'requestion_id': requestion.id}))

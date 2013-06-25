@@ -16,12 +16,7 @@
         </li>
         {% for requestion in request.user.get_profile.requestion_set.all %}
             {% url account_requestion_info requestion.id as account_requestion_info_url %}
-            {% url account_benefits_change requestion.id as account_benefits_change_url %}
-            {% url account_requestion_change requestion.id as account_requestion_change_url %}
-            {% url account_preferredsadiks_change requestion.id as account_preffered_sadiks_change_url %}
-            {% url account_documents_change requestion.id as account_documents_change_url %}
-            {% create_extend_list account_requestion_info_url account_benefits_change_url account_requestion_change_url account_preffered_sadiks_change_url account_documents_change_url as requestion_urls %}
-            <li {% if request.path in requestion_urls %}class="active"{% endif %}>
+            <li {% if request.path == account_requestion_info_url %}class="active"{% endif %}>
                 <a href="{{ account_requestion_info_url }}">{{ requestion.requestion_number }}</a>
             </li>
         {% endfor %}
