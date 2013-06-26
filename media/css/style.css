@@ -1177,3 +1177,46 @@ tr.dynamic-form .errorlist {
     color: #a9a9a9;
     font-size: 13px;
 }
+
+/*Login registration pages*/
+.registrationForm input{
+    border: 1px solid #dddddd !important;
+    height: 30px;
+    width: 100% !important;
+    font-size: 17px;
+}
+
+.right-split{
+    border-right: 1px solid #c7c7c7;
+    padding-right: 10px;
+}
+
+.registrationForm .formHint{
+    display: none;
+}
+
+
+.registrationForm .ctrlHolder{
+    border-bottom: 0px;
+}
+
+.vkontakte-registration{
+    margin-top: 30px;
+}
+
+.vkontakte-registration .social-button{
+    vertical-align: top;
+    font-size: 18px;
+    line-height: 55px;
+}
+
+.registrationForm .hint{
+    color: #909090;
+    margin-top: 20px;
+    margin-left: 10px;
+}
+
+.vkontakte-registration .hint{
+    margin-top: 100px;
+    color: #909090;
+}

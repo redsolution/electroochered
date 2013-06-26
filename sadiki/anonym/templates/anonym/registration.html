@@ -14,27 +14,42 @@
 {% block content_title %}<h1>{% block title %}Регистрация пользователя{% endblock %}</h1>{% endblock %}
 
 {% block content %}
-    <form class="uniForm" action="." method="post" >
-        {% if registration_form.non_field_errors or profile_form.non_field_errors %}
-            <div id="errorMsg">
-                {% load i18n %}
-                <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
-                <ol>
-                    {% for error in registration_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                    {% for error in profile_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ol>
+    <div class="row registration-content">
+        <div class="span6 right-split">
+            <form class="uniForm registrationForm" action="." method="post" >
+                {% if registration_form.non_field_errors %}
+                    <div id="errorMsg">
+                        {% load i18n %}
+                        <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
+                        <ol>
+                            {% for error in registration_form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                {% endif %}
+                <h2>Профиль в электроочереди</h2>
+                {% izenform registration_form options notag=1 %}
+                <p class="hint">
+                    После регистрации вам будет присвоено Имя пользователя. Пожалуйста, запомните его и используйте в дальнейшем для входа в «Электроочередь».
+                </p>
+                 <div class="buttonHolder">
+
+                    <button class="primaryAction" type="submit">Зарегистрироваться</button>
+                 </div>
+            </form>
+        </div>
+        <div class="span5">
+            <h2>Через профиль социальной сети</h2>
+            <div class="vkontakte-registration">
+                <a class="social-button" href="{% url socialauth_begin 'vkontakte-oauth2' %}">
+                    <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
+                    Регистрация через "ВКонтакте"
+                </a>
+                <p class="hint">Если у вас есть профиль в социальной сети ВКонтакте, вы можете использовать его для регистрации в «Электроочереди». При регистрации ваш аккаунт в социальной сети остается в безопасности. Вам не нужно сообщать «Электроочереди» свой пароль от социальной сети, необходимо только разрешить доступ к самым общим данным о вас.
+                Кроме того, в любой момент вы можете отвязать доступ «Электроочереди» от вашего профиля.</p>
             </div>
-        {% endif %}
-        <h2>Данные для входа</h2>
-        <p class="quiet">Звёздочкой отмечены обязательные поля</p>
-        {% izenform registration_form options notag=1 %}
-         <div class="buttonHolder">
-            <a class="social-button" href="{% url socialauth_begin 'vkontakte-oauth2' %}"><img src="{{ STATIC_URL }}img/vkontakte.png"/></a>
-            <button class="primaryAction" type="submit">Зарегистрироваться</button>
-         </div>
-    </form>
+
+        </div>
+    </div>
 {% endblock %}
