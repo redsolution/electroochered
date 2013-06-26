@@ -1156,6 +1156,24 @@ tr.dynamic-form .errorlist {
     margin-left: 0px;
 }
 
+.requestion-info .vkontakte-profile{
+    margin-bottom: 10px;
+}
+
+.requestion-info .vkontakte-profile a{
+    margin-right: 15px;
+}
+
+.requestion-info .vkontakte-profile .label{
+    margin-top: 5px;
+}
+
+.requestion-info .vkontakte-profile a img{
+    vertical-align: middle;
+    margin-top: -3px;
+    margin-right: 3px;
+}
+
 /*Leaflet draw*/
 .leaflet-draw-actions a{
     width: 60px !important;

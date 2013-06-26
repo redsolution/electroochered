@@ -95,7 +95,17 @@
             <p class="field-value">{{ profile.user.username }}</p>
 
         <div class="vkontakte-info">
+            <div class="block-head">Профиль ВКонтакте:</div>
             {% if vkontakte_association %}
+                <div class="vkontakte-profile clearfix">
+                <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ vkontakte_association.uid }}"><img src="{{ STATIC_URL }}img/vkontakte.png"/> http://vk.com/id{{ vkontakte_association.uid }}</a>
+                {% if request.user.password and request.user.has_usable_password %}
+                    <a class="vkontakte-remove action-link" href="{% url account_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id %}"><img src="{{ STATIC_URL }}img/remove.png"/>Отвязать аккаунт</a>
+                {% else %}
+
+                    <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
+                {% endif %}
+                </div>
                 <div class="field">
                     <label class="field-label">Имя:</label>
                     <p class="field-value">
@@ -135,11 +145,6 @@
                         </span>
                     </p>
                 </div>
-                {% if request.user.password and request.user.has_usable_password %}
-                    <a class="link-with-image action-link" href="{% url account_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id %}"><img src="{{ STATIC_URL }}img/vkontakte.png"/>Отвязать аккаунт</a>
-                {% else %}
-                    <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
-                {% endif %}
             {% else %}
                 <p>К этой учетной записи не привязан аккаунт ВКонтакте</p>
 
