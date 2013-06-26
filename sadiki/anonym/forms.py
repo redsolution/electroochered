@@ -18,7 +18,7 @@ class RegistrationForm(forms.ModelForm):
     u"""Форма регистрации для создания пользователя"""
     password1 = forms.CharField(
         label=_("Password"), widget=forms.PasswordInput(
-            attrs={'placeholder': u'Введите пароль для регистрации в "Электронной очереди"'}))
+            attrs={'placeholder': u'Введите пароль для регистрации в электронной очереди'}))
     password2 = forms.CharField(
         label=_("Password confirmation"),widget=forms.PasswordInput(
             attrs={'placeholder': 'Введите тот же пароль, что и выше, для подтверждения'}))
