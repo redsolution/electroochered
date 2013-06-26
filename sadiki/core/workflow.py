@@ -142,7 +142,7 @@ workflow.add(None, STATUS_REQUESTER, REQUESTION_IMPORT, u'Импорт заяв�
 workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION,
     u'Регистрация через оператора',)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, CONFIRM_REQUESTION,
-    u'Подтверждение документов', permissions=[OPERATOR_PERMISSION[0]])
+    u'Подтверждение заявки', permissions=[OPERATOR_PERMISSION[0]])
 
 # 2) Комплектование
 # 2.1) Очередники
@@ -218,7 +218,7 @@ workflow.add(STATUS_REQUESTER, STATUS_REMOVE_REGISTRATION,
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER,
     RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]])
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION,
-    NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение документов', permissions=[OPERATOR_PERMISSION[0]])
+    NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
     u'Истечение сроков на обжалование отсутствия')
 workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
