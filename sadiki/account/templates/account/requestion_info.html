@@ -423,6 +423,7 @@
             <label class="field-label">Ваше местоположение</label>
         </div>
         <div id="account-requestion-map"></div>
+        <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
         </div>
     </div>
 </div>
@@ -436,8 +437,8 @@
 </form>
 
 <div class="requestion-queue">
-    <div class="block-head">Очередь заявок</div>
     <div class="split-line"></div>
+    <div class="block-head">Очередь заявок</div>
     <div class="queue-info">
         <p>Заявок перед Вами: <span class="number">{{ requestions_before }}</span>
             (Из них льготников: <span class="number">{{ benefits_before }}.</span>

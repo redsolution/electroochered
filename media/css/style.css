@@ -931,6 +931,8 @@ tr.dynamic-form .errorlist {
     width: 20%;
 }
 
+
+/*страница профиля и заявки для заявителя*/
 .requestion-info .block-head{
     font-size: 26px;
     color: #327fbd;
@@ -958,8 +960,8 @@ tr.dynamic-form .errorlist {
 .requestion-info .field-value{
     margin-top: 8px;
     font-size: 25px;
-    min-height: 30px;
-    margin-bottom: 0px;
+    min-height: 26px;
+    margin-bottom: 7px;
 }
 
 .requestion-info .field-value .value{
@@ -1169,4 +1171,9 @@ tr.dynamic-form .errorlist {
 
 .requestion-info.right-block .field{
     margin-bottom: 10px;
+}
+
+.requestion-info .hint{
+    color: #a9a9a9;
+    font-size: 13px;
 }
