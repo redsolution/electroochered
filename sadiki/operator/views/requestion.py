@@ -294,8 +294,7 @@ class PreferredSadiksChange(OperatorRequestionCheckIdentityMixin,
                 removed_pref_sadiks = pref_sadiks - new_pref_sadiks
                 context_dict = {
                     'changed_data': form.changed_data,
-                    'pref_sadiks': requestion.pref_sadiks.all(),
-                    'distribute_in_any_sadik': requestion.distribute_in_any_sadik}
+                    'cleaned_data': form.cleaned_data,}
                 Logger.objects.create_for_action(
                     CHANGE_PREFERRED_SADIKS_BY_OPERATOR,
                     context_dict=context_dict,

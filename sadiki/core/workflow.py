@@ -427,10 +427,18 @@ change_profile_account_template = u'''
     '''
 
 change_preferred_sadiks_anonym_template = u'''
-    {% if "pref_sadiks" in changed_data %}
-        Приоритетные МДОУ: {% for sadik in pref_sadiks %}{{ sadik }}; {% endfor %}
+    {% if "areas" in changed_data %}
+        Территориальные области:
+        {% for area in cleaned_data.areas %}
+            {{ area }};
+        {% empty %}
+            Весь муниципалитет;
+        {% endfor %}
     {% endif %}
-    {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
+    {% if "pref_sadiks" in changed_data %}
+        Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
+    {% endif %}
+    {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
     '''
 
 change_benefits_anonym_template = u"""

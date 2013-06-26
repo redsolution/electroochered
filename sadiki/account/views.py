@@ -142,7 +142,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             if change_requestion_form.has_changed():
                 change_requestion_form.save()
                 context_dict = {'changed_fields': change_requestion_form.changed_data,
-                    'requestion': requestion}
+                    'requestion': requestion, 'areas': requestion.areas.all()}
                 Logger.objects.create_for_action(CHANGE_REQUESTION,
                     context_dict=context_dict,
                     extra={'user': request.user, 'obj': requestion})
@@ -151,7 +151,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 if change_benefits_form.has_changed():
                     change_benefits_form.save()
                     context_dict = dict([(field, change_benefits_form.cleaned_data[field])
-                    for field in change_benefits_form.changed_data])
+                        for field in change_benefits_form.changed_data])
                     context_dict.update({"requestion": requestion})
                     Logger.objects.create_for_action(CHANGE_BENEFITS,
                         context_dict=context_dict,
@@ -164,8 +164,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 removed_pref_sadiks = pref_sadiks - new_pref_sadiks
                 context_dict = {
                     'changed_data': pref_sadiks_form.changed_data,
-                    'pref_sadiks': requestion.pref_sadiks.all(),
-                    'distribute_in_any_sadik': requestion.distribute_in_any_sadik}
+                    'cleaned_data': pref_sadiks_form.cleaned_data,}
                 Logger.objects.create_for_action(CHANGE_PREFERRED_SADIKS,
                     context_dict=context_dict,
                     extra={'user': request.user, 'obj': requestion,
