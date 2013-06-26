@@ -5,13 +5,18 @@ from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView, View
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.utils import check_url
 from sadiki.operator.views.base import OperatorPermissionMixin
+from social_auth.backends import get_backend
 from social_auth.backends.contrib.vkontakte import VK_DEFAULT_DATA, vkontakte_api
+from social_auth.decorators import dsa_view
+from social_auth.exceptions import WrongBackend
 from social_auth.utils import setting
 from social_auth.db.django_models import UserSocialAuth
+from social_auth.views import associate_complete, complete_process, auth_process
 
 
 class AccountSocialAuthCleanData(AccountPermissionMixin, TemplateView):
@@ -197,3 +202,33 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
             else:
                 raise HttpResponseForbidden(u'Вы можете работать только с заявителями')
         return HttpResponseRedirect(redirect_to)
+
+
+class CustomAuth(View):
+    def get_redirect(self, backend):
+        raise NotImplementedError
+
+    def get(self, request, backend):
+        request.social_auth_backend = get_backend(backend, request, self.get_redirect(backend))
+        if request.social_auth_backend is None:
+            raise WrongBackend(backend)
+        return auth_process(request, request.social_auth_backend)
+
+
+class LoginAuth(CustomAuth):
+    def get_redirect(self, backend):
+        return reverse('socialauth_complete', kwargs={"backend": backend, "type": "login"})
+
+
+class RegistrationAuth(CustomAuth):
+    def get_redirect(self, backend):
+        return reverse('socialauth_complete', kwargs={"backend": backend, "type": "registration"})
+
+
+@csrf_exempt
+@dsa_view()
+def custom_complete(request, backend, type):
+    if request.user.is_authenticated():
+        return associate_complete(request, backend, type=type)
+    else:
+        return complete_process(request, backend, type=type)

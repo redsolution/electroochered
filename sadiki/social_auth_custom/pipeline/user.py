@@ -1,19 +1,31 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.models import Permission
-from sadiki.social_auth_custom.pipeline import SingleAssociationException
+from sadiki.social_auth_custom.pipeline import SingleAssociationException, AlreadyRegisteredException, NotRegisteredException
 from sadiki.core.models import Profile
 from sadiki.core.utils import get_unique_username
 from social_auth.models import UserSocialAuth
 
 
-def check_single_association(backend, details, response, user=None, is_new=False,
+def check_authorisation_type(backend, details, response, user=None, is_new=False,
+                        *args, **kwargs):
+    u"""
+    Проверяем правильность выполняемого действия(регистрация, вход, привязка)
+    """
+    authorisation_type = kwargs.get('type')
+    social_user = kwargs.get('social_user')
+    if authorisation_type == 'login' and not social_user:
+        raise NotRegisteredException(u"Ваш профиль ВКонтакте не привязан ни к одной учетной записи в системе.")
+    return None
+
+
+def check_single_association(backend, details, response, user=None,
                         *args, **kwargs):
     u"""
     Проверяем нет ли у пользователя ассоциации для заданного бекэнда
     """
     social_user = kwargs.get('social_user')
     new_association = kwargs.get('new_association')
-    if new_association and user.social_auth.filter(provider=backend.name).exclude(id=social_user.id).exists():
+    if user and not social_user and user.social_auth.filter(provider=backend.name).exists():
         raise SingleAssociationException(u"Для пользователя может быть задан только один профиль во ВКонтакте.")
     return None
 

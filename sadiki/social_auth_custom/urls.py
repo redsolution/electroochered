@@ -3,14 +3,20 @@ from django.conf.urls.defaults import patterns, url
 
 # social_auth
 from django.contrib.auth.decorators import login_required
-from sadiki.social_auth_custom.views import AccountSocialAuthCleanData, OperatorSocialAuthCleanData, AccountSocialAuthUpdateData, OperatorSocialAuthUpdateData, AccountSocialAuthDisconnect, OperatorSocialAuthDisconnect, AccountSocialAuthDataUpdate, AccountSocialAuthDataRemove
+from sadiki.social_auth_custom.views import AccountSocialAuthCleanData, OperatorSocialAuthCleanData,\
+    AccountSocialAuthUpdateData, OperatorSocialAuthUpdateData, AccountSocialAuthDisconnect,\
+    OperatorSocialAuthDisconnect, AccountSocialAuthDataUpdate, AccountSocialAuthDataRemove, custom_complete,\
+    LoginAuth, RegistrationAuth
 from social_auth.decorators import dsa_view
 from social_auth.views import auth, complete
 
 urlpatterns = patterns('',
-    url(r'^login/(?P<backend>[^/]+)/$', auth, name='socialauth_begin'),
+    url(r'^login/(?P<backend>[^/]+)/login/$', LoginAuth.as_view(), name='socialauth_login_begin'),
+    url(r'^login/(?P<backend>[^/]+)/registration/$', RegistrationAuth.as_view(), name='socialauth_registration_begin'),
     url(r'^connect/(?P<backend>[^/]+)/$', login_required(auth), name='socialauth_connect'),
     url(r'^complete/(?P<backend>[^/]+)/$', complete,
+        name='socialauth_complete'),
+    url(r'^complete/(?P<backend>[^/]+)/(?P<type>[^/]+)/$', custom_complete,
         name='socialauth_complete'),
 
     # disconnection
