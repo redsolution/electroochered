@@ -34,11 +34,8 @@ class RequestionLogs(TemplateView):
             messages = log.loggermessage_set.filter_for_user(request.user)
             if log.action_flag in STATUS_CHANGE_TRANSITIONS or messages:
                 logs_with_messages.append([log, messages])
-        if request.user.is_authenticated():
-            if request.user.is_operator():
-                self.template_name = "logger/requestion_logs_for_operator.html"
-            elif request.user.is_requester():
-                self.template_name = "logger/requestion_logs_for_account.html"
+        if request.user.is_authenticated() and request.user.is_operator():
+            self.template_name = "logger/requestion_logs_for_operator.html"
         return self.render_to_response({'logs_with_messages': logs_with_messages, 'requestion': requestion})
 
 
