@@ -1,6 +1,6 @@
 {% extends "operator/requestion_base.html" %}
 {% load zenforms %}
-{% block title %}Подтверждение операции №{{ transition.index }} {{ transition.comment }} для заявки {{ requestion }}{% endblock %}
+{% block title %}Подтверждение операции «{{ transition.comment }}». Заявка {{ requestion }}{% endblock %}
 
 {% block bottomjs %}
     {{ block.super }}
