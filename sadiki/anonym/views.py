@@ -144,7 +144,7 @@ class Queue(RequirePermissionsMixin, ListView):
                         self.requestion = queryset.get(requestion_number=form.cleaned_data['requestion_number'])
                     except Requestion.DoesNotExist:
                         try:
-                            self.hidden_requestion = initial_queryset.get(
+                            self.hidden_requestion = initial_queryset.queue().get(
                                 requestion_number=form.cleaned_data['requestion_number'])
                             raise RequestionHidden
                         except Requestion.DoesNotExist:
