@@ -380,7 +380,7 @@ ACTION_TEMPLATES = dict(
 
 document_confirmation_template = u"""
         {% if other_requestions %}
-            Заявки с таким же идентифицируюим документом были сняты с учета:
+            Заявки с таким же идентифицирующим документом были сняты с учета:
             {% for requestion in other_requestions %}
                 {{ requestion }}{% if not forloop.last %}; {% endif %}
             {% endfor %}
