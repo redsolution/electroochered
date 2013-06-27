@@ -15,7 +15,7 @@ from sadiki.core.models import Profile, Requestion, \
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
-    CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS, CHANGE_DOCUMENTS
+    CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS, CHANGE_DOCUMENTS, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 
@@ -139,38 +139,40 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             messages.error(request, u'Заявка %s не может быть изменена' % requestion)
             return HttpResponseRedirect(reverse('account_requestion_info', args=[requestion.id]))
         if all((change_requestion_form.is_valid(), change_benefits_form.is_valid(), pref_sadiks_form.is_valid())):
+            context_dict = {'requestion': requestion, 'changed_data': [], 'cleaned_data': {}}
+            data_changed = False
+            extra = {'user': request.user, 'obj': requestion}
             if change_requestion_form.has_changed():
+                data_changed = True
                 change_requestion_form.save()
-                context_dict = {'changed_fields': change_requestion_form.changed_data,
-                    'requestion': requestion, 'areas': requestion.areas.all()}
-                Logger.objects.create_for_action(CHANGE_REQUESTION,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion})
+                context_dict['changed_data'].extend(change_requestion_form.changed_data)
+                context_dict['cleaned_data'].update(change_requestion_form.cleaned_data)
             # изменение льгот возможно только для документально неподтврежденных
             if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED:
                 if change_benefits_form.has_changed():
+                    data_changed = True
                     change_benefits_form.save()
-                    context_dict = dict([(field, change_benefits_form.cleaned_data[field])
-                        for field in change_benefits_form.changed_data])
-                    context_dict.update({"requestion": requestion})
-                    Logger.objects.create_for_action(CHANGE_BENEFITS,
-                        context_dict=context_dict,
-                        extra={'user': request.user, 'obj': requestion})
+                    context_dict['changed_data'].extend(change_benefits_form.changed_data)
+                    context_dict['cleaned_data'].update(change_benefits_form.cleaned_data)
             if pref_sadiks_form.has_changed():
+                data_changed = True
                 pref_sadiks = set(requestion.pref_sadiks.all())
                 pref_sadiks_form.save()
                 new_pref_sadiks = set(requestion.pref_sadiks.all())
                 added_pref_sadiks = new_pref_sadiks - pref_sadiks
                 removed_pref_sadiks = pref_sadiks - new_pref_sadiks
-                context_dict = {
-                    'changed_data': pref_sadiks_form.changed_data,
-                    'cleaned_data': pref_sadiks_form.cleaned_data,}
-                Logger.objects.create_for_action(CHANGE_PREFERRED_SADIKS,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion,
-                        'added_pref_sadiks': added_pref_sadiks,
-                        'removed_pref_sadiks': removed_pref_sadiks})
-            messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
+                context_dict['changed_data'].extend(pref_sadiks_form.changed_data)
+                context_dict['cleaned_data'].update(pref_sadiks_form.cleaned_data)
+                extra.update({'added_pref_sadiks': added_pref_sadiks})
+                extra.update({'removed_pref_sadiks': removed_pref_sadiks})
+            print context_dict
+            print extra
+            if data_changed:
+                Logger.objects.create_for_action(ACCOUNT_CHANGE_REQUESTION,
+                    context_dict=context_dict, extra=extra)
+                messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
+            else:
+                messages.error(request, u'Заявка %s не была изменена' % requestion)
             return HttpResponseRedirect(reverse('account_requestion_info', kwargs={'requestion_id': requestion.id}))
         context.update({
             'change_requestion_form': change_requestion_form,

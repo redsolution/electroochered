@@ -297,6 +297,7 @@ CREATE_PROFILE_BY_OPERATOR = 86
 IMPORT_PROFILE = 87
 EMBED_REQUESTION_TO_PROFILE = 88
 CHANGE_REQUESTION_LOCATION = 89
+ACCOUNT_CHANGE_REQUESTION = 90
 
 
 #Распределение
@@ -324,6 +325,7 @@ ACTION_CHOICES = [(transition.index, transition.comment) for transition in
 ACTION_CHOICES.extend(
 #    добавляем действия с заявками
     [(CHANGE_REQUESTION, u"Изменение заявки пользователем"),
+    (ACCOUNT_CHANGE_REQUESTION, u"Изменение заявки пользователем"),
     (CHANGE_REQUESTION_BY_OPERATOR, u"Изменение заявки оператором"),
     (CHANGE_ADMISSION_DATE, u"Изменение ЖДП"),
     (CHANGE_ADMISSION_DATE_BY_OPERATOR, u"Изменение ЖДП оператором"),
@@ -361,6 +363,18 @@ ACTION_TEMPLATES = dict(
     [(transition.index, {ANONYM_LOG:Template(u"")})
         for transition in workflow.transitions]
 )
+
+# ----------------------------------
+# Шаблоны для записи логов
+#
+# В контекст можно передавать changed_data и cleaned_data из формы
+# также в шаблон передается заявка для которой происходит сохранение логов под именем requestion
+# (удобно получать занчение полей через get_FOO_display)
+# 
+# {% if "field_name" in changed_data %}
+#     {{ cleaned_data.field_name }} {{ requestion.get_field_name_display }}
+# {% endif %}
+# ------------------------------------
 
 #переопределеяем стандартные шаблоны для действий с заявкой
 
@@ -427,6 +441,17 @@ registration_account_template = u"""
 change_profile_account_template = u'''
     {% if "phone_number" in changed_data %}Телефон: {{ profile.phone_number }};{% endif %}
     {% if "mobile_number" in changed_data %}Мобильный телефон: {{ profile.mobile_number }};{% endif %}
+    '''
+
+change_requestion_anonym_template = u'''
+    {% if "admission_date" in changed_fields %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
+    '''
+
+change_requestion_account_template = u'''
+    {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
+    {% if "name" in changed_fields %}Имя: {{ requestion.name }};{% endif %}
+    {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
+    {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
     '''
 
 change_preferred_sadiks_anonym_template = u'''
@@ -496,15 +521,37 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template),
     },
     CHANGE_REQUESTION: {
-        ANONYM_LOG:Template(u'''
-                    {% if "admission_date" in changed_fields %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
-                    '''),
-        ACCOUNT_LOG:Template(u'''
-                    {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
-                    {% if "name" in changed_fields %}Имя: {{ requestion.name }};{% endif %}
-                    {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
-                    {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
-                    '''),
+        ANONYM_LOG: Template(change_requestion_anonym_template),
+        ACCOUNT_LOG: Template(change_requestion_account_template),
+        },
+    ACCOUNT_CHANGE_REQUESTION: {
+        ANONYM_LOG: Template(u"""
+        {% if "admission_date" in changed_fields %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
+        {% if "benefits" in changed_data %}
+            Основная категория льгот: {{ requestion.benefit_category }};
+        {% endif %}
+        {% if "areas" in changed_data %}
+            Территориальные области:
+            {% for area in cleaned_data.areas %}
+                {{ area }};
+            {% empty %}
+                Весь муниципалитет;
+            {% endfor %}
+        {% endif %}
+        {% if "pref_sadiks" in changed_data %}
+            Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
+        {% endif %}
+        {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
+        """),
+        ACCOUNT_LOG: Template(u"""
+        {% if "sex" in changed_data %}Пол: {{ requestion.get_sex_display }};{% endif %}
+        {% if "name" in changed_data %}Имя: {{ requestion.name }};{% endif %}
+        {% if "comment" in changed_data %}Комментарий: {{ requestion.comment }};{% endif %}
+        {% if "location" in changed_data %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        {% if "benefits" in changed_data %}
+            Льготы: {% for benefit in cleaned_data.benefits %}{{ benefit }}; {% endfor %}
+        {% endif %}
+        """),
         },
     CHANGE_REQUESTION_BY_OPERATOR: {
         ANONYM_LOG:Template(u'''
