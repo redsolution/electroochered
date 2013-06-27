@@ -12,7 +12,7 @@ from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion
     STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Vacancies, Sadik, \
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_ENDING, STATUS_DECISION, \
     SadikGroup, AgeGroup, STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION, \
-    Area, REQUESTION_TYPE_IMPORTED
+    Area, REQUESTION_TYPE_IMPORTED, VACANCY_STATUS_NOT_PROVIDED
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year, run_command
 from sadiki.core.workflow import DISTRIBUTION_INIT
@@ -142,7 +142,7 @@ class DistributionPlacesResults(OperatorPermissionMixin, TemplateView):
         vacancies = Vacancies.objects.filter(distribution=distribution).select_related('sadik_group', 'sadik_group__sadik')
         for vacancy in vacancies:
             sadiks_with_groups[vacancy.sadik_group.sadik][vacancy.sadik_group]['capacity'] += 1
-            if vacancy.status is None:
+            if vacancy.status == VACANCY_STATUS_NOT_PROVIDED:
                 sadiks_with_groups[vacancy.sadik_group.sadik][vacancy.sadik_group]['free_places'] += 1
         context.update({'sadiks_with_groups': sadiks_with_groups, })
         return self.render_to_response(context)
