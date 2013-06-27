@@ -159,6 +159,11 @@ class AreaFormField(forms.ModelChoiceField):
             initial, *args, **kwargs)
 
     def to_python(self, value):
+        # виджет должен возвращать значение совпадающее с начальным, иначе поле будет считаться измененным
+        if value:
+            value = value[0]
+        else:
+            value = None
         value = super(AreaFormField, self).to_python(value)
         if value is None:
             return []

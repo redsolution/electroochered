@@ -133,6 +133,17 @@ class BooleanNextYearWidget(forms.CheckboxInput):
     
 class AreaWidget(forms.Select):
 
+    def value_from_datadict(self, *args, **kwargs):
+        """
+        Given a dictionary of data and this widget's name, returns the value
+        of this widget. Returns None if it's not provided.
+        """
+        # если возвращать число и производить преобразование в поле, то будет считаться, что поле всегда изменяется
+        value = super(AreaWidget, self).value_from_datadict(*args, **kwargs)
+        if value:
+            return [int(value), ]
+        return []
+
     def render(self, name, value, **kwds):
         if value:
             value = value[0]
