@@ -528,6 +528,7 @@ VACANCY_STATUS_MANUALLY_CHANGED = 5
 VACANCY_STATUS_DISTRIBUTED = 1
 VACANCY_STATUS_TEMP_ABSENT = 2
 VACANCY_STATUS_TEMP_DISTRIBUTED = 3
+VACANCY_STATUS_NOT_PROVIDED = 6
 
 VACANCY_STATUS_CHOICES = (
     (None, u"Место свободно"),
@@ -537,6 +538,7 @@ VACANCY_STATUS_CHOICES = (
     (VACANCY_STATUS_DISTRIBUTED, u"Зачислена"),
     (VACANCY_STATUS_TEMP_ABSENT, u"Отсутствует по уважительной причине"),
     (VACANCY_STATUS_TEMP_DISTRIBUTED, u"Временная путевка"),
+    (VACANCY_STATUS_NOT_PROVIDED, u"Место не было никому выделено"),
     )
 
 
@@ -1071,10 +1073,10 @@ class Requestion(models.Model):
         sadik_groups = self.get_sadik_groups(sadik=sadik)
 
         assert (Vacancies.objects.filter(sadik_group__in=sadik_groups,
-            status__isnull=True).exists()), u'В садике должны быть путевки'
+            status__isnull=True, distribution__status=DISTRIBUTION_STATUS_INITIAL).exists()), u'В садике должны быть путевки'
 
         vacancy = Vacancies.objects.filter(sadik_group__in=sadik_groups,
-            status__isnull=True)[0]
+            status__isnull=True, distribution__status=DISTRIBUTION_STATUS_INITIAL)[0]
         self.distributed_in_vacancy = vacancy
         vacancy.status = VACANCY_STATUS_PROVIDED
         sadik_group = vacancy.sadik_group
