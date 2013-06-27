@@ -365,10 +365,13 @@ ACTION_TEMPLATES = dict(
 #переопределеяем стандартные шаблоны для действий с заявкой
 
 document_confirmation_template = u"""
-        Заявки с таким же идентифицируюим документом были сняты с учета:
-        {% for requestion in other_requestions %}
-            {{ requestion }}{% if not forloop.last %}; {% endif %}
-        {% endfor %}"""
+        {% if other_requestions %}
+            Заявки с таким же идентифицируюим документом были сняты с учета:
+            {% for requestion in other_requestions %}
+                {{ requestion }}{% if not forloop.last %}; {% endif %}
+            {% endfor %}
+        {% endif %}
+        """
 
 ACTION_TEMPLATES.update({
     NOT_CONFIRMED_REMOVE_REGISTRATION:{
