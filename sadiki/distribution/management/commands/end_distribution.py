@@ -38,8 +38,8 @@ class Command(BaseCommand):
                     extra={'user': user, 'obj': requestion,
                            'vacancy': vacancy, })
             SadikGroup.objects.active().update(free_places=0, capacity=0)
+            Vacancies.objects.filter(distribution=distribution, status__isnull=True).update(
+                status=VACANCY_STATUS_NOT_PROVIDED)
             distribution.status = DISTRIBUTION_STATUS_END
             distribution.end_datetime = datetime.datetime.now()
             distribution.save()
-            Vacancies.objects.filter(distribution=distribution, status__isnull=True).update(
-                status=VACANCY_STATUS_NOT_PROVIDED)
