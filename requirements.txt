@@ -11,6 +11,6 @@ django-social-auth ==0.7.23
 # use system in production
 Django>=1.4, <1.5
 pytils>=0.2, <0.3
-python-dateutil>=1.4, <1.5
+python-dateutil>=1.4, <=1.5
 South>=0.7, <0.8
 pisa>=3.0.32, <3.1
