@@ -19,7 +19,7 @@ from ordereddict import OrderedDict
 from sadiki.conf_settings import MUNICIPALITY_OCATO
 from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.fields import BooleanNextYearField, YearChoiceField, \
-    AreaChoiceField, SplitDayMonthField
+    AreaChoiceField, SplitDayMonthField, validate_no_spaces
 from sadiki.core.utils import add_crc, calculate_luhn_digit, \
     get_current_distribution_year, get_qs_attr, get_user_by_email
 from sadiki.core.validators import birth_date_validator, \
@@ -898,7 +898,9 @@ class Requestion(models.Model):
 
 #    Child info
     birth_date = models.DateField(u'Дата рождения ребенка', validators=[birth_date_validator])
+    #сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(u'имя ребёнка', max_length=255, null=True,
+                            validators=[validate_no_spaces, ],
                             help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
     sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)

@@ -1,11 +1,9 @@
 #-*- coding:utf-8 -*-
 from django import forms
 from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import models
 from django.utils import formats, dates
 from django.utils.encoding import smart_unicode
-from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from sadiki.core.widgets import BooleanNextYearWidget, AreaWidget
 from south.modelsinspector import add_introspection_rules
@@ -227,6 +225,11 @@ class SplitDayMonthField(models.CharField):
 class SadikWithAreasNameField(forms.ModelMultipleChoiceField):
     def label_from_instance(self, obj):
         return u"{0} ({1})".format(smart_unicode(obj), smart_unicode(obj.area))
+
+
+def validate_no_spaces(value):
+    if value and u' ' in value:
+        raise ValidationError(u"Поле не должно содержать пробелов.")
 
 
 add_introspection_rules([], ["^sadiki\.core\.fields\.AreaChoiceField"])

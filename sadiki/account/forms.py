@@ -26,6 +26,8 @@ class RequestionPrefSadiksMixin(object):
 
 
 class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
+    name = forms.CharField(label=u"Имя ребёнка", max_length=20,
+                           help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
     pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
@@ -66,6 +68,10 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
 
 
 class ChangeRequestionBaseForm(forms.ModelForm):
+    name = forms.CharField(
+        label=u"Имя ребёнка", max_length=20,
+        help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
+
     class Meta:
         model = Requestion
         _base_fields = ('name', 'sex', 'location')
