@@ -67,7 +67,7 @@ class FormWithDocument(forms.ModelForm):
         label=u'Тип документа',
         help_text=u"Документ, удостоверяющий личность представителя ребенка")
     document_number = forms.CharField(label=u'Серия и номер документа',
-        max_length=255)
+        max_length=255, widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     def create_document(self, requestion, commit=True):
         document = EvidienceDocument(

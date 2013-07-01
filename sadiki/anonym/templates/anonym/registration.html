@@ -2,15 +2,6 @@
 
 {% load zenforms %}
 
-{% block bottomjs %}
-    {{ block.super }}
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#id_template').regexpValidate('#id_document_number');
-        });
-    </script>
-{% endblock %}
-
 {% block content_title %}<h1>{% block title %}Регистрация пользователя{% endblock %}</h1>{% endblock %}
 
 {% block content %}
