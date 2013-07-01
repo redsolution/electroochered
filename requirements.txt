@@ -6,6 +6,7 @@ redsolutioncms.django-trusted-html >=0.1,<0.2
 ordereddict ==1.1
 redsolutioncms.django-tinymce-attachment >=0.4, <0.5
 django-social-auth ==0.7.23
+redsolutioncms.django-hex-storage >=0.1, <0.2
 
 
 # use system in production

@@ -113,6 +113,7 @@ INSTALLED_APPS = [
     'trustedhtml',
     'social_auth',
     'attachment',
+    'hex_storage',
 ]
 
 TEMPLATE_LOADERS = (
@@ -226,3 +227,5 @@ SOCIAL_AUTH_PIPELINE = (
 )
 
 LOGIN_ERROR_URL = '/auth/login/'
+
+DEFAULT_FILE_STORAGE = 'hex_storage.HexFileSystemStorage'

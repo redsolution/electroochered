@@ -9,6 +9,7 @@ from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
 from django.template.loader import render_to_string
 from django.utils.log import getLogger
+from hex_storage import HexFileSystemStorage
 from sadiki.administrator.import_plugins import INSTALLED_FORMATS, \
     SADIKS_FORMATS
 from sadiki.administrator.utils import get_xlwt_style_list
@@ -463,7 +464,7 @@ IMPORT_TASK_CHOICES = (
 )
 
 
-secure_static_storage = FileSystemStorage(
+secure_static_storage = HexFileSystemStorage(
     location=settings.SECURE_STATIC_ROOT, base_url='/adm/administrator/importtask/')
 
 
