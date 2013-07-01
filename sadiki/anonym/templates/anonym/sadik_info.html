@@ -37,6 +37,8 @@
         <dl class="sadik_contacts">
             <dt>{{ sadik|get_field_verbose_name:'name' }}:</dt>
                 <dd>{{ sadik.name }}</dd>
+            <dt>{{ sadik|get_field_verbose_name:'area' }}:</dt>
+                <dd>{{ sadik.area }}</dd>
             <dt>{{ sadik|get_field_verbose_name:'address' }}:</dt>
                 <dd>{{ sadik.address|verbose_value }}</dd>
             {% if sadik.phone %}
