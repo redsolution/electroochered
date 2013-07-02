@@ -165,8 +165,6 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 context_dict['cleaned_data'].update(pref_sadiks_form.cleaned_data)
                 extra.update({'added_pref_sadiks': added_pref_sadiks})
                 extra.update({'removed_pref_sadiks': removed_pref_sadiks})
-            print context_dict
-            print extra
             if data_changed:
                 Logger.objects.create_for_action(ACCOUNT_CHANGE_REQUESTION,
                     context_dict=context_dict, extra=extra)

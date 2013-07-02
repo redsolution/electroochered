@@ -229,8 +229,6 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
                 row = [unicode(i), requestion.requestion_number, document_number, requestion.name, requestion.birth_date,
                        requestion.registration_datetime.date(), unicode(requestion.benefit_category),
                        requestion.get_status_display()]
-                for el in row:
-                    print el.__class__
                 for column_number, element in enumerate(row):
                     ws.write(row_number, column_number, element, style)
                 row_number += 1
