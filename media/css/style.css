@@ -145,6 +145,11 @@ img.ui-datepicker-trigger {
     font-size: 16px !important;
 }
 
+/*** Zenforms ***/
+.bsmListItemLabel{
+    margin-right: 61px;
+}
+
 /*** Загрузка таблицы ***/
 .loading-initial {
     width: 100%;
