@@ -53,11 +53,10 @@
                                     {{ requestion.birth_date|date:"d-M-Y" }}
                                 </td>
                                 <td>
-                                    <p>Адрес: {{ requestion.address|verbose_value }}</p>
                                     <p>Телефон: {{ requestion.profile.phone_number|verbose_value }}</p>
-                                    <p>Мобильный: {{ requestion.profile.mobile_number|verbose_value }}</p>
-                                    <p>Родитель: {{ requestion.profile.fio|verbose_value }}</p>
-                                    <p>Ребёнок: {{ requestion.fio|verbose_value }}</p>
+                                    <p>Skype: {{ requestion.profile.skype|verbose_value }}</p>
+                                    <p>Родитель: {{ requestion.profile.first_name|verbose_value }}</p>
+                                    <p>Ребёнок: {{ requestion.name|verbose_value }}</p>
                                 </td>
                                 <td>
                                     {{ requestion.get_status_display }}
