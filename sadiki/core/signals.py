@@ -49,7 +49,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     workflow, DISTRIBUTION_BY_RESOLUTION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
-    ImmediatelyDistributionConfirmationForm, PreferredSadikConfirmationForm
+    ImmediatelyDistributionConfirmationForm, PreferredSadikConfirmationForm, RequestionConfirmationForm
 import datetime
 from sadiki.supervisor.forms import DistributionByResolutionForm
 
@@ -474,3 +474,6 @@ register_callback(
 
 # Зачисление по резолюции
 register_form(DISTRIBUTION_BY_RESOLUTION, DistributionByResolutionForm)
+
+#документальное подтверждение заявки
+register_form(CONFIRM_REQUESTION, RequestionConfirmationForm)

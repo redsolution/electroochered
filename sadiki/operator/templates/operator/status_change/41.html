@@ -1,12 +1,16 @@
 {# Операция: Снятие с учета после неявки #}
-{% if requestion.transfer_distribution %}
-    <h2>Заявка была распределена в
-        {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
-        при снятии с учета место будет освобождено</h2>
-{% else %}
-    {% if requestion.permanent_distribution %}
-        <h2>Заявка была временно распределена в
+{% extends "operator/requestion_status_change.html" %}
+
+{% block extra_content %}
+    {% if requestion.transfer_distribution %}
+        <h2>Заявка была распределена в
             {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
             при снятии с учета место будет освобождено</h2>
+    {% else %}
+        {% if requestion.permanent_distribution %}
+            <h2>Заявка была временно распределена в
+                {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
+                при снятии с учета место будет освобождено</h2>
+        {% endif %}
     {% endif %}
-{% endif %}
+{% endblock %}

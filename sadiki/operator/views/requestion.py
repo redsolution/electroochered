@@ -467,6 +467,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
             else:
                 self.required_permissions = None
 
+            #задаем шаблон в зависимости от типа изменения статуса
+            self.template_name = self.get_custom_template_name() or self.template_name
+
         response = super(RequestionStatusChange, self).dispatch(request, requestion)
         # если проверка прав прошла, то проверяем есть ли у заявки документы
         if isinstance(response, TemplateResponse):
@@ -499,12 +502,12 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return {
             'form': form,
             'transition': self.transition,
-            'extra_template': self.check_extra_template(),
         }
 
-    def check_extra_template(self):
+    def get_custom_template_name(self):
         try:
-            return loader.get_template('operator/status_change/%s.html' % self.transition.index)
+            template = loader.get_template('operator/status_change/%s.html' % self.transition.index)
+            return template.name
         except TemplateDoesNotExist:
             return None
 
@@ -517,7 +520,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request, requestion, *args, **kwargs):
-
+        if request.POST.get('confirmation') == "no":
+            messages.info(request, u"Статус заявки не был изменен")
+            return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
         form = self.get_confirm_form(self.transition.index,
             requestion=requestion, data=request.POST,

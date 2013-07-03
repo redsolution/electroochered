@@ -1,3 +1,7 @@
 {# Операция: Отказ от места на постоянное зачисление #}
-<h2>В случае отказа от места заявка будет возвращена в статус
-    "Времнно зачислена" в "{{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }}"</h2>
+{% extends "operator/requestion_status_change.html" %}
+
+{% block extra_content %}
+    <h2>В случае отказа от места заявка будет возвращена в статус
+        "Времнно зачислена" в "{{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }}"</h2>
+{% endblock %}

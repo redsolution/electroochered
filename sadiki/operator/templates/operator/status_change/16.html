@@ -1,13 +1,17 @@
 {# Операция: Зачисление #}
-{{ requestion.previous_distributed_vacancy }}
-{% if requestion.transfer_distribution %}
-    <h2>Заявка зачислена в
-        {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
-        после завершения перевода место будет освобождено</h2>
-{% else %}
-    {% if requestion.permanent_distribution %}
-        <h2>Заявка была временно распределена в
-        {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
-        после зачисление место для временного зачисления будет освобождено</h2>
+{% extends "operator/requestion_status_change.html" %}
+
+{% block extra_content %}
+    {{ requestion.previous_distributed_vacancy }}
+    {% if requestion.transfer_distribution %}
+        <h2>Заявка зачислена в
+            {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
+            после завершения перевода место будет освобождено</h2>
+    {% else %}
+        {% if requestion.permanent_distribution %}
+            <h2>Заявка была временно распределена в
+            {{ requestion.previous_distributed_in_vacancy.sadik_group.sadik }} и
+            после зачисление место для временного зачисления будет освобождено</h2>
+        {% endif %}
     {% endif %}
-{% endif %}
+{% endblock %}

@@ -337,3 +337,19 @@ class ChangeLocationForm(forms.ModelForm):
 
         super(ChangeLocationForm, self).__init__(*args, **kwargs)
         self.fields['location'].widget = forms.HiddenInput()
+
+
+class RequestionConfirmationForm(forms.Form):
+    name_confirm = forms.BooleanField()
+    birth_date_confirm = forms.BooleanField()
+    document_confirm = forms.BooleanField()
+    benefits_confirm = forms.BooleanField()
+
+    def __init__(self, requestion, *args, **kwargs):
+        super(RequestionConfirmationForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if not all(self.cleaned_data.values()):
+            raise forms.ValidationError(u"Необходимо подтвердить все данные заявки.")
+        return self.cleaned_data
+
