@@ -4,7 +4,7 @@
 <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
 <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
 <script type="text/javascript">
-    function draw_map_for_point(id, x, y){
+    function draw_map_for_point(id, x, y, icon){
         var point = [x, y];
         point.reverse();
         var map = new L.Map(id, {
@@ -23,6 +23,10 @@
             zoom: 14
         });
         osmLayer.addTo(map);
-        L.marker(point).addTo(map)
+        marker = L.marker(point)
+        if (icon){
+            marker.setIcon(icon)
+        }
+        marker.addTo(map)
     };
 </script>

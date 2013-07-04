@@ -15,7 +15,14 @@
             {% include "includes/leaflet_js.html" %}
             <script type="text/javascript">
             $(document).ready(function(){
-                draw_map_for_point('sadik_map', {{ point.x }}, {{ point.y }});
+                var sadikIcon = L.icon({
+                    iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                    iconSize:     [22, 23], // size of the icon
+                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                    shadowAnchor: [4, 62]  // the same for the shadow
+                });
+                draw_map_for_point('sadik_map', {{ point.x }}, {{ point.y }}, sadikIcon);
             });
             </script>
         {% endif %}

@@ -19,10 +19,13 @@
                 center: L.latLng(lonlat),
                 zoom: {{ settings.MAP_ZOOM }}
             });
-        //    var stamenLayer = new L.StamenTileLayer("watercolor");
-        //    stamenLayer.addTo(map);
-        
-        //      Uncomment to enable OSM tiles
+            var activeSadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62]  // the same for the shadow
+            });
             var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
                 subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
                 attribution: 'Map data © OpenStreetMap contributors',
@@ -37,7 +40,8 @@
                 });
                 for (var i=0; i<markers.length; i++) {
                     var m = L.marker(markers[i].location.reverse(), {
-                        title: markers[i].name
+                        title: markers[i].name,
+                        icon: activeSadikIcon
                     });
                     m.bindPopup('<b>'+markers[i].name+'</b><div>Адрес: '+markers[i].address+'</div><div>Телефон: '+ markers[i].phone +'</div><a href="'+ markers[i].url +'">Перейти к ДОУ</a>');
                     markersLayer.addLayer(m);
