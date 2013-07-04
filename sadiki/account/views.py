@@ -1,21 +1,23 @@
 # -*- coding: utf-8 -*-
+import json
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
-    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm, ChangeRequestionBaseForm, PreferredSadikWithAreasNameForm
-from sadiki.core.models import Profile, Requestion, \
+    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm, ChangeRequestionBaseForm,\
+    PreferredSadikWithAreasNameForm, SocialProfilePublicForm
+from sadiki.core.models import Requestion, \
     BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
-    EvidienceDocument, STATUS_REQUESTER, BenefitCategory, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik
+    EvidienceDocument, STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
-from sadiki.core.workflow import ADD_REQUESTION, CHANGE_PROFILE, \
-    CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS, CHANGE_DOCUMENTS, ACCOUNT_CHANGE_REQUESTION
+from sadiki.core.workflow import ADD_REQUESTION, CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS,\
+    CHANGE_DOCUMENTS, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 
@@ -53,14 +55,29 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
     template_name = 'account/frontpage.html'
 
     def get_context_data(self, **kwargs):
+        profile_change_form = SocialProfilePublicForm(instance=self.request.user.get_profile())
         context = {
             'params': kwargs,
             'profile': self.request.user.profile,
+            'profile_change_form': profile_change_form
         }
         vkontakte_associations = self.request.user.social_auth.filter(provider='vkontakte-oauth2')
         if vkontakte_associations:
             context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
+
+
+class SocialProfilePublic(AccountPermissionMixin, View):
+    def post(self, request):
+        if not request.is_ajax():
+            return HttpResponseBadRequest()
+        form = SocialProfilePublicForm(data=request.POST, instance=request.user.get_profile())
+        if form.is_valid():
+            form.save()
+            return HttpResponse(content=json.dumps({'ok': False}),
+                                mimetype='text/javascript')
+        return HttpResponse(content=json.dumps({'ok': False}),
+                            mimetype='text/javascript')
 
 
 class RequestionAdd(AccountPermissionMixin, TemplateView):

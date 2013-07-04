@@ -254,6 +254,8 @@ class QueueTooltips(Tag):
 
     def render_tag(self, context, varname):
         tooltips = {}
+        tooltips.update({"requestion_number_tooltip": render_to_string(
+            "core/tooltips/requestion_number_tooltip.html", {'STATIC_URL': settings.STATIC_URL})})
         tooltips.update({"age_groups_tooltip": render_to_string(
             "core/tooltips/age_groups_tooltip.html",
             {'age_groups': AgeGroup.objects.all()})})

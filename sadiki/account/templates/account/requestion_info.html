@@ -410,12 +410,14 @@
             {% endif %}
         </div>
         <div class="field">
-            {% if requestion.editable %}
-            {{ pref_sadiks_form.distribute_in_any_sadik }}
-                <label class="field-label distribute_in_any_sadik" for="id_distribute_in_any_sadik">{{ pref_sadiks_form.distribute_in_any_sadik.label }}</label>
-            {% else %}
-                <label class="field-label distribute_in_any_sadik" for="id_distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ pref_sadiks_form.distribute_in_any_sadik.label }}</label>
-            {% endif %}
+            {% with pref_sadiks_form.distribute_in_any_sadik as field %}
+                {% if requestion.editable %}
+                    {{ field }}
+                    <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% else %}
+                    <label class="field-label distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ field.label }}</label>
+                {% endif %}
+            {% endwith %}
         </div>
         </div>
     </div>

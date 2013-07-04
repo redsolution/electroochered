@@ -5,27 +5,6 @@
     {{ block.super }}
     <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
     <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-tooltip.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            {% queue_tooltips as tooltips %}
-            $("#requestion-status-row .icon-question-sign").popover({
-                title: "Статусы заявки",
-                content: "{{ tooltips.requestion_status_tooltip }}",
-                placement: "left", html: true})
-            $("#special-actions-row .icon-question-sign").popover({
-                title: "Особые действия",
-                content: "Действия уполномоченного лица, которые могли повлиять на очередность",
-                placement: "left"})
-            $("#age-groups-row .icon-question-sign").popover({
-                title: "Возрастные группы в системе",
-                content: "{{ tooltips.age_groups_tooltip }}",
-                placement: "top", html:true})
-            $("#benefit-categories-row .icon-question-sign").popover({
-                title: "Категории льгот",
-                content: "{{ tooltips.benefit_categories_tooltip }}",
-                placement: "top", html:true})
-        })
-    </script>
 {% endblock %}
 
 {% block content_menu %}

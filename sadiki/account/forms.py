@@ -158,3 +158,9 @@ class DocumentForm(ModelForm):
         super(DocumentForm, self).__init__(*args, **kwargs)
         self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
+
+
+class SocialProfilePublicForm(ModelForm):
+    class Meta:
+        model = Profile
+        fields = ('social_auth_public',)

@@ -304,6 +304,16 @@ table.table.table-bordered tr.highlight td {
     font-size: 17px;
 }
 
+#queue_table .requestion-number img{
+    float:left;
+    margin-right: 5px;
+}
+
+/**** Queue tooltips ****/
+.requestion-number-tooltip li img{
+    vertical-align: middle;
+}
+
 /**** Кнопочка "Наверх" при скорллинге таблицы ****/
 #up {
     height: 30px;
@@ -982,6 +992,24 @@ tr.dynamic-form .errorlist {
     margin-top: 34px;
     padding-top: 21px;
     border-top: 2px #eeeeee solid;
+}
+
+#profile-form{
+    height: 10px;
+    margin: 10px 0px 20px 0px;
+}
+
+#profile-form input[type="checkbox"]{
+    width: 20px;
+    height: 20px;
+}
+
+#profile-form img{
+    vertical-align: middle;
+}
+
+#profile-form input{
+    margin-top: -5px;
 }
 
 .requestion-info .split-line{

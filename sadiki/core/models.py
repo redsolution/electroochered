@@ -678,6 +678,8 @@ class Profile(models.Model):
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
     sadiks = models.ManyToManyField('Sadik', null=True)
+    social_auth_public = models.BooleanField(u"Показывать мой профиль ВКонтакте в публичной очереди",
+                                             default=False)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)

@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from sadiki.account.views import RequestionAdd, RequestionChange, \
     BenefitsChange, PreferredSadiksChange, AccountFrontPage, RequestionInfo, \
-    DocumentsChange, BenefitCategoryChange, GenerateBlank
+    DocumentsChange, BenefitCategoryChange, GenerateBlank, SocialProfilePublic
 
 if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
     change_benefits_view = BenefitsChange.as_view()
@@ -18,4 +18,6 @@ urlpatterns = patterns('',
         RequestionInfo.as_view(), name=u'account_requestion_info'),
     url(r'^request/(?P<requestion_id>\d{1,7})/generate_blank/$',
         GenerateBlank.as_view(), name='account_generate_blank'),
+    url(r'^social_profile_public/$',
+        SocialProfilePublic.as_view(), name='social_profile_public'),
 )
