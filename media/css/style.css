@@ -647,6 +647,8 @@ table.table.table-bordered tr.highlight td {
 
 .requestion-add-form .small-field .field-value{
     font-size: 13px !important;
+    min-height: 20px;
+    margin-top: 0px;
 }
 
 .requestion-add-form input{
