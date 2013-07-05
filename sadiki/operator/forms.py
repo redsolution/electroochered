@@ -30,10 +30,6 @@ def select_list_from_qs(queryset, requestion):
 
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""
-    pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
-        required=False, widget=SelectMultipleJS(),
-        queryset=Sadik.objects.filter(active_registration=True),
-        help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
 
     def __init__(self, *args, **kwargs):
         super(OperatorRequestionForm, self).__init__(*args, **kwargs)
