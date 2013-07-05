@@ -115,7 +115,7 @@ class PublicSearchForm(forms.Form):
     document_number = forms.CharField(label=u'Номер свидетельства о рождении',
         required=False, widget=forms.TextInput(),
         help_text=u'Формат: II-ИВ 123456')
-    child_name = forms.CharField(label=u'Имя ребенка',
+    child_name = forms.CharField(label=u'Имя ребёнка',
         required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
 
     field_map = {

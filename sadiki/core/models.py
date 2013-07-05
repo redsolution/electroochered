@@ -114,7 +114,7 @@ BENEFIT_DOCUMENT = 2
 
 DOCUMENT_TEMPLATE_TYPES = (
     (PROFILE_IDENTITY, u'идентифицирует родителя'),
-    (REQUESTION_IDENTITY, u'идентифицирует ребенка'),
+    (REQUESTION_IDENTITY, u'идентифицирует ребёнка'),
     (BENEFIT_DOCUMENT, u'документы к льготам'),
     )
 
@@ -905,11 +905,11 @@ class Requestion(models.Model):
         'Vacancies', blank=True, null=True)
 
 #    Child info
-    birth_date = models.DateField(u'Дата рождения ребенка', validators=[birth_date_validator])
+    birth_date = models.DateField(u'Дата рождения ребёнка', validators=[birth_date_validator])
     #сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(u'имя ребёнка', max_length=255, null=True,
                             validators=[validate_no_spaces, ],
-                            help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
+                            help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
     sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     cast = models.IntegerField(verbose_name=u'Тип заявки',

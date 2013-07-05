@@ -27,7 +27,7 @@ class RequestionPrefSadiksMixin(object):
 
 class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
     name = forms.CharField(label=u"Имя ребёнка", max_length=20,
-                           help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
+                           help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
     pref_sadiks = SadikWithAreasNameField(
@@ -52,7 +52,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         self.base_fields['location'].required = True
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\
-            ребенка"
+            ребёнка"
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
         super(RequestionForm, self).__init__(*args, **kwds)
 
@@ -70,7 +70,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
 class ChangeRequestionBaseForm(forms.ModelForm):
     name = forms.CharField(
         label=u"Имя ребёнка", max_length=20,
-        help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
+        help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
 
     class Meta:
         model = Requestion
