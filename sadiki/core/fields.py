@@ -229,7 +229,7 @@ class SadikWithAreasNameField(forms.ModelMultipleChoiceField):
 
 def validate_no_spaces(value):
     if value and u' ' in value:
-        raise ValidationError(u"Поле не должно содержать пробелов.")
+        raise ValidationError(u"Поле не должно содержать пробелов")
 
 
 add_introspection_rules([], ["^sadiki\.core\.fields\.AreaChoiceField"])
