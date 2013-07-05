@@ -654,6 +654,11 @@ AGENT_TYPE_CHOICES = (
     (AGENT_TYPE_OTHER, u"иное"),
     )
 
+SOCIAL_PUBLIC_CHOICES = (
+    (True, 'Отображать в публичной очереди'),
+    (False, 'Не отображать в публичной очереди'),
+)
+
 class Profile(models.Model):
     u"""Класс профиля пользователя"""
     # Profile data
@@ -678,8 +683,9 @@ class Profile(models.Model):
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
     sadiks = models.ManyToManyField('Sadik', null=True)
-    social_auth_public = models.BooleanField(u"Показывать мой профиль ВКонтакте в публичной очереди",
-                                             default=False)
+    social_auth_public = models.NullBooleanField(
+        u"Показывать мой профиль ВКонтакте в публичной очереди",
+        choices=SOCIAL_PUBLIC_CHOICES, blank=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)

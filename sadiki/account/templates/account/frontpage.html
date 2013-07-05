@@ -75,15 +75,15 @@
             })
         }
         $(document).ready(function(){
-            $('#profile-form input').change(function(){
+            $('#profile-form select').change(function(){
                 form_data = $('#profile-form').serialize();
-                $('#profile-form input').attr('disabled', 'disabled');
+                $('#profile-form select').attr('disabled', 'disabled');
                 $('#profile-form .loading').show();
                 $.ajax($('#profile-form').attr("action"), {
                     type: 'POST',
                     data: form_data,
                     complete: function(jqXHR, textStatus){
-                        $('#profile-form input').attr('disabled', false);
+                        $('#profile-form select').attr('disabled', false);
                         $('#profile-form .loading').hide();
                     }
                 })
@@ -116,13 +116,15 @@
                     <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
                 {% endif %}
                 </div>
+                <div class="field">
+                <label class="field-label">Ссылка на профиль в публичной очереди</label>
                 <form id="profile-form" action="{% url social_profile_public %}">
                     {% with profile_change_form.social_auth_public as field%}
                         {{ field }}
-                        <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
                         <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                     {% endwith %}
                 </form>
+                </div>
                 <div class="field">
                     <label class="field-label">Имя:</label>
                     <p class="field-value">
