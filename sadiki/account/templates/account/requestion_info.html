@@ -27,7 +27,11 @@
             {% else %}
                 var requestion_marker = null
             {% endif %}
-            var areas_ids = {{ areas_ids }};
+            {% if requestion.distribute_in_any_sadik %}
+                var areas_ids = {{ areas_ids }};
+            {% else %}
+                var areas_ids = null;
+            {% endif %}
             var map;
             var sadiksLayer;
             var prefSadikLayer;
@@ -94,7 +98,7 @@
                         prefSadikLayer.addLayer(m)
                         sadik_markers[markers[key].id] = m;
                     } else {
-                        if (jQuery.inArray(markers[key].area_id, areas_ids) != -1){
+                        if ((areas_ids !== null && areas_ids.length == 0) || jQuery.inArray(markers[key].area_id, areas_ids) != -1){
                             var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
                         } else {
                             var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
@@ -178,11 +182,16 @@
 
               });
             });
-            $('#id_areas').change(function(){
-                if ($(this).val()){
-                    areas_ids = [parseInt($(this).val())]
+            $('#id_areas, #id_distribute_in_any_sadik').change(function(){
+                if ($("#id_distribute_in_any_sadik").is(':checked')){
+                    if ($("#id_areas").val()){
+                        areas_ids = [parseInt($("#id_areas").val())]
+                    } else {
+                        areas_ids = []
+                    }
+
                 } else {
-                    areas_ids = []
+                    areas_ids = null;
                 }
                 renderMarkers(sadik_location_data, map)
             })
