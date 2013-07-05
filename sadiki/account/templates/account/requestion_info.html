@@ -237,6 +237,14 @@
             </p>
         </div>
         <div class="field">
+            <label class="field-label">Пол</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ requestion.get_sex_display }}</label>
+                {{ change_requestion_form.sex }}
+                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="field">
             <label class="field-label">Дата рождения</label>
             <p class="field-value">
                 <span class="value">{{ requestion.birth_date|date:"d-m-Y" }}</span>
@@ -260,7 +268,6 @@
 
         <div class="hidden">
             {{ change_requestion_form.location }}
-            {{ change_requestion_form.sex }}
         </div>
     </div>
     </div>
