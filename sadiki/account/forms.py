@@ -30,9 +30,9 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
                            help_text=u"В поле достаточно ввести только имя ребенка. Фамилию и отчество вводить не нужно!")
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
-    pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
+    pref_sadiks = SadikWithAreasNameField(
+        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS(),
-        queryset=Sadik.objects.filter(active_registration=True),
         help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
 
     class Meta:
@@ -48,7 +48,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         fields = _base_fields
 
     def __init__(self, *args, **kwds):
-        self.base_fields['location'].widget = map_widget()
+        self.base_fields['areas'].help_text = None
         self.base_fields['location'].required = True
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\

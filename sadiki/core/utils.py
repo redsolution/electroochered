@@ -2,7 +2,6 @@
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
-import sys
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -11,8 +10,6 @@ import datetime
 import re
 import uuid
 
-#utils for calculate requestion number
-from django.core import management
 from django.db.models.aggregates import Min
 from django.utils.safestring import mark_safe
 

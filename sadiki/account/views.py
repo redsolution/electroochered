@@ -22,6 +22,23 @@ from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 
 
+def get_json_sadiks_location_data():
+    sadiks_location_data = {}
+    for sadik in Sadik.objects.filter(active_registration=True):
+        if sadik.address.coords:
+            sadiks_location_data.update({sadik.id: {
+                'area_id': sadik.area.id,
+                'id': sadik.id,
+                'location': sadik.address.coords.tuple,
+                'address': sadik.address.text,
+                'phone': sadik.phone,
+                'name': sadik.short_name,
+                'number': sadik.number,
+                'url': reverse('sadik_info', args=[sadik.id, ]),
+            }})
+    return simplejson.dumps(sadiks_location_data)
+
+
 class AccountPermissionMixin(RequirePermissionsMixin):
     u"""
     проверка является ли пользователь оператором
@@ -87,6 +104,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def get_context_data(self, **kwargs):
         return {
             'params': kwargs,
+            'sadiks_location_data': get_json_sadiks_location_data(),
         }
 
     def get(self, request, *args, **kwargs):
@@ -222,18 +240,6 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
         pref_sadiks_ids = requestion.pref_sadiks.all().values_list('id', flat=True)
-        sadiks_location_data = {}
-        for sadik in Sadik.objects.all():
-            if sadik.address.coords:
-                sadiks_location_data.update({sadik.id: {
-                    'id': sadik.id,
-                    'location': sadik.address.coords.tuple,
-                    'address': sadik.address.text,
-                    'phone': sadik.phone,
-                    'name': sadik.short_name,
-                    'number': sadik.number,
-                    'url': reverse('sadik_info', args=[sadik.id, ]),
-                }})
 
         context = {
             'requestion': requestion,
@@ -248,7 +254,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
-            'sadiks_location_data': simplejson.dumps(sadiks_location_data),
+            'sadiks_location_data': get_json_sadiks_location_data(),
             'pref_sadiks_ids': pref_sadiks_ids,
         }
 

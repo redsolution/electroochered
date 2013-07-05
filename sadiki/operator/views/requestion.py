@@ -17,7 +17,7 @@ from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
     BenefitCategoryChange as AnonymBenefitCategoryChange, \
     RequestionChange as AnonymRequestionChange, \
     PreferredSadiksChange as AnonymPreferredSadiksChange, \
-    DocumentsChange as AnonymDocumentsChange
+    DocumentsChange as AnonymDocumentsChange, get_json_sadiks_location_data
 from sadiki.anonym.views import Queue as AnonymQueue, \
     RequestionSearch as AnonymRequestionSearch
 from sadiki.authorisation.models import VerificationKey
@@ -67,9 +67,10 @@ class Registration(OperatorPermissionMixin, TemplateView):
             benefits_form = BenefitsForm()
         else:
             benefits_form = BenefitCategoryForm()
-        context = {'requestion_form': requestion_form,
+        context = {'form': requestion_form,
             'benefits_form': benefits_form,
-            'openlayers_js': get_openlayers_js()}
+            'openlayers_js': get_openlayers_js(),
+            'sadiks_location_data': get_json_sadiks_location_data(),}
         return self.render_to_response(context)
 
     def post(self, request):
@@ -116,8 +117,9 @@ class Registration(OperatorPermissionMixin, TemplateView):
                     kwargs={'requestion_id': requestion.id}))
 
 
-        context = {'requestion_form': requestion_form,
-            'openlayers_js': get_openlayers_js()}
+        context = {'form': requestion_form,
+            'openlayers_js': get_openlayers_js(),
+            'sadiks_location_data': get_json_sadiks_location_data(),}
         return self.render_to_response(context)
 
 

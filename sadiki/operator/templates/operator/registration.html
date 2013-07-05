@@ -1,45 +1,6 @@
-{% extends "operator/base.html" %}
-{% load zenforms %}
-
-{% block js %}
-    {{ block.super }}
-    {{ openlayers_js }}
-{% endblock %}
-
-{% block bottomjs %}
-    {{ block.super }}
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#id_requestion-template').regexpValidate('#id_requestion-document_number');
-        });
-    </script>
-{% endblock %}
+{% extends "account/requestion_add.html" %}
 
 {% block content_title %}<h1>{% block title %}Регистрация заявки{% endblock %}</h1>{% endblock %}
 
-{% block content %}
-    <form action="." class="uniForm" method="POST">
-        {% if registration_form.non_field_errors or profile_form.non_field_errors or requestion_form.non_field_errors%}
-            <div id="errorMsg">
-                {% load i18n %}
-                <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
-                <ol>
-                    {% for error in registration_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                    {% for error in profile_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                    {% for error in requestion_form.non_field_errors %}
-                        <li>{{ error }}</li>
-                    {% endfor %}
-                </ol>
-            </div>
-        {% endif %}
-        {% izenform registration_form options notag=1%}
-        <h2>Информация о ребенке</h2>
-        {% izenform requestion_form options notag=1 %}
-        {% izenform benefits_form options notag=1 %}
-        {% submit "Зарегистрировать" %}
-    </form>
+{% block content_menu %}
 {% endblock %}

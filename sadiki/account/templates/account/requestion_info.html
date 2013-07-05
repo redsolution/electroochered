@@ -48,32 +48,6 @@
                 window.onbeforeunload = confirmmsg;
             }
 
-            L.drawLocal = {
-                edit: {
-                    toolbar: {
-                        edit: {
-                            title: 'Edit layers',
-                            save: {
-                                title: 'Save changes.',
-                                text: 'Save'
-                            },
-                            cancel: {
-                                title: 'Cancel editing, discards all changes.',
-                                text: 'Cancel'
-                            }
-                        },
-                        remove: {
-                            title: 'Delete layers',
-                            tooltip: 'Click on a feature to remove'
-                        }
-                    },
-                    tooltip: {
-                        text: 'Drag handles, or marker to edit feature.',
-                        subtext: 'Click cancel to undo changes.'
-                    }
-                }
-            };
-
             //отрисовка садиков на карте
             function renderMarkers(markers, map) {
                 sadik_markers = {}
@@ -219,25 +193,6 @@
         }
 
         $(document).ready(function(){
-            //отображаем подсказки для страницы очереди
-            {% queue_tooltips as tooltips %}
-            $("#requestion-status-row .icon-question-sign").popover({
-                title: "Статусы заявки",
-                content: "{{ tooltips.requestion_status_tooltip }}",
-                placement: "left", html: true})
-            $("#special-actions-row .icon-question-sign").popover({
-                title: "Особые действия",
-                content: "Действия уполномоченного лица, которые могли повлиять на очередность",
-                placement: "left"})
-            $("#age-groups-row .icon-question-sign").popover({
-                title: "Возрастные группы в системе",
-                content: "{{ tooltips.age_groups_tooltip }}",
-                placement: "top", html:true})
-            $("#benefit-categories-row .icon-question-sign").popover({
-                title: "Категории льгот",
-                content: "{{ tooltips.benefit_categories_tooltip }}",
-                placement: "top", html:true})
-
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').bind('change', function(){
                 var container_el = $(this).parents('.field');

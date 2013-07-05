@@ -574,6 +574,97 @@ table.table.table-bordered tr.highlight td {
 
 /*** Стили страниц ****/
 
+/* Добавление заявки */
+.requestion-add-form select{
+    margin-left: 0px !important;
+}
+
+.requestion-add-form .bsmList{
+    margin-bottom: 0px;
+}
+
+.requestion-add-form .field{
+    padding: 5px;
+    border: 1px solid white;
+}
+
+.requestion-add-form .field.error .field-label{
+    color: #A60000;
+}
+
+.requestion-add-form .bsmListItem{
+    margin-right: 110px;
+}
+
+.requestion-add-form .field.error{
+    background: #ffdfdf; border: 1px solid #f3afb5;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-add-form #errorMsg{
+    background: #ffdfdf; border: 1px solid #f3afb5; margin: 0 0 1.5em 0; padding: 0 1.5em;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-add-form #errorMsg h3{} /* Feel free to use a heading level suitable to your page structure */
+.requestion-add-form #errorMsg ol{ margin: 0 0 1.5em 0; padding: 0; }
+.requestion-add-form #errorMsg ol li{ margin: 0 0 3px 1.5em; padding: 7px; background: #f6bec1; position: relative; font-size: .85em;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-add-form .ui-datepicker-trigger{
+    margin-top: -5px;
+}
+
+.requestion-add-form #account-requestion-map{
+    width: 550px;
+}
+
+.requestion-add-form .small-field .field-value{
+    font-size: 13px !important;
+}
+
+.requestion-add-form input{
+    width: 100%
+}
+
+.requestion-add-form input.hasDatepicker{
+    width: 94%
+}
+
+.requestion-add-form .field{
+    margin-bottom: 5px;
+}
+
+.map-legend{
+    list-style-type: none;
+}
+
+.map-legend li{
+    margin-bottom: 10px;
+    color: #a9a9a9;
+    font-size: 14px;
+}
+
+.map-legend li img{
+    vertical-align: middle;
+}
+
 /* Распределение */
 .inactive_requestion a{
     color: gray;
@@ -1132,6 +1223,11 @@ tr.dynamic-form .errorlist {
     margin-left: 0px;
 }
 
+.requestion-info input[type=checkbox]{
+    width: 15px;
+    height: 15px;
+}
+
 .requestion-form .hidden-input input, .requestion-form .hidden-input select{
     display: none;
 }
@@ -1214,10 +1310,6 @@ tr.dynamic-form .errorlist {
 
 .form-disabled .field-value a{
     display: none;
-}
-
-.sadiks-block{
-    margin-top: 20px
 }
 
 .requestion-info.right-block .field{
