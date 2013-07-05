@@ -75,9 +75,13 @@
                     bind_popup(m)
                     prefSadikLayer.addLayer(m)
                 } else {
+                    if (jQuery.inArray(markers[key].area_id, areas_ids) != -1){
+                        var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
+                    } else {
                         var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
-                        bind_popup(m)
-                        sadiksLayer.addLayer(m);
+                    }
+                bind_popup(m)
+                sadiksLayer.addLayer(m);
                 }
                 sadik_markers[markers[key].id] = m;
             }

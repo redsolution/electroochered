@@ -162,6 +162,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
+            'areas_ids': requestion.areas.all().values_list('id', flat=True)
         })
         return self.render_to_response(context)
 

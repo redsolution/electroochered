@@ -27,6 +27,7 @@
             {% else %}
                 var requestion_marker = null
             {% endif %}
+            var areas_ids = {{ areas_ids }};
             var map;
             var sadiksLayer;
             var prefSadikLayer;
@@ -68,6 +69,13 @@
                     iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
                     shadowAnchor: [4, 62]  // the same for the shadow
                 });
+                var areaSadikIcon = L.icon({
+                    iconUrl: '{{ STATIC_URL }}img/sadik-icon-yellow.png',
+
+                    iconSize:     [22, 23], // size of the icon
+                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                    shadowAnchor: [4, 62]  // the same for the shadow
+                });
                 var inactiveSadikIcon = L.icon({
                     iconUrl: '{{ STATIC_URL }}img/sadik-icon-gray.png',
 
@@ -75,6 +83,9 @@
                     iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
                     shadowAnchor: [4, 62]  // the same for the shadow
                 });
+                function bind_popup(marker){
+                    marker.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
+                }
                 for (var key in markers) {
                     if (jQuery.inArray(markers[key].id, pref_sadiks_ids) != -1){
                         var m = L.marker(markers[key].location.slice().reverse(),
@@ -83,11 +94,15 @@
                         prefSadikLayer.addLayer(m)
                         sadik_markers[markers[key].id] = m;
                     } else {
-                        var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
-                        m.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
-                        sadiksLayer.addLayer(m)
-                        sadik_markers[markers[key].id] = m;
+                        if (jQuery.inArray(markers[key].area_id, areas_ids) != -1){
+                            var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
+                        } else {
+                            var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
+                        }
+                    bind_popup(m)
+                    sadiksLayer.addLayer(m);
                     }
+                    sadik_markers[markers[key].id] = m;
                 }
                 map.addLayer(sadiksLayer, true);
                 map.addLayer(prefSadikLayer)
@@ -162,6 +177,14 @@
                 }
 
               });
+            });
+            $('#id_areas').change(function(){
+                if ($(this).val()){
+                    areas_ids = [parseInt($(this).val())]
+                } else {
+                    areas_ids = []
+                }
+                renderMarkers(sadik_location_data, map)
             })
         {% endwith %}
 
@@ -391,6 +414,11 @@
         <div id="account-requestion-map"></div>
         <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
         </div>
+        <ul class='map-legend'>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
+        </ul>
     </div>
 </div>
 {% if requestion.editable %}
