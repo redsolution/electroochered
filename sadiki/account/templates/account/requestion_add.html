@@ -160,7 +160,9 @@
 
             $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
                 if (requestion_point) {
-                    map.panTo(requestion_point);
+                        map.panTo(requestion_point);
+                } else {
+                    map.panTo(map_center);
                 }
             })
             renderMarkers(sadik_location_data, map)
