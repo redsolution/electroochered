@@ -239,6 +239,11 @@
     </div>
 <form id="requestion-form" action='.' method="post" class="requestion-form {% if not requestion.editable %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
 <div class="row">
+    <div class="span11 requestion-info">
+        <div class="block-head">Информация о заявке:</div>
+    </div>
+</div>
+<div class="row">
     {% csrf_token %}
     {{ pref_sadiks_form.media }}
     {{ change_requestion_form.media }}
@@ -246,9 +251,6 @@
     {{ pref_sadiks_form.errors }}
     {{ change_requestion_form.errors }}
     {{ change_benefits_form.error }}
-    <div class="span11 requestion-info">
-        <div class="block-head">Информация о заявке:</div>
-    </div>
     <div class="span6">
     <div class="requestion-info">
         <div class="field">
@@ -361,11 +363,13 @@
     </div>
 </div>
 
-<div class="row sadiks-block">
+<div class="row">
     <div class="requestion-info span11">
         <div class="split-line"></div>
         <div class="block-head">Выбор ДОУ</div>
     </div>
+</div>
+<div class="row sadiks-block">
     <div class="span6">
         <div class="requestion-info">
         <div class="field">
