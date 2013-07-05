@@ -20,6 +20,7 @@
         <tr {% if target_requestion.id == requestion.id %}class="highlight" id="target" {% endif %}>
             <td>{{ forloop.counter|add:offset }}</td>
             <td class="requestion-number">
+                <div class="social-button">
                 {% with requestion.profile.user.social_auth.all as social_accounts %}
                     {% if social_accounts %}
                         {% if requestion.profile.social_auth_public %}
@@ -29,6 +30,7 @@
                         {% endif %}
                     {% endif %}
                 {% endwith %}
+                </div>
                 {% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
             </td>
             <td>{{ requestion.areas.all.0 }}</td>

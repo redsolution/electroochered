@@ -304,9 +304,19 @@ table.table.table-bordered tr.highlight td {
     font-size: 17px;
 }
 
+#queue_table #requestion-number-head{
+    min-width: 170px
+}
+
+#queue_table .requestion-number .social-button{
+    float:left;
+    height:1px;
+    width: 20px;
+    margin-right: 3px
+}
+
 #queue_table .requestion-number img{
     float:left;
-    margin-right: 5px;
 }
 
 /**** Queue tooltips ****/
