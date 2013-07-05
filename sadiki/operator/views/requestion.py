@@ -117,6 +117,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
 
 
         context = {'form': requestion_form,
+            'benefits_form': benefits_form,
             'openlayers_js': get_openlayers_js(),
             'sadiks_location_data': get_json_sadiks_location_data(),}
         return self.render_to_response(context)
