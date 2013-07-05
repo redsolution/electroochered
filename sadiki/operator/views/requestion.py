@@ -62,7 +62,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
     template_name = 'operator/registration.html'
 
     def get(self, request):
-        requestion_form = OperatorRequestionForm(prefix="requestion")
+        requestion_form = OperatorRequestionForm()
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm()
         else:
@@ -74,8 +74,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request):
-        requestion_form = OperatorRequestionForm(request.POST,
-            prefix="requestion")
+        requestion_form = OperatorRequestionForm(request.POST,)
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm(data=request.POST)
         else:
