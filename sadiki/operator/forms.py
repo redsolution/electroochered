@@ -35,6 +35,10 @@ class OperatorRequestionForm(RequestionForm):
         queryset=Sadik.objects.filter(active_registration=True),
         help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
 
+    def __init__(self, *args, **kwargs):
+        super(OperatorRequestionForm, self).__init__(*args, **kwargs)
+        self.fields['location'].label = u'Укажите местоположения заявителя'
+
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(
             requestion, commit=False)

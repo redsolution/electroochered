@@ -49,6 +49,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
 
     def __init__(self, *args, **kwds):
         self.base_fields['areas'].help_text = None
+        self.base_fields['location'].label = u'Укажите ваше местоположение'
         self.base_fields['location'].required = True
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\

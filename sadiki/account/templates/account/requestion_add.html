@@ -301,7 +301,7 @@
                 <div class="requestion-info">
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
-                        <label class="field-label">Ваше местоположение {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
+                        <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
                     </div>
                     <div class="hidden">
                         {{ form.location }}
