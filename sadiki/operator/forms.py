@@ -33,7 +33,7 @@ class OperatorRequestionForm(RequestionForm):
 
     def __init__(self, *args, **kwargs):
         super(OperatorRequestionForm, self).__init__(*args, **kwargs)
-        self.fields['location'].label = u'Укажите местоположения заявителя'
+        self.fields['location'].label = u'Укажите местоположение заявителя'
 
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(
