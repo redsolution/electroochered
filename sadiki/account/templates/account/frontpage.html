@@ -116,14 +116,19 @@
                     <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
                 {% endif %}
                 </div>
-                <div class="field">
-                <label class="field-label">Ссылка на профиль в публичной очереди</label>
-                <form id="profile-form" action="{% url social_profile_public %}">
-                    {% with profile_change_form.social_auth_public as field%}
-                        {{ field }}
-                        <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                    {% endwith %}
-                </form>
+                <div class="small-field">
+                    <div class="field">
+                    <label class="field-label">Ссылка на профиль в публичной очереди:</label>
+                    <form id="profile-form" action="{% url social_profile_public %}">
+                        <div class="field-value">
+                        {% with profile_change_form.social_auth_public as field%}
+                            {{ field }}
+                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
+                        {% endwith %}
+                        </div>
+                    </form>
+                    <p class="hint">Публично доступный профиль ВКонтакте повышает доверие граждан к Электронной очереди</p>
+                    </div>
                 </div>
                 <div class="field">
                     <label class="field-label">Имя:</label>

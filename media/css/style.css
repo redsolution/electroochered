@@ -645,7 +645,7 @@ table.table.table-bordered tr.highlight td {
     width: 550px;
 }
 
-.requestion-add-form .small-field .field-value{
+.requestion-info .small-field .field-value{
     font-size: 13px !important;
     min-height: 20px;
     margin-top: 0px;
@@ -1103,7 +1103,7 @@ tr.dynamic-form .errorlist {
 #profile-form{
     font-size: 25px;
     height: 10px;
-    margin: 10px 0px 30px 0px;
+    margin: 3px 0px 15px 0px;
 }
 
 #profile-form select{
