@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView, View
 from sadiki.account.views import AccountPermissionMixin
+from sadiki.core.models import Profile
 from sadiki.core.utils import check_url
 from sadiki.operator.views.base import OperatorPermissionMixin
 from social_auth.backends import get_backend
@@ -19,32 +20,14 @@ from social_auth.db.django_models import UserSocialAuth
 from social_auth.views import associate_complete, complete_process, auth_process
 
 
-class AccountSocialAuthCleanData(AccountPermissionMixin, TemplateView):
-    template_name = 'social_auth/clean_data.html'
-
-    def dispatch(self, request, *args, **kwargs):
-        redirect_to = request.REQUEST.get('next', '')
-        redirect_to = check_url(redirect_to, reverse('frontpage'))
-        user = request.user
-        return super(AccountSocialAuthCleanData, self).dispatch(
-            request=request, user=user, redirect_to=redirect_to, *args, **kwargs)
-
-    def post(self, request, user, redirect_to):
-        if request.POST.get('confirmation') == 'yes':
-            profile = user.profile
-            profile.social_auth_clean_data()
-            profile.save()
-            messages.success(request, u'Данные из ВКонтакте были удалены.')
-        else:
-            messages.error(request, u'Данные из ВКонтакте не были удалены.')
-        return HttpResponseRedirect(redirect_to)
-
-
 class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
 
-    def post(self, request):
+    def dispatch(self, request):
+        profile = request.user.get_profile()
+        return super(AccountSocialAuthDataRemove, self).dispatch(request, profile)
+
+    def post(self, request, profile):
         if request.is_ajax():
-            profile = request.user.get_profile()
             field = request.POST.get("field")
             if field == "first_name":
                 profile.first_name = None
@@ -62,6 +45,14 @@ class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
             return HttpResponseBadRequest()
 
 
+class OperatorSocialAuthDataRemove(OperatorPermissionMixin, AccountSocialAuthDataRemove):
+
+    def dispatch(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        profile = user.get_profile()
+        return super(AccountSocialAuthDataRemove, self).dispatch(request, profile)
+
+
 class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
 
     def get_user_social_auth(self, user):
@@ -72,8 +63,6 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             return None
 
     def dispatch(self, request, *args, **kwargs):
-        redirect_to = request.REQUEST.get('next', '')
-        redirect_to = check_url(redirect_to, reverse('frontpage'))
         user = request.user
         user_social_auth = self.get_user_social_auth(user)
         if not user_social_auth:
@@ -110,63 +99,15 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             return HttpResponseBadRequest()
 
 
-class OperatorSocialAuthCleanData(OperatorPermissionMixin, AccountSocialAuthCleanData):
+class OperatorSocialAuthDataUpdate(OperatorPermissionMixin, AccountSocialAuthDataUpdate):
 
-    def dispatch(self, request, user_id, *args, **kwargs):
-        redirect_to = request.REQUEST.get('next', '')
-        redirect_to = check_url(redirect_to, reverse('frontpage'))
-        user = get_object_or_404(User, id=user_id)
-        return super(AccountSocialAuthCleanData, self).dispatch(request, user=user, redirect_to=redirect_to, *args, **kwargs)
-
-
-class AccountSocialAuthUpdateData(AccountPermissionMixin, TemplateView):
-    template_name = 'social_auth/update_data.html'
-
-    def get_user_social_auth(self, user):
-        user_social_auth_query = user.social_auth.filter(provider='vkontakte-oauth2')
-        if user_social_auth_query:
-            return user_social_auth_query[0]
-        else:
-            return None
-
-    def dispatch(self, request, *args, **kwargs):
-        redirect_to = request.REQUEST.get('next', '')
-        redirect_to = check_url(redirect_to, reverse('frontpage'))
-        user = request.user
-        user_social_auth = self.get_user_social_auth(user)
-        if not user_social_auth:
-            raise Http404
-        return super(AccountSocialAuthUpdateData, self).dispatch(request, user, user_social_auth, redirect_to=redirect_to)
-
-    def post(self, request, user, user_social_auth, redirect_to):
-        if request.POST.get('confirmation') == 'yes':
-            access_token = user_social_auth.tokens.get('access_token')
-            uid = user_social_auth.uid
-            fields = ','.join(VK_DEFAULT_DATA + setting('VK_EXTRA_DATA', []))
-            params = {'access_token': access_token,
-                      'fields': fields,
-                      'uids': uid}
-
-            data = vkontakte_api('users.get', params).get('response')[0]
-            profile = user.profile
-            profile.update_vkontakte_data(data)
-            profile.save()
-            messages.success(request, u'Данные из ВКонтакте были получены.')
-        else:
-            messages.error(request, u'Даныне из ВКонтакте не были получены.')
-        return HttpResponseRedirect(redirect_to)
-
-
-class OperatorSocialAuthUpdateData(OperatorPermissionMixin, AccountSocialAuthUpdateData):
-
-    def dispatch(self, request, user_id, *args, **kwargs):
-        redirect_to = request.REQUEST.get('next', '')
-        redirect_to = check_url(redirect_to, reverse('frontpage'))
+    def dispatch(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
         user_social_auth = self.get_user_social_auth(user)
         if not user_social_auth:
             raise Http404
-        return super(AccountSocialAuthUpdateData, self).dispatch(request, user, user_social_auth, redirect_to=redirect_to)
+        return super(AccountSocialAuthDataUpdate, self).dispatch(request, user, user_social_auth)
+
 
 
 class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
@@ -180,7 +121,7 @@ class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
     def post(self, request, backend, association_id, redirect_to):
         if request.POST.get('confirmation') == 'yes':
             association = get_object_or_404(UserSocialAuth, id=association_id, user=request.user)
-            backend.disconnect(request.user, association_id)
+            backend.disconnect(request.user, association.id)
             profile = request.user.profile
             profile.social_auth_clean_data()
             profile.save()

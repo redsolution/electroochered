@@ -3,11 +3,10 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
 
-from sadiki.operator.views.requestion import Registration, RequestionSearch, \
-    BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, \
-    RequestionChange, PreferredSadiksChange, DocumentsChange, \
-    Queue, RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank, RevalidateEmail, GenerateProfilePassword, ChangeRequestionLocation
+from sadiki.operator.views.requestion import BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, \
+    RequestionChange, PreferredSadiksChange, DocumentsChange, RequestionAdd, \
+    RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
+    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
 
@@ -19,8 +18,16 @@ else:
 urlpatterns = patterns('',
     # Общие функции
     url(r'^$', FrontPage.as_view(), name='operator_frontpage'),
-    # url(r'^revalidate_email/(?P<profile_id>\d{1,7})/$',
-    #     csrf_exempt(RevalidateEmail.as_view()), name='revalidate_email'),
+
+    #профиль
+    url(r'^profile/(?P<profile_id>\d{1,7})/$',
+        ProfileInfo.as_view(), name=u'operator_profile_info'),
+    url(r'^profile/(?P<profile_id>\d{1,7})/requestion_add/$',
+        RequestionAdd.as_view(), name=u'operator_requestion_add'),
+    url(r'^profile/(?P<profile_id>\d{1,7})/generate_profile_password/$',
+        GenerateProfilePassword.as_view(), name=u'generate_profile_password'),
+    url(r'^social_profile_public/(?P<profile_id>\d{1,7})/$',
+        SocialProfilePublic.as_view(), name='operator_social_profile_public'),
 
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',
@@ -46,8 +53,6 @@ urlpatterns = patterns('',
         RequestionStatusChange.as_view(), name=u'operator_requestion_status_change'),
     url(r'^request/(?P<requestion_id>\d{1,7})/generate_blank/$',
         GenerateBlank.as_view(), name=u'operator_generate_blank'),
-    url(r'^request/(?P<requestion_id>\d{1,7})/generate_profile_password/$',
-        GenerateProfilePassword.as_view(), name=u'generate_profile_password'),
 
     # Работа с садиками
     url(r'^dou/$',

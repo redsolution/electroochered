@@ -263,7 +263,7 @@
     <div class="span6">
     <div class="requestion-info">
         <div class="field">
-            <label class="field-label">Имя</label>
+            <label class="field-label">{{ change_requestion_form.name.label }}</label>
             <p class="field-value hidden-input">
                 <label class="value">{{ change_requestion_form.name.value }}</label>
                 {{ change_requestion_form.name }}
@@ -271,7 +271,7 @@
             </p>
         </div>
         <div class="field">
-            <label class="field-label">Пол</label>
+            <label class="field-label">{{ change_requestion_form.sex.label }}</label>
             <p class="field-value hidden-input">
                 <label class="value">{{ requestion.get_sex_display }}</label>
                 {{ change_requestion_form.sex }}
@@ -349,7 +349,7 @@
         </div>
         <div class="field">
             <label class="field-label">Льготы</label>
-            {% if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
+            {% if can_change_benefits %}
                 {{ change_benefits_form.benefits }}
             {% else %}
                 {% with requestion.benefits.all as requestion_benefits %}
@@ -443,6 +443,7 @@
 {% endif %}
 </form>
 
+{% block extra %}
 <div class="requestion-queue">
     <div class="split-line"></div>
     <div class="block-head">Очередь заявок</div>
@@ -462,4 +463,5 @@
 
     <div class="block-head"><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></div>
 </div>
+{% endblock %}
 {% endblock %}

@@ -71,24 +71,34 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
     """
     template_name = 'account/frontpage.html'
 
+    def dispatch(self, request):
+        profile = request.user.get_profile()
+        return super(AccountFrontPage, self).dispatch(request, profile=profile)
+
     def get_context_data(self, **kwargs):
-        profile_change_form = SocialProfilePublicForm(instance=self.request.user.get_profile())
+        profile = kwargs.get('profile')
+        profile_change_form = SocialProfilePublicForm(instance=profile)
         context = {
             'params': kwargs,
-            'profile': self.request.user.profile,
+            'profile': profile,
             'profile_change_form': profile_change_form
         }
-        vkontakte_associations = self.request.user.social_auth.filter(provider='vkontakte-oauth2')
+        vkontakte_associations = profile.user.social_auth.filter(provider='vkontakte-oauth2')
         if vkontakte_associations:
             context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
 
 
 class SocialProfilePublic(AccountPermissionMixin, View):
-    def post(self, request):
+
+    def dispatch(self, request):
+        profile = request.user.get_profile()
+        return super(SocialProfilePublic, self).dispatch(request, profile)
+
+    def post(self, request, profile):
         if not request.is_ajax():
             return HttpResponseBadRequest()
-        form = SocialProfilePublicForm(data=request.POST, instance=request.user.get_profile())
+        form = SocialProfilePublicForm(data=request.POST, instance=profile)
         if form.is_valid():
             form.save()
             return HttpResponse(content=json.dumps({'ok': False}),
@@ -100,33 +110,40 @@ class SocialProfilePublic(AccountPermissionMixin, View):
 class RequestionAdd(AccountPermissionMixin, TemplateView):
     u"""Добавление заявки пользователем"""
     template_name = 'account/requestion_add.html'
+    requestion_form = RequestionForm
+    benefits_form = BenefitsForm
 
     def get_context_data(self, **kwargs):
         return {
-            'params': kwargs,
+            'profile': kwargs.get('profile'),
             'sadiks_location_data': get_json_sadiks_location_data(),
         }
 
-    def get(self, request, *args, **kwargs):
-        context = self.get_context_data()
-        form = RequestionForm()
-        if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
-            benefits_form = BenefitsForm()
-        else:
-            benefits_form = BenefitCategoryForm()
+    def create_profile(self):
+        raise NotImplementedError()
+
+    def redirect_to(self, requestion):
+        return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
+
+    def dispatch(self, request):
+        profile = request.user.get_profile()
+        return super(RequestionAdd, self).dispatch(request, profile=profile)
+
+    def get(self, request, profile):
+        context = self.get_context_data(profile=profile)
+        form = self.requestion_form()
+        benefits_form = self.benefits_form()
         context.update({'form': form, 'benefits_form': benefits_form,
             'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
 
-    def post(self, request, *args, **kwargs):
-        context = self.get_context_data()
-        form = RequestionForm(request.POST)
-        if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
-            benefits_form = BenefitsForm(data=request.POST)
-        else:
-            benefits_form = BenefitCategoryForm(data=request.POST)
+    def post(self, request, profile):
+        context = self.get_context_data(profile=profile)
+        form = self.requestion_form(request.POST)
+        benefits_form = self.benefits_form(data=request.POST)
         if (form.is_valid() and benefits_form.is_valid()):
-            profile = request.user.get_profile()
+            if not profile:
+                profile = self.create_profile()
             requestion = form.save(profile=profile)
             pref_sadiks = form.cleaned_data.get('pref_sadiks')
             benefits_form.instance = requestion
@@ -141,9 +158,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 'user': request.user, 'obj': requestion,
                 'added_pref_sadiks': pref_sadiks})
             messages.info(request, u'Добавлена заявка %s' % requestion.requestion_number)
-            return HttpResponseRedirect(
-                reverse('account_requestion_info',
-                         kwargs={'requestion_id': requestion.id}))
+            return HttpResponseRedirect(self.redirect_to(requestion))
         else:
             context.update({'form': form, 'benefits_form': benefits_form,
                 'openlayers_js': get_openlayers_js()})
@@ -153,16 +168,24 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
 
+    def can_change_benefits(self, requestion):
+        return requestion.status == STATUS_REQUESTER_NOT_CONFIRMED
+
+    def redirect_to(self, requestion):
+        return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
+
     def get(self, request, requestion):
         context = self.get_context_data(requestion)
         change_requestion_form = ChangeRequestionBaseForm(instance=requestion)
         change_benefits_form = BenefitsForm(instance=requestion)
         pref_sadiks_form = PreferredSadikWithAreasNameForm(instance=requestion)
         context.update({
+            'profile': requestion.profile,
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
-            'areas_ids': requestion.areas.all().values_list('id', flat=True)
+            'areas_ids': requestion.areas.all().values_list('id', flat=True),
+            'can_change_benefits': self.can_change_benefits(requestion),
         })
         return self.render_to_response(context)
 
@@ -171,6 +194,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         change_requestion_form = ChangeRequestionBaseForm(request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
         pref_sadiks_form = PreferredSadikWithAreasNameForm(request.POST, instance=requestion)
+        can_change_benefits = self.can_change_benefits(requestion)
         if not requestion.editable:
             messages.error(request, u'Заявка %s не может быть изменена' % requestion)
             return HttpResponseRedirect(reverse('account_requestion_info', args=[requestion.id]))
@@ -184,7 +208,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 context_dict['changed_data'].extend(change_requestion_form.changed_data)
                 context_dict['cleaned_data'].update(change_requestion_form.cleaned_data)
             # изменение льгот возможно только для документально неподтврежденных
-            if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED:
+            if can_change_benefits:
                 if change_benefits_form.has_changed():
                     data_changed = True
                     change_benefits_form.save()
@@ -207,15 +231,16 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
             else:
                 messages.error(request, u'Заявка %s не была изменена' % requestion)
-            return HttpResponseRedirect(reverse('account_requestion_info', kwargs={'requestion_id': requestion.id}))
+            return HttpResponseRedirect(self.redirect_to(requestion))
         context.update({
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
+            'can_change_benefits': can_change_benefits,
         })
         return self.render_to_response(context)
 
-    def get_context_data(self, requestion, **kwargs):
+    def get_queue_data(self, requestion):
         before = Requestion.objects.queue().requestions_before(requestion)
         benefits_before = before.benefits().count()
         confirmed_before = before.confirmed().count()
@@ -240,10 +265,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             req.age_groups_calculated = req.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
-        pref_sadiks_ids = requestion.pref_sadiks.all().values_list('id', flat=True)
-
-        context = {
-            'requestion': requestion,
+        return {
             'benefits_before': benefits_before,
             'benefits_after': benefits_after,
             'confirmed_before': confirmed_before,
@@ -252,6 +274,15 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'requestions_after': requestions_after,
             'queue': queue_chunk,
             'offset': offset,
+        }
+
+    def get_context_data(self, requestion, **kwargs):
+
+        pref_sadiks_ids = requestion.pref_sadiks.all().values_list('id', flat=True)
+
+        context = {
+            'requestion': requestion,
+
             'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
@@ -260,6 +291,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         }
 
         context.update(kwargs)
+        context.update(self.get_queue_data(requestion))
         return context
 
 

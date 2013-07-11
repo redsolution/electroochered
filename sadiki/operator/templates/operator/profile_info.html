@@ -1,0 +1,62 @@
+{% extends "account/frontpage.html" %}
+
+{% block content_menu %}
+    {% include "operator/includes/requestion_menu.html" %}
+{% endblock %}
+
+{% block title %}
+    Информация о профиле {{ profile }}
+{% endblock %}
+
+{% block bottomjs %}
+    {{ block.super }}
+    {# диалоговое окно сброса пароля #}
+    <script type="text/javascript">
+        $(document).ready(function(){
+            $("#reset_password_btn").each(function(){
+                $(this).click(function() {
+                    $( "#dialog-confirm" ).dialog({
+                      resizable: false,
+                      height:200,
+                      modal: true,
+                      buttons: {
+                        "Да": function() {
+                            $("#reset_password_form").submit();
+                            $( this ).dialog( "close" );
+                        },
+                        "Нет": function() {
+                          $( this ).dialog( "close" );
+                        }
+                      }
+                    });
+                    return false;
+                });
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block profile_auth_extra %}
+    {# сброс пароля #}
+    <div class="requestion-info">
+    <div class="field">
+        <label class="field-label">Пароль</label>
+        <p class="field-value">
+            {% if profile.user.has_usable_password %}
+                <img title="Пароль задан" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                <span class="value">Пароль задан</span>
+            {% else %}
+                <img title="Пароль не задан" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                <span class="value">Пароль не задан</span>
+            {% endif %}
+            <form id="reset_password_form" action="{% url generate_profile_password profile_id=profile.id %}" method="post" target="_blank">{% csrf_token %}
+                {{ reset_password_form.as_ul }}
+            </form>
+            <button id="reset_password_btn" class="btn">Сгенерировать новый пароль</button>
+        </p>
+    </div>
+    </div>
+    <div id="dialog-confirm" class="confirmation-dialog" title="Сбросить пароль?">
+      <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Внимание! Вход будет возможен только по новому паролю.</p>
+    </div>
+{% endblock %}

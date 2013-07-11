@@ -1,78 +1,12 @@
-{% extends "operator/requestion_base.html" %}
+{% extends "account/requestion_info.html" %}
 {% load sadiki_core_tags %}
 
-{% block css %}
-    {{ block.super }}
-    {% if requestion.address.coords %}
-        {% include "includes/leaflet_css.html" %}
-    {% endif %}
+{% block content_menu %}
+    {% include "operator/includes/requestion_menu.html" %}
 {% endblock %}
-
-{% block bottomjs %}
-{{ block.super }}
-    <script type="text/javascript">
-        $(function(){$('.tooltip').tooltip();});
-        ;$(function(){
-            $('#revalidate').click(function(){
-                $(this).attr('disabled', 'disabled');
-                var button = this;
-                $.ajax($(this).attr('rel'), {
-                    type: 'POST',
-                    data: {},
-                    dataType:'json',
-                    success: function(data, textStatus, jqXHR){
-                        if (data.ok) {
-                            $('.messages ul').append('<li>' + data.message + '</li>');
-                            $(button).replaceWith('<span>Отправлено</span>');
-                        } else {
-                            $(button).replaceWith('<span class="red">Ошибка при отправке</span>');
-                        }
-                    },
-                    error: function(){
-                        $(button).replaceWith('<span class="red">Ошибка при отправке</span>');
-                    }
-                });
-            });
-        });
-    </script>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $("#reset_password_btn").each(function(){
-                $(this).click(function() {
-                    $( "#dialog-confirm" ).dialog({
-                      resizable: false,
-                      height:200,
-                      modal: true,
-                      buttons: {
-                        "Да": function() {
-                            $("#reset_password_form").submit();
-                            $( this ).dialog( "close" );
-                        },
-                        "Нет": function() {
-                          $( this ).dialog( "close" );
-                        }
-                      }
-                    });
-                    return false;
-                });
-            });
-        });
-    </script>
-    {% with requestion.address.coords as point %}
-        {% if point %}
-            {% include "includes/leaflet_js.html" %}
-            <script type="text/javascript">
-                $(document).ready(function(){
-                    draw_map_for_point('requestion_map', {{ point.x }}, {{ point.y }});
-                });
-            </script>
-        {% endif %}
-    {% endwith %}
-{% endblock %}
-
-{% block title %}Страница заявки {{ requestion }}{% endblock %}
 
 {% block content %}
+    {# генерация бланков #}
     <div class="row requestion_blanks">
         <div class="span12">
         <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
@@ -89,16 +23,15 @@
         </a>
         </div>
     </div>
-    {% include "operator/includes/requestion_info.html" %}
+    {{ block.super }}
+{% endblock %}
 
+{% block extra %}
     <h2 class="page-header">Действия с заявкой</h2>
     <div class="btn-group">
     {% for transition in requestion.available_transitions %}
         {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
         {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
     {% endfor %}
-    </div>
-    <div id="dialog-confirm" class="confirmation-dialog" title="Сбросить пароль?">
-      <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Внимание! Вход будет возможен только по новому паролю.</p>
     </div>
 {% endblock %}

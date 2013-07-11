@@ -1,0 +1,25 @@
+{% load sadiki_core_tags %}
+{% load_urlpatterns %}
+{% url anonym_requestion_search as requestion_search_url %}
+<ul class="content-menu">
+    {% url operator_profile_info profile_id=profile.id as profile_url %}
+    {% url operator_requestion_add profile_id=profile.id as operator_requestion_add_url %}
+    {% url operator_logs profile_id=profile.id as operator_logs_url %}
+    <li {% if request.path == profile_url %}class="active"{% endif %}>
+        <a href="{{ profile_url }}">Профиль</a>
+    </li>
+    {% for requestion in profile.requestion_set.all %}
+        {% url operator_requestion_info requestion.id as operator_requestion_info_url %}
+        <li {% if request.path == operator_requestion_info_url %}class="active"{% endif %}>
+            <a href="{{ operator_requestion_info_url }}">{{ requestion.requestion_number }}</a>
+        </li>
+    {% endfor %}
+    <li {% if request.path == operator_requestion_add_url %}class="active"{% endif %}>
+        <a href="{{ operator_requestion_add_url }}">Добавить заявку
+            <img class='requestion-add-menu' src="{{ STATIC_URL }}img/requestion_add_menu.png"/>
+        </a>
+    </li>
+    <li {% if request.path == operator_logs_url %}class="active"{% endif %}>
+        <a href="{{ operator_logs_url }}">История изменений</a>
+    </li>
+</ul>

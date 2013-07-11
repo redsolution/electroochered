@@ -14,10 +14,13 @@ from django.views.generic import TemplateView, View
 from sadiki.account.forms import BenefitsForm, \
     ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm
 from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
+    SocialProfilePublic as AccountSocialProfilePublic, \
+    RequestionAdd as AccountRequestionAdd, \
     BenefitCategoryChange as AnonymBenefitCategoryChange, \
+    RequestionInfo as AccountRequestionInfo,\
     RequestionChange as AnonymRequestionChange, \
     PreferredSadiksChange as AnonymPreferredSadiksChange, \
-    DocumentsChange as AnonymDocumentsChange, get_json_sadiks_location_data
+    DocumentsChange as AnonymDocumentsChange, get_json_sadiks_location_data, AccountFrontPage
 from sadiki.anonym.views import Queue as AnonymQueue, \
     RequestionSearch as AnonymRequestionSearch
 from sadiki.authorisation.models import VerificationKey
@@ -61,7 +64,25 @@ class Registration(OperatorPermissionMixin, TemplateView):
     """
     template_name = 'operator/registration.html'
 
-    def get(self, request):
+    def dispatch(self, request, profile_id=None):
+        if profile_id:
+            profile = get_object_or_404(Profile, id=profile_id)
+            if not profile.user.is_requester():
+                raise Http404
+        else:
+            profile = None
+        return super(Registration, self).dispatch(request, profile)
+
+    def create_profile(self):
+        user = User.objects.create_user(username=get_unique_username())
+        #        задаем права
+        permission = Permission.objects.get(codename=u'is_requester')
+        user.user_permissions.add(permission)
+        user.set_username_by_id()
+        user.save()
+        return Profile.objects.create(user=user)
+
+    def get(self, request, profile):
         requestion_form = OperatorRequestionForm()
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm()
@@ -70,23 +91,19 @@ class Registration(OperatorPermissionMixin, TemplateView):
         context = {'form': requestion_form,
             'benefits_form': benefits_form,
             'openlayers_js': get_openlayers_js(),
-            'sadiks_location_data': get_json_sadiks_location_data(),}
+            'sadiks_location_data': get_json_sadiks_location_data(),
+            'profile': profile}
         return self.render_to_response(context)
 
-    def post(self, request):
+    def post(self, request, profile):
         requestion_form = OperatorRequestionForm(request.POST,)
         if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
             benefits_form = BenefitsForm(data=request.POST)
         else:
             benefits_form = BenefitCategoryForm(data=request.POST)
         if requestion_form.is_valid() and benefits_form.is_valid():
-            user = User.objects.create_user(username=get_unique_username())
-            #        задаем права
-            permission = Permission.objects.get(codename=u'is_requester')
-            user.user_permissions.add(permission)
-            user.set_username_by_id()
-            user.save()
-            profile = Profile.objects.create(user=user)
+            if not profile:
+                profile = self.create_profile()
             requestion = requestion_form.save(profile=profile)
             benefits_form.instance = requestion
             requestion = benefits_form.save()
@@ -97,7 +114,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
             context_dict.update(dict([(field, benefits_form.cleaned_data[field])
                 for field in benefits_form.changed_data]))
             Logger.objects.create_for_action(CREATE_PROFILE,
-                context_dict={'user': user, 'profile': profile},
+                context_dict={'user': profile.user, 'profile': profile},
                 extra={'user': request.user, 'obj': profile})
             Logger.objects.create_for_action(REQUESTION_REGISTRATION,
                 context_dict=context_dict,
@@ -119,8 +136,21 @@ class Registration(OperatorPermissionMixin, TemplateView):
         context = {'form': requestion_form,
             'benefits_form': benefits_form,
             'openlayers_js': get_openlayers_js(),
-            'sadiks_location_data': get_json_sadiks_location_data(),}
+            'sadiks_location_data': get_json_sadiks_location_data(),
+            'profile': profile}
         return self.render_to_response(context)
+
+
+class RequestionAdd(OperatorPermissionMixin, AccountRequestionAdd):
+    template_name = "operator/requestion_add.html"
+    requestion_form = OperatorRequestionForm
+
+    def redirect_to(self, requestion):
+        return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
+
+    def dispatch(self, request, profile_id):
+        profile = get_object_or_404(Profile, id=profile_id)
+        return super(AccountRequestionAdd, self).dispatch(request, profile=profile)
 
 
 class RequestionSearch(OperatorPermissionMixin, AnonymRequestionSearch):
@@ -156,27 +186,31 @@ class RequestionSearch(OperatorPermissionMixin, AnonymRequestionSearch):
                     return new_query, more_results
 
 
-class RequestionInfo(OperatorRequestionMixin, TemplateView):
-    u"""
-    отображение информации о заявке для оператора
-    """
-    template_name = 'operator/requestion_info.html'
+class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
+    template_name = "operator/profile_info.html"
 
-    def get(self, request, requestion):
-        context = self.get_context_data()
-        reset_password_form = HiddenConfirmation(initial={'action': 'reset_password'})
-        vkontakte_associations = requestion.profile.user.social_auth.filter(provider='vkontakte-oauth2')
-        if vkontakte_associations:
-            context.update({'vkontakte_association': vkontakte_associations[0]})
-        context.update({
-            'requestion': requestion,
-            'STATUS_REQUESTER': STATUS_REQUESTER,
-            'STATUS_DISTRIBUTED': STATUS_DISTRIBUTED,
-            'reset_password_form': reset_password_form,
-            })
-        if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED:
-            context.update({'other_requestions_with_ident_document': requestion.other_requestions_with_ident_document()})
-        return self.render_to_response(context)
+    def dispatch(self, request, profile_id):
+        profile = get_object_or_404(Profile, id=profile_id)
+        return super(AccountFrontPage, self).dispatch(request, profile=profile)
+
+    def get_context_data(self, **kwargs):
+        context = super(ProfileInfo, self).get_context_data(**kwargs)
+        context.update(
+            {'reset_password_form': HiddenConfirmation(initial={'action': 'reset_password'})})
+        return context
+
+
+class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
+    template_name = "operator/requestion_info.html"
+
+    def redirect_to(self, requestion):
+        return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
+
+    def get_queue_data(self, requestion):
+        return {}
+
+    def can_change_benefits(self, requestion):
+        return requestion.editable
 
 
 class RequestionChange(OperatorRequestionCheckIdentityMixin,
@@ -631,32 +665,11 @@ class GenerateBlank(OperatorRequestionMixin, GenerateBlankBase):
         }
 
 
-class RevalidateEmail(OperatorPermissionMixin, TemplateView):
+class GenerateProfilePassword(OperatorPermissionMixin, View):
 
     def post(self, request, profile_id):
         profile = get_object_or_404(Profile, id=profile_id)
-
-        if request.is_ajax():
-            if profile.user.email and not (get_user_by_email(profile.user.email) and
-                profile.email_verified):
-                verification_key_object = VerificationKey.objects.create_key(profile.user)
-                verification_key_object.send_email_verification()
-                return HttpResponse(content=json.dumps({
-                    'ok': True,
-                    'message': u"На адрес %s была выслана ссылка для доступа в личный кабинет" % profile.user.email,
-                }), mimetype='text/javascript')
-            else:
-                return HttpResponse(content=json.dumps({'ok': False}),
-                    mimetype='text/javascript')
-        else:
-            return HttpResponseBadRequest()
-
-
-class GenerateProfilePassword(OperatorPermissionMixin, View):
-
-    def post(self, request, requestion_id):
-        requestion = get_object_or_404(Requestion, id=requestion_id)
-        user = requestion.profile.user
+        user = profile.user
         form = HiddenConfirmation(request.POST)
         if form.is_valid() and form.cleaned_data.get('action') == 'reset_password':
             password = User.objects.make_random_password()
@@ -664,7 +677,7 @@ class GenerateProfilePassword(OperatorPermissionMixin, View):
             user.save()
             result = generate_pdf(template_name='operator/blanks/reset_password.html',
                                   context_dict={'password': password, 'media_root': settings.MEDIA_ROOT,
-                                                'requestion': requestion})
+                                                'profile': profile})
             response = HttpResponse(result.getvalue(), mimetype='application/pdf')
             return response
 
@@ -691,3 +704,10 @@ class ChangeRequestionLocation(OperatorPermissionMixin, View):
 
         else:
             return HttpResponseBadRequest()
+
+
+class SocialProfilePublic(OperatorPermissionMixin, AccountSocialProfilePublic):
+
+    def dispatch(self, request, profile_id):
+        profile = get_object_or_404(Profile, id=profile_id)
+        return super(AccountSocialProfilePublic, self).dispatch(request, profile)
