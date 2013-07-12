@@ -112,8 +112,6 @@
         <div class="requestion-info">
             <label class="field-label">Логин:</label>
             <p class="field-value">{{ profile.user.username }}</p>
-            {% block profile_auth_extra %}
-            {% endblock %}
 
         <div class="vkontakte-info">
             {% block vkontakte_info %}
@@ -122,13 +120,8 @@
                 <div class="vkontakte-profile clearfix">
                 <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ vkontakte_association.uid }}"><img src="{{ STATIC_URL }}img/vkontakte.png"/> http://vk.com/id{{ vkontakte_association.uid }}</a>
                 {% if profile.user.password and profile.user.has_usable_password %}
-                    {% if request.user.is_operator %}
-                        {% url operator_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id as social_auth_disconnect_url %}
-                        {% url operator_profile_info profile_id=profile.id as redirect_url %}
-                    {% else %}
-                        {% url account_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id as social_auth_disconnect_url %}
-                        {% url account_frontpage as redirect_url %}
-                    {% endif %}
+                    {% url account_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id as social_auth_disconnect_url %}
+                    {% url account_frontpage as redirect_url %}
                     <a class="vkontakte-remove action-link" href="{{ social_auth_disconnect_url }}?next={{ redirect_url }}"><img src="{{ STATIC_URL }}img/remove.png"/>Отвязать аккаунт</a>
                 {% else %}
                     <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
@@ -137,11 +130,7 @@
                 <div class="small-field">
                     <div class="field">
                     <label class="field-label">Ссылка на профиль в публичной очереди:</label>
-                    {% if request.user.is_operator %}
-                        {% url operator_social_profile_public profile_id=profile.id as social_profile_public_url %}
-                    {% else %}
-                        {% url social_profile_public as social_profile_public_url %}
-                    {% endif %}
+                    {% url social_profile_public as social_profile_public_url %}
                     <form id="profile-form" action="{{ social_profile_public_url }}">
                         <div class="field-value">
                         {% with profile_change_form.social_auth_public as field%}
@@ -200,12 +189,10 @@
                 </div>
             {% else %}
                 <p>К этой учетной записи не привязан аккаунт ВКонтакте</p>
-                {% if request.user.is_requester %}
-                    <a class="action-link link-with-image" href="{% url socialauth_connect 'vkontakte-oauth2' %}">
-                        <img src="{{ STATIC_URL }}img/vkontakte.png"/>
-                        Привязать аккаунт
-                    </a>
-                {% endif %}
+                <a class="action-link link-with-image" href="{% url socialauth_connect 'vkontakte-oauth2' %}">
+                    <img src="{{ STATIC_URL }}img/vkontakte.png"/>
+                    Привязать аккаунт
+                </a>
             {% endif %}
             {% endblock %}
         </div>

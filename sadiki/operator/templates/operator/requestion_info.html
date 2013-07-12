@@ -23,7 +23,204 @@
         </a>
         </div>
     </div>
-    {{ block.super }}
+    <div class='notification-area'>
+    {% if not requestion.editable %}
+        <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+    {% endif %}
+    </div>
+<form id="requestion-form" action='.' method="post" class="requestion-form {% if not requestion.editable %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
+<div class="row">
+    <div class="span11 requestion-info">
+        <div class="block-head">Информация о заявке:</div>
+    </div>
+</div>
+<div class="row">
+    {% csrf_token %}
+    {{ pref_sadiks_form.media }}
+    {{ change_requestion_form.media }}
+    {{ change_benefits_form.media }}
+    <div class="span6">
+    <div class="requestion-info">
+        <div class="field">
+            <label class="field-label">{{ change_requestion_form.name.label }}</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ change_requestion_form.name.value }}</label>
+                {{ change_requestion_form.name }}
+                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">{{ change_requestion_form.sex.label }}</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ requestion.get_sex_display }}</label>
+                {{ change_requestion_form.sex }}
+                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Дата рождения</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.birth_date|date:"d-m-Y" }}</span>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Возрастная группа</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.age_groups.0|default:"Ребёнок не попадает ни в одну возрастную категорию." }}</span>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Желаемый год поступления</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ requestion.admission_date.year }}</label>
+                {{ change_requestion_form.admission_date }}
+                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+
+            </p>
+        </div>
+
+        <div class="hidden">
+            {{ change_requestion_form.location }}
+        </div>
+    </div>
+    </div>
+    <div class="span5">
+        <div class="requestion-info right-block">
+        <div class="field">
+            <label class="field-label">Документы</label>
+            <div>
+            {% for document in requestion.evidience_documents %}
+                <span class="document-info">
+                {% if not document.confirmed %}
+                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.template }}
+                        Номер {{ document.document_number }}
+                        <span class="status-not-approved">Документ не подтвержден оператором</span>
+                    </div>
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.template }}
+                        Номер {{ document.document_number }}
+                        <span class="status-approved">Документ подтвержден</span>
+                    </div>
+                {% endif %}
+                </span>
+            {% endfor %}
+            </div>
+        </div>
+        <div class="field">
+            <label class="field-label">Статус</label>
+            {% if requestion.document_confirmed %}
+                <p class="field-value">{{ requestion.get_status_display }}</p>
+            {% else %}
+                <div class="document-info">
+                <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                <p class="field-value">
+                    {{ requestion.get_status_display }}
+                    {% if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
+                    <span class="status-not-approved">Статус не подтвержден оператором</span>
+                    {% endif %}
+                </p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="field">
+            <label class="field-label">Льготы</label>
+            {% if can_change_benefits %}
+                {{ change_benefits_form.benefits }}
+            {% else %}
+                {% with requestion.benefits.all as requestion_benefits %}
+                    {% if requestion_benefits %}
+                    <ul class="benefits-list">
+                        {% for benefit in requestion_benefits%}
+                            <li class="bsmListItem"><span class="bsmListItemLabel">{{ benefit }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                        <p class="field-value">Не заданы</p>
+                    {% endif %}
+                {% endwith %}
+                {% if requestion.editable %}
+                    <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="requestion-info span11">
+        <div class="split-line"></div>
+        <div class="block-head">Выбор ДОУ</div>
+    </div>
+</div>
+<div class="row sadiks-block">
+    <div class="span6">
+        <div class="requestion-info">
+        <div class="field">
+            <label class="field-label hidden-input">Территориальная область</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</label>
+                {{ pref_sadiks_form.areas }}
+                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Приоритетные ДОУ</label>
+            {% if requestion.editable %}
+                {{ pref_sadiks_form.pref_sadiks }}
+            {% else %}
+                {% with requestion.pref_sadiks.all as requestion_sadiks %}
+                    {% if requestion_sadiks %}
+                    <ul class="benefits-list">
+                        {% for sadik in requestion_sadiks %}
+                            <li class="bsmListItem"><span class="bsmListItemLabel">{{ sadik }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                        <p class="field-value">Не заданы</p>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {% with pref_sadiks_form.distribute_in_any_sadik as field %}
+                {% if requestion.editable %}
+                    {{ field }}
+                    <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% else %}
+                    <label class="field-label distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ field.label }}</label>
+                {% endif %}
+            {% endwith %}
+        </div>
+        </div>
+    </div>
+    <div class="span5">
+        <div class="requestion-info">
+        <div id="location-header" class="field">
+            <label class="field-label">{{ change_requestion_form.location.label }}</label>
+        </div>
+        <div id="account-requestion-map"></div>
+        <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
+        </div>
+        <ul class='map-legend'>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
+        </ul>
+    </div>
+</div>
+{% if requestion.editable %}
+    <div class="row">
+        <div class="span11">
+            <button class="btn btn-primary btn-large" type="submit" disabled="disabled">Сохранить</button>
+        </div>
+    </div>
+{% endif %}
+</form>
 {% endblock %}
 
 {% block extra %}

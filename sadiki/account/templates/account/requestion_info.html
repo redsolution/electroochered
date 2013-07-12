@@ -443,7 +443,6 @@
 {% endif %}
 </form>
 
-{% block extra %}
 <div class="requestion-queue">
     <div class="split-line"></div>
     <div class="block-head">Очередь заявок</div>
@@ -463,5 +462,4 @@
 
     <div class="block-head"><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></div>
 </div>
-{% endblock %}
 {% endblock %}
