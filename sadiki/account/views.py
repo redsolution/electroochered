@@ -16,7 +16,7 @@ from sadiki.core.models import Requestion, \
     EvidienceDocument, STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
-from sadiki.core.workflow import ADD_REQUESTION, CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS,\
+from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS,\
     CHANGE_DOCUMENTS, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
@@ -112,6 +112,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     template_name = 'account/requestion_add.html'
     requestion_form = RequestionForm
     benefits_form = BenefitsForm
+    logger_action = REQUESTION_ADD_BY_REQUESTER
 
     def get_context_data(self, **kwargs):
         return {
@@ -153,7 +154,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 'areas': form.cleaned_data.get('areas')}
             context_dict.update(dict([(field, benefits_form.cleaned_data[field])
                 for field in benefits_form.changed_data]))
-            Logger.objects.create_for_action(ADD_REQUESTION,
+            Logger.objects.create_for_action(self.logger_action,
                 context_dict=context_dict, extra={
                 'user': request.user, 'obj': requestion,
                 'added_pref_sadiks': pref_sadiks})
@@ -167,6 +168,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 
 class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
+    logger_action = ACCOUNT_CHANGE_REQUESTION
 
     def can_change_benefits(self, requestion):
         return requestion.status == STATUS_REQUESTER_NOT_CONFIRMED
@@ -226,7 +228,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 extra.update({'added_pref_sadiks': added_pref_sadiks})
                 extra.update({'removed_pref_sadiks': removed_pref_sadiks})
             if data_changed:
-                Logger.objects.create_for_action(ACCOUNT_CHANGE_REQUESTION,
+                Logger.objects.create_for_action(self.logger_action,
                     context_dict=context_dict, extra=extra)
                 messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
             else:

@@ -31,7 +31,7 @@ from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.utils import check_url, get_openlayers_js, get_user_by_email, get_unique_username
-from sadiki.core.workflow import REQUESTION_REGISTRATION, \
+from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
     CHANGE_PROFILE_BY_OPERATOR, CHANGE_BENEFITS, CHANGE_REQUESTION_BY_OPERATOR, \
     CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE, CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
 from sadiki.logger.models import Logger
@@ -116,7 +116,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
             Logger.objects.create_for_action(CREATE_PROFILE,
                 context_dict={'user': profile.user, 'profile': profile},
                 extra={'user': request.user, 'obj': profile})
-            Logger.objects.create_for_action(REQUESTION_REGISTRATION,
+            Logger.objects.create_for_action(REQUESTION_REGISTRATION_BY_OPERATOR,
                 context_dict=context_dict,
                 extra={'user': request.user, 'obj': requestion,
                     'added_pref_sadiks': added_pref_sadiks, })
@@ -144,6 +144,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
 class RequestionAdd(OperatorPermissionMixin, AccountRequestionAdd):
     template_name = "operator/requestion_add.html"
     requestion_form = OperatorRequestionForm
+    logger_action = REQUESTION_REGISTRATION_BY_OPERATOR
 
     def redirect_to(self, requestion):
         return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
@@ -202,6 +203,7 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
 
 class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     template_name = "operator/requestion_info.html"
+    logger_action = CHANGE_REQUESTION_BY_OPERATOR
 
     def redirect_to(self, requestion):
         return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
