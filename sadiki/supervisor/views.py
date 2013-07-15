@@ -46,6 +46,12 @@ class RequestionInfo(OperatorRequestionInfo):
     template_name = "supervisor/requestion_info.html"
     required_permissions = [SUPERVISOR_PERMISSION[0], ]
 
+    def can_change_benefits(self, requestion):
+        return False
+
+    def can_change_requestion(self, requestion):
+        return False
+
 
 class ChangeRegistrationDateTime(SupervisorBases):
     template_name = "supervisor/change_registration_datetime.html"

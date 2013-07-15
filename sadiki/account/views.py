@@ -173,6 +173,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
     def can_change_benefits(self, requestion):
         return requestion.status == STATUS_REQUESTER_NOT_CONFIRMED
 
+    def can_change_requestion(self, requestion):
+        return requestion.editable
+
     def redirect_to(self, requestion):
         return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
 
@@ -188,6 +191,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'pref_sadiks_form': pref_sadiks_form,
             'areas_ids': requestion.areas.all().values_list('id', flat=True),
             'can_change_benefits': self.can_change_benefits(requestion),
+            'can_change_requestion': self.can_change_requestion(requestion),
         })
         return self.render_to_response(context)
 

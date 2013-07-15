@@ -24,11 +24,27 @@
         </div>
     </div>
     <div class='notification-area'>
-    {% if not requestion.editable %}
-        <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
-    {% endif %}
+        {% if not can_change_requestion %}
+            <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+        {% endif %}
+        {% with requestion.get_vacancy_distributed as vacancy_distributed %}
+            {% if vacancy_distributed %}
+                <div class="alert alert-success">Заявка зачислена в <a href="{% url sadik_info sadik_id=vacancy_distributed.sadik_group.sadik.id %}">{{ vacancy_distributed.sadik_group.sadik }}</a></div>
+            {% else %}
+                {% with requestion.get_vacancy_temp_distributed as vacancy_temp_distributed %}
+                    {% if vacancy_temp_distributed %}
+                        <div class="alert alert-success">Заявка временно зачислена в <a href="{% url sadik_info sadik_id=vacancy_temp_distributed.sadik_group.sadik.id %}">{{ vacancy_temp_distributed.sadik_group.sadik }}</a></div>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        {% endwith %}
+        {% with requestion.get_vacancy_decision as vacancy_decision %}
+            {% if vacancy_decision %}
+                <div class="alert alert-success">Происходит процесс распределения в <a href="{% url sadik_info sadik_id=vacancy_decision.sadik_group.sadik.id %}">{{ vacancy_decision.sadik_group.sadik }}</a></div>
+            {% endif %}
+        {% endwith %}
     </div>
-<form id="requestion-form" action='.' method="post" class="requestion-form {% if not requestion.editable %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
+<form id="requestion-form" action='.' method="post" class="requestion-form {% if not can_change_requestion %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
 <div class="row">
     <div class="span11 requestion-info">
         <div class="block-head">Информация о заявке:</div>
@@ -142,7 +158,7 @@
                         <p class="field-value">Не заданы</p>
                     {% endif %}
                 {% endwith %}
-                {% if requestion.editable %}
+                {% if can_change_requestion %}
                     <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
                 {% endif %}
             {% endif %}
@@ -170,7 +186,7 @@
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>
-            {% if requestion.editable %}
+            {% if can_change_requestion %}
                 {{ pref_sadiks_form.pref_sadiks }}
             {% else %}
                 {% with requestion.pref_sadiks.all as requestion_sadiks %}
@@ -188,7 +204,7 @@
         </div>
         <div class="field">
             {% with pref_sadiks_form.distribute_in_any_sadik as field %}
-                {% if requestion.editable %}
+                {% if can_change_requestion %}
                     {{ field }}
                     <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {% else %}
@@ -213,7 +229,7 @@
         </ul>
     </div>
 </div>
-{% if requestion.editable %}
+{% if can_change_requestion %}
     <div class="row">
         <div class="span11">
             <button class="btn btn-primary btn-large" type="submit" disabled="disabled">Сохранить</button>
@@ -221,14 +237,17 @@
     </div>
 {% endif %}
 </form>
-{% endblock %}
-
-{% block extra %}
-    <h2 class="page-header">Действия с заявкой</h2>
-    <div class="btn-group">
+<h2 class="page-header">Действия с заявкой</h2>
+<div class="btn-group">
+    {% block requestion_actions %}
     {% for transition in requestion.available_transitions %}
         {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
         {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
     {% endfor %}
-    </div>
+    {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
+    {% if find_profile_for_requestion_url|check_url_availability:request.user %}
+        <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
+    {% endif %}
+    {% endblock %}
+</div>
 {% endblock %}
