@@ -621,10 +621,12 @@ class FindProfileForRequestion(OperatorRequestionCheckIdentityMixin,
     }
 
     def get_context_data(self, **kwargs):
+        requestion = kwargs.get('requestion')
         return {
             'params': kwargs,
             'requestion': kwargs.get('requestion'),
             'form': self.form(),
+            'profile': requestion.profile,
         }
 
 
@@ -633,9 +635,11 @@ class EmbedRequestionToProfile(OperatorRequestionCheckIdentityMixin,
     template_name = u"operator/embed_requestion_to_profile.html"
 
     def get_context_data(self, **kwargs):
+        requestion = kwargs.get('requestion')
         return {
-            'requestion': kwargs.get('requestion'),
-            'params': kwargs
+            'requestion': requestion,
+            'params': kwargs,
+            'profile': requestion.profile,
         }
 
     def check_permissions(self, request, requestion, profile):
