@@ -12,7 +12,7 @@ from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
 from sadiki.account.forms import BenefitsForm, \
-    ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm
+    ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm, CustomGenericInlineFormSet
 from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
     SocialProfilePublic as AccountSocialProfilePublic, \
     RequestionAdd as AccountRequestionAdd, \
@@ -210,6 +210,22 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
 
     def get_queue_data(self, requestion):
         return {}
+
+    def get_documents_formset(self):
+        return generic_inlineformset_factory(EvidienceDocument,
+            formset=CustomGenericInlineFormSet,
+            form=DocumentForm, fields=('template', 'document_number', ), extra=1)
+
+
+    #def get_context_data(self, requestion, **kwargs):
+    #    context = super(RequestionInfo, self).get_context_data(requestion, **kwargs)
+    #    DocumentFormset = generic_inlineformset_factory(EvidienceDocument,
+    #        form=DocumentForm, fields=('template', 'document_number', ), extra=0)
+    #    formset = DocumentFormset(
+    #        instance=requestion, queryset=EvidienceDocument.objects.filter(
+    #        template__destination=BENEFIT_DOCUMENT))
+    #    context.update({'formset': formset})
+    #    return context
 
     def can_change_benefits(self, requestion):
         return requestion.editable

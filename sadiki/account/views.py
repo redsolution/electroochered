@@ -179,19 +179,26 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
     def redirect_to(self, requestion):
         return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
 
+    def get_documents_formset(self):
+        return None
+
     def get(self, request, requestion):
         context = self.get_context_data(requestion)
         change_requestion_form = ChangeRequestionBaseForm(instance=requestion)
         change_benefits_form = BenefitsForm(instance=requestion)
         pref_sadiks_form = PreferredSadikWithAreasNameForm(instance=requestion)
+        DocumentFormset = self.get_documents_formset()
+        if DocumentFormset:
+            formset = self.get_documents_formset()(
+                instance=requestion, queryset=EvidienceDocument.objects.filter(
+                template__destination=BENEFIT_DOCUMENT))
+        else:
+            formset = None
         context.update({
-            'profile': requestion.profile,
+            'formset': formset,
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
-            'areas_ids': requestion.areas.all().values_list('id', flat=True),
-            'can_change_benefits': self.can_change_benefits(requestion),
-            'can_change_requestion': self.can_change_requestion(requestion),
         })
         return self.render_to_response(context)
 
@@ -200,11 +207,19 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         change_requestion_form = ChangeRequestionBaseForm(request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
         pref_sadiks_form = PreferredSadikWithAreasNameForm(request.POST, instance=requestion)
+        DocumentFormset = self.get_documents_formset()
+        if DocumentFormset:
+            formset = self.get_documents_formset()(request.POST,
+                instance=requestion, queryset=EvidienceDocument.objects.filter(
+                template__destination=BENEFIT_DOCUMENT))
+        else:
+            formset = None
         can_change_benefits = self.can_change_benefits(requestion)
         if not requestion.editable:
             messages.error(request, u'Заявка %s не может быть изменена' % requestion)
             return HttpResponseRedirect(reverse('account_requestion_info', args=[requestion.id]))
-        if all((change_requestion_form.is_valid(), change_benefits_form.is_valid(), pref_sadiks_form.is_valid())):
+        if all((change_requestion_form.is_valid(), change_benefits_form.is_valid(),
+                pref_sadiks_form.is_valid(), (not formset or formset.is_valid()))):
             context_dict = {'requestion': requestion, 'changed_data': [], 'cleaned_data': {}}
             data_changed = False
             extra = {'user': request.user, 'obj': requestion}
@@ -220,6 +235,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                     change_benefits_form.save()
                     context_dict['changed_data'].extend(change_benefits_form.changed_data)
                     context_dict['cleaned_data'].update(change_benefits_form.cleaned_data)
+                if formset and formset.has_changed():
+                    formset.save()
+                    data_changed = True
             if pref_sadiks_form.has_changed():
                 data_changed = True
                 pref_sadiks = set(requestion.pref_sadiks.all())
@@ -239,6 +257,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 messages.error(request, u'Заявка %s не была изменена' % requestion)
             return HttpResponseRedirect(self.redirect_to(requestion))
         context.update({
+            'formset': formset,
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
@@ -288,12 +307,15 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
         context = {
             'requestion': requestion,
-
+            'profile': requestion.profile,
             'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
             'sadiks_location_data': get_json_sadiks_location_data(),
             'pref_sadiks_ids': pref_sadiks_ids,
+            'areas_ids': requestion.areas.all().values_list('id', flat=True),
+            'can_change_benefits': self.can_change_benefits(requestion),
+            'can_change_requestion': self.can_change_requestion(requestion),
         }
 
         context.update(kwargs)

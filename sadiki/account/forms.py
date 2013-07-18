@@ -2,14 +2,16 @@
 from django import forms
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
 from django.contrib.gis.forms.fields import GeometryField
+from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet, ModelForm
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
 from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
-    BenefitCategory, Address
+    BenefitCategory, Address, EvidienceDocument
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
@@ -153,10 +155,21 @@ class PreferredSadikWithAreasNameForm(PreferredSadikForm):
         required=False, widget=SelectMultipleJS())
 
 
+class CustomGenericInlineFormSet(BaseGenericInlineFormSet):
+
+    def add_fields(self, form, index):
+        super(CustomGenericInlineFormSet, self).add_fields(form, index)
+        form.fields[DELETION_FIELD_NAME].widget.attrs = {'class': 'delete'}
+
+
 class DocumentForm(ModelForm):
+
+    class Meta:
+        model = EvidienceDocument
 
     def __init__(self, *args, **kwargs):
         super(DocumentForm, self).__init__(*args, **kwargs)
+        self.fields['template'].widget = forms.HiddenInput()
         self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
 

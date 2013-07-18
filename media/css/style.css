@@ -593,48 +593,8 @@ table.table.table-bordered tr.highlight td {
     margin-bottom: 0px;
 }
 
-.requestion-add-form .field{
-    padding: 5px;
-    border: 1px solid white;
-}
-
-.requestion-add-form .field.error .field-label{
-    color: #A60000;
-}
-
 .requestion-add-form .bsmListItem{
     margin-right: 110px;
-}
-
-.requestion-add-form .field.error{
-    background: #ffdfdf; border: 1px solid #f3afb5;
-    /* CSS3 */
-    border-radius:         4px;
-    -webkit-border-radius: 4px;
-    -moz-border-radius:    4px;
-    -o-border-radius:      4px;
-    -khtml-border-radius:  4px;
-}
-
-.requestion-add-form #errorMsg{
-    background: #ffdfdf; border: 1px solid #f3afb5; margin: 0 0 1.5em 0; padding: 0 1.5em;
-    /* CSS3 */
-    border-radius:         4px;
-    -webkit-border-radius: 4px;
-    -moz-border-radius:    4px;
-    -o-border-radius:      4px;
-    -khtml-border-radius:  4px;
-}
-
-.requestion-add-form #errorMsg h3{} /* Feel free to use a heading level suitable to your page structure */
-.requestion-add-form #errorMsg ol{ margin: 0 0 1.5em 0; padding: 0; }
-.requestion-add-form #errorMsg ol li{ margin: 0 0 3px 1.5em; padding: 7px; background: #f6bec1; position: relative; font-size: .85em;
-    /* CSS3 */
-    border-radius:         4px;
-    -webkit-border-radius: 4px;
-    -moz-border-radius:    4px;
-    -o-border-radius:      4px;
-    -khtml-border-radius:  4px;
 }
 
 .requestion-add-form .ui-datepicker-trigger{
@@ -1337,6 +1297,46 @@ tr.dynamic-form .errorlist {
     font-size: 13px;
 }
 
+.requestion-info .field{
+    padding: 5px;
+    border: 1px solid white;
+}
+
+.requestion-info .field.error .field-label{
+    color: #A60000;
+}
+
+.requestion-info .field.error{
+    background: #ffdfdf; border: 1px solid #f3afb5;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-info #errorMsg{
+    background: #ffdfdf; border: 1px solid #f3afb5; margin: 0 0 1.5em 0; padding: 0 1.5em;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-info #errorMsg h3{} /* Feel free to use a heading level suitable to your page structure */
+.requestion-info #errorMsg ol{ margin: 0 0 1.5em 0; padding: 0; }
+.requestion-info #errorMsg ol li{ margin: 0 0 3px 1.5em; padding: 7px; background: #f6bec1; position: relative; font-size: .85em;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
 /*Login registration pages*/
 .registrationForm input{
     border: 1px solid #dddddd !important;
@@ -1378,4 +1378,12 @@ tr.dynamic-form .errorlist {
 .vkontakte-registration .hint{
     margin-top: 100px;
     color: #909090;
+}
+
+.documents-form .original-form{
+    display: none;
+}
+
+.documents-form .delete{
+    display: none;
 }
