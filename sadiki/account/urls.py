@@ -1,14 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
-from sadiki.account.views import RequestionAdd, RequestionChange, \
-    BenefitsChange, PreferredSadiksChange, AccountFrontPage, RequestionInfo, \
-    DocumentsChange, BenefitCategoryChange, GenerateBlank, SocialProfilePublic
-
-if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
-    change_benefits_view = BenefitsChange.as_view()
-else:
-    change_benefits_view = BenefitCategoryChange.as_view()
+from sadiki.account.views import RequestionAdd, \
+    AccountFrontPage, RequestionInfo, GenerateBlank, SocialProfilePublic
 
 urlpatterns = patterns('',
     url(r'^$', AccountFrontPage.as_view(), name='account_frontpage'),

@@ -3,17 +3,13 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
 
-from sadiki.operator.views.requestion import BenefitCategoryChange, BenefitsChange, FrontPage, RequestionInfo, \
-    RequestionChange, PreferredSadiksChange, DocumentsChange, RequestionAdd, \
+from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
+    RequestionAdd, \
     RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
     EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
 
-if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
-    change_benefits_view = BenefitsChange.as_view()
-else:
-    change_benefits_view = BenefitCategoryChange.as_view()
 
 urlpatterns = patterns('',
     # Общие функции
@@ -32,14 +28,6 @@ urlpatterns = patterns('',
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',
         RequestionInfo.as_view(), name=u'operator_requestion_info'),
-    url(r'^request/(?P<requestion_id>\d{1,7})/benefits/$',
-        change_benefits_view, name=u'operator_benefits_change'),
-    url(r'^request/(?P<requestion_id>\d{1,7})/edit/$',
-        RequestionChange.as_view(), name=u'operator_requestion_change'),
-    url(r'^request/(?P<requestion_id>\d{1,7})/sadiks/$',
-        PreferredSadiksChange.as_view(), name=u'operator_preferredsadiks_change'),
-    url(r'^request/(?P<requestion_id>\d{1,7})/documents/$',
-        DocumentsChange.as_view(), name=u'operator_documents_change'),
     url(r'^request/(?P<requestion_id>\d{1,7})/set_identity_document/$',
         SetIdentityDocument.as_view(), name=u'operator_requestion_set_identity_document'),
     url(r'^request/(?P<requestion_id>\d{1,7})/find_profile/$',

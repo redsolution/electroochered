@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.conf import settings
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db import transaction
@@ -8,25 +7,21 @@ from django.shortcuts import get_object_or_404
 from django.utils.formats import date_format
 from django.views.generic.base import TemplateView
 from sadiki.core.models import Requestion, STATUS_REQUESTER, SadikGroup, \
-    AgeGroup, Distribution, STATUS_NOT_APPEAR, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, \
-    STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION, STATUS_DECISION, \
-    STATUS_DISTRIBUTED, BenefitCategory, \
-    STATUS_ARCHIVE
+    Distribution, STATUS_NOT_APPEAR, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, \
+    STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION, STATUS_DECISION
 from sadiki.core.permissions import SUPERVISOR_PERMISSION, \
     RequirePermissionsMixin
-from sadiki.core.settings import FACILITY_TRANSFER_CATEGORY
 from sadiki.core.utils import get_current_distribution_year, \
     get_distribution_year, check_url
 from sadiki.core.workflow import CHANGE_REGISTRATION_DATETIME, CHANGE_BIRTHDATE, \
     NOT_APPEAR_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
-    DECISION_REQUESTER, DISTRIBUTED_ARCHIVE, START_NEW_YEAR
+    DECISION_REQUESTER, START_NEW_YEAR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import BaseConfirmationForm
 from sadiki.operator.views.requestion import RequestionSearch as OperatorRequestionSearch, \
     RequestionInfo as OperatorRequestionInfo, RequestionStatusChange as OperatorRequestionStatusChange
 
 from sadiki.supervisor.forms import RegistrationDateTimeForm, BirthDateForm
-import datetime
 
 
 class SupervisorBases(RequirePermissionsMixin, TemplateView):

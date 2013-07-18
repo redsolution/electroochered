@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
-from sadiki.account.forms import RequestionForm, PreferredSadikForm
+from sadiki.account.forms import RequestionForm
 from sadiki.administrator.admin import SadikAdminForm
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     FormWithDocument
@@ -230,13 +229,6 @@ class ConfirmationForm(ConfirmationFormMixin, forms.Form):
     def __init__(self, requestion, *args, **kwds):
         self.requestion = requestion
         super(ConfirmationForm, self).__init__(*args, **kwds)
-
-
-class PreferredSadikConfirmationForm(ConfirmationFormMixin, PreferredSadikForm):
-
-    def __init__(self, requestion, *args, **kwargs):
-        kwargs.update({'instance': requestion})
-        super(PreferredSadikConfirmationForm, self).__init__(*args, **kwargs)
 
 
 class TempDistributionConfirmationForm(ConfirmationForm):

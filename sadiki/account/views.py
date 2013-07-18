@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
 import json
-from django.conf import settings
 from django.contrib import messages
-from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
-    ChangeRequestionForm, PreferredSadikForm, BenefitsForm, DocumentForm, BenefitCategoryForm, ChangeRequestionBaseForm,\
-    PreferredSadikWithAreasNameForm, SocialProfilePublicForm
+    BenefitsForm, ChangeRequestionForm,\
+    PreferredSadikForm, SocialProfilePublicForm
 from sadiki.core.models import Requestion, \
-    BENEFIT_DOCUMENT, STATUS_REQUESTER_NOT_CONFIRMED, \
-    EvidienceDocument, STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik
+    STATUS_REQUESTER_NOT_CONFIRMED, \
+    STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
-from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, CHANGE_REQUESTION, CHANGE_PREFERRED_SADIKS, CHANGE_BENEFITS,\
-    CHANGE_DOCUMENTS, ACCOUNT_CHANGE_REQUESTION
+from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 
@@ -184,9 +181,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def get(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = ChangeRequestionBaseForm(instance=requestion)
+        change_requestion_form = ChangeRequestionForm(instance=requestion)
         change_benefits_form = BenefitsForm(instance=requestion)
-        pref_sadiks_form = PreferredSadikWithAreasNameForm(instance=requestion)
+        pref_sadiks_form = PreferredSadikForm(instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(
@@ -204,9 +201,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def post(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = ChangeRequestionBaseForm(request.POST, instance=requestion)
+        change_requestion_form = ChangeRequestionForm(request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
-        pref_sadiks_form = PreferredSadikWithAreasNameForm(request.POST, instance=requestion)
+        pref_sadiks_form = PreferredSadikForm(request.POST, instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(request.POST,
@@ -321,225 +318,6 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         context.update(kwargs)
         context.update(self.get_queue_data(requestion))
         return context
-
-
-class RequestionChange(AccountRequestionEditMixin, TemplateView):
-    u"""Изменение заявки пользователем"""
-    template_name = 'account/requestion_change.html'
-    queryset = Requestion.objects.all()
-
-    def get(self, request, requestion):
-        form = ChangeRequestionForm(instance=requestion)
-        return self.render_to_response({'requestion': requestion,
-            'form': form, 'openlayers_js': get_openlayers_js()})
-
-    def post(self, request, requestion):
-        form = ChangeRequestionForm(instance=requestion,
-            data=request.POST)
-        if form.is_valid():
-            if form.has_changed():
-                requestion = form.save()
-#                write logs
-                context_dict = {'changed_fields': form.changed_data,
-                    'requestion': requestion}
-                Logger.objects.create_for_action(CHANGE_REQUESTION,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion})
-                messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
-            else:
-                messages.info(request, u'Заявка %s не была изменена' % requestion)
-            return HttpResponseRedirect(
-                reverse('account_requestion_info',
-                        kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response(
-                {'form': form, 'requestion': requestion, 'openlayers_js': get_openlayers_js()})
-
-
-class BenefitsChange(AccountRequestionEditMixin, TemplateView):
-    u"""Изменение льгот и документов для льгот"""
-    template_name = 'account/requestion_benefits_change.html'
-
-    def check_permissions(self, request, requestion):
-        return (super(BenefitsChange, self).check_permissions(request, requestion) and
-            requestion.status == STATUS_REQUESTER_NOT_CONFIRMED)
-
-    def get_own_documents(self, requestion):
-        serialized = []
-        for obj in requestion.evidience_documents():
-            serialized.append({
-                'id': obj.id,
-                'template': obj.template_id,
-                'confirmed': obj.confirmed,
-                'document_number': obj.document_number,
-            })
-        return simplejson.dumps(serialized)
-
-    def get(self, request, requestion):
-        benefits_form = BenefitsForm(instance=requestion)
-        context = {
-            'requestion': requestion,
-            'benefits_form': benefits_form,
-            'documents': self.get_own_documents(requestion),
-            }
-        return self.render_to_response(context)
-
-    def post(self, request, requestion):
-        benefits_form = BenefitsForm(
-            data=request.POST,
-            instance=requestion)
-        if benefits_form.is_valid():
-            benefits_form.save()
-            context_dict = dict([(field, benefits_form.cleaned_data[field])
-                for field in benefits_form.changed_data])
-            context_dict.update({"requestion": requestion})
-            Logger.objects.create_for_action(CHANGE_BENEFITS,
-                context_dict=context_dict,
-                extra={'user': request.user, 'obj': requestion})
-            messages.success(request, u'Льготы для заявки %s были изменены' %
-                requestion.requestion_number)
-            return HttpResponseRedirect(
-                reverse('account_requestion_info',
-                    kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response({
-                'requestion': requestion,
-                'benefits_form': benefits_form,
-                'documents': self.get_own_documents(requestion),
-            })
-
-
-class BenefitCategoryChange(AccountRequestionEditMixin, TemplateView):
-    template_name = 'account/requestion_benefitcategory_change.html'
-
-    def check_permissions(self, request, requestion):
-        return (super(BenefitCategoryChange, self).check_permissions(request, requestion) and
-            requestion.status == STATUS_REQUESTER_NOT_CONFIRMED)
-
-    def get(self, request, requestion):
-        from sadiki.account.forms import BenefitCategoryForm
-        form = BenefitCategoryForm(instance=requestion)
-        return self.render_to_response(
-            {'requestion': requestion, 'form': form})
-
-    def post(self, request, requestion):
-        from sadiki.account.forms import BenefitCategoryForm
-        form = BenefitCategoryForm(instance=requestion, data=request.POST)
-        if form.is_valid():
-            if form.has_changed():
-                form.save()
-                context_dict = {"requestion": requestion}
-                Logger.objects.create_for_action(CHANGE_BENEFITS,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion})
-                messages.success(
-                    request, u'''Льготы для заявки %s были изменены
-                         ''' % requestion.requestion_number)
-            else:
-                messages.success(
-                    request, u'''Льготы для заявки %s не были изменены
-                         ''' % requestion.requestion_number)
-            return HttpResponseRedirect(
-                    reverse('account_requestion_info',
-                            kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response(
-                {'requestion': requestion, 'form': form})
-
-
-class PreferredSadiksChange(AccountRequestionEditMixin, TemplateView):
-    u"""Изменение приоритетных ДОУ"""
-    template_name = 'account/requestion_preferredsadiks_change.html'
-
-    def get(self, request, requestion):
-        form = PreferredSadikForm(instance=requestion)
-        return self.render_to_response({
-            'requestion': requestion,
-            'form': form,
-        })
-
-    def post(self, request, requestion):
-        form = PreferredSadikForm(instance=requestion, data=request.POST)
-        if form.is_valid():
-            if form.has_changed():
-                # TODO: Добавить изящества в составление контекста для логов
-                pref_sadiks = set(requestion.pref_sadiks.all())
-                requestion = form.save()
-                new_pref_sadiks = set(requestion.pref_sadiks.all())
-                added_pref_sadiks = new_pref_sadiks - pref_sadiks
-                removed_pref_sadiks = pref_sadiks - new_pref_sadiks
-                context_dict = {
-                    'changed_data': form.changed_data,
-                    'pref_sadiks': requestion.pref_sadiks.all(),
-                    'distribute_in_any_sadik': requestion.distribute_in_any_sadik}
-                Logger.objects.create_for_action(CHANGE_PREFERRED_SADIKS,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion,
-                        'added_pref_sadiks': added_pref_sadiks,
-                        'removed_pref_sadiks': removed_pref_sadiks})
-                messages.info(request, u'''
-                     Приоритетные ДОУ для заявки %s изменены
-                     ''' % requestion.requestion_number)
-            else:
-                messages.info(request, u'''Приоритетные ДОУ не были изменены''')
-            return HttpResponseRedirect(
-                reverse('account_requestion_info',
-                        kwargs={'requestion_id': requestion.id}))
-        return self.render_to_response({
-            'requestion': requestion,
-            'form': form,
-        })
-
-
-class DocumentsChange(AccountRequestionMixin, TemplateView):
-    u"""Управление документами"""
-    template_name = 'account/requestion_documents_change.html'
-
-    def check_permissions(self, request, requestion):
-        return (super(DocumentsChange, self).check_permissions(request, requestion) and
-            requestion.status == STATUS_REQUESTER_NOT_CONFIRMED)
-
-    def get(self, request, requestion):
-        DocumentFormset = generic_inlineformset_factory(EvidienceDocument,
-            form=DocumentForm, exclude=['confirmed', ], extra=1)
-#        нужны только документы для льгот
-        formset = DocumentFormset(
-            instance=requestion, queryset=EvidienceDocument.objects.filter(
-            template__destination=BENEFIT_DOCUMENT))
-        return self.render_to_response({
-            'formset': formset,
-            'requestion': requestion,
-            'confirmed': EvidienceDocument.objects.documents_for_object(
-                requestion).confirmed(),
-        })
-
-    def post(self, request, requestion):
-        DocumentFormset = generic_inlineformset_factory(EvidienceDocument,
-            form=DocumentForm, exclude=['confirmed', ], extra=1)
-
-        formset = DocumentFormset(request.POST,
-            instance=requestion, queryset=EvidienceDocument.objects.filter(
-            template__destination=BENEFIT_DOCUMENT))
-
-        if formset.is_valid():
-            if formset.has_changed():
-                formset.save()
-                messages.info(request, u'''Документы были изменены''')
-                Logger.objects.create_for_action(
-                        CHANGE_DOCUMENTS,
-                        context_dict={'benefit_documents': requestion.evidience_documents().filter(
-                            template__destination=BENEFIT_DOCUMENT)},
-                        extra={'user': request.user, 'obj': requestion})
-            else:
-                messages.info(request, u'''Документы не были изменены''')
-            return HttpResponseRedirect(reverse('account_requestion_info',
-                    kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response({
-                'formset': formset,
-                'requestion': requestion,
-                'confirmed': requestion.evidience_documents().confirmed(),
-            })
 
 
 class GenerateBlank(AccountRequestionMixin, GenerateBlankBase):

@@ -11,32 +11,24 @@ from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
-from sadiki.account.forms import BenefitsForm, \
-    ChangeRequestionForm, PreferredSadikForm, DocumentForm, BenefitCategoryForm, CustomGenericInlineFormSet
-from sadiki.account.views import BenefitsChange as AnonyBenefitsChange, \
-    SocialProfilePublic as AccountSocialProfilePublic, \
+from sadiki.account.forms import BenefitsForm, DocumentForm, CustomGenericInlineFormSet
+from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
     RequestionAdd as AccountRequestionAdd, \
-    BenefitCategoryChange as AnonymBenefitCategoryChange, \
-    RequestionInfo as AccountRequestionInfo,\
-    RequestionChange as AnonymRequestionChange, \
-    PreferredSadiksChange as AnonymPreferredSadiksChange, \
-    DocumentsChange as AnonymDocumentsChange, get_json_sadiks_location_data, AccountFrontPage
+    RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage
 from sadiki.anonym.views import Queue as AnonymQueue, \
     RequestionSearch as AnonymRequestionSearch
-from sadiki.authorisation.models import VerificationKey
-from sadiki.core.models import STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED, \
-    STATUS_DISTRIBUTED, Requestion, EvidienceDocument, BENEFIT_DOCUMENT, \
-    REQUESTION_IDENTITY, BenefitCategory, Profile, REQUESTION_TYPE_IMPORTED, STATUS_ON_DISTRIBUTION
+from sadiki.core.models import Requestion, \
+    REQUESTION_IDENTITY, BenefitCategory, Profile, REQUESTION_TYPE_IMPORTED, STATUS_ON_DISTRIBUTION, EvidienceDocument
 from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
-from sadiki.core.utils import check_url, get_openlayers_js, get_user_by_email, get_unique_username
+from sadiki.core.utils import check_url, get_openlayers_js, get_unique_username
 from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
-    CHANGE_PROFILE_BY_OPERATOR, CHANGE_BENEFITS, CHANGE_REQUESTION_BY_OPERATOR, \
-    CHANGE_PREFERRED_SADIKS_BY_OPERATOR, Transition, workflow, CREATE_PROFILE, CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
+    CHANGE_REQUESTION_BY_OPERATOR, Transition, workflow, CREATE_PROFILE,\
+    CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
-    DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, EmailForm, \
+    DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, \
     ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
@@ -84,10 +76,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
 
     def get(self, request, profile):
         requestion_form = OperatorRequestionForm()
-        if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
-            benefits_form = BenefitsForm()
-        else:
-            benefits_form = BenefitCategoryForm()
+        benefits_form = BenefitsForm()
         context = {'form': requestion_form,
             'benefits_form': benefits_form,
             'openlayers_js': get_openlayers_js(),
@@ -97,10 +86,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
 
     def post(self, request, profile):
         requestion_form = OperatorRequestionForm(request.POST,)
-        if settings.FACILITY_STORE == settings.FACILITY_STORE_YES:
-            benefits_form = BenefitsForm(data=request.POST)
-        else:
-            benefits_form = BenefitCategoryForm(data=request.POST)
+        benefits_form = BenefitsForm(data=request.POST)
         if requestion_form.is_valid() and benefits_form.is_valid():
             if not profile:
                 profile = self.create_profile()
@@ -123,10 +109,6 @@ class Registration(OperatorPermissionMixin, TemplateView):
             messages.info(request,
                 u'Регистрация пользователя прошла успешно. Создана заявка %s' %
                 requestion.requestion_number)
-#            если были заданы типы льгот, то редирект на изменение документов
-            if (settings.FACILITY_STORE == settings.FACILITY_STORE_YES and
-                requestion.benefit_category != BenefitCategory.objects.category_without_benefits()):
-                return HttpResponseRedirect(reverse("operator_benefits_change", kwargs={'requestion_id': requestion.id}))
 #            иначе на страницу с информацией о заявке
             return HttpResponseRedirect(
                 reverse('operator_requestion_info',
@@ -216,195 +198,8 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
             formset=CustomGenericInlineFormSet,
             form=DocumentForm, fields=('template', 'document_number', ), extra=1)
 
-
-    #def get_context_data(self, requestion, **kwargs):
-    #    context = super(RequestionInfo, self).get_context_data(requestion, **kwargs)
-    #    DocumentFormset = generic_inlineformset_factory(EvidienceDocument,
-    #        form=DocumentForm, fields=('template', 'document_number', ), extra=0)
-    #    formset = DocumentFormset(
-    #        instance=requestion, queryset=EvidienceDocument.objects.filter(
-    #        template__destination=BENEFIT_DOCUMENT))
-    #    context.update({'formset': formset})
-    #    return context
-
     def can_change_benefits(self, requestion):
         return requestion.editable
-
-
-class RequestionChange(OperatorRequestionCheckIdentityMixin,
-    OperatorRequestionEditMixin, AnonymRequestionChange):
-    u"""
-    изменение заявки оператором
-    """
-    template_name = 'operator/requestion_change.html'
-
-#    изменил запись логов и редирект
-    def post(self, request, requestion):
-        form = ChangeRequestionForm(instance=requestion,
-            data=request.POST)
-        if form.is_valid():
-            if form.has_changed():
-                requestion = form.save()
-#                write logs
-                context_dict = {'changed_fields': form.changed_data,
-                    'requestion': requestion}
-                Logger.objects.create_for_action(CHANGE_REQUESTION_BY_OPERATOR,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion})
-                messages.success(request, u'Изменения в заявке %s сохранены' % requestion)
-            else:
-                messages.info(request, u'Заявка %s не была изменена' % requestion)
-            return HttpResponseRedirect(
-                reverse('operator_requestion_info',
-                        kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response(
-                {'form': form, 'requestion': requestion,
-                 'openlayers_js': get_openlayers_js()})
-
-
-class BenefitsChange(OperatorRequestionCheckIdentityMixin,
-    OperatorRequestionEditMixin, AnonyBenefitsChange):
-    u"""
-    изменение льгот оператором
-    """
-    template_name = 'operator/requestion_benefits_change.html'
-
-    def post(self, request, requestion):
-        u"""
-        метод скопирован из родительского BenefitsChange,
-        но после успешного сохранения другой редирект.
-        Также предполагается другая запись логов
-        """
-        benefits_form = BenefitsForm(
-            data=request.POST,
-            instance=requestion)
-        if benefits_form.is_valid():
-            benefits_form.save()
-            context_dict = dict([(field, benefits_form.cleaned_data[field])
-                for field in benefits_form.changed_data])
-            context_dict.update({"requestion": requestion})
-            Logger.objects.create_for_action(CHANGE_BENEFITS,
-                context_dict=context_dict,
-                extra={'user': request.user, 'obj': requestion})
-            messages.success(request, u'Льготы для заявки %s были изменены' %
-                requestion.requestion_number)
-            return HttpResponseRedirect(
-                reverse('operator_requestion_info',
-                    kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response({
-                'requestion': requestion,
-                'benefits_form': benefits_form,
-                'documents': self.get_own_documents(requestion),
-            })
-
-
-class BenefitCategoryChange(OperatorRequestionCheckIdentityMixin,
-    OperatorRequestionEditMixin, AnonymBenefitCategoryChange):
-    template_name = 'operator/requestion_benefitcategory_change.html'
-
-    def post(self, request, requestion):
-        from sadiki.account.forms import BenefitCategoryForm
-        form = BenefitCategoryForm(instance=requestion, data=request.POST)
-        if form.is_valid():
-            if form.has_changed():
-                form.save()
-                context_dict = {"requestion": requestion}
-                Logger.objects.create_for_action(CHANGE_BENEFITS,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion})
-                messages.success(
-                    request, u'''Льготы для заявки %s были изменены
-                         ''' % requestion.requestion_number)
-            else:
-                messages.success(
-                    request, u'''Льготы для заявки %s не были изменены
-                         ''' % requestion.requestion_number)
-            return HttpResponseRedirect(
-                    reverse('operator_requestion_info',
-                            kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response(
-                {'requestion': requestion, 'form': form})
-
-
-class PreferredSadiksChange(OperatorRequestionCheckIdentityMixin,
-    OperatorRequestionEditMixin, AnonymPreferredSadiksChange):
-    u"""
-    изменение приоритетных ДОУ у заявки оператором
-    """
-    template_name = "operator/requestion_preferredsadiks_change.html"
-
-    def post(self, request, requestion):
-        form = PreferredSadikForm(instance=requestion, data=request.POST)
-        if form.is_valid():
-            if form.has_changed():
-                # TODO: Добавить изящества в составление конеткста для логов
-                pref_sadiks = set(requestion.pref_sadiks.all())
-                requestion = form.save()
-                new_pref_sadiks = set(requestion.pref_sadiks.all())
-                added_pref_sadiks = new_pref_sadiks - pref_sadiks
-                removed_pref_sadiks = pref_sadiks - new_pref_sadiks
-                context_dict = {
-                    'changed_data': form.changed_data,
-                    'cleaned_data': form.cleaned_data,}
-                Logger.objects.create_for_action(
-                    CHANGE_PREFERRED_SADIKS_BY_OPERATOR,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion,
-                        'added_pref_sadiks': added_pref_sadiks,
-                        'removed_pref_sadiks': removed_pref_sadiks})
-                messages.info(request, u'''
-                         Приоритетные ДОУ для заявки %s изменены
-                         ''' % requestion.requestion_number)
-            else:
-                messages.info(request, u'''Приоритетные ДОУ не были изменены''')
-            return HttpResponseRedirect(
-                reverse('operator_requestion_info',
-                    kwargs={'requestion_id': requestion.id}))
-        return self.render_to_response({
-            'requestion': requestion,
-            'form': form,
-            })
-
-
-class DocumentsChange(OperatorRequestionCheckIdentityMixin,
-    OperatorRequestionEditMixin, AnonymDocumentsChange):
-    template_name = 'operator/requestion_documents_change.html'
-
-    def post(self, request, requestion):
-#        переопределяем formset для под-я всех новых документов
-        DocumentFormset = generic_inlineformset_factory(EvidienceDocument,
-            form=DocumentForm,
-            formset=DocumentGenericInlineFormSet,
-            exclude=['confirmed', ], extra=1)
-
-        formset = DocumentFormset(request.POST,
-            queryset=EvidienceDocument.objects.filter(
-                template__destination=BENEFIT_DOCUMENT),
-            instance=requestion)
-
-        if formset.is_valid():
-            if formset.has_changed():
-                formset.save()
-                messages.info(request, u'''Документы были изменены''')
-                Logger.objects.create_for_action(
-                        CHANGE_DOCUMENTS_BY_OPERATOR,
-                        context_dict={'benefit_documents': requestion.evidience_documents().filter(
-                            template__destination=BENEFIT_DOCUMENT)},
-                        extra={'user': request.user, 'obj': requestion})
-
-            else:
-                messages.info(request, u'''Документы не были изменены''')
-            return HttpResponseRedirect(reverse('operator_requestion_info',
-                    kwargs={'requestion_id': requestion.id}))
-        else:
-            return self.render_to_response({
-                'formset': formset,
-                'requestion': requestion,
-                'confirmed': requestion.evidience_documents().confirmed(),
-            })
 
 
 class SetIdentityDocument(OperatorRequestionMixin, TemplateView):

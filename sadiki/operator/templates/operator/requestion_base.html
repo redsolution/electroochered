@@ -1,33 +1,5 @@
 {% extends "operator/base.html" %}
 
 {% block content_menu %}
-    {% url operator_requestion_info requestion.id as operator_requestion_info_url %}
-    {% url operator_requestion_change requestion.id as operator_requestion_change_url %}
-    {% url operator_benefits_change requestion.id as operator_benefits_change_url %}
-    {% url operator_preferredsadiks_change requestion.id as operator_preferredsadiks_change_url %}
-    {% url operator_documents_change requestion.id as operator_documents_change_url %}
-    {% url requestion_logs requestion.id as logs_url %}
-
-    <ul class="content-menu">
-        <li {% if request.path == operator_requestion_info_url %}class="active"{% endif %}>
-            <a href="{{ operator_requestion_info_url }}">Информация о заявке</a>
-        </li>
-        <li {% if request.path == logs_url %}class="active"{% endif %}>
-            <a href="{{ logs_url }}">Журнал</a>
-        </li>
-        {% if requestion.editable %}
-            <li {% if request.path == operator_requestion_change_url %}class="active"{% endif %}>
-                <a href="{{ operator_requestion_change_url }}">Изменить заявку</a>
-            </li>
-            <li {% if request.path == operator_benefits_change_url %}class="active"{% endif %}>
-                <a href="{{ operator_benefits_change_url }}">Изменить льготы</a>
-            </li>
-            <li {% if request.path == operator_preferredsadiks_change_url %}class="active"{% endif %}>
-                <a href="{{ operator_preferredsadiks_change_url }}">Изменить приоритетные ДОУ</a>
-            </li>
-            <li {% if request.path == operator_documents_change_url %}class="active"{% endif %}>
-                <a href="{{ operator_documents_change_url }}">Документы</a>
-            </li>
-        {% endif %}
-    </ul>
+    {% include "operator/includes/requestion_menu.html" %}
 {% endblock %}

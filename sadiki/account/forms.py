@@ -70,21 +70,14 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         return requestion
 
 
-class ChangeRequestionBaseForm(forms.ModelForm):
+class ChangeRequestionForm(forms.ModelForm):
     name = forms.CharField(
         label=u"Имя ребёнка", max_length=20,
         help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
 
     class Meta:
         model = Requestion
-        _base_fields = ('name', 'sex', 'location')
-        if settings.DESIRED_DATE == settings.DESIRED_DATE_NO:
-            fields = _base_fields
-        else:
-            fields = _base_fields + ('admission_date',)
-
-
-class ChangeRequestionForm(ChangeRequestionBaseForm):
+        fields = ('name', 'sex', 'location', 'admission_date',)
 
     def __init__(self, *args, **kwds):
         self.base_fields['location'].widget = map_widget()
@@ -106,19 +99,6 @@ class BenefitsForm(forms.ModelForm):
         fields = ('benefits',)
 
 
-class BenefitCategoryForm(forms.ModelForm):
-    class Meta:
-        model = Requestion
-        fields = ('benefit_category',)
-
-    def __init__(self, *args, **kwargs):
-#        убираем из категорий льгот системные
-        self.base_fields['benefit_category'].queryset = BenefitCategory.objects.filter(
-            priority__lt=BENEFIT_SYSTEM_MIN)
-        super(BenefitCategoryForm, self).__init__(*args, **kwargs)
-        self.fields['benefit_category'].empty_label = None
-
-
 class BaseRequestionsFormSet(BaseInlineFormSet):
 
     def clean(self, *args, **kwargs):
@@ -137,22 +117,13 @@ class BaseRequestionsFormSet(BaseInlineFormSet):
 
 
 class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
-    pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите ДОУ',
-        queryset=Sadik.objects.filter(active_registration=True),
+    pref_sadiks = SadikWithAreasNameField(
+        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS())
 
     class Meta:
         model = Requestion
-        _base_fields = ('areas', 'pref_sadiks',)
-        if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
-            _base_fields = _base_fields + ('distribute_in_any_sadik',)
-        fields = _base_fields
-
-
-class PreferredSadikWithAreasNameForm(PreferredSadikForm):
-    pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
-        required=False, widget=SelectMultipleJS())
+        fields = ('areas', 'pref_sadiks', 'distribute_in_any_sadik',)
 
 
 class CustomGenericInlineFormSet(BaseGenericInlineFormSet):

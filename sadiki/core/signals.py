@@ -29,7 +29,6 @@
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
 from django.contrib import messages
-from sadiki.account.forms import PreferredSadikForm
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
@@ -49,8 +48,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     workflow, DISTRIBUTION_BY_RESOLUTION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
-    ImmediatelyDistributionConfirmationForm, PreferredSadikConfirmationForm, RequestionConfirmationForm
-import datetime
+    ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
 from sadiki.supervisor.forms import DistributionByResolutionForm
 
 
