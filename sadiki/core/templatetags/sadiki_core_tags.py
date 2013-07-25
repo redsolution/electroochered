@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from django.utils.safestring import mark_safe
+import re
 from django.utils.text import capfirst
 from classytags.arguments import Argument, MultiKeywordArgument
 from classytags.core import Options, Tag
@@ -253,15 +255,18 @@ class QueueTooltips(Tag):
     )
 
     def render_tag(self, context, varname):
+        def get_tooltip(template_name, context=None):
+            tooltip = render_to_string(template_name, context)
+            return mark_safe(re.sub(r'\n', '', tooltip))
         tooltips = {}
-        tooltips.update({"requestion_number_tooltip": render_to_string(
+        tooltips.update({"requestion_number_tooltip": get_tooltip(
             "core/tooltips/requestion_number_tooltip.html", {'STATIC_URL': settings.STATIC_URL})})
-        tooltips.update({"age_groups_tooltip": render_to_string(
+        tooltips.update({"age_groups_tooltip": get_tooltip(
             "core/tooltips/age_groups_tooltip.html",
             {'age_groups': AgeGroup.objects.all()})})
-        tooltips.update({"requestion_status_tooltip": render_to_string(
+        tooltips.update({"requestion_status_tooltip": get_tooltip(
             "core/tooltips/requestion_status_tooltip.html")})
-        tooltips.update({"benefit_categories_tooltip": render_to_string(
+        tooltips.update({"benefit_categories_tooltip": get_tooltip(
             "core/tooltips/benefit_categories_tooltip.html",
             {'benefit_categories': BenefitCategory.objects.all().order_by('-priority')})})
         context[varname] = tooltips
