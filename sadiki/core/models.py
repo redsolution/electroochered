@@ -1205,15 +1205,6 @@ class Requestion(models.Model):
             extra={'user': user, 'obj': self, 'profile': profile},
             reason=reason)
 
-    def geocode_address(self, geocoder_class):
-        geocoder = geocoder_class()
-        if settings.REGION_NAME:
-            address = "%s, %s" % (settings.REGION_NAME, self.location_properties)
-        else:
-            address = self.location_properties
-        coords = geocoder.geocode(address)
-        return coords
-
     def set_location(self, coords):
         coords = map(float, coords)
         self.location = Point(*coords, srid=4326)

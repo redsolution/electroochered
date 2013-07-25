@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
+import re
 from attachment.admin import AttachmentImageInlines
 from attachment.forms import AttachmentImageForm
 from chunks.models import Chunk
-import os
-from django import template, forms
+from django import forms
 from django.conf import settings
-from django.conf.urls.defaults import patterns, url
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
@@ -13,12 +12,8 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group
 from django.contrib.gis.forms.fields import GeometryField
 from django.core.urlresolvers import reverse, NoReverseMatch
-from django.db import transaction
 from django.db.models.query_utils import Q
 from django.forms.widgets import CheckboxSelectMultiple
-from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse, Http404
-from django.shortcuts import render_to_response
-from django.template.context import RequestContext
 from django.template.response import TemplateResponse
 from django.utils import six
 from django.utils.decorators import method_decorator
@@ -27,29 +22,28 @@ from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
-from sadiki.administrator.import_plugins import REQUESTION_FORMATS
-from sadiki.administrator.models import ImportTask, IMPORT_INITIAL, IMPORT_START, \
-    IMPORT_FINISH, IMPORT_ERROR, IMPORT_FINISHED_WITH_ERRORS
-from sadiki.administrator.utils import clean_str
 from sadiki.core.admin import CustomGeoAdmin
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
     Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, \
-    PREFERENCE_IMPORT_FINISHED, ChunkCustom, PREFERENCE_REQUESTIONS_IMPORTED
+    ChunkCustom
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME, \
     SUPERVISOR_PERMISSION, OPERATOR_PERMISSION, SADIK_OPERATOR_PERMISSION, \
     ADMINISTRATOR_PERMISSION
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN, IMMEDIATELY_DISTRIBUTION_NO, \
     WITHOUT_BENEFIT_PRIORITY
-from sadiki.core.utils import run_command
 import urllib
 import urlparse
-import mimetypes
-from sadiki.settings import SECURE_STATIC_ROOT
 
 csrf_protect_m = method_decorator(csrf_protect)
+
+
+def clean_str(text):
+    text = re.sub("\n", ' ', text)
+    text = re.sub("\s\s+", ' ', text)
+    return text.strip()
 
 
 def add_get_params_to_url(url, params=None):
@@ -481,196 +475,6 @@ class EvidienceDocumentTemplateAdmin(ModelAdminWithoutPermissionsMixin, admin.Mo
     list_display = ['name', 'destination']
 
 
-class ImportTaskForm(forms.ModelForm):
-
-    class Meta:
-        model = ImportTask
-
-    def clean_fake(self):
-        fake = self.cleaned_data.get('fake')
-        # проверяем есть ли уже задание для импорта заявки
-        if not fake and ImportTask.objects.filter(
-                status=IMPORT_INITIAL, data_format__in=REQUESTION_FORMATS, fake=False).exclude(
-                id=self.instance.id).exists():
-            raise forms.ValidationError(u"""Уже есть задание для импорта заявок, вы не можете задать более одного.""")
-        return fake
-
-    def clean(self):
-        if self.instance.status != IMPORT_INITIAL:
-            raise forms.ValidationError(u"Нельзя изменять задание обработка которого уже проведена")
-        return self.cleaned_data
-
-    def save(self, *args, **kwargs):
-        # если был изменен исходный файл для существующего задания, то нужно удалить файлы
-        if 'source_file' in self.changed_data and self.instance.id:
-            original_task = ImportTask.objects.get(id=self.instance.id)
-            original_task.delete_files()
-            self.instance.result_file = None
-            self.instance.file_with_errors = None
-        return super(ImportTaskForm, self).save(*args, **kwargs)
-
-
-def import_status_check(func):
-    def wrapper(self, *args, **kwargs):
-        if (ImportTask.objects.filter(status=IMPORT_START).exists() or
-                Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()):
-            return HttpResponseRedirect(reverse('admin:import_status',
-                    current_app=self.admin_site.name))
-        return func(self, *args, **kwargs)
-    return wrapper
-
-class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
-    model = ImportTask
-    form = ImportTaskForm
-    change_list_template = 'administrator/change_task_list.html'
-    change_form_template = 'administrator/change_task_form.html'
-    list_display = ['__unicode__', 'status', 'get_import_status', 'errors']
-    fields = ['source_file', 'fake', 'data_format']
-    readonly_fields = ['status', 'errors', 'total', ]
-
-    def get_import_status(self, instance):
-        if instance.fake:
-            return u'Да'
-        else:
-            return u'Нет'
-
-    get_import_status.short_description = u"Только проверка файла"
-
-    def import_finished(self):
-        return Preference.objects.filter(
-            key=PREFERENCE_IMPORT_FINISHED).exists()
-
-    def has_add_permission(self, request):
-        return not self.import_finished() or ImportTask.objects.filter(status=IMPORT_START).exists()
-
-    def has_change_permission(self, request, obj=None):
-        return self.has_add_permission(request)
-
-    def get_urls(self):
-        urls = super(ImportTaskAdmin, self).get_urls()
-        my_urls = patterns('',
-            url(r'^start_import/$', self.admin_site.admin_view(self.start_import), name="start_import"),
-            url(r'^start_import_check/$', self.admin_site.admin_view(self.start_import_check), name="start_import_check"),
-            url(r'^import_files/(?P<filename>[^\/]+\.\w*)$', self.admin_site.admin_view(self.secure_static),
-                name="secure_static"),
-            url(r'^import_status/$', self.import_status, name="import_status"),
-            url(r'^finish_import/$', self.finish_import, name="finish_import"),
-        )
-        return my_urls + urls
-
-
-    @csrf_protect_m
-    def import_status(self, request):
-        if Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
-            return HttpResponseRedirect(reverse('admin:index',
-                    current_app=self.admin_site.name))
-        import_active = ImportTask.objects.filter(status=IMPORT_START).exists()
-        import_finished = self.import_finished()
-        requestions_imported = Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists()
-        app_label = self.model._meta.app_label
-        context = {'import_finished': import_finished, 'import_active': import_active, 'app_label': app_label}
-        if requestions_imported:
-            if requestions_imported:
-                context.update(
-                    {'requestions_imported': requestions_imported,
-                     'import_requestion_task': ImportTask.objects.get(
-                        status=IMPORT_FINISH, data_format__in=REQUESTION_FORMATS, fake=False, errors=0)})
-        elif not import_finished and not import_active:
-            return HttpResponseRedirect(reverse("admin:administrator_importtask_changelist",
-                        current_app=self.admin_site.name))
-        return TemplateResponse(request, 'administrator/import_status.html',
-                context, current_app=self.admin_site.name)
-
-    @csrf_protect_m
-    @import_status_check
-    def start_import(self, request):
-        if request.method == "POST":
-            if request.POST['confirmation'] == 'yes':
-                ImportTask.objects.filter(status=IMPORT_INITIAL, fake=False
-                    ).update(status=IMPORT_START)
-                run_command('execute_import_tasks')
-            return HttpResponseRedirect(
-                reverse('admin:import_status',
-                    current_app=self.admin_site.name))
-        message = u"""Вы уверены, что импортируемый файл с заявками не содержит ошибок и вы хотите начать процесс импорта?
-            Операцию импорта можно проводить только один раз. Это действие нельзя будет отменить."""
-        return TemplateResponse(request, 'administrator/ask_confirmation.html',
-                                {'message': message}, current_app=self.admin_site.name)
-
-    @csrf_protect_m
-    @import_status_check
-    def start_import_check(self, request):
-        if request.method == "POST":
-            if request.POST['confirmation'] == 'yes':
-                ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True
-                    ).update(status=IMPORT_START)
-                run_command('execute_import_tasks')
-            return HttpResponseRedirect(
-                reverse('admin:import_status',
-                    current_app=self.admin_site.name))
-        message = u"""Вы уверены, что хотите начать операцию проверки данных?
-            Проверку данных можно проводить несколько раз. Проверку данных следует проводить до полного устранения ошибок."""
-        return TemplateResponse(request, 'administrator/ask_confirmation.html',
-                                {'message': message}, current_app=self.admin_site.name)
-
-    def secure_static(self, request, filename):
-        file_path = os.path.join(SECURE_STATIC_ROOT, settings.IMPORT_STATIC_DIR, filename)
-        if not os.path.exists(file_path):
-            raise Http404
-        f = open(file_path, 'r')
-        ext = os.path.splitext(filename)[1]
-        if ext and ext in mimetypes.types_map:
-            file_mimetype = mimetypes.types_map[ext]
-        else:
-            file_mimetype = ''
-        response = HttpResponse(content=f.read(), mimetype=file_mimetype)
-        response['Content-Type'] = mimetypes.types_map[ext]
-        response['Content-Disposition'] = 'filename=%s' % filename.encode('utf-8')
-        return response
-
-    @csrf_protect_m
-    @import_status_check
-    @transaction.commit_on_success
-    def add_view(self, *args, **kwargs):
-        return super(ImportTaskAdmin, self).add_view(*args, **kwargs)
-
-    @csrf_protect_m
-    @import_status_check
-    @transaction.commit_on_success
-    def change_view(self, request, object_id, extra_context=None):
-        extra_context = {'IMPORT_INITIAL': IMPORT_INITIAL, 'IMPORT_START': IMPORT_START,
-             'IMPORT_FINISH': IMPORT_FINISH, 'IMPORT_ERROR': IMPORT_ERROR,
-             'IMPORT_FINISHED_WITH_ERRORS': IMPORT_FINISHED_WITH_ERRORS}
-        return super(ImportTaskAdmin, self).change_view(request=request,
-            object_id=object_id, extra_context=extra_context)
-
-    @csrf_protect_m
-    @import_status_check
-    def changelist_view(self, request, extra_context=None):
-        extra_context = {'import_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=False).exists(),
-                       'check_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL, fake=True).exists(),}
-        return super(ImportTaskAdmin, self).changelist_view(request, extra_context)
-
-    @csrf_protect_m
-    def finish_import(self, request):
-        if not Preference.objects.filter(key=PREFERENCE_REQUESTIONS_IMPORTED).exists():
-            return HttpResponseForbidden(u"Заявки не были импортированы")
-        elif Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
-            return HttpResponseForbidden(u"Импорт был завершен")
-        if request.method == "POST":
-            if request.POST['confirmation'] == 'yes':
-                for import_task in ImportTask.objects.all():
-                    import_task.delete_files()
-                Preference.objects.get_or_create(key=PREFERENCE_IMPORT_FINISHED)
-            return HttpResponseRedirect(
-                reverse('admin:index',
-                    current_app=self.admin_site.name))
-        message = u"""Вы уверены, что хотите завершить процедуру импорта? Убедитесь, что вы сохранили файл с результатми импорта.
-            После завершения импорта будет открыт публичный интерфейс."""
-        return TemplateResponse(request, 'administrator/ask_confirmation.html',
-                                {'message': message}, current_app=self.admin_site.name)
-
-
 benefit_category_query = (Q(priority__lt=BENEFIT_SYSTEM_MIN) &
     ~Q(priority=WITHOUT_BENEFIT_PRIORITY))
 
@@ -851,7 +655,6 @@ site.register(User, UserAdmin)
 site.register(Sadik, SadikAdmin)
 site.register(Area, AreaAdmin)
 site.register(EvidienceDocumentTemplate, EvidienceDocumentTemplateAdmin)
-site.register(ImportTask, ImportTaskAdmin)
 site.register(AgeGroup, AgeGroupAdmin)
 site.register(BenefitCategory, BenefitCategoryAdmin)
 site.register(Benefit, BenefitAdmin)

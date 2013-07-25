@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+import json
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
-from sadiki.core.models import Sadik, Preference, PREFERENCE_IMPORT_FINISHED
+from sadiki.core.models import Sadik, Preference, PREFERENCE_IMPORT_FINISHED, Area, Benefit, AGENT_TYPE_CHOICES, EvidienceDocumentTemplate, REQUESTION_IDENTITY, AgeGroup
 from sadiki.anonym.views import Queue as AnonymQueue, RequestionSearch as AnonymRequestionSearch, \
     Registration as AnonymRegistration
 from sadiki.operator.views.requestion import Queue as OperatorQueue, Registration as OperatorRegistration,\
@@ -97,3 +98,17 @@ def search(request, *args, **kwargs):
         elif request.user.is_supervisor():
             return SupervisorRequestionSearch.as_view()(request, *args, **kwargs)
     return AnonymRequestionSearch.as_view()(request, *args, **kwargs)
+
+
+def import_params(request):
+    data = {}
+    data['SADIKS'] = list(Sadik.objects.filter(active_registration=True).values_list('identifier', flat=True))
+    data['AREAS'] = list(Area.objects.all().values_list('name', flat=True))
+    data['BENEFITS'] = list(Benefit.objects.all().values_list('name', flat=True))
+    data['AGENT_TYPE_CHOICES'] = AGENT_TYPE_CHOICES
+    data['MAX_CHILD_AGE'] = settings.MAX_CHILD_AGE
+    data['DOCUMENTS_TEMPLATES'] = list(EvidienceDocumentTemplate.objects.filter(
+        destination=REQUESTION_IDENTITY).values('name', 'regex'))
+    data['AGE_GROUPS'] = list(AgeGroup.objects.all().values_list('name', flat=True))
+    data["REGION_NAME"] = settings.REGION_NAME
+    return HttpResponse(json.dumps(data), mimetype='text/json')
