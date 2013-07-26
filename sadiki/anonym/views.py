@@ -131,7 +131,7 @@ class Queue(RequirePermissionsMixin, ListView):
                 if area:
                     queryset = queryset.filter(
                         (Q(areas=area) |
-                        Q(areas__isnull=True)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
+                        Q(areas__isnull=True) | Q(pref_sadiks__area=area)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
                         Q(distributed_in_vacancy__sadik_group__sadik__area=area)
                         & Q(status__in=DISTRIBUTION_PROCESS_STATUSES+(STATUS_DISTRIBUTED,)))
                     )
