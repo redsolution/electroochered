@@ -33,7 +33,7 @@ from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
     STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
-    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup, Vacancies
+    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup, Vacancies, BENEFIT_DOCUMENT
 from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
@@ -455,6 +455,13 @@ if IMMEDIATELY_DISTRIBUTION in (IMMEDIATELY_DISTRIBUTION_YES,
 
     register_callback(IMMEDIATELY_DECISION, permit_immediately_decision)
     register_form(IMMEDIATELY_DECISION, ImmediatelyDistributionConfirmationForm)
+
+
+def permit_confirm_requestion(user, requestion, transition, request=None, form=None):
+    #проверяем, что у заявки есть все необходимые документы для льгот
+    return requestion.have_all_benefit_documents()
+
+register_callback(CONFIRM_REQUESTION, permit_confirm_requestion)
 
 
 def permit_restore_requestion(user, requestion, transition, request=None, form=None):
