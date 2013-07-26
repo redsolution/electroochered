@@ -210,7 +210,7 @@ class BenefitCategory(models.Model):
         max_length=255)
     priority = models.IntegerField(verbose_name=u"Приоритетность льготы",
         help_text=u"Чем больше число, тем выше приоритет",
-        validators=[MaxValueValidator(settings.BENEFIT_SYSTEM_MIN - 1)])
+        validators=[MaxValueValidator(settings.BENEFIT_SYSTEM_MIN - 1)], unique=True)
     immediately_distribution_active = models.BooleanField(
         verbose_name=u"Учавствует в немедленном зачислении", default=False)
 

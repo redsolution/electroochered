@@ -34,7 +34,6 @@ FACILITY_QUOTA_GROUP = 2    # квотируется % от общего кол�
 FACILITY_QUOTA = FACILITY_QUOTA_NO
 
 #Системные категории льгот
-FACILITY_TRANSFER_CATEGORY = 100
 BENEFIT_SYSTEM_MIN = 100
 WITHOUT_BENEFIT_PRIORITY = 0
 
