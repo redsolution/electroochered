@@ -29,7 +29,7 @@ from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, \
-    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm
+    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, OperatorDocumentForm
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
@@ -50,11 +50,22 @@ class Queue(OperatorPermissionMixin, AnonymQueue):
     template_name = 'operator/queue.html'
 
 
-class Registration(OperatorPermissionMixin, TemplateView):
+class Registration(OperatorPermissionMixin, AccountRequestionAdd):
     u"""
     одновременная регистрация пользователя и заявки для оператора
     """
     template_name = 'operator/registration.html'
+
+    requestion_form = OperatorRequestionForm
+    logger_action = REQUESTION_REGISTRATION_BY_OPERATOR
+
+    def redirect_to(self, requestion):
+        return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
+
+    def get_documents_formset(self):
+        return generic_inlineformset_factory(EvidienceDocument,
+            formset=CustomGenericInlineFormSet,
+            form=OperatorDocumentForm, fields=('template', 'document_number', ), extra=1)
 
     def dispatch(self, request, profile_id=None):
         if profile_id:
@@ -63,7 +74,7 @@ class Registration(OperatorPermissionMixin, TemplateView):
                 raise Http404
         else:
             profile = None
-        return super(Registration, self).dispatch(request, profile)
+        return super(AccountRequestionAdd, self).dispatch(request, profile)
 
     def create_profile(self):
         user = User.objects.create_user(username=get_unique_username())
@@ -74,66 +85,9 @@ class Registration(OperatorPermissionMixin, TemplateView):
         user.save()
         return Profile.objects.create(user=user)
 
-    def get(self, request, profile):
-        requestion_form = OperatorRequestionForm()
-        benefits_form = BenefitsForm()
-        context = {'form': requestion_form,
-            'benefits_form': benefits_form,
-            'openlayers_js': get_openlayers_js(),
-            'sadiks_location_data': get_json_sadiks_location_data(),
-            'profile': profile}
-        return self.render_to_response(context)
 
-    def post(self, request, profile):
-        requestion_form = OperatorRequestionForm(request.POST,)
-        benefits_form = BenefitsForm(data=request.POST)
-        if requestion_form.is_valid() and benefits_form.is_valid():
-            if not profile:
-                profile = self.create_profile()
-            requestion = requestion_form.save(profile=profile)
-            benefits_form.instance = requestion
-            requestion = benefits_form.save()
-            added_pref_sadiks = requestion_form.cleaned_data.get('pref_sadiks')
-            context_dict = {'requestion': requestion,
-                          'pref_sadiks': requestion.pref_sadiks.all(),
-                          'areas': requestion_form.cleaned_data.get('areas')}
-            context_dict.update(dict([(field, benefits_form.cleaned_data[field])
-                for field in benefits_form.changed_data]))
-            Logger.objects.create_for_action(CREATE_PROFILE,
-                context_dict={'user': profile.user, 'profile': profile},
-                extra={'user': request.user, 'obj': profile})
-            Logger.objects.create_for_action(REQUESTION_REGISTRATION_BY_OPERATOR,
-                context_dict=context_dict,
-                extra={'user': request.user, 'obj': requestion,
-                    'added_pref_sadiks': added_pref_sadiks, })
-            messages.info(request,
-                u'Регистрация пользователя прошла успешно. Создана заявка %s' %
-                requestion.requestion_number)
-#            иначе на страницу с информацией о заявке
-            return HttpResponseRedirect(
-                reverse('operator_requestion_info',
-                    kwargs={'requestion_id': requestion.id}))
-
-
-        context = {'form': requestion_form,
-            'benefits_form': benefits_form,
-            'openlayers_js': get_openlayers_js(),
-            'sadiks_location_data': get_json_sadiks_location_data(),
-            'profile': profile}
-        return self.render_to_response(context)
-
-
-class RequestionAdd(OperatorPermissionMixin, AccountRequestionAdd):
+class RequestionAdd(Registration):
     template_name = "operator/requestion_add.html"
-    requestion_form = OperatorRequestionForm
-    logger_action = REQUESTION_REGISTRATION_BY_OPERATOR
-
-    def redirect_to(self, requestion):
-        return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
-
-    def dispatch(self, request, profile_id):
-        profile = get_object_or_404(Profile, id=profile_id)
-        return super(AccountRequestionAdd, self).dispatch(request, profile=profile)
 
 
 class RequestionSearch(OperatorPermissionMixin, AnonymRequestionSearch):
@@ -186,6 +140,7 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
 class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     template_name = "operator/requestion_info.html"
     logger_action = CHANGE_REQUESTION_BY_OPERATOR
+    change_requestion_form = OperatorChangeRequestionForm
 
     def redirect_to(self, requestion):
         return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
@@ -196,7 +151,7 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     def get_documents_formset(self):
         return generic_inlineformset_factory(EvidienceDocument,
             formset=CustomGenericInlineFormSet,
-            form=DocumentForm, fields=('template', 'document_number', ), extra=1)
+            form=OperatorDocumentForm, fields=('template', 'document_number', ), extra=1)
 
     def can_change_benefits(self, requestion):
         return requestion.editable

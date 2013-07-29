@@ -256,6 +256,7 @@
                 </div>
             </div>
             <div class="span6">
+                {% block top_right %}
                 <div class="requestion-info">
                     {% with form.template as field %}
                         {% include "account/include/requestion-form-field.html" %}
@@ -269,6 +270,7 @@
                     {% endwith %}
                     </div>
                 </div>
+                {% endblock %}
             </div>
         </div>
         <div class="row">

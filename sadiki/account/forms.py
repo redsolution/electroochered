@@ -80,8 +80,8 @@ class ChangeRequestionForm(forms.ModelForm):
         fields = ('name', 'sex', 'location', 'admission_date',)
 
     def __init__(self, *args, **kwds):
-        self.base_fields['location'].widget = map_widget()
         self.base_fields['location'].required = True
+        self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 

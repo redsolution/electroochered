@@ -7,91 +7,10 @@
 
 {% block bottomjs %}
     {{ block.super }}
-    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/underscore.js"></script>
-    <script type="text/javascript">
-        function removeDocumentForm(field){
-{#            удаление документа, вызывается при ручном и автоматическом удалении#}
-            field.find('input[id $= "-DELETE"]').attr('checked', true);
-            field.find('.field-value input[id $= "-document_number"]').val('');
-            field.find('.field-value label.value').text('Не указано')
-            field.find('.field-label').removeClass('changed')
-            field.find('.field-label .value-changed').remove()
-            field.hide()
-        }
-{#        удаление документа вручную#}
-        function manualRemoveDocumentForm(el){
-            removeDocumentForm($(el).parents('.field'))
-        }
-        function cloneDocumentForm(selector, type, documentTemplate) {
-{#            добавление формы документа#}
-            var newElement = $(selector).clone(true);
-            newElement.removeClass('original-form')
-            var total = $('#id_' + type + '-TOTAL_FORMS').val();
-            newElement.find(':input').each(function() {
-                var name = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
-                var id = 'id_' + name;
-                $(this).attr({'name': name, 'id': id})
-            });
-{#            задаем необходимый шаблон документа#}
-            newElement.find('label.field-label').text(documentTemplate.name);
-            var templateInput = newElement.find('input[id $= "-template"]');
-            templateInput.val(documentTemplate['id'])
-            total++;
-            $('#id_' + type + '-TOTAL_FORMS').val(total);
-            newElement.hide();
-            $(selector).parent().append(newElement);
-            newElement.show();
-        };
-        function autoRemoveDocumentForm(documentTemplate){
-{#            автоматическое удаление документа, если не задан номер#}
-            var field = $('.documents-form input[value='+documentTemplate['id']+'][id $= "-template"]').parents('.field');
-            if (!field.find('.field-value input[id $= "-document_number"]').val()){
-                removeDocumentForm(field);
-            } else {
-                if (!field.find('.delete-form').length){
-                    field.find('.field-value').append('<a class="delete-form" onclick="manualRemoveDocumentForm(this)" href="javascript:void(0)"><i class="red icon-remove">&nbsp;</i></a>')
-                }
-            }
-        }
-        var documentTemplates = _.values(DOCUMENT_TEMPLATES);
-        function benefits_changed(el){
-            var selectedBenefits = _.map($(el).val(), function(item){return Number(item)});
-            var requiredTemplates = _.filter(
-                documentTemplates, function(item){
-                    return _.intersection(item.benefits, selectedBenefits).length > 0;
-            });
-            var templateElements = $('.field').not(':hidden').find('input[id $= "-template"]');
-            var documentListIds = _.map(templateElements, function(item){return Number($(item).val())});
-            var documentList = _.filter(documentTemplates, function(item){return _.contains(documentListIds, item.id)})
-{#            отсутствующие документы#}
-            var absentDocuments = _.difference(requiredTemplates, documentList);
-            for (var i = 0; i < absentDocuments.length; i++) {
-{#                если элемент уже существует, то его нужно отобразить#}
-                var field = $('.documents-form input[value='+absentDocuments[i].id+'][id $= "-template"]').parents('.field')
-                if (field.length){
-                    field.find('.field-value input[id $= "-DELETE"]').attr('checked', false);
-                    field.show()
-                    field.find('.delete-form').remove()
-                } else {
-{#                    иначе добавить#}
-                    cloneDocumentForm('.documents-form .original-form', 'core-evidiencedocument-content_type-object_id', absentDocuments[i]);
-                }
-            }
-            var notRequiredDocuments = _.difference(documentList, requiredTemplates)
-            for (var i = 0; i < notRequiredDocuments.length; i++){
-                autoRemoveDocumentForm(notRequiredDocuments[i])
-            }
-        };
-        $(document).ready(function(){
-            $("#id_benefits").change(function(){
-                benefits_changed(this);
-            })
-            benefits_changed("#id_benefits")
-        })
-    </script>
+    {% include "operator/includes/benefits_documents_change_js.html" %}
 {% endblock %}
 
-{% block content %}
+{% block top_block %}
     {# генерация бланков #}
     <div class="row requestion_blanks">
         <div class="span12">
@@ -109,6 +28,7 @@
         </a>
         </div>
     </div>
+    {# уведомления наверху страницы #}
     <div class='notification-area'>
         {% if not requestion.have_benefits_documents %}
             <div class="label label-important">Для документального подтверждения необходимо задать все документы для льгот.</div>
@@ -133,213 +53,91 @@
             {% endif %}
         {% endwith %}
     </div>
-<form id="requestion-form" action='.' method="post" class="requestion-form {% if not can_change_requestion %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
-<div class="row">
-    <div class="span11 requestion-info">
-        <div class="block-head">Информация о заявке:</div>
-    </div>
-</div>
-<div class="row">
-    {% csrf_token %}
-    {{ pref_sadiks_form.media }}
-    {{ change_requestion_form.media }}
-    {{ change_benefits_form.media }}
-    <div class="span6">
-    <div class="requestion-info">
-        <div class="field">
-            <label class="field-label">{{ change_requestion_form.name.label }}</label>
-            <p class="field-value hidden-input">
-                <label class="value">{{ change_requestion_form.name.value }}</label>
-                {{ change_requestion_form.name }}
-                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-            </p>
-        </div>
-        <div class="field">
-            <label class="field-label">{{ change_requestion_form.sex.label }}</label>
-            <p class="field-value hidden-input">
-                <label class="value">{{ requestion.get_sex_display }}</label>
-                {{ change_requestion_form.sex }}
-                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-            </p>
-        </div>
-        <div class="field">
-            <label class="field-label">Дата рождения</label>
-            <p class="field-value">
-                <span class="value">{{ requestion.birth_date|date:"d-m-Y" }}</span>
-            </p>
-        </div>
-        <div class="field">
-            <label class="field-label">Возрастная группа</label>
-            <p class="field-value">
-                <span class="value">{{ requestion.age_groups.0|default:"Ребёнок не попадает ни в одну возрастную категорию." }}</span>
-            </p>
-        </div>
-        <div class="field">
-            <label class="field-label">Желаемый год поступления</label>
-            <p class="field-value hidden-input">
-                <label class="value">{{ requestion.admission_date.year }}</label>
-                {{ change_requestion_form.admission_date }}
-                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+{% endblock top_block %}
 
-            </p>
-        </div>
-
-        <div class="hidden">
-            {{ change_requestion_form.location }}
-        </div>
-    </div>
-    </div>
-    <div class="span5">
-        <div class="requestion-info right-block">
-        <div class="field">
-            <label class="field-label">Документы</label>
-            <div>
-            {% for document in requestion.evidience_documents.requestion_identity_documents %}
-                <span class="document-info">
-                {% if not document.confirmed %}
-                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
-                    <div class="field-value">
-                        {{ document.template }}
-                        Номер {{ document.document_number }}
-                        <span class="status-not-approved">Документ не подтвержден оператором</span>
-                    </div>
-                {% else %}
-                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
-                    <div class="field-value">
-                        {{ document.template }}
-                        Номер {{ document.document_number }}
-                        <span class="status-approved">Документ подтвержден</span>
-                    </div>
-                {% endif %}
-                </span>
-            {% endfor %}
-            </div>
-        </div>
-        <div class="documents-form">
-            {% include "operator/includes/documents_formset.html" %}
-        </div>
-        <div class="field">
-            <label class="field-label">Статус</label>
-            {% if requestion.document_confirmed %}
-                <p class="field-value">{{ requestion.get_status_display }}</p>
-            {% else %}
-                <div class="document-info">
+{# документы и льготы #}
+{% block top_right %}
+    <div class="requestion-info right-block">
+    <div class="field">
+        <label class="field-label">Документы</label>
+        <div>
+        {% for document in requestion.evidience_documents.requestion_identity_documents %}
+            <span class="document-info">
+            {% if not document.confirmed %}
                 <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
-                <p class="field-value">
-                    {{ requestion.get_status_display }}
-                    {% if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
-                    <span class="status-not-approved">Статус не подтвержден оператором</span>
-                    {% endif %}
-                </p>
+                <div class="field-value">
+                    {{ document.template }}
+                    Номер {{ document.document_number }}
+                    <span class="status-not-approved">Документ не подтвержден оператором</span>
+                </div>
+            {% else %}
+                <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                <div class="field-value">
+                    {{ document.template }}
+                    Номер {{ document.document_number }}
+                    <span class="status-approved">Документ подтвержден</span>
                 </div>
             {% endif %}
+            </span>
+        {% endfor %}
         </div>
-        <div class="field">
-            <label class="field-label">Льготы</label>
-            {% if can_change_benefits %}
-                {{ change_benefits_form.benefits }}
-            {% else %}
-                {% with requestion.benefits.all as requestion_benefits %}
-                    {% if requestion_benefits %}
-                    <ul class="benefits-list">
-                        {% for benefit in requestion_benefits%}
-                            <li class="bsmListItem"><span class="bsmListItemLabel">{{ benefit }}</span></li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                        <p class="field-value">Не заданы</p>
-                    {% endif %}
-                {% endwith %}
-                {% if can_change_requestion %}
-                    <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
+    </div>
+    <div class="documents-form">
+        {% include "operator/includes/documents_formset.html" %}
+    </div>
+    <div class="field">
+        <label class="field-label">Статус</label>
+        {% if requestion.document_confirmed %}
+            <p class="field-value">{{ requestion.get_status_display }}</p>
+        {% else %}
+            <div class="document-info">
+            <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+            <p class="field-value">
+                {{ requestion.get_status_display }}
+                {% if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
+                <span class="status-not-approved">Статус не подтвержден оператором</span>
                 {% endif %}
-            {% endif %}
-        </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="requestion-info span11">
-        <div class="split-line"></div>
-        <div class="block-head">Выбор ДОУ</div>
-    </div>
-</div>
-<div class="row sadiks-block">
-    <div class="span6">
-        <div class="requestion-info">
-        <div class="field">
-            <label class="field-label hidden-input">Территориальная область</label>
-            <p class="field-value hidden-input">
-                <label class="value">{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</label>
-                {{ pref_sadiks_form.areas }}
-                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
-        </div>
-        <div class="field">
-            <label class="field-label">Приоритетные ДОУ</label>
-            {% if can_change_requestion %}
-                {{ pref_sadiks_form.pref_sadiks }}
-            {% else %}
-                {% with requestion.pref_sadiks.all as requestion_sadiks %}
-                    {% if requestion_sadiks %}
-                    <ul class="benefits-list">
-                        {% for sadik in requestion_sadiks %}
-                            <li class="bsmListItem"><span class="bsmListItemLabel">{{ sadik }}</span></li>
-                        {% endfor %}
-                    </ul>
-                    {% else %}
-                        <p class="field-value">Не заданы</p>
-                    {% endif %}
-                {% endwith %}
-            {% endif %}
-        </div>
-        <div class="field">
-            {% with pref_sadiks_form.distribute_in_any_sadik as field %}
-                {% if can_change_requestion %}
-                    {{ field }}
-                    <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            </div>
+        {% endif %}
+    </div>
+    <div class="field">
+        <label class="field-label">Льготы</label>
+        {% if can_change_benefits %}
+            {{ change_benefits_form.benefits }}
+        {% else %}
+            {% with requestion.benefits.all as requestion_benefits %}
+                {% if requestion_benefits %}
+                <ul class="benefits-list">
+                    {% for benefit in requestion_benefits%}
+                        <li class="bsmListItem"><span class="bsmListItemLabel">{{ benefit }}</span></li>
+                    {% endfor %}
+                </ul>
                 {% else %}
-                    <label class="field-label distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ field.label }}</label>
+                    <p class="field-value">Не заданы</p>
                 {% endif %}
             {% endwith %}
-        </div>
-        </div>
+            {% if can_change_requestion %}
+                <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
+            {% endif %}
+        {% endif %}
     </div>
-    <div class="span5">
-        <div class="requestion-info">
-        <div id="location-header" class="field">
-            <label class="field-label">{{ change_requestion_form.location.label }}</label>
-        </div>
-        <div id="account-requestion-map"></div>
-        <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
-        </div>
-        <ul class='map-legend'>
-            <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
-            <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
-            <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
-        </ul>
     </div>
-</div>
-{% if can_change_requestion %}
-    <div class="row">
-        <div class="span11">
-            <button class="btn btn-primary btn-large" type="submit" disabled="disabled">Сохранить</button>
-        </div>
+{% endblock top_right %}
+
+{# действия с заявкой #}
+{% block bottom %}
+    <h2 class="page-header">Действия с заявкой</h2>
+    <div class="btn-group">
+        {% block requestion_actions %}
+        {% for transition in requestion.available_transitions %}
+            {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
+            {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
+        {% endfor %}
+        {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
+        {% if find_profile_for_requestion_url|check_url_availability:request.user %}
+            <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
+        {% endif %}
+        {% endblock %}
     </div>
-{% endif %}
-</form>
-<h2 class="page-header">Действия с заявкой</h2>
-<div class="btn-group">
-    {% block requestion_actions %}
-    {% for transition in requestion.available_transitions %}
-        {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
-        {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
-    {% endfor %}
-    {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
-    {% if find_profile_for_requestion_url|check_url_availability:request.user %}
-        <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
-    {% endif %}
-    {% endblock %}
-</div>
-{% endblock %}
+{% endblock bottom %}

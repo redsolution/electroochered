@@ -408,6 +408,16 @@ requestion_account_template = u"""
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
     {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+    {% if "benefit_documents" in cleaned_data %}
+        {% if cleaned_data.benefit_documents %}
+            Документы для льгот:
+            {% for document in cleaned_data.benefit_documents %}
+                {{ document.template }} номер: {{ document.document_number }},
+            {% endfor %};
+        {% else %}
+            Документы для льгот не заданы;
+        {% endif %}
+    {% endif %}
     """
 
 requestion_anonym_template = u"""
@@ -467,8 +477,23 @@ change_requestion_account_template = u"""
         {% if "comment" in changed_data %}Комментарий: {{ requestion.comment }};{% endif %}
         {% if "location" in changed_data %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
         {% if "benefits" in changed_data %}
-            Льготы: {% for benefit in cleaned_data.benefits %}{{ benefit }}; {% endfor %}
+            {% if cleaned_data.benefits %}
+                Льготы: {% for benefit in cleaned_data.benefits %}{{ benefit }}; {% endfor %}
+            {% endif %}
         {% endif %}
+        {% with profile.get_identity_documents as document %}
+        {% if "benefit_documents" in cleaned_data %}
+            {% if cleaned_data.benefit_documents %}
+                Документы для льгот:
+                {% for document in cleaned_data.benefit_documents %}
+                    {{ document.template }} номер: {{ document.document_number }}
+                    {% if not forloop.last %},{% endif %}
+                {% endfor %};
+            {% else %}
+                Документы для льгот не заданы;
+            {% endif %}
+        {% endif %}
+    {% endwith %}
         """
 
 change_preferred_sadiks_anonym_template = u'''

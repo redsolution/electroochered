@@ -235,17 +235,19 @@
 {% endblock %}
 
 {% block content %}
-    <div class='notification-area'>
-    {% if not requestion.editable %}
-        <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
-    {% else %}
-        {% if not requestion.document_confirmed %}
-            <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявку, обратившись в управление образования.</div>
+    {% block top_block %}
+        <div class='notification-area'>
+        {% if not requestion.editable %}
+            <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
         {% else %}
-            <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
+            {% if not requestion.document_confirmed %}
+                <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявку, обратившись в управление образования.</div>
+            {% else %}
+                <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
+            {% endif %}
         {% endif %}
-    {% endif %}
-    </div>
+        </div>
+    {% endblock top_block %}
 <form id="requestion-form" action='.' method="post" class="requestion-form {% if not requestion.editable %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
 <div class="row">
     <div class="span11 requestion-info">
@@ -257,23 +259,23 @@
     {{ pref_sadiks_form.media }}
     {{ change_requestion_form.media }}
     {{ change_benefits_form.media }}
-    {{ pref_sadiks_form.errors }}
-    {{ change_requestion_form.errors }}
-    {{ change_benefits_form.error }}
+    {{ pref_sadiks_form.non_field_errors }}
+    {{ change_requestion_form.non_field_errors }}
+    {{ change_benefits_form.non_field_errors }}
     <div class="span6">
     <div class="requestion-info">
-        <div class="field">
-            <label class="field-label">{{ change_requestion_form.name.label }}</label>
+        <div class="{% if change_requestion_form.name.errors %}error {% endif %}field">
+            <label class="field-label">{{ change_requestion_form.name.label }}{% if change_requestion_form.name.errors %}<span class="value-changed"> ({{ change_requestion_form.name.errors|striptags }})</span>{% endif %}</label>
             <p class="field-value hidden-input">
                 <label class="value">{{ change_requestion_form.name.value }}</label>
                 {{ change_requestion_form.name }}
                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
-        <div class="field">
-            <label class="field-label">{{ change_requestion_form.sex.label }}</label>
+        <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
+            <label class="field-label">{{ change_requestion_form.sex.label }}{% if change_requestion_form.sex.errors %}<span class="value-changed"> ({{ change_requestion_form.sex.errors|striptags }})</span>{% endif %}</label>
             <p class="field-value hidden-input">
-                <label class="value">{{ requestion.get_sex_display }}</label>
+                <label class="value">{{ change_requestion_form.sex|form_field_verbose }}</label>
                 {{ change_requestion_form.sex }}
                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
@@ -306,6 +308,7 @@
     </div>
     </div>
     <div class="span5">
+        {% block top_right %}
         <div class="requestion-info right-block">
         <div class="field">
             <label class="field-label">Документы</label>
@@ -369,6 +372,7 @@
             {% endif %}
         </div>
         </div>
+        {% endblock top_right %}
     </div>
 </div>
 
@@ -422,7 +426,7 @@
     <div class="span5">
         <div class="requestion-info">
         <div id="location-header" class="field">
-            <label class="field-label">Ваше местоположение</label>
+            <label class="field-label">{{ change_requestion_form.location.label }}</label>
         </div>
         <div id="account-requestion-map"></div>
         <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
@@ -442,24 +446,25 @@
 </div>
 {% endif %}
 </form>
+{% block bottom %}
+    <div class="requestion-queue">
+        <div class="split-line"></div>
+        <div class="block-head">Очередь заявок</div>
+        <div class="queue-info">
+            <p>Заявок перед Вами: <span class="number">{{ requestions_before }}</span>
+                (Из них льготников: <span class="number">{{ benefits_before }}.</span>
+                Документально подтвержденных: <span class="number">{{ confirmed_before }}</span>)</p>
+            <p>Заявок после Вас: <span class="number">{{ requestions_after }}</span> (
+                Из них льготников: <span class="number">{{ benefits_after }}.</span>
+                Документально подтвержденных: <span class="number">{{ confirmed_after }}</span>)</p>
+        </div>
+        {% with queue as object_list %}
+        {% with requestion as target_requestion %}
+            {% include "anonym/includes/queue_include.html" %}
+        {% endwith %}
+        {% endwith %}
 
-<div class="requestion-queue">
-    <div class="split-line"></div>
-    <div class="block-head">Очередь заявок</div>
-    <div class="queue-info">
-        <p>Заявок перед Вами: <span class="number">{{ requestions_before }}</span>
-            (Из них льготников: <span class="number">{{ benefits_before }}.</span>
-            Документально подтвержденных: <span class="number">{{ confirmed_before }}</span>)</p>
-        <p>Заявок после Вас: <span class="number">{{ requestions_after }}</span> (
-            Из них льготников: <span class="number">{{ benefits_after }}.</span>
-            Документально подтвержденных: <span class="number">{{ confirmed_after }}</span>)</p>
+        <div class="block-head"><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></div>
     </div>
-    {% with queue as object_list %}
-    {% with requestion as target_requestion %}
-        {% include "anonym/includes/queue_include.html" %}
-    {% endwith %}
-    {% endwith %}
-
-    <div class="block-head"><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></div>
-</div>
+{% endblock bottom %}
 {% endblock %}

@@ -127,25 +127,43 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         profile = request.user.get_profile()
         return super(RequestionAdd, self).dispatch(request, profile=profile)
 
+    def get_documents_formset(self):
+        return None
+
     def get(self, request, profile):
         context = self.get_context_data(profile=profile)
         form = self.requestion_form()
         benefits_form = self.benefits_form()
+        DocumentFormset = self.get_documents_formset()
+        if DocumentFormset:
+            formset = DocumentFormset(
+                queryset=EvidienceDocument.objects.filter(
+                template__destination=BENEFIT_DOCUMENT))
+        else:
+            formset = None
         context.update({'form': form, 'benefits_form': benefits_form,
-            'openlayers_js': get_openlayers_js()})
+            'formset': formset, 'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
 
     def post(self, request, profile):
         context = self.get_context_data(profile=profile)
         form = self.requestion_form(request.POST)
         benefits_form = self.benefits_form(data=request.POST)
-        if (form.is_valid() and benefits_form.is_valid()):
+        DocumentFormset = self.get_documents_formset()
+        if DocumentFormset:
+            formset = DocumentFormset(data=request.POST,
+                queryset=EvidienceDocument.objects.filter(
+                template__destination=BENEFIT_DOCUMENT))
+        else:
+            formset = None
+        if all((form.is_valid(), benefits_form.is_valid(), (not formset or formset.is_valid()))):
             if not profile:
                 profile = self.create_profile()
             requestion = form.save(profile=profile)
             pref_sadiks = form.cleaned_data.get('pref_sadiks')
             benefits_form.instance = requestion
             requestion = benefits_form.save()
+            formset.save()
             context_dict = {'requestion': requestion,
                 'pref_sadiks': pref_sadiks,
                 'areas': form.cleaned_data.get('areas')}
@@ -159,13 +177,14 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             return HttpResponseRedirect(self.redirect_to(requestion))
         else:
             context.update({'form': form, 'benefits_form': benefits_form,
-                'openlayers_js': get_openlayers_js()})
+                            'formset': formset, 'openlayers_js': get_openlayers_js()})
             return self.render_to_response(context)
 
 
 class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
     logger_action = ACCOUNT_CHANGE_REQUESTION
+    change_requestion_form = ChangeRequestionForm
 
     def can_change_benefits(self, requestion):
         return requestion.status == STATUS_REQUESTER_NOT_CONFIRMED
@@ -181,7 +200,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def get(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = ChangeRequestionForm(instance=requestion)
+        change_requestion_form = self.change_requestion_form(instance=requestion)
         change_benefits_form = BenefitsForm(instance=requestion)
         pref_sadiks_form = PreferredSadikForm(instance=requestion)
         DocumentFormset = self.get_documents_formset()
@@ -201,7 +220,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def post(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = ChangeRequestionForm(request.POST, instance=requestion)
+        change_requestion_form = self.change_requestion_form(request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
         pref_sadiks_form = PreferredSadikForm(request.POST, instance=requestion)
         DocumentFormset = self.get_documents_formset()
@@ -233,8 +252,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                     context_dict['changed_data'].extend(change_benefits_form.changed_data)
                     context_dict['cleaned_data'].update(change_benefits_form.cleaned_data)
                 if formset and formset.has_changed():
-                    formset.save()
+                    benefit_documents = formset.save()
                     data_changed = True
+                    context_dict['cleaned_data'].update({'benefit_documents': benefit_documents})
             if pref_sadiks_form.has_changed():
                 data_changed = True
                 pref_sadiks = set(requestion.pref_sadiks.all())

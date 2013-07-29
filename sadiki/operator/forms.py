@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
-from sadiki.account.forms import RequestionForm
+from sadiki.account.forms import RequestionForm, ChangeRequestionForm, DocumentForm
 from sadiki.administrator.admin import SadikAdminForm
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     FormWithDocument
@@ -47,6 +47,13 @@ class OperatorRequestionForm(RequestionForm):
         self.instance.status = STATUS_REQUESTER
         self.instance.cast = REQUESTION_TYPE_OPERATOR
         return super(OperatorRequestionForm, self).save(*args, **kwargs)
+
+
+class OperatorChangeRequestionForm(ChangeRequestionForm):
+
+    def __init__(self, *args, **kwargs):
+        super(OperatorChangeRequestionForm, self).__init__(*args, **kwargs)
+        self.fields['location'].label = u"Местоположение заявителя"
 
 
 class OperatorSearchForm(PublicSearchForm):
@@ -345,3 +352,12 @@ class RequestionConfirmationForm(forms.Form):
             raise forms.ValidationError(u"Необходимо подтвердить все данные заявки.")
         return self.cleaned_data
 
+
+class OperatorDocumentForm(DocumentForm):
+
+    def save(self, commit=True):
+        document = super(OperatorDocumentForm, self).save(commit=False)
+        document.confirmed = True
+        if commit:
+            document.save()
+        return document

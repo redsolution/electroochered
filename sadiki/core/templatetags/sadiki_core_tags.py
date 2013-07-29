@@ -278,3 +278,9 @@ register.tag(QueueTooltips)
 @register.filter
 def get_field_verbose_name(instance, arg):
     return capfirst(instance._meta.get_field(arg).verbose_name)
+
+@register.filter
+def form_field_verbose(field):
+    if hasattr(field.field, 'choices'):
+        return dict(field.field.choices)[field.value()]
+    return field.value
