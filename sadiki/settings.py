@@ -3,23 +3,6 @@ import os
 gettext_noop = lambda s: s
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
-#ADMINS = (
-#    ('src', 'src@redsolution.ru'),
-#)
-#
-#MANAGERS = ADMINS
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#        'NAME': 'sadiki3',
-#        'USER': 'sadiki3',
-#        'PASSWORD': DATABASE_PASSWORD,
-#        'HOST': 'localhost',
-#        'PORT': '5432',
-#    }
-#}
-
 TIME_ZONE = None
 
 LANGUAGE_CODE = 'ru'
@@ -157,12 +140,11 @@ AUTH_PROFILE_MODULE = 'core.Profile'
 
 LOGIN_REDIRECT_URL = '/'
 
-DATE_FORMAT = 'Y-m-d'
+DATE_FORMAT = 'd.m.Y'
 JS_DATE_FORMAT = 'yy-mm-dd'
 TIME_FORMAT = 'H:i'
-DATETIME_FORMAT = 'Y-m-d H:i'
-SHORT_DATE_FORMAT = 'Y-m-d'
-DATETIME_FORMAT = 'Y-m-d H:i'
+DATETIME_FORMAT = 'd.m.Y H:i'
+SHORT_DATE_FORMAT = 'd.m.Y'
 DATE_INPUT_FORMATS = ('%Y-%m-%d', "%Y/%m/%d")
 
 LOGIN_URL = '/auth/login/'

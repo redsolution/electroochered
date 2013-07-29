@@ -180,7 +180,7 @@
                             <div class="icon_text">{{ requestion.benefit_category }}</div>
                         </td>
                         <td class="centered">
-                            {{ requestion.registration_datetime|date:"H:i d-M-Y" }}
+                            {{ requestion.registration_datetime }}
                         </td>
                         <td class="centered">
                             {{ requestion.admission_date.year }}
@@ -196,7 +196,7 @@
                             <div class="icon_text">{{ requestion.benefit_category }}</div>
                         </td>
                         <td class="centered">
-                            {{ requestion.registration_datetime|date:"H:i d-M-Y" }}
+                            {{ requestion.registration_datetime }}
                         </td>
                         <td class="centered">
                             {{ requestion.admission_date.year }}
@@ -249,7 +249,7 @@
                         <p>Документ: {{ document.document_number }} ({{ document.template }})</p>
                     {% endif %}
                 {% endwith %}
-                <p>Дата рождения: {{ current_requestion.birth_date|date:"j M Y" }}</p>
+                <p>Дата рождения: {{ current_requestion.birth_date }}</p>
                 <p>Возрастная группа: {{ current_requestion_age_groups.0 }}</p>
                 {% if current_requestion.location_properties %}
                     <p>Адрес: {{ current_requestion.location_properties }}</p>

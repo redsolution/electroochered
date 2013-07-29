@@ -34,8 +34,8 @@
                 {% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
             </td>
             <td>{{ requestion.areas.all.0 }}</td>
-            <td>{{ requestion.birth_date|date:"d-m-Y" }}</td>
-            <td>{{ requestion.registration_datetime|date:"H:i d-m-Y" }}</td>
+            <td>{{ requestion.birth_date }}</td>
+            <td>{{ requestion.registration_datetime }}</td>
             <td>{{ requestion.benefit_category }}</td>
             <td>
                 {{ requestion.age_groups_calculated.0.short_name }}
