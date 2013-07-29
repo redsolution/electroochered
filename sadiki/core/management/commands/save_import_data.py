@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from sadiki.core.models import Requestion, Profile, Address, REQUESTION_TYPE_IMPORTED, Area, Sadik, Benefit, STATUS_REQUESTER, EvidienceDocumentTemplate, EvidienceDocument, AgeGroup
+from sadiki.core.models import Requestion, Profile, Address, REQUESTION_TYPE_IMPORTED, Area, Sadik, Benefit, STATUS_REQUESTER, EvidienceDocumentTemplate, EvidienceDocument, AgeGroup, Preference, PREFERENCE_IMPORT_FINISHED
 from sadiki.core.utils import get_unique_username
 
 
@@ -29,6 +29,8 @@ class Command(BaseCommand):
                         else:
                             raise CommandError(u"Неверный формат файла")
             except EOFError:
+                if import_type == "requestion_import":
+                    Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
                 f.close()
         else:
             raise CommandError(u'Необходимо ввести имя файла')
