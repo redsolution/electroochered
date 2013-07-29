@@ -30,7 +30,7 @@
     </div>
     {# уведомления наверху страницы #}
     <div class='notification-area'>
-        {% if not requestion.have_benefits_documents %}
+        {% if not requestion.have_all_benefit_documents %}
             <div class="label label-important">Для документального подтверждения необходимо задать все документы для льгот.</div>
         {% endif %}
         {% if not can_change_requestion %}

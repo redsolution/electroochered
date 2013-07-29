@@ -1210,7 +1210,7 @@ class Requestion(models.Model):
         self.location = Point(*coords, srid=4326)
 
     def have_all_benefit_documents(self):
-        documents = set(self.evidience_documents().filter(template__destination=BENEFIT_DOCUMENT))
+        documents = set(self.evidience_documents().filter(template__destination=BENEFIT_DOCUMENT).values_list("template", flat=True))
         required_documents = set(self.benefits.all().values_list('evidience_documents', flat=True))
         return required_documents.issubset(documents)
 
