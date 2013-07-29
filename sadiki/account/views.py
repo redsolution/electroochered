@@ -163,9 +163,14 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             pref_sadiks = form.cleaned_data.get('pref_sadiks')
             benefits_form.instance = requestion
             requestion = benefits_form.save()
-            formset.save()
+            if formset:
+                formset.instance = requestion
+                benefit_documents = formset.save()
+            else:
+                benefit_documents = None
             context_dict = {'requestion': requestion,
                 'pref_sadiks': pref_sadiks,
+                'benefit_documents': benefit_documents,
                 'areas': form.cleaned_data.get('areas')}
             context_dict.update(dict([(field, benefits_form.cleaned_data[field])
                 for field in benefits_form.changed_data]))

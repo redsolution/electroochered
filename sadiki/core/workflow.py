@@ -408,15 +408,11 @@ requestion_account_template = u"""
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
     {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
-    {% if "benefit_documents" in cleaned_data %}
-        {% if cleaned_data.benefit_documents %}
-            Документы для льгот:
-            {% for document in cleaned_data.benefit_documents %}
-                {{ document.template }} номер: {{ document.document_number }},
-            {% endfor %};
-        {% else %}
-            Документы для льгот не заданы;
-        {% endif %}
+    {% if benefit_documents %}
+        Документы для льгот:
+        {% for document in benefit_documents %}
+            {{ document.template }} номер: {{ document.document_number }},
+        {% endfor %};
     {% endif %}
     """
 
