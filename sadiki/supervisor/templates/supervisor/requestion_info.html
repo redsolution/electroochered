@@ -1,4 +1,4 @@
-{% extends "operator/requestion_info.html" %}
+{% extends "account/requestion_info.html" %}
 {% load sadiki_core_tags %}
 
 {% block title %}Информация о заявке {{ requestion }}{% endblock %}
@@ -7,13 +7,20 @@
     {% include "supervisor/includes/requestion_content_menu.html" %}
 {% endblock %}
 
-{% block requestion_actions %}
-    {% url change_registration_datetime requestion.id as change_registration_datetime_url %}
-    {% action_button_for_url change_registration_datetime_url options text="Изменить дату регистрации" %}
-    {% url change_birth_date requestion.id as change_birth_date_url %}
-    {% action_button_for_url change_birth_date_url options text="Изменить дату рождения" %}
-    {% for transition in requestion.available_transitions %}
-        {% url supervisor_requestion_status_change requestion.id transition.dst as status_change_url %}
-        {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
-    {% endfor %}
+{% block top_block %}
 {% endblock %}
+
+{# действия с заявкой #}
+{% block bottom %}
+    <h2 class="page-header">Действия с заявкой</h2>
+    <div class="btn-group">
+        {% url change_registration_datetime requestion.id as change_registration_datetime_url %}
+        {% action_button_for_url change_registration_datetime_url options text="Изменить дату регистрации" %}
+        {% url change_birth_date requestion.id as change_birth_date_url %}
+        {% action_button_for_url change_birth_date_url options text="Изменить дату рождения" %}
+        {% for transition in requestion.available_transitions %}
+            {% url supervisor_requestion_status_change requestion.id transition.dst as status_change_url %}
+            {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
+        {% endfor %}
+    </div>
+{% endblock bottom %}

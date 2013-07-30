@@ -132,7 +132,7 @@
                 map.addLayer(drawnItems);
                 drawnItems.addLayer(requestion_marker);
 
-                {% if requestion.editable %}
+                {% if can_change_requestion %}
                     // Initialize the draw control and pass it the FeatureGroup of editable layers
                     var drawControl = new L.Control.Draw({
                         edit: {
@@ -237,7 +237,7 @@
 {% block content %}
     {% block top_block %}
         <div class='notification-area'>
-        {% if not requestion.editable %}
+        {% if not can_change_requestion %}
             <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
         {% else %}
             {% if not requestion.document_confirmed %}
@@ -248,12 +248,7 @@
         {% endif %}
         </div>
     {% endblock top_block %}
-<form id="requestion-form" action='.' method="post" class="requestion-form {% if not requestion.editable %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
-<div class="row">
-    <div class="span11 requestion-info">
-        <div class="block-head">Информация о заявке:</div>
-    </div>
-</div>
+<form id="requestion-form" action='.' method="post" class="requestion-form {% if not can_change_requestion %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
 <div class="row">
     {% csrf_token %}
     {{ pref_sadiks_form.media }}
@@ -264,6 +259,7 @@
     {{ change_benefits_form.non_field_errors }}
     <div class="span6">
     <div class="requestion-info">
+        <div class="block-head">Информация о заявке:</div>
         <div class="{% if change_requestion_form.name.errors %}error {% endif %}field">
             <label class="field-label">{{ change_requestion_form.name.label }}{% if change_requestion_form.name.errors %}<span class="value-changed"> ({{ change_requestion_form.name.errors|striptags }})</span>{% endif %}</label>
             <p class="field-value hidden-input">
@@ -317,30 +313,6 @@
         {% block top_right %}
         <div class="requestion-info right-block">
         <div class="field">
-            <label class="field-label">Документы</label>
-            <div>
-            {% for document in requestion.evidience_documents %}
-                <span class="document-info">
-                {% if not document.confirmed %}
-                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
-                    <div class="field-value">
-                        {{ document.template }}
-                        Номер {{ document.document_number }}
-                        <span class="status-not-approved">Документ не подтвержден оператором</span>
-                    </div>
-                {% else %}
-                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
-                    <div class="field-value">
-                        {{ document.template }}
-                        Номер {{ document.document_number }}
-                        <span class="status-approved">Документ подтвержден</span>
-                    </div>
-                {% endif %}
-                </span>
-            {% endfor %}
-            </div>
-        </div>
-        <div class="field">
             <label class="field-label">Статус</label>
             {% if requestion.document_confirmed %}
                 <p class="field-value">{{ requestion.get_status_display }}</p>
@@ -355,6 +327,30 @@
                 </p>
                 </div>
             {% endif %}
+        </div>
+        <div class="block-head">Документы:</div>
+        <div class="field">
+            {% for document in requestion.evidience_documents %}
+            <label class="field-label">{{ document.template }}</label>
+            <div>
+                <span class="document-info">
+                {% if not document.confirmed %}
+                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-not-approved">Документ не подтвержден оператором</span>
+                    </div>
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.template }}
+                        Номер {{ document.document_number }}
+                        <span class="status-approved">Документ подтвержден</span>
+                    </div>
+                {% endif %}
+                </span>
+            </div>
+            {% endfor %}
         </div>
         <div class="field">
             <label class="field-label">Льготы</label>
@@ -372,7 +368,7 @@
                         <p class="field-value">Не заданы</p>
                     {% endif %}
                 {% endwith %}
-                {% if requestion.editable %}
+                {% if can_change_requestion %}
                     <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
                 {% endif %}
             {% endif %}
@@ -401,7 +397,7 @@
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>
-            {% if requestion.editable %}
+            {% if can_change_requestion %}
                 {{ pref_sadiks_form.pref_sadiks }}
             {% else %}
                 {% with requestion.pref_sadiks.all as requestion_sadiks %}
@@ -419,7 +415,7 @@
         </div>
         <div class="field">
             {% with pref_sadiks_form.distribute_in_any_sadik as field %}
-                {% if requestion.editable %}
+                {% if can_change_requestion %}
                     {{ field }}
                     <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
                 {% else %}
@@ -444,7 +440,7 @@
         </ul>
     </div>
 </div>
-{% if requestion.editable %}
+{% if can_change_requestion %}
 <div class="row">
     <div class="span11">
         <button class="btn btn-primary btn-large" type="submit" disabled="disabled">Сохранить</button>
