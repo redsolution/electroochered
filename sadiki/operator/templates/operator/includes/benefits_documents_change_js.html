@@ -19,7 +19,7 @@
         newElement.removeClass('original-form')
         var total = $('#id_' + type + '-TOTAL_FORMS').val();
         newElement.find(':input').each(function() {
-            var name = $(this).attr('name').replace('-' + (total-1) + '-','-' + total + '-');
+            var name = $(this).attr('name').replace(/-\d-/,'-' + total + '-');
             var id = 'id_' + name;
             $(this).attr({'name': name, 'id': id})
         });
@@ -60,7 +60,7 @@
 {#                если элемент уже существует, то его нужно отобразить#}
             var field = $('.documents-form input[value='+absentDocuments[i].id+'][id $= "-template"]').parents('.field')
             if (field.length){
-                field.find('.field-value input[id $= "-DELETE"]').attr('checked', false);
+                field.find('input[id $= "-DELETE"]').attr('checked', false);
                 field.show()
                 field.find('.delete-form').remove()
             } else {
