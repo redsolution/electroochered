@@ -5,6 +5,15 @@
 {% block js %}
     {{ block.super }}
     {{ openlayers_js }}
+    <script src="{{ STATIC_URL }}leaflet/leaflet.js"></script>
+    <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
+    <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
+{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.css" />
 {% endblock %}
 
 {% block title %}
@@ -16,5 +25,7 @@
 {% endblock %}
 
 {% block content %}
+    <div class="sadik-change-form">
     {% izenform form options submit="Сохранить" %}
+    </div>
 {% endblock %}

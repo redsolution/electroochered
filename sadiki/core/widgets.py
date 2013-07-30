@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
+from django.forms.util import flatatt
 from django.forms.widgets import MultiWidget, DateInput, TextInput
 from time import strftime
 from django import forms
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.utils import simplejson
+from django.utils.encoding import force_unicode
+from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
 DEFAULT_WIDTH = 500
@@ -181,3 +185,22 @@ class SelectMultipleJS(forms.SelectMultiple):
             output = mark_safe(output + js)
         return output
 
+
+class LeafletMap(forms.Textarea):
+
+    def render(self, name, value, attrs=None):
+        if value is None: value = ''
+        final_attrs = self.build_attrs(attrs, name=name)
+        textarea = u'<textarea%s>%s</textarea>' % (flatatt(final_attrs),
+                conditional_escape(force_unicode(value)))
+        id = final_attrs.get('id')
+        return render_to_string(
+            "core/leaflet_map.html",
+            {'point': value,
+             'name': name,
+             'textarea_id': id,
+             'map_id': "%s_map" % id,
+             'textarea': textarea,
+             "MAP_CENTER": settings.MAP_CENTER,
+             "LEAFLET_TILES_SUBDOMAINS": settings.LEAFLET_TILES_SUBDOMAINS,
+             "LEAFLET_TILES_URL": settings.LEAFLET_TILES_URL})

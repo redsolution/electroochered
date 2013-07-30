@@ -15,7 +15,7 @@ from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Address, \
     STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
-from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
+from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, LeafletMap
 
 
 def select_list_from_qs(queryset, requestion):
@@ -193,9 +193,8 @@ class ChangeSadikForm(SadikAdminForm):
             'active_distribution', 'age_groups',)
         
     def __init__(self, *args, **kwargs):
-        self.base_fields['coords'].widget = map_widget()
-        self.base_fields['coords'].error_messages.update(location_errors)
         super(ChangeSadikForm, self).__init__(*args, **kwargs)
+        self.fields["coords"].widget = LeafletMap()
 
     def save(self, commit=True):
         """

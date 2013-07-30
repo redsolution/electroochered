@@ -1387,3 +1387,8 @@ tr.dynamic-form .errorlist {
 .documents-form .delete{
     display: none;
 }
+
+.sadik-change-form .map{
+    width: 600px;
+    height: 500px;
+}
