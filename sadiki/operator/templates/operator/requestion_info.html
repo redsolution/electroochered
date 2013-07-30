@@ -89,8 +89,7 @@
             {% else %}
                 <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
                 <div class="field-value">
-                    {{ document.template }}
-                    Номер {{ document.document_number }}
+                    {{ document.document_number }}
                     <span class="status-approved">Документ подтвержден</span>
                 </div>
             {% endif %}
