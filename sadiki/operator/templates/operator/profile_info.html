@@ -46,27 +46,23 @@
     <div class="row">
     <div class="span6">
         <div class="requestion-info">
-            <label class="field-label">Логин:</label>
+            <label class="field-label">Имя пользователя:</label>
             <p class="field-value">{{ profile.user.username }}</p>
             {# сброс пароля #}
-            <div class="requestion-info">
-            <div class="field">
-                <label class="field-label">Пароль</label>
-                <p class="field-value">
-                    {% if profile.user.has_usable_password %}
-                        <img title="Пароль задан" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
-                        <span class="value">Пароль задан</span>
-                    {% else %}
-                        <img title="Пароль не задан" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
-                        <span class="value">Пароль не задан</span>
-                    {% endif %}
-                    <form id="reset_password_form" action="{% url generate_profile_password profile_id=profile.id %}" method="post" target="_blank">{% csrf_token %}
-                        {{ reset_password_form.as_ul }}
-                    </form>
-                    <button id="reset_password_btn" class="btn">Сгенерировать новый пароль</button>
-                </p>
-            </div>
-            </div>
+            <label class="field-label">Пароль:</label>
+            <p class="field-value">
+                {% if profile.user.has_usable_password %}
+                    <img title="Пароль задан" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                    <span class="value">Пароль задан</span>
+                {% else %}
+                    <img title="Пароль не задан" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                    <span class="value">Пароль не задан</span>
+                {% endif %}
+                <form id="reset_password_form" action="{% url generate_profile_password profile_id=profile.id %}" method="post" target="_blank">{% csrf_token %}
+                    {{ reset_password_form.as_ul }}
+                </form>
+                <button id="reset_password_btn" class="btn">Сгенерировать новый пароль</button>
+            </p>
             <div id="dialog-confirm" class="confirmation-dialog" title="Сбросить пароль?">
               <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Внимание! Вход будет возможен только по новому паролю.</p>
             </div>
