@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
+from sadiki.conf_settings import DEFAULT_IMPORT_DOCUMENT_NAME
 from sadiki.core.models import Sadik, Preference, PREFERENCE_IMPORT_FINISHED, Area, Benefit, AGENT_TYPE_CHOICES, EvidienceDocumentTemplate, REQUESTION_IDENTITY, AgeGroup
 from sadiki.anonym.views import Queue as AnonymQueue, RequestionSearch as AnonymRequestionSearch, \
     Registration as AnonymRegistration
@@ -108,7 +109,7 @@ def import_params(request):
     data['AGENT_TYPE_CHOICES'] = AGENT_TYPE_CHOICES
     data['MAX_CHILD_AGE'] = settings.MAX_CHILD_AGE
     data['DOCUMENTS_TEMPLATES'] = list(EvidienceDocumentTemplate.objects.filter(
-        destination=REQUESTION_IDENTITY).values('name', 'regex'))
+        name=DEFAULT_IMPORT_DOCUMENT_NAME).values('name', 'regex'))
     data['AGE_GROUPS'] = list(AgeGroup.objects.all().values_list('name', flat=True))
     data["REGION_NAME"] = settings.REGION_NAME
     return HttpResponse(json.dumps(data), mimetype='text/json')
