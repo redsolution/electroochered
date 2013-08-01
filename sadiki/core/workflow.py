@@ -411,8 +411,8 @@ requestion_account_template = u"""
     {% if benefit_documents %}
         Документы для льгот:
         {% for document in benefit_documents %}
-            {{ document.template }} номер: {{ document.document_number }},
-        {% endfor %};
+            {{ document.template }}: {{ document.document_number }}{% if not forloop.last %},{% else %};{% endif %}
+        {% endfor %}
     {% endif %}
     """
 
@@ -482,9 +482,8 @@ change_requestion_account_template = u"""
             {% if cleaned_data.benefit_documents %}
                 Документы для льгот:
                 {% for document in cleaned_data.benefit_documents %}
-                    {{ document.template }} номер: {{ document.document_number }}
-                    {% if not forloop.last %},{% endif %}
-                {% endfor %};
+                    {{ document.template }}: {{ document.document_number }}{% if not forloop.last %},{% else %};{% endif %}
+                {% endfor %}
             {% else %}
                 Документы для льгот не заданы;
             {% endif %}
