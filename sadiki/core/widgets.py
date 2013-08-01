@@ -125,7 +125,7 @@ class YearChoiceDateWigdet(forms.Select):
 
     def render(self, name, value, **kwds):
         if type(value) is datetime.date:
-            value = '%s-01-01' % value.year
+            value = '01.01.%s' % value.year
         return super(YearChoiceDateWigdet, self).render(name, value, **kwds)
 
 

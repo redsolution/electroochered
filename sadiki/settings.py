@@ -141,11 +141,11 @@ AUTH_PROFILE_MODULE = 'core.Profile'
 LOGIN_REDIRECT_URL = '/'
 
 DATE_FORMAT = 'd.m.Y'
-JS_DATE_FORMAT = 'yy-mm-dd'
+JS_DATE_FORMAT = 'dd.mm.yy'
 TIME_FORMAT = 'H:i'
 DATETIME_FORMAT = 'd.m.Y H:i'
 SHORT_DATE_FORMAT = 'd.m.Y'
-DATE_INPUT_FORMATS = ('%Y-%m-%d', "%Y/%m/%d")
+DATE_INPUT_FORMATS = ('%d.%m.%Y', "%Y/%m/%d")
 
 LOGIN_URL = '/auth/login/'
 

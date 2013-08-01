@@ -57,7 +57,7 @@ class YearChoiceFormField(forms.ChoiceField):
 
     def __init__(self, start_year, end_year, input_formats=None, *args, **kwargs):
         super(YearChoiceFormField, self).__init__(*args, **kwargs)
-        self.choices = [('%s-01-01' % y, y) for y in range(start_year, end_year)]
+        self.choices = [('01.01.%s' % y, y) for y in range(start_year, end_year)]
         self.input_formats = input_formats
 
     def to_python(self, value):
@@ -76,7 +76,7 @@ class YearChoiceFormField(forms.ChoiceField):
     def valid_value(self, value):
         """Check to see if the provided value is a valid choice"""
         for k, v in self.choices:
-            if isinstance(value, datetime.date) and value.strftime('%Y-%m-%d') == smart_unicode(k):
+            if isinstance(value, datetime.date) and value.strftime('%d.%m.%Y') == smart_unicode(k):
                 return True
         return False
 
