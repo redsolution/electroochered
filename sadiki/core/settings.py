@@ -7,12 +7,6 @@ IMMEDIATELY_DISTRIBUTION_NO = 0              # Недоступно всегда
 IMMEDIATELY_DISTRIBUTION_YES = 1             # Доступно всегда
 IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY = 2 # Доступно всегда только для определенных категорий льгот
 
-# Желаемая дата поступления
-DESIRED_DATE_NO = 0         # нет
-DESIRED_DATE_NEXT_YEAR = 1  # 1 сентября следующего года
-DESIRED_DATE_SPEC_YEAR = 2  # 1 сентября любого указанного года (указывается в заявлении)
-DESIRED_DATE_ANY = 3        # любая дата  (указывается в заявлении)
-
 # Электронные путевки
 ETICKET_ONLY = 0    # Зачисление в ДОУ строго по путевкам
 ETICKET_MIXED = 1   # зачисление в ДОУ по путевкам и документам на основании списков, переданных РУО,

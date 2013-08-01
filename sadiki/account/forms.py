@@ -42,9 +42,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         _base_fields = ['areas', 'name',
                         'birth_date', 'sex', 'template',
                         'document_number',
-                        'pref_sadiks', 'location']
-        if settings.DESIRED_DATE != settings.DESIRED_DATE_NO:
-            _base_fields += ['admission_date',]
+                        'pref_sadiks', 'location', 'admission_date']
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
             _base_fields = _base_fields + ['distribute_in_any_sadik',]
         fields = _base_fields

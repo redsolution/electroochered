@@ -871,25 +871,9 @@ class Requestion(models.Model):
         help_text=u"""Территориальная область в которой вы хотели бы посещать ДОУ.""")
 
     # Child data
-    if settings.DESIRED_DATE == settings.DESIRED_DATE_NO:
-        admission_date = models.DateField(u'Желаемая дата поступления',
-            default=None, editable=False,
-            help_text=u"Дата, начиная с которой заявка может быть зачислена")
-    elif settings.DESIRED_DATE == settings.DESIRED_DATE_NEXT_YEAR:
-        admission_date = BooleanNextYearField(u'Немедленное зачисление',
-            blank=True, null=True,
-            help_text=u"Если не выбрано, то заявка может быть распределена \
-                только во время ближайшего массового комплектования")
-    elif settings.DESIRED_DATE == settings.DESIRED_DATE_SPEC_YEAR:
-        admission_date = YearChoiceField(u'Желаемый год поступления',
-            blank=True, null=True,
-            help_text=u"Год, начиная с которого заявка может быть зачислена")
-    elif settings.DESIRED_DATE == settings.DESIRED_DATE_ANY:
-        admission_date = models.DateField(u'Желаемая дата поступления',
-            blank=True, null=True,
-            help_text=u"Дата, начиная с которой заявка может быть зачислена")
-    else:
-        raise NotImplementedError('settings.DESIRED_DATE value %s not supported' % settings.DESIRED_DATE)
+    admission_date = YearChoiceField(u'Желаемый год поступления',
+        blank=True, null=True,
+        help_text=u"Год, начиная с которого заявка может быть зачислена")
 #    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
 #        choices=ADMISSION_DATE_TYPE_CHOICES)
     requestion_number = models.CharField(verbose_name=u'Номер заявки',

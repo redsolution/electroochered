@@ -37,17 +37,6 @@ class Frontpage(TemplateView):
         return HttpResponseRedirect(reverse(result))
 
 
-class Settings(TemplateView):
-    u"""
-    Отображение текущих настроек системы
-    """
-
-    template_name = 'core/settings.html'
-
-    def get_context_data(self, **kwargs):
-        return {'settings': settings}
-
-
 @csrf_exempt
 def sadiki_json(request):
     data = []
