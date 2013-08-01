@@ -134,12 +134,11 @@ class Queue(RequirePermissionsMixin, ListView):
                         Q(areas__isnull=True) | Q(pref_sadiks__area=area)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
                         Q(distributed_in_vacancy__sadik_group__sadik__area=area)
                         & Q(status__in=DISTRIBUTION_PROCESS_STATUSES+(STATUS_DISTRIBUTED,)))
-                    )
+                    ).distinct()
                 else:
                     queryset = queryset.queue()
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
-
                 if form.cleaned_data.get('requestion_number', None):
                     try:
                         self.requestion = queryset.get(requestion_number=form.cleaned_data['requestion_number'])
@@ -174,17 +173,19 @@ class Queue(RequirePermissionsMixin, ListView):
 #        для всех заявок получаем возрастные группы, которые подходят для них
         age_groups = AgeGroup.objects.all()
         current_distribution_year = get_current_distribution_year()
-        for requestion in queryset:
+        requestions = queryset
+        for requestion in requestions:
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
 #        для анонимного и авторизованного пользователя нужно отобразить какие особые действия совершались с заявкой
         requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in queryset])
 #        нам нужны не все логи, а только с определенными действиями
-        if queryset:
+        if requestions:
 #            если получать логи при пустом queryset, то все упадет, паджинатор возвращает queryset[0:0] с пустым query
+            requestions_ids = [requestion.id for requestion in requestions]
             logs = Logger.objects.filter(content_type=ContentType.objects.get_for_model(Requestion),
-                object_id__in=queryset.values_list('id', flat=True), action_flag__in=SPECIAL_TRANSITIONS)
+                object_id__in=requestions_ids, action_flag__in=SPECIAL_TRANSITIONS)
             relation_dict = {}
             for log in logs:
                 requestion_log = relation_dict.get(log.object_id)
