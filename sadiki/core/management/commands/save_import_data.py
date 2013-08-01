@@ -13,27 +13,30 @@ class Command(BaseCommand):
     args = ['filename', ]
 
     def handle(self, *args, **options):
-        if args:
-            filename = args[0]
-            f = open(filename, 'r')
-            p = cPickle.Unpickler(f)
-            import_type = p.load()
-            try:
-                while True:
-                    instance_data = p.load()
-                    with transaction.commit_on_success():
+        if Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
+            print u"Импорт заявок уже был произведен, дальнейший импорт данных невозможен."
+            return
+        with transaction.commit_on_success():
+            if args:
+                filename = args[0]
+                f = open(filename, 'r')
+                p = cPickle.Unpickler(f)
+                import_type = p.load()
+                try:
+                    while True:
+                        instance_data = p.load()
                         if import_type == "requestion_import":
                             self.save_requestion(instance_data)
                         elif import_type == "sadik_import":
                             self.save_sadik(instance_data)
                         else:
                             raise CommandError(u"Неверный формат файла")
-            except EOFError:
-                if import_type == "requestion_import":
-                    Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
-                f.close()
-        else:
-            raise CommandError(u'Необходимо ввести имя файла')
+                except EOFError:
+                    if import_type == "requestion_import":
+                        Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+                    f.close()
+            else:
+                raise CommandError(u'Необходимо ввести имя файла')
 
     def save_requestion(self, requestion_data):
         from sadiki.core.workflow import IMPORT_PROFILE, REQUESTION_IMPORT
