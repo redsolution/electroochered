@@ -124,13 +124,14 @@ class EvidienceDocumentTemplate(models.Model):
         verbose_name = u'Тип документа'
         verbose_name_plural = u'Типы документов'
 
-    name = models.CharField(verbose_name=u'название', max_length=255)
+    name = models.CharField(verbose_name=u'название', max_length=255, unique=True)
     format_tips = models.CharField(verbose_name=u'подсказка к формату',
         max_length=255, blank=True)
     destination = models.IntegerField(
         verbose_name=u'назначение документа',
         choices=DOCUMENT_TEMPLATE_TYPES)
     regex = models.TextField(verbose_name=u'Регулярное выражение')
+    import_involved = models.BooleanField(verbose_name=u"Учитывается при импорте", default=False)
 
     def __unicode__(self):
         return self.name
@@ -228,8 +229,8 @@ class Benefit(models.Model):
         verbose_name_plural = u'Льготы'
 
     category = models.ForeignKey("BenefitCategory", verbose_name=u'тип льгот')
+    name = models.CharField(verbose_name=u'название', max_length=255, unique=True)
     description = models.CharField(verbose_name=u'описание', max_length=255)
-    name = models.CharField(verbose_name=u'название', max_length=255)
     evidience_documents = models.ManyToManyField(EvidienceDocumentTemplate,
         verbose_name=u"Необходимые документы")
     sadik_related = models.ManyToManyField("Sadik",
@@ -1224,7 +1225,7 @@ class Area(models.Model):
         verbose_name = u'территориальная область'
         verbose_name_plural = u'территориальная область'
 
-    name = models.CharField(verbose_name=u"Название", max_length=100)
+    name = models.CharField(verbose_name=u"Название", max_length=100, unique=True)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
     # Cache
     bounds = PolygonField(verbose_name=u'Границы области', blank=True, null=True)

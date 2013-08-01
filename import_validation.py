@@ -1023,9 +1023,14 @@ class RequestionLogic(object):
                     document_number = "TMP_%07d" % row_index
                     self.new_identificators.append({'row_index': row_index + self.format_doc.start_line,
                                                     'document_number': document_number})
+                    if system_params["DOCUMENTS_TEMPLATES"]:
+                        template_name = system_params["DOCUMENTS_TEMPLATES"][0]["name"]
+                    else:
+                        template_name = ''
                     document = {
                         "document_number": document_number,
-                        "fake": True
+                        "fake": True,
+                        "template_name": template_name,
                     }
                 else:
                     document.update({'fake': False})

@@ -57,10 +57,7 @@ class Command(BaseCommand):
         requestion.save()
         document = requestion_data['document']
         if document:
-            if not document['fake']:
-                document_template = EvidienceDocumentTemplate.objects.get(name=document['template_name'])
-            else:
-                document_template = EvidienceDocumentTemplate.objects.all()[0]
+            document_template = EvidienceDocumentTemplate.objects.get(name=document['template_name'])
             document = EvidienceDocument(
                 template=document_template,
                 document_number=document['document_number'], confirmed=True,

@@ -109,7 +109,7 @@ def import_params(request):
     data['AGENT_TYPE_CHOICES'] = AGENT_TYPE_CHOICES
     data['MAX_CHILD_AGE'] = settings.MAX_CHILD_AGE
     data['DOCUMENTS_TEMPLATES'] = list(EvidienceDocumentTemplate.objects.filter(
-        name=DEFAULT_IMPORT_DOCUMENT_NAME).values('name', 'regex'))
+        import_involved=True).values('name', 'regex'))
     data['AGE_GROUPS'] = list(AgeGroup.objects.all().values_list('name', flat=True))
     data["REGION_NAME"] = settings.REGION_NAME
     return HttpResponse(json.dumps(data), mimetype='text/json')
