@@ -81,10 +81,12 @@ class Command(BaseCommand):
         for sadik in preferred_sadiks:
             requestion.pref_sadiks.add(sadik)
 #                добавляем льготы
+        benefits_names = requestion_data["benefits_names"]
         benefits = []
-        for benefit_name in requestion_data['benefits_names']:
-            benefit = Benefit.objects.get(name=benefit_name)
-            benefits.append(benefit)
+        if benefits_names:
+            for benefit_name in benefits_names:
+                benefit = Benefit.objects.get(name=benefit_name)
+                benefits.append(benefit)
         if benefits:
             for benefit in benefits:
                 requestion.benefits.add(benefit)
