@@ -1298,7 +1298,7 @@ tr.dynamic-form .errorlist {
 }
 
 .requestion-info .field{
-    padding: 5px;
+    padding: 5px 5px 5px 0px;
     border: 1px solid white;
 }
 
