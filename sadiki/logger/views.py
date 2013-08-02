@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from sadiki.account.views import AccountPermissionMixin
@@ -36,7 +38,7 @@ class RequestionLogs(TemplateView):
             if log.action_flag in STATUS_CHANGE_TRANSITIONS or messages:
                 logs_with_messages.append([log, messages])
         if request.user.is_authenticated() and request.user.is_operator():
-            self.template_name = "logger/requestion_logs_for_operator.html"
+            return HttpResponseRedirect(reverse("operator_logs", kwargs={'profile_id': requestion.profile.id}))
         return self.render_to_response({'logs_with_messages': logs_with_messages, 'requestion': requestion})
 
 
