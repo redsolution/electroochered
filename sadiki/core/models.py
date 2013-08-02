@@ -1027,6 +1027,8 @@ class Requestion(models.Model):
                     self.birth_date).filter(sadik=sadik)
 
     def age_groups(self, age_groups=None, current_distribution_year=None):
+        if not current_distribution_year:
+            current_distribution_year = get_current_distribution_year()
         if not age_groups:
             age_groups = AgeGroup.objects.all()
         return filter(lambda group: group.min_birth_date(current_distribution_year) < self.birth_date <= group.max_birth_date(current_distribution_year),

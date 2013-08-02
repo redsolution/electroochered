@@ -22,7 +22,7 @@ from sadiki.logger.utils import add_special_transitions_to_requestions
 
 def get_json_sadiks_location_data():
     sadiks_location_data = {}
-    for sadik in Sadik.objects.filter(active_registration=True):
+    for sadik in Sadik.objects.filter(active_registration=True).select_related('area__id', 'address'):
         if sadik.address.coords:
             sadiks_location_data.update({sadik.id: {
                 'area_id': sadik.area.id,
