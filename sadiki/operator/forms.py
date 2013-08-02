@@ -136,35 +136,6 @@ class SadikForm(forms.Form):
             label=u'Выберите ДОУ', required=False)
 
 
-class RequestionsFromDistributedForm(forms.Form):
-    u"""
-    Форма выбора из текущего комплектования заявок к ручному комплектованию
-    """
-
-    def __init__(self, distribution, *args, **kwds):
-        self.distribution = distribution
-        super(RequestionsFromDistributedForm, self).__init__(*args, **kwds)
-        self.fields['vacancies'] = forms.ModelMultipleChoiceField(
-            label=u"Путевки для освобождения",
-            queryset=Vacancies.objects.filter(distribution=self.distribution,
-                status=VACANCY_STATUS_PROVIDED),
-            widget=CheckboxSelectMultiple()
-        )
-
-
-class DocumentGenericInlineFormSet(BaseGenericInlineFormSet):
-
-    def save_new(self, form, commit=True):
-#        для новых документов задается подтверждение
-        instance = super(DocumentGenericInlineFormSet, self).save_new(
-            form, commit=False)
-        instance.confirmed = True
-        if commit:
-            instance.save()
-            form.save_m2m()
-        return instance
-
-
 class RequestionIdentityDocumentForm(FormWithDocument):
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
@@ -266,18 +237,6 @@ class ImmediatelyDistributionConfirmationForm(ConfirmationForm):
 
         self.fields['sadik'].queryset = Sadik.objects.filter(id__in=available_sadiks_ids)
         self.fields['sadik'].choices = choices
-
-
-class EmailForm(forms.ModelForm):
-
-    class Meta:
-        model = User
-        fields = ("email",)
-
-    def clean_email(self):
-        if get_user_by_email(self.cleaned_data.get('email', '')):
-            raise forms.ValidationError(u'Такой адрес электронной почты уже зарегистрирован.')
-        return self.cleaned_data['email']
 
 
 class ProfileSearchForm(forms.Form):

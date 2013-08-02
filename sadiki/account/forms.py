@@ -97,23 +97,6 @@ class BenefitsForm(forms.ModelForm):
         fields = ('benefits',)
 
 
-class BaseRequestionsFormSet(BaseInlineFormSet):
-
-    def clean(self, *args, **kwargs):
-        super(BaseRequestionsFormSet, self).clean(*args, **kwargs)
-        if any(self.errors):
-#         Don't bother validating the formset unless each form is valid on its own
-            return
-        sadiks = []
-        for form_data in self.cleaned_data:
-            sadik = form_data.get('sadik', None)
-            if sadik:
-                if sadik in sadiks:
-                    raise forms.ValidationError(u'Не должно быть совпадающих ДОУ.')
-                else:
-                    sadiks.append(sadik)
-
-
 class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
     pref_sadiks = SadikWithAreasNameField(
         label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),

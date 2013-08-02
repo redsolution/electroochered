@@ -139,14 +139,9 @@ CHANGE_ADMISSION_DATE = 73
 CHANGE_ADMISSION_DATE_BY_OPERATOR = 74
 CHANGE_PROFILE = 75
 CHANGE_PROFILE_BY_OPERATOR = 76
-CHANGE_PREFERRED_SADIKS = 77
-CHANGE_PREFERRED_SADIKS_BY_OPERATOR = 78
 CHANGE_REGISTRATION_DATETIME = 79
 CHANGE_BIRTHDATE = 80
-CHANGE_BENEFITS = 81
-CHANGE_BENEFITS_BY_OPERATOR = 82
-CHANGE_DOCUMENTS = 83
-CHANGE_DOCUMENTS_BY_OPERATOR = 84
+CHANGE_DOCUMENTS_BY_OPERATOR = 84 # используется при указании документа для заявки оператором
 CREATE_PROFILE = 85
 CREATE_PROFILE_BY_OPERATOR = 86
 IMPORT_PROFILE = 87
@@ -169,6 +164,13 @@ CHANGE_SADIK_INFO = 105
 VACANCY_DISTRIBUTED = 110
 
 START_NEW_YEAR = 106
+
+# устаревшие статусы, сохраняются для совместимости
+CHANGE_PREFERRED_SADIKS = 77
+CHANGE_PREFERRED_SADIKS_BY_OPERATOR = 78
+CHANGE_BENEFITS = 81
+CHANGE_BENEFITS_BY_OPERATOR = 82
+CHANGE_DOCUMENTS = 83
 
 workflow = Workflow()
 
@@ -577,23 +579,6 @@ ACTION_TEMPLATES.update({
     CHANGE_PROFILE_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_profile_account_template),
         },
-    CHANGE_PREFERRED_SADIKS: {
-        ANONYM_LOG: Template(change_preferred_sadiks_anonym_template)
-    },
-    CHANGE_PREFERRED_SADIKS_BY_OPERATOR: {
-        ANONYM_LOG: Template(change_preferred_sadiks_anonym_template)
-    },
-    CHANGE_BENEFITS: {
-        ANONYM_LOG: Template(change_benefits_anonym_template),
-        ACCOUNT_LOG: Template(change_benefits_account_template),
-    },
-    CHANGE_BENEFITS_BY_OPERATOR: {
-        ANONYM_LOG: Template(change_benefits_anonym_template),
-        ACCOUNT_LOG: Template(change_benefits_account_template),
-    },
-    CHANGE_DOCUMENTS: {
-        ACCOUNT_LOG: Template(change_documents_account_template),
-    },
     CHANGE_DOCUMENTS_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_documents_account_template),
     },
