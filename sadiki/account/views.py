@@ -17,6 +17,7 @@ from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
+from sadiki.logger.utils import add_special_transitions_to_requestions
 
 
 def get_json_sadiks_location_data():
@@ -296,6 +297,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         requestions_after = Requestion.objects.queue().count() - requestions_before
         offset = max(0, requestions_before - 20)
         queue_chunk = Requestion.objects.queue().add_distributed_sadiks()[offset:requestions_before + 20]
+        queue_chunk = add_special_transitions_to_requestions(queue_chunk)
 
         # Вычесть свою заявку
         requestions_after -= 1

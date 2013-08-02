@@ -2,7 +2,6 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -12,10 +11,8 @@ from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
-from ordereddict import OrderedDict
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
     QueueFilterForm
-from sadiki.conf_settings import SPECIAL_TRANSITIONS
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
@@ -24,6 +21,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
 from sadiki.logger.models import Logger
+from sadiki.logger.utils import add_special_transitions_to_requestions
 
 
 class Frontpage(RequirePermissionsMixin, TemplateView):
@@ -179,26 +177,14 @@ class Queue(RequirePermissionsMixin, ListView):
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
 #        для анонимного и авторизованного пользователя нужно отобразить какие особые действия совершались с заявкой
-        requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in queryset])
-#        нам нужны не все логи, а только с определенными действиями
         if requestions:
 #            если получать логи при пустом queryset, то все упадет, паджинатор возвращает queryset[0:0] с пустым query
-            requestions_ids = [requestion.id for requestion in requestions]
-            logs = Logger.objects.filter(content_type=ContentType.objects.get_for_model(Requestion),
-                object_id__in=requestions_ids, action_flag__in=SPECIAL_TRANSITIONS)
-            relation_dict = {}
-            for log in logs:
-                requestion_log = relation_dict.get(log.object_id)
-    #            если для данной заявки не задан лог или он более старый
-                if not requestion_log or requestion_log.datetime < log.datetime:
-                    relation_dict[log.object_id] = log
-            for id, log in relation_dict.items():
-                requestions_dict[id].action_log = log
+            requestions = add_special_transitions_to_requestions(requestions)
         context = {
             'paginator': paginator,
             'page_obj': page,
             'is_paginated': is_paginated,
-            'requestions_dict': requestions_dict,
+            'requestions': requestions,
             'form': form,
             'target_requestion': self.requestion,
             'offset': (page.number - 1) * page_size,

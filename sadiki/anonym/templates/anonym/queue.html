@@ -42,12 +42,12 @@
             </div>
             </form>
         </div>
-    {% if requestions_dict %}
+    {% if requestions %}
         <div class="pagination-page">
             {% digg_paginator %}
         </div>
 
-        {% with requestions_dict.itervalues as object_list %}
+        {% with requestions as object_list %}
         {% block queue_table %}
             {% include 'anonym/includes/queue_include.html' %}
         {% endblock queue_table %}
