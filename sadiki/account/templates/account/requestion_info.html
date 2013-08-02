@@ -311,7 +311,7 @@
     </div>
     <div class="span5">
         {% block top_right %}
-        <div class="requestion-info right-block">
+        <div class="requestion-info">
         <div class="field">
             <label class="field-label">Статус</label>
             {% if requestion.document_confirmed %}
@@ -328,7 +328,7 @@
                 </div>
             {% endif %}
         </div>
-        <div class="block-head">Документы:</div>
+        <div class="block-head top-indent">Документы:</div>
         <div class="field">
             {% for document in requestion.evidience_documents %}
             <label class="field-label">{{ document.template }}</label>

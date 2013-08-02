@@ -13,27 +13,27 @@
             <div class="block-head">Информация о заявке:</div>
             {% with params.requestion as requestion %}
                 <div class="field">
-                    <label class="field-label">Территориальная область:</label>
+                    <label class="field-label">Территориальная область</label>
                     <p class="field-value">{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</p>
                 </div>
                 <div class="field">
-                    <label class="field-label">Дата рождения:</label>
+                    <label class="field-label">Дата рождения</label>
                     <p class="field-value">{{ requestion.birth_date }}</p>
                 </div>
                 <div class="field">
-                    <label class="field-label">Дата регистрации:</label>
+                    <label class="field-label">Дата регистрации</label>
                     <p class="field-value">{{ requestion.registration_datetime }}</p>
                 </div>
                 <div class="field">
-                    <label class="field-label">Статус:</label>
+                    <label class="field-label">Статус</label>
                     <p class="field-value">{{ requestion.get_status_display }}</p>
                 </div>
                 <div class="field">
-                    <label class="field-label">Льготы:</label>
+                    <label class="field-label">Льготы</label>
                     <p class="field-value">{{ requestion.benefit_category }}</p>
                 </div>
             {% endwith %}
-            <div class="block-head">Документы:</div>
+            <div class="block-head top-indent">Документы</div>
             <div class="field">
                 {% for document in requestion.evidience_documents %}
                 <label class="field-label">{{ document.template }}</label>
@@ -60,18 +60,18 @@
         </div>
         <div class="span5">
         <div class="requestion-info">
-            <div class="block-head">Информация о профиле:</div>
+            <div class="block-head">Информация о профиле</div>
             {% with params.profile as profile %}
                 <div class="field">
-                    <label class="field-label">Имя пользователя:</label>
+                    <label class="field-label">Имя пользователя</label>
                     <p class="field-value">{{ profile.user.username }}</p>
                 </div>
                 <div class="field">
-                    <label class="field-label">Имя родителя:</label>
+                    <label class="field-label">Имя родителя</label>
                     <p class="field-value">{{ profile.first_name|verbose_value }}</p>
                 </div>
                 <div class="field">
-                    <label class="field-label">Заявки, принадлежащие, профилю:</label>
+                    <label class="field-label">Заявки, принадлежащие профилю</label>
                     {% for requestion in profile.requestion_set.all %}
                         <p class="field-value"><a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a></p>
                     {% endfor %}
