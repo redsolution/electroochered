@@ -124,25 +124,6 @@ class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
         fields = ('areas', 'pref_sadiks', 'distribute_in_any_sadik',)
 
 
-class CustomGenericInlineFormSet(BaseGenericInlineFormSet):
-
-    def add_fields(self, form, index):
-        super(CustomGenericInlineFormSet, self).add_fields(form, index)
-        form.fields[DELETION_FIELD_NAME].widget.attrs = {'class': 'delete'}
-
-
-class DocumentForm(ModelForm):
-
-    class Meta:
-        model = EvidienceDocument
-
-    def __init__(self, *args, **kwargs):
-        super(DocumentForm, self).__init__(*args, **kwargs)
-        self.fields['template'].widget = forms.HiddenInput()
-        self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
-            destination=BENEFIT_DOCUMENT)
-
-
 class SocialProfilePublicForm(ModelForm):
     class Meta:
         model = Profile

@@ -2,20 +2,19 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
+from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
-from sadiki.account.forms import RequestionForm, ChangeRequestionForm, DocumentForm
+from sadiki.account.forms import RequestionForm, ChangeRequestionForm
 from sadiki.administrator.admin import SadikAdminForm
-from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
-    FormWithDocument
+from sadiki.anonym.forms import PublicSearchForm, FormWithDocument
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
-from sadiki.core.geo_field import location_errors, map_widget
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
-    VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Address, \
-    STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion
+    VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, \
+    STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
-from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, LeafletMap
+from sadiki.core.widgets import JqueryUIDateWidget, LeafletMap
 
 
 def select_list_from_qs(queryset, requestion):
@@ -352,11 +351,31 @@ class RequestionConfirmationForm(forms.Form):
         return self.cleaned_data
 
 
-class OperatorDocumentForm(DocumentForm):
+class CustomGenericInlineFormSet(BaseGenericInlineFormSet):
+
+    def add_fields(self, form, index):
+        super(CustomGenericInlineFormSet, self).add_fields(form, index)
+        form.fields[DELETION_FIELD_NAME].widget.attrs = {'class': 'delete'}
 
     def save(self, commit=True):
-        document = super(OperatorDocumentForm, self).save(commit=False)
-        document.confirmed = True
+        instances = super(CustomGenericInlineFormSet, self).save(commit=False)
+        for instance in instances:
+            # Do something with `instance`
+            instance.confirmed = True
+            if commit:
+                instance.save()
         if commit:
-            document.save()
-        return document
+            self.save_m2m()
+        return instances
+
+
+class DocumentForm(forms.ModelForm):
+
+    class Meta:
+        model = EvidienceDocument
+
+    def __init__(self, *args, **kwargs):
+        super(DocumentForm, self).__init__(*args, **kwargs)
+        self.fields['template'].widget = forms.HiddenInput()
+        self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
+            destination=BENEFIT_DOCUMENT)

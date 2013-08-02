@@ -1006,14 +1006,10 @@ class Requestion(models.Model):
             template__destination=BENEFIT_DOCUMENT).update(confirmed=True)
 
     def set_document_unauthentic(self):
-        try:
-            document = self.evidience_documents().get(
-                template__destination=REQUESTION_IDENTITY)
-        except EvidienceDocument.DoesNotExist:
-            pass
-        else:
-            document.confirmed = False
-            document.save()
+        u"""
+        все документы у пользователя помечаются как недостоверные
+        """
+        self.evidience_documents().update(confirmed=False)
 
     def document_confirmed(self):
         return self.status not in NOT_CONFIRMED_STATUSES

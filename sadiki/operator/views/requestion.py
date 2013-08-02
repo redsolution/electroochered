@@ -11,7 +11,6 @@ from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
-from sadiki.account.forms import BenefitsForm, DocumentForm, CustomGenericInlineFormSet
 from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
     RequestionAdd as AccountRequestionAdd, \
     RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage
@@ -29,7 +28,7 @@ from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     DocumentGenericInlineFormSet, RequestionIdentityDocumentForm, \
-    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, OperatorDocumentForm
+    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
@@ -65,7 +64,7 @@ class Registration(OperatorPermissionMixin, AccountRequestionAdd):
     def get_documents_formset(self):
         return generic_inlineformset_factory(EvidienceDocument,
             formset=CustomGenericInlineFormSet,
-            form=OperatorDocumentForm, fields=('template', 'document_number', ), extra=1)
+            form=DocumentForm, fields=('template', 'document_number', ), extra=1)
 
     def dispatch(self, request, profile_id=None):
         if profile_id:
@@ -151,7 +150,7 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     def get_documents_formset(self):
         return generic_inlineformset_factory(EvidienceDocument,
             formset=CustomGenericInlineFormSet,
-            form=OperatorDocumentForm, fields=('template', 'document_number', ), extra=1)
+            form=DocumentForm, fields=('template', 'document_number', ), extra=1)
 
     def can_change_benefits(self, requestion):
         return requestion.editable
