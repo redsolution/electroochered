@@ -238,12 +238,12 @@
     {% block top_block %}
         <div class='notification-area'>
         {% if not can_change_requestion %}
-            <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+            <div class="alert alert-error">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
         {% else %}
             {% if not requestion.document_confirmed %}
-                <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявку, обратившись в управление образования.</div>
+                <div class="alert alert-error">Вам необходимо в ближайшее время подтвердить заявку, обратившись в управление образования.</div>
             {% else %}
-                <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
+                <div class="alert alert-error">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
             {% endif %}
         {% endif %}
         </div>

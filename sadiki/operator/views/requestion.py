@@ -153,7 +153,10 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
             form=DocumentForm, fields=('template', 'document_number', ), extra=1)
 
     def can_change_benefits(self, requestion):
-        return requestion.editable
+        return self.can_change_requestion(requestion)
+
+    def can_change_requestion(self, requestion):
+        return requestion.editable and not requestion.is_fake_identity_documents
 
 
 class SetIdentityDocument(OperatorRequestionMixin, TemplateView):

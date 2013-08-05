@@ -40,7 +40,7 @@
 {% block content %}
     <div class="notification-area">
         {% if profile.get_profile.requestion_set.not_confirmed.exists %}
-            <div class="label label-important">Вам необходимо в ближайшее время подтвердить заявки, обратившись в управление образования.</div>
+            <div class="alert alert-error">Вам необходимо в ближайшее время подтвердить заявки, обратившись в управление образования.</div>
         {% endif %}
     </div>
     <div class="row">
@@ -77,7 +77,7 @@
                     {% url operator_profile_info profile_id=profile.id as redirect_url %}
                     <a class="vkontakte-remove action-link" href="{{ social_auth_disconnect_url }}?next={{ redirect_url }}"><img src="{{ STATIC_URL }}img/remove.png"/>Отвязать аккаунт</a>
                 {% else %}
-                    <div class="label label-important">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
+                    <div class="alert alert-error">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
                 {% endif %}
                 </div>
                 <div class="small-field">

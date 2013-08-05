@@ -31,10 +31,19 @@
     {# уведомления наверху страницы #}
     <div class='notification-area'>
         {% if not requestion.have_all_benefit_documents and requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
-            <div class="label label-important">Для документального подтверждения необходимо задать все документы для льгот.</div>
+            <div class="alert alert-error">Для документального подтверждения необходимо задать все документы для льгот.</div>
         {% endif %}
         {% if not can_change_requestion %}
-            <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+            {% if requestion.is_fake_identity_documents %}
+                <div class="alert alert-error">
+                    У заявки указан временный номер документа, чтобы изменить заявку, нужно
+                    <a href="{% url operator_requestion_set_identity_document requestion_id=requestion.id %}?next={{ request.get_full_path|urlencode }}">указать</a>
+                    номер документа.
+                </div>
+            {% else %}
+                <div class="alert alert-error">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+
+            {% endif %}
         {% endif %}
         {% with requestion.get_vacancy_distributed as vacancy_distributed %}
             {% if vacancy_distributed %}
