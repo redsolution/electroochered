@@ -34,7 +34,7 @@ class OperatorRequestionCheckIdentityMixin(object):
     def dispatch(self, request, requestion_id, *args, **kwargs):
         requestion = get_object_or_404(Requestion, id=requestion_id)
         if not isinstance(request, FakeWSGIRequest):
-            if requestion.is_fake_identity_documents():
+            if requestion.is_fake_identity_documents:
                 return HttpResponseRedirect(
                     u'%s?next=%s' %
                     (reverse('operator_requestion_set_identity_document',
