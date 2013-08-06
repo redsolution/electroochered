@@ -123,8 +123,9 @@ class EvidienceDocumentTemplate(models.Model):
     class Meta:
         verbose_name = u'Тип документа'
         verbose_name_plural = u'Типы документов'
+        unique_together = (("name", "destination"),)
 
-    name = models.CharField(verbose_name=u'название', max_length=255, unique=True)
+    name = models.CharField(verbose_name=u'название', max_length=255)
     format_tips = models.CharField(verbose_name=u'подсказка к формату',
         max_length=255, blank=True)
     destination = models.IntegerField(

@@ -508,7 +508,7 @@ class DocumentParserMixin(object):
     def to_python(self):
         document_number = super(DocumentParserMixin, self).to_python()
         if document_number:
-            for document_template in system_params["DOCUMENTS_TEMPLATES"]:
+            for document_template in system_params["REQUESTION_DOCUMENTS_TEMPLATES"]:
                 if re.match(document_template['regex'], document_number):
                     return {'document_number': document_number,
                             'template_name': document_template['name']}
@@ -1023,8 +1023,8 @@ class RequestionLogic(object):
                     document_number = "TMP_%07d" % row_index
                     self.new_identificators.append({'row_index': row_index + self.format_doc.start_line,
                                                     'document_number': document_number})
-                    if system_params["DOCUMENTS_TEMPLATES"]:
-                        template_name = system_params["DOCUMENTS_TEMPLATES"][0]["name"]
+                    if system_params["REQUESTION_DOCUMENTS_TEMPLATES"]:
+                        template_name = system_params["REQUESTION_DOCUMENTS_TEMPLATES"][0]["name"]
                     else:
                         template_name = ''
                     document = {

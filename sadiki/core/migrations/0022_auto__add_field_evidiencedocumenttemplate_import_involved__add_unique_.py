@@ -13,8 +13,8 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.BooleanField')(default=False),
                       keep_default=False)
 
-        # Adding unique constraint on 'EvidienceDocumentTemplate', fields ['name']
-        db.create_unique('core_evidiencedocumenttemplate', ['name'])
+        # Adding unique constraint on 'EvidienceDocumentTemplate', fields ['destination', 'name']
+        db.create_unique('core_evidiencedocumenttemplate', ['destination', 'name'])
 
         # Adding unique constraint on 'Area', fields ['name']
         db.create_unique('core_area', ['name'])
@@ -30,8 +30,8 @@ class Migration(SchemaMigration):
         # Removing unique constraint on 'Area', fields ['name']
         db.delete_unique('core_area', ['name'])
 
-        # Removing unique constraint on 'EvidienceDocumentTemplate', fields ['name']
-        db.delete_unique('core_evidiencedocumenttemplate', ['name'])
+        # Removing unique constraint on 'EvidienceDocumentTemplate', fields ['destination', 'name']
+        db.delete_unique('core_evidiencedocumenttemplate', ['destination', 'name'])
 
         # Deleting field 'EvidienceDocumentTemplate.import_involved'
         db.delete_column('core_evidiencedocumenttemplate', 'import_involved')

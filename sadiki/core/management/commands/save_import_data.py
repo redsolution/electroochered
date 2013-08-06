@@ -4,7 +4,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from sadiki.core.models import Requestion, Profile, Address, REQUESTION_TYPE_IMPORTED, Area, Sadik, Benefit, STATUS_REQUESTER, EvidienceDocumentTemplate, EvidienceDocument, AgeGroup, Preference, PREFERENCE_IMPORT_FINISHED
+from sadiki.core.models import Requestion, Profile, Address, REQUESTION_TYPE_IMPORTED, Area, Sadik, Benefit, STATUS_REQUESTER, EvidienceDocumentTemplate, EvidienceDocument, AgeGroup, Preference, PREFERENCE_IMPORT_FINISHED, REQUESTION_IDENTITY
 from sadiki.core.utils import get_unique_username
 
 
@@ -57,7 +57,9 @@ class Command(BaseCommand):
         requestion.save()
         document = requestion_data['document']
         if document:
-            document_template = EvidienceDocumentTemplate.objects.get(name=document['template_name'])
+            document_template = EvidienceDocumentTemplate.objects.get(
+                name=document['template_name'], import_involved=True,
+                destination=REQUESTION_IDENTITY)
             document = EvidienceDocument(
                 template=document_template,
                 document_number=document['document_number'], confirmed=True,
