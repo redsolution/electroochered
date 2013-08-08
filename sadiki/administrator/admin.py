@@ -208,7 +208,6 @@ site = SadikiAdminSite(name='sadiki_admin')
 USER_TYPE_CHOICES = (
     (SUPERVISOR_PERMISSION[0], u'Суперпользователь'),
     (OPERATOR_PERMISSION[0], u'Оператор'),
-    (SADIK_OPERATOR_PERMISSION[0], u'Оператор ДОУ'),
     (ADMINISTRATOR_PERMISSION[0], u'Администратор'),
     )
 
@@ -230,16 +229,6 @@ def get_user_type(instance):
 class OperatorAdminChangeForm(forms.ModelForm):
     user_type = forms.ChoiceField(label=u"Тип учетной записи",
         required=False, choices=USER_TYPE_CHOICES)
-    area = forms.ModelChoiceField(label=u"Территориальное образование",
-        queryset=Area.objects.all(), empty_label=u"Весь муниципалитет",
-        required=False)
-    sadik = forms.ModelChoiceField(label=u'ДОУ которым руководит',
-        queryset=Sadik.objects.all(), required=False)
-    is_distributor = forms.BooleanField(
-        label=u"Может работать с распределением", required=False)
-    is_sadik_operator = forms.BooleanField(
-        label=u"Есть права на работу с ДОУ в своем территориальном образовании",
-        required=False)
 
     class Meta:
         model = User
@@ -248,26 +237,7 @@ class OperatorAdminChangeForm(forms.ModelForm):
         super(OperatorAdminChangeForm, self).__init__(*args, **kwargs)
         instance = kwargs.get('instance')
         if instance:
-            if not instance.is_administrator():
-                self.fields['area'].initial = instance.get_profile().area
-                if instance.id and instance.get_profile().sadiks.all().exists():
-                    self.fields['sadik'].initial = instance.get_profile().sadiks.all()[0]
-                else:
-                    self.fields['sadik'].initial = None
-                user_permissions = instance.get_all_permissions()
-                self.fields['is_distributor'].initial = ("auth.is_distributor"
-                    in user_permissions)
-                self.fields['is_sadik_operator'].initial = (
-                    "auth.is_sadik_operator" in instance.get_all_permissions())
             self.fields['user_type'].initial = get_user_type(instance)
-
-    def clean(self):
-        cleaned_data = super(OperatorAdminChangeForm, self).clean()
-        if (cleaned_data.get('user_type') == SADIK_OPERATOR_PERMISSION[0] and
-                not cleaned_data.get('sadik')):
-            self._errors["sadik"] = self.error_class(
-                [u"Необходимо указать ДОУ которым руководит пользователь"])
-        return cleaned_data
 
 
 class OperatorAdminAddForm(OperatorAdminChangeForm):
@@ -320,22 +290,10 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
         'is_active']}),
-        (u'Опции оператора',
-            {'classes': ('operator',),
-            'fields': ['area', 'is_distributor', 'is_sadik_operator']}),
-        (u'Опции оператора ДОУ',
-            {'classes': ('sadik_operator',),
-            'fields': ['sadik', ]}),
     )
     add_fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
         'password1', 'password2']}),
-        (u'Опции оператора',
-            {'classes': ('operator',),
-            'fields': ['area', 'is_distributor', 'is_sadik_operator']}),
-        (u'Опции оператора ДОУ',
-            {'classes': ('sadik_operator',),
-            'fields': ['sadik', ]}),
     )
     add_form = OperatorAdminAddForm
     form = OperatorAdminChangeForm
@@ -346,7 +304,6 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
         css = {
                  'all': ('css/admin_override.css',)
             }
-        js = ("%sjs/admin/user.js" % settings.STATIC_URL,)
 
     def queryset(self, request):
         """
@@ -361,48 +318,30 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.save()
-#        для оператора создаем профиль с привязкой к району
-        area = form.cleaned_data.get('area')
-        sadik = form.cleaned_data.get('sadik')
         try:
-            profile = obj.get_profile()
+            obj.get_profile()
         except Profile.DoesNotExist:
-            profile = Profile.objects.create(user=obj)
-#        два списка групп, которые у пользователя есть и которых нет
+            Profile.objects.create(user=obj)
+#        список групп, которые нужно назначить пользователю
         user_groups = []
         supervisor_group = Group.objects.get(name=SUPERVISOR_GROUP_NAME)
         operator_group = Group.objects.get(name=OPERATOR_GROUP_NAME)
         sadik_operator_group = Group.objects.get(name=SADIK_OPERATOR_GROUP_NAME)
         administrator_group = Group.objects.get(name=ADMINISTRATOR_GROUP_NAME)
         distributor_group = Group.objects.get(name=DISTRIBUTOR_GROUP_NAME)
-        all_groups = (supervisor_group, operator_group, sadik_operator_group,
-            administrator_group, distributor_group)
         user_type = form.cleaned_data.get('user_type')
         if user_type == SUPERVISOR_PERMISSION[0]:
 #        если супервайзер
             user_groups.append(supervisor_group)
         elif user_type == OPERATOR_PERMISSION[0]:
 #        если оператор
-            profile.area = area
             user_groups.append(operator_group)
-#            может ли учавствовать в распределении
-            if form.cleaned_data.get('is_distributor'):
-                user_groups.append(distributor_group)
-#            есть ли у оператора права на работу с ДОУ
-            if form.cleaned_data.get('is_sadik_operator'):
-                user_groups.append(sadik_operator_group)
-        elif user_type == SADIK_OPERATOR_PERMISSION[0]:
-#        оператор ДОУ
-            if sadik:
-                profile.sadiks = (sadik,)
+            user_groups.append(distributor_group)
             user_groups.append(sadik_operator_group)
         elif user_type == ADMINISTRATOR_PERMISSION[0]:
 #        если администратор
             user_groups.append(administrator_group)
-        profile.save()
-        other_groups = list(set(all_groups) - set(user_groups))
-        obj.groups.add(*user_groups)
-        obj.groups.remove(*other_groups)
+        obj.groups = user_groups
 
 
 class AreaAdminForm(forms.ModelForm):

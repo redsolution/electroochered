@@ -670,6 +670,7 @@ class Profile(models.Model):
 
     user = models.OneToOneField('auth.User', verbose_name=u'Пользователь',
         unique=True)
+    # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
     first_name = models.CharField(u'Имя', max_length=255, null=True)
@@ -684,6 +685,7 @@ class Profile(models.Model):
     skype = models.CharField(u'Skype',
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
+    # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
