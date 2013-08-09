@@ -1366,9 +1366,13 @@ tr.dynamic-form .errorlist {
 }
 
 .vkontakte-registration .social-button{
-    vertical-align: top;
     font-size: 18px;
-    line-height: 55px;
+    line-height: 60px;
+}
+
+.vkontakte-registration .social-button img{
+    float: left;
+    margin-right: 10px;
 }
 
 .registrationForm .hint{
@@ -1380,6 +1384,7 @@ tr.dynamic-form .errorlist {
 .vkontakte-registration .hint{
     margin-top: 100px;
     color: #909090;
+    text-align: justify;
 }
 
 .documents-form .original-form{
