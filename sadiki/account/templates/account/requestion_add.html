@@ -218,6 +218,7 @@
         {{ form.media }}
         {{ benefits_form.media }}
         {% if form.non_field_errors or benefits_form.non_field_errors %}
+        <div class="uniForm">
             <div id="errorMsg">
                 {% load i18n %}
                 <h3>
@@ -232,6 +233,7 @@
                     {% endfor %}
                 </ol>
             </div>
+        </div>
         {% endif %}
         <div class="row">
             <div class="requestion-info span11">
