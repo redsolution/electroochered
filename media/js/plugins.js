@@ -101,25 +101,18 @@ function change_document_hint($input, help_text) {
     if (help_text){
         help_text = "Формат документа: " + help_text;
     } else {
-        help_text = '';
+        help_text = '&nbsp;';
     }
 
     if ($input.siblings('p.hint').length) {
-        $input.siblings('p.hint').text(help_text);
+        $input.siblings('p.hint').html(help_text);
     } else {
-        var help_element = $('<p class="hint">').text(help_text);
+        var help_element = $('<p class="hint">').html(help_text);
         $input.after(help_element);
     }
 }
 
 (function ($) {
-
-    function remove_document_hint($input) {
-        if ($input.siblings('p.hint')){
-            $input.siblings('p.hint').remove();
-        }
-    }
-
     $.fn.regexpValidate = function (input_selector) {
         var $docnumber_input = $(input_selector);
         return this.each(function() {
@@ -131,7 +124,7 @@ function change_document_hint($input, help_text) {
                     bind_new_regexp($docnumber_input, doc_template['regexp']);
                 }
                 else{
-                    remove_document_hint($docnumber_input);
+                    change_document_hint($docnumber_input, '');
                 }
             }).trigger('change');
         });
