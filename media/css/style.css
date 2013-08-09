@@ -1013,7 +1013,8 @@ tr.dynamic-form .errorlist {
 .requestion-info .block-head{
     font-size: 26px;
     color: #327fbd;
-    margin-bottom: 17px;
+    margin-bottom: 8px;
+    line-height: normal;
 }
 
 .requestion-info .block-head.top-indent{
@@ -1298,7 +1299,8 @@ tr.dynamic-form .errorlist {
 }
 
 .requestion-info .field{
-    padding: 5px 5px 5px 0px;
+    padding: 5px;
+    margin-left: -5px;
     border: 1px solid white;
 }
 
@@ -1386,6 +1388,18 @@ tr.dynamic-form .errorlist {
 
 .documents-form .delete{
     display: none;
+}
+
+.documents-form .field-value{
+    position: relative;
+    min-height: 43px;
+    margin-bottom: 0px;
+}
+
+.documents-form .field-value .hint{
+    position: absolute;
+    bottom: 0px;
+    margin-bottom: 0px;
 }
 
 .sadik-change-form .map{

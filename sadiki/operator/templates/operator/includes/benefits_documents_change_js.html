@@ -27,6 +27,9 @@
         newElement.find('label.field-label').text(documentTemplate.name);
         var templateInput = newElement.find('input[id $= "-template"]');
         templateInput.val(documentTemplate['id'])
+        var documentInput = newElement.find('input[id $= "-document_number"]')
+        change_document_hint(documentInput, documentTemplate['help_text'], 'hint');
+        bind_new_regexp(documentInput, documentTemplate['regexp'], 'hint');
         total++;
         $('#id_' + type + '-TOTAL_FORMS').val(total);
         newElement.hide();

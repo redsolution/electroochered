@@ -78,34 +78,41 @@ parseUri.options = {
  *        V                                     V
  * $('#id_template').regexpValidate('#id_document_number');
  */
-(function ($) {
-    function bind_new_regexp($input, regexp) {
-        var pattern = new RegExp(regexp);
-        $input.off('keyup').on('keyup', function(){
-            var input_value = $input.val();
-            if (input_value) {
-                if (pattern.test(input_value)) {
-                    $input.parents('div.field').removeClass('error');
-                }
-                else {
-                    $input.parents('div.field').addClass('error');
-                }
-            }
-            else {
+
+function bind_new_regexp($input, regexp) {
+    var pattern = new RegExp(regexp);
+    $input.off('keyup').on('keyup', function(){
+        var input_value = $input.val();
+        if (input_value) {
+            if (pattern.test(input_value)) {
                 $input.parents('div.field').removeClass('error');
             }
-        });
+            else {
+                $input.parents('div.field').addClass('error');
+            }
+        }
+        else {
+            $input.parents('div.field').removeClass('error');
+        }
+    });
+}
+
+function change_document_hint($input, help_text) {
+    if (help_text){
+        help_text = "Формат документа: " + help_text;
+    } else {
+        help_text = '';
     }
 
-    function change_document_hint($input, help_text) {
-        help_text = "Формат документа: " + help_text;
-        if ($input.siblings('p.hint').length) {
-            $input.siblings('p.hint').text(help_text);
-        } else {
-            var help_element = $('<p class="hint">').text(help_text);
-            $input.after(help_element);
-        }
+    if ($input.siblings('p.hint').length) {
+        $input.siblings('p.hint').text(help_text);
+    } else {
+        var help_element = $('<p class="hint">').text(help_text);
+        $input.after(help_element);
     }
+}
+
+(function ($) {
 
     function remove_document_hint($input) {
         if ($input.siblings('p.hint')){
