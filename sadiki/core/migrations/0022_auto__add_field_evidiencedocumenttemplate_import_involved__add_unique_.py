@@ -142,12 +142,12 @@ class Migration(SchemaMigration):
             'template': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.EvidienceDocumentTemplate']"})
         },
         'core.evidiencedocumenttemplate': {
-            'Meta': {'object_name': 'EvidienceDocumentTemplate'},
+            'Meta': {'unique_together': "(('name', 'destination'),)", 'object_name': 'EvidienceDocumentTemplate'},
             'destination': ('django.db.models.fields.IntegerField', [], {}),
             'format_tips': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'import_involved': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '255'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'regex': ('django.db.models.fields.TextField', [], {})
         },
         'core.preference': {
