@@ -134,11 +134,12 @@ class TemplateFormField(forms.ModelChoiceField):
             cache_choices=False, required=True, widget=None, label=None,
             initial=None, help_text=None, to_field_name=None, *args, **kwargs):
 #        нам нужен первый элемент
-        initial=0
         from sadiki.core.models import EvidienceDocumentTemplate
         if not queryset:
             queryset = EvidienceDocumentTemplate.objects.filter(
                 destination=destination)
+        if queryset.count() == 1:
+            initial = queryset[0].id
         super(TemplateFormField, self).__init__(queryset, empty_label,
             cache_choices, required, widget, label, initial, help_text,
             to_field_name, *args, **kwargs)
