@@ -231,7 +231,7 @@ class Benefit(models.Model):
 
     category = models.ForeignKey("BenefitCategory", verbose_name=u'тип льгот')
     name = models.CharField(verbose_name=u'название', max_length=255, unique=True)
-    description = models.CharField(verbose_name=u'описание', max_length=255)
+    description = models.CharField(verbose_name=u'описание', max_length=255, blank=True)
     evidience_documents = models.ManyToManyField(EvidienceDocumentTemplate,
         verbose_name=u"Необходимые документы")
     sadik_related = models.ManyToManyField("Sadik",
