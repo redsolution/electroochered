@@ -88,7 +88,7 @@ class FormWithDocument(forms.ModelForm):
         if document_number and template and not re.match(
             template.regex, document_number):
             self._errors["document_number"] = self.error_class(
-                [u'Не совпадает с шаблоном'])
+                [u'Неверный формат'])
             del cleaned_data['document_number']
             del cleaned_data['template']
         else:

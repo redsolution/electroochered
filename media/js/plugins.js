@@ -98,6 +98,7 @@ function bind_new_regexp($input, regexp) {
 }
 
 function change_document_hint($input, help_text) {
+    $input = $input.parent()
     if (help_text){
         help_text = "Формат документа: " + help_text;
     } else {

@@ -19,6 +19,12 @@
         <div class="block-head">С заявкой нельзя выполнять никаких действий, пока не будет указан идентифицирующий документ.</div>
         <div class="span8">
         <form action="." class="requestion-form requestion-add-form" method="post">
+            {% csrf_token %}
+            <div class="uniForm">
+                <div class="errMsg">
+                    {{ form.non_field_errors }}
+                </div>
+            </div>
             {% with form.template as field %}
                 {% include "account/include/requestion-form-field.html" %}
             {% endwith %}
@@ -26,12 +32,12 @@
                 {% include "account/include/requestion-form-field.html" %}
             {% endwith %}
             <input type="hidden" name="next" value="{{ redirect_to }}" />
-        </form>
-        <div class="uniForm">
-            <div class="buttonHolder">
-                <button class="primaryAction" type="submit">Задать</button>
+            <div class="uniForm">
+                <div class="buttonHolder">
+                    <button class="primaryAction" type="submit">Задать</button>
+                </div>
             </div>
-        </div>
+        </form>
         </div>
     </div>
 {% endblock %}

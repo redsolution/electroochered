@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
@@ -338,3 +339,14 @@ class DocumentForm(forms.ModelForm):
         self.fields['template'].widget = forms.HiddenInput()
         self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        document_number = self.cleaned_data.get('document_number')
+        template = self.cleaned_data.get('template')
+#        проверяем, что номер документа соответствует шаблону
+        if document_number and template and not re.match(
+            template.regex, document_number):
+            self._errors["document_number"] = self.error_class(
+                [u'Неверный формат'])
+        return cleaned_data

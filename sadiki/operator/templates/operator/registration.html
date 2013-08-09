@@ -23,7 +23,7 @@
             {{ formset.management_form }}
             {% for form in formset.forms %}
                 <div class="{% if not form.template.value %}original-form {% endif %}{% if form.errors %}error {% endif %}field">
-                    <label class="field-label">{{ form.instance.template }}{% if form.errors %}<span class="value-changed"> ({% for field in form %}{{ field.errors|striptags }}{% endfor %})</span>{% endif %}</label>
+                    <label class="field-label">{{ form.instance.template }}{% if form.errors %}<span class="value-changed"> ({% for field in form %}{{ field.errors|striptags }}{% endfor %}{{ form.non_field_errors|striptags }})</span>{% endif %}</label>
                     {{ form.id }}
                     {{ form.template }}
                     {{ form.DELETE }}

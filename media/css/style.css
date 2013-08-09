@@ -1395,15 +1395,15 @@ tr.dynamic-form .errorlist {
     display: none;
 }
 
+.documents-form .field{
+    padding: 0px 5px;
+}
+
 .documents-form .field-value{
-    position: relative;
-    min-height: 43px;
     margin-bottom: 0px;
 }
 
-.documents-form .field-value .hint{
-    position: absolute;
-    bottom: 0px;
+.documents-form .field .hint{
     margin-bottom: 0px;
 }
 

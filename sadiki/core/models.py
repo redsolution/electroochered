@@ -172,11 +172,6 @@ class EvidienceDocument(models.Model):
 
     objects = query_set_factory(EvidienceDocumentQueryset)
 
-    def clean(self):
-        if self.pk:
-            if not re.match(self.template.regex, self.document_number):
-                raise ValidationError(u'Номер не соответвует формату %s' % self.template.format_tips)
-
     def make_other_appocryphal(self):
 #        документы для льгот могут быть с совпадающими номерами
         if self.template.destination != BENEFIT_DOCUMENT:
