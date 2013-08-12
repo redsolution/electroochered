@@ -16,11 +16,10 @@ eggs/*
 develop-eggs/*
 parts/*
 commit.txt
-media/upload/*
 searchindex/
 snapshots/
 sadiki/cover/
-sadiki/production.py
+sadiki/local_settings.py
 doc/build
 static/*
 lock/*
