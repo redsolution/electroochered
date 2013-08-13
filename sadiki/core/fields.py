@@ -147,12 +147,13 @@ class TemplateFormField(forms.ModelChoiceField):
 
 class AreaFormField(forms.ModelChoiceField):
     widget = AreaWidget
+    default_error_messages = {
+        'required': _(u'Укажите территориальную область'),
+    }
 
     def __init__(self, queryset, empty_label=u"---------", cache_choices=False,
                  required=True, widget=None, label=None, initial=None,
                  *args, **kwargs):
-        empty_label = u"Весь муниципалитет"
-        required = False
         super(AreaFormField, self).__init__(queryset, empty_label,
             cache_choices, required, widget, label,
             initial, *args, **kwargs)
@@ -169,6 +170,7 @@ class AreaFormField(forms.ModelChoiceField):
         else:
 #        т.к. у модели поле MtM, необходимо вернуть список значений
             return [value, ]
+
 
 class AreaChoiceField(models.ManyToManyField):
 
