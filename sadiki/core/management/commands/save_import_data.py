@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import cPickle
+import traceback
+import sys
 from django.contrib.auth.models import User, Permission
 from django.contrib.gis.geos import Point
 from django.core.management.base import BaseCommand, CommandError
@@ -14,29 +16,43 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
-            print u"Импорт заявок уже был произведен, дальнейший импорт данных невозможен."
-            return
-        with transaction.commit_on_success():
-            if args:
-                filename = args[0]
-                f = open(filename, 'r')
-                p = cPickle.Unpickler(f)
+            raise CommandError("Импорт заявок уже был произведен, дальнейший импорт данных невозможен.")
+
+        if args:
+            filename = args[0]
+            f = open(filename, 'r')
+            p = cPickle.Unpickler(f)
+            try:
                 import_type = p.load()
-                try:
-                    while True:
-                        instance_data = p.load()
+            except cPickle.UnpicklingError:
+                pass
+                raise CommandError("Неверный формат файла")
+            try:
+                with transaction.commit_on_success():
+                    try:
+                        while True:
+                            instance_data = p.load()
+                            if import_type == "requestion_import":
+                                self.save_requestion(instance_data)
+                            elif import_type == "sadik_import":
+                                self.save_sadik(instance_data)
+                            else:
+                                raise CommandError("Неверный формат файла")
+                    except EOFError:
                         if import_type == "requestion_import":
-                            self.save_requestion(instance_data)
-                        elif import_type == "sadik_import":
-                            self.save_sadik(instance_data)
+                            Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+                            sys.stdout.write(
+                                u"Импорт заявок успешно произведен. Открыт публичный доступ к системе. Дальнейший импорт невозможен.\n")
                         else:
-                            raise CommandError(u"Неверный формат файла")
-                except EOFError:
-                    if import_type == "requestion_import":
-                        Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
-                    f.close()
-            else:
-                raise CommandError(u'Необходимо ввести имя файла')
+                            sys.stdout.write(u"Импорт ДОУ успешно произведен.\n")
+                        f.close()
+            except CommandError:
+                raise
+            except BaseException:
+                self.stdout.write(traceback.format_exc())
+                raise CommandError("При импорте данных возникла ошибка.")
+        else:
+            raise CommandError('Необходимо ввести имя файла')
 
     def save_requestion(self, requestion_data):
         from sadiki.core.workflow import IMPORT_PROFILE, REQUESTION_IMPORT
