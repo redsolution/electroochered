@@ -23,7 +23,6 @@ if settings.DEBUG:
 
 urlpatterns += patterns(
     '',
-    (r'^admin/', include(admin.site.urls)),
     (r'^adm/', include(sadiki_admin_site.urls)),
     (r'^auth/', include('sadiki.authorisation.urls')),
     (r'^social_auth/', include('sadiki.social_auth_custom.urls')),
