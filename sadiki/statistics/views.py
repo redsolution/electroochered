@@ -1,20 +1,17 @@
 # -*- coding: utf-8 -*-
-from dateutil.relativedelta import relativedelta
-from django.conf import settings
-from django.db.models.expressions import F
 from django.db.models.query_utils import Q
-from django.http import Http404
+from django.http import HttpResponse
 from django.utils import simplejson
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView
+from sadiki.anonym.forms import SimpleFilterForm
 from sadiki.core.models import Vacancies, Distribution, AgeGroup, Requestion, \
-    STATUS_REQUESTER, STATUS_DECISION, STATUS_DISTRIBUTED, \
-    VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED, DISTRIBUTION_STATUS_END
+    STATUS_REQUESTER, STATUS_DISTRIBUTED, \
+    VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED, DISTRIBUTION_STATUS_END, DISTRIBUTION_PROCESS_STATUSES, STATUS_REQUESTER_NOT_CONFIRMED
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
-from sadiki.operator.views.base import OperatorPermissionMixin
-from sadiki.statistics.models import StatisticsArchive, DECISION_STATISTICS, \
+from sadiki.statistics.models import DECISION_STATISTICS, \
     DISTRIBUTION_STATISTICS
-import datetime
 
 
 def get_decision_statistics_data():
@@ -94,40 +91,45 @@ STATISTIC_HANDLER_FOR_TYPE = {
     }
 
 
-class Statistics(OperatorPermissionMixin, TemplateView):
-    record_type = None
-
-    def get(self, request, year=None):
-        current_distribution_year = get_current_distribution_year().year
-        years = [year_date.year for year_date in StatisticsArchive.objects.filter(
-            record_type=self.record_type).order_by('year').dates('year', 'year')]
-        if current_distribution_year not in years:
-            years = [current_distribution_year, ] + years
-        if not year:
-            year = current_distribution_year
-        else:
-            year = int(year)
-        if year not in years:
-            raise Http404
-        if year == current_distribution_year:
-            context = STATISTIC_HANDLER_FOR_TYPE[self.record_type]()
-        else:
-            statistic_record = StatisticsArchive.objects.filter(
-                record_type=DECISION_STATISTICS, year__year=year)[0]
-            context = simplejson.loads(statistic_record.data)
-        context.update({'current_year': year, 'years': years})
-        return self.render_to_response(context)
-
-
-class DecisionStatistics(Statistics):
-    template_name = "statistics/decision_statistics.html"
-    record_type = DECISION_STATISTICS
-
-
-class DistributionStatistics(Statistics):
-    template_name = "statistics/distribution_statistics.html"
-    record_type = DISTRIBUTION_STATISTICS
-
-
 class WaitTimeStatistics(RequirePermissionsMixin, TemplateView):
     template_name = 'statistics/wait_time_statistics.html'
+
+
+class RequestionsMap(RequirePermissionsMixin, TemplateView):
+    template_name = 'statistics/requestions_map.html'
+
+    def get_context_data(self, **kwargs):
+        return {
+            'params': kwargs,
+            'form': SimpleFilterForm,
+        }
+
+
+@csrf_exempt
+def requestions_coords_json(request):
+    if request.is_ajax() and request.method == "POST":
+        form = SimpleFilterForm(request.POST)
+        if form.is_valid():
+            cleaned_data = form.cleaned_data
+            confirmed = cleaned_data.get("confirmed")
+            age_group = cleaned_data.get("age_group")
+            area = cleaned_data.get("area")
+            queryset = Requestion.objects.queue().exclude(
+                location__isnull=True).extra(select={"coords": "astext(location)"})
+            if confirmed:
+                queryset = queryset.confirmed()
+            if age_group:
+                queryset = queryset.filter_for_age(min_birth_date=age_group.min_birth_date(),
+                                                   max_birth_date=age_group.max_birth_date())
+            if form.cleaned_data.get('benefit_category', None):
+                queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
+            if area:
+                queryset = queryset.filter(
+                    (Q(areas=area) |
+                    Q(areas__isnull=True) | Q(pref_sadiks__area=area)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
+                    Q(distributed_in_vacancy__sadik_group__sadik__area=area)
+                    & Q(status__in=DISTRIBUTION_PROCESS_STATUSES+(STATUS_DISTRIBUTED,)))
+                ).distinct()
+            return HttpResponse(simplejson.dumps(list(queryset.values('requestion_number', 'coords'))),
+                                mimetype='text/json')
+    return

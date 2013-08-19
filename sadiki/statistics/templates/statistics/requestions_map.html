@@ -1,0 +1,129 @@
+{% extends 'statistics/base.html' %}
+{% load sadiki_core_tags zenforms %}
+
+{% block content_title %}
+    <h1>{% block title %}Заявки на карте{% endblock %}</h1>
+{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+{% endblock %}
+
+{% block bottomjs %}
+    {% load_settings %}
+    {% include "includes/leaflet_js.html" %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/spin.min.js"></script>
+    <script type="text/javascript">
+        var map;
+        var match;
+        var markersLayer;
+        var spinner;
+        var opts = {
+          lines: 15, // The number of lines to draw
+          length: 10, // The length of each line
+          width: 11, // The line thickness
+          radius: 60, // The radius of the inner circle
+          corners: 1, // Corner roundness (0..1)
+          rotate: 90, // The rotation offset
+          direction: 1, // 1: clockwise, -1: counterclockwise
+          color: '#000', // #rgb or #rrggbb
+          speed: 1, // Rounds per second
+          trail: 60, // Afterglow percentage
+          shadow: false, // Whether to render a shadow
+          hwaccel: false, // Whether to use hardware acceleration
+          className: 'spinner', // The CSS class to assign to the spinner
+          zIndex: 2e9, // The z-index (defaults to 2000000000)
+          top: 'auto', // Top position relative to parent in px
+          left: 'auto' // Left position relative to parent in px
+        };
+        var spinner = new Spinner(opts);
+        $(function(){
+            var lonlat = [{{ settings.MAP_CENTER }}];
+            lonlat.reverse();
+            map = new L.Map("map", {
+                center: L.latLng(lonlat),
+                zoom: {{ settings.MAP_ZOOM }}
+            });
+            var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+                subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+                attribution: 'Map data © OpenStreetMap contributors',
+                center: L.latLng(lonlat),
+                zoom: {{ settings.MAP_ZOOM }}
+            });
+            osmLayer.addTo(map);
+
+            function renderMarkers(markers, map) {
+                if (markersLayer){
+                    map.removeLayer(markersLayer)
+                }
+                markersLayer = new L.MarkerClusterGroup({
+                    maxClusterRadius: 70
+                });
+
+                var chunk = 500;
+                var index = 0;
+                function doChunk() {
+                    var cnt = chunk;
+                    while (cnt-- && index < markers.length) {
+                        var coords = markers[index].coords
+                        match = /^POINT\((.+)\s(.+)\)$/g.exec(coords)
+                        coords = [match[2], match[1]]
+                        var m = L.marker(coords, {title: markers[index].name});
+                        m.bindPopup('<b>'+markers[index].requestion_number+'</b>');
+                        markersLayer.addLayer(m);
+
+                        ++index;
+                    }
+                    if (index < markers.length) {
+                        setTimeout(doChunk, 1);
+                    } else {
+                        $.event.trigger({type: "markersAdded"});
+                    }
+                }
+                doChunk();
+            }
+
+            function fetchRequestions(map) {
+                spinner.spin(map._container)
+                var frm =$("#filter-form")
+                var form_data = frm.serialize();
+                $('#filter-form :input').each(function (){
+                    $(this).prop('disabled', true);
+                })
+                $.ajax({
+                    type: frm.attr('method'),
+                    url: frm.attr('action'),
+                    dataType: 'json',
+                    data: form_data
+                }).done(function(data){
+                    renderMarkers(data, map);
+                })
+            }
+
+            $(document).ready(function(){
+                fetchRequestions(map);
+                $('#filter-form :input').change(function(){
+                   fetchRequestions(map);
+                });
+            });
+
+            function markersAdded(){
+                map.addLayer(markersLayer);
+                spinner.stop()
+                $('#filter-form :input').each(function (){
+                    $(this).prop('disabled', false);
+                })
+            }
+
+            $(document).on("markersAdded", markersAdded);
+        });
+    </script>
+{% endblock %}
+
+{% block content %}
+    <form id="filter-form" action="{% url requestions_coords_json %}" method="post" class='uniForm'>
+        {% izenform form options notag=1 nocsrf=1 %}
+    </form>
+    <div id="map"></div>
+{% endblock %}

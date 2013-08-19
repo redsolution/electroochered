@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 from django.conf.urls.defaults import patterns, url
-from sadiki.statistics.views import DistributionStatistics, DecisionStatistics, \
-    WaitTimeStatistics
+from sadiki.statistics.views import WaitTimeStatistics, RequestionsMap, requestions_coords_json
+from django.conf import settings
 
 urlpatterns = patterns('',
-    # url('^decision_statistics/(?:(?P<year>\d{4})/)?$',
-    #     DecisionStatistics.as_view(), name='decision_statistics'),
-    # url('^distribution_statistics/(?:(?P<year>\d{4})/)?$',
-    #     DistributionStatistics.as_view(), name='distribution_statistics'),
     url('^wait_time_statistics/$', WaitTimeStatistics.as_view(),
         name='wait_time_statistics'),
+
+    url(r'^requestions_coords.json$', requestions_coords_json, name='requestions_coords_json'),
 )
+
+if settings.SHOW_REQUESTIONS_MAP:
+    urlpatterns += patterns('',
+        url('^requestions_map/$', RequestionsMap.as_view(),
+            name='requestions_map'),)

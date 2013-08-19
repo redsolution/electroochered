@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load sadiki_core_tags %}
+
+{% block content_menu %}
+    {% load_settings %}
+    {% if settings.SHOW_REQUESTIONS_MAP %}
+        {% url wait_time_statistics as wait_time_statistics_url %}
+        {% url requestions_map as requestions_map_url %}
+        <ul class="content-menu">
+            <li {% if request.path == wait_time_statistics_url %}class="active"{% endif %}>
+                <a href="{{ wait_time_statistics_url }}">Статистика по времени ожидания</a>
+            </li>
+            <li {% if request.path == requestions_map_url %}class="active"{% endif %}>
+                <a href="{{ requestions_map_url }}">Заявки на карте</a>
+            </li>
+        </ul>
+    {% endif %}
+{% endblock %}

@@ -153,12 +153,7 @@ class PublicSearchForm(forms.Form):
             return filter_kwargs
 
 
-class QueueFilterForm(forms.Form):
-    requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
-        widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
-        help_text=u"Укажите номер заявки, к которой вы хотите перейти")
-    confirmed = forms.BooleanField(label=u'Документально подтвержденные',
-        required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
+class SimpleFilterForm(forms.Form):
     benefit_category = forms.ModelChoiceField(label=u'Категория льгот', required=False,
         queryset=BenefitCategory.objects.exclude_system_categories(),
         help_text=u"При выборе в очереди будут отображаться заявки только этой категории льгот")
@@ -171,6 +166,15 @@ class QueueFilterForm(forms.Form):
         required=False, help_text=u"При выборе в очереди будут отображаться заявки, \
             для которых указана возможность зачисления в эту территориальную область"
     )
+
+
+class QueueFilterForm(SimpleFilterForm):
+    requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
+        widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
+        help_text=u"Укажите номер заявки, к которой вы хотите перейти")
+    confirmed = forms.BooleanField(label=u'Документально подтвержденные',
+        required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
+
     without_facilities = forms.BooleanField(
         label=u"Сортировать очередь", required=False,
         widget=forms.Select(choices=((False, u'в порядке очерёдности'),

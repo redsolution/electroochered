@@ -75,6 +75,7 @@ MAP_ZOOM = config.getint('map', 'MAP_ZOOM')
 LEAFLET_TILES_URL = config.get('map', 'TILES_URL')
 LEAFLET_TILES_SUBDOMAINS = aslist(config.get('map', 'TILES_SUBDOMAINS'))
 OPENLAYERS_URLS = get_openlayers_urls(LEAFLET_TILES_URL, LEAFLET_TILES_SUBDOMAINS)
+SHOW_REQUESTIONS_MAP = config.getboolean('map', 'SHOW_REQUESTIONS_MAP')
 
 # [options]
 MUNICIPALITY_OCATO = config.getint('options', 'MUNICIPALITY_OCATO')
