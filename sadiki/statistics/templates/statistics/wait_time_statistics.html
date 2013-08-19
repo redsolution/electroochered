@@ -10,6 +10,10 @@
 {% endblock %}
 
 {% block content %}
+    <div class="well well-small">
+        <h3>Дата запуска системы: {{ import_finished_date }}</h3>
+    </div>
+
     {% cache 86400 "wait_time_statistics" %}
         {% show_wait_time_statistics %}
         {% requestions_statistics %}

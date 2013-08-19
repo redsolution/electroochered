@@ -7,7 +7,8 @@ from django.views.generic.base import TemplateView
 from sadiki.anonym.forms import SimpleFilterForm
 from sadiki.core.models import Vacancies, Distribution, AgeGroup, Requestion, \
     STATUS_REQUESTER, STATUS_DISTRIBUTED, \
-    VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED, DISTRIBUTION_STATUS_END, DISTRIBUTION_PROCESS_STATUSES, STATUS_REQUESTER_NOT_CONFIRMED
+    VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED, DISTRIBUTION_STATUS_END, \
+    DISTRIBUTION_PROCESS_STATUSES, STATUS_REQUESTER_NOT_CONFIRMED, Preference, PREFERENCE_IMPORT_FINISHED
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.statistics.models import DECISION_STATISTICS, \
@@ -93,6 +94,15 @@ STATISTIC_HANDLER_FOR_TYPE = {
 
 class WaitTimeStatistics(RequirePermissionsMixin, TemplateView):
     template_name = 'statistics/wait_time_statistics.html'
+
+    def get_context_data(self, **kwargs):
+        context_data = super(WaitTimeStatistics, self).get_context_data(**kwargs)
+        try:
+            context_data.update(
+                {"import_finished_date": Preference.objects.get(key=PREFERENCE_IMPORT_FINISHED).datetime.date()})
+        except Preference.DoesNotExist:
+            pass
+        return context_data
 
 
 class RequestionsMap(RequirePermissionsMixin, TemplateView):
