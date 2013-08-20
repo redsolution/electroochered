@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.templatetags.static import static
 import re
 from attachment.admin import AttachmentImageInlines
 from attachment.forms import AttachmentImageForm
@@ -78,7 +79,8 @@ class CustomRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
             # API to determine the ID dynamically.
             output.append(u'<a href="%s" class="add-another" id="add_id_%s" onclick="return showAddAnotherPopup(this);"> ' % \
                           (related_url, name))
-            output.append(u'<img src="%simg/admin/icon_addlink.gif" width="10" height="10" alt="%s"/></a>' % (settings.ADMIN_MEDIA_PREFIX, _('Add Another')))
+            output.append(u'<img src="%s" width="10" height="10" alt="%s"/></a>'
+                          % (static('admin/img/icon_addlink.gif'), _('Add Another')))
         return mark_safe(u''.join(output))
 
 
