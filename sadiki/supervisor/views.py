@@ -157,7 +157,6 @@ class StartDistributionYear(SupervisorBases):
 
     @transaction.commit_manually
     def post(self, request, redirect_to=None):
-        distribution_year = get_distribution_year()
         if request.POST.get('confirmation') == 'yes':
 #            необходимо вернуть в очередь или снять с учета все заявки, которые
 #            не были зачислены
@@ -186,6 +185,10 @@ class StartDistributionYear(SupervisorBases):
                 context_dict={},
                 extra={'user': request.user, 'obj': None})
             transaction.commit()
+            messages.success(request, u"Был начат новый учебный год {0}".format(get_distribution_year().year))
+        else:
+            transaction.rollback()
+            messages.info(request, u"Учебный год не был изменен.")
         return HttpResponseRedirect(redirect_to)
 
 
