@@ -304,6 +304,43 @@ class SadikQueryset(models.query.QuerySet):
         for id, related_groups in relation_dict.items():
             sadiks_dict[id].related_groups = related_groups
 
+    def add_distributed_requestions_number(self, years):
+        u"""
+        для всех ДОУ получаем количество всех распределенных заявок и льготных в требуемые годы
+        в результате все объекты будут иметь дополнительные атрибуты:
+            distributed_2000 - общее количество заявок, распределенное в ДОУ в 2000 году
+            distributed_with_benefit_2000 - количество льготных заявок, распределенных в ДОУ в 2000 году
+        """
+        select_params = []
+        select_list = []
+        for year in years:
+            select_list.append((
+                "distributed_{0}".format(year), '''
+                    SELECT COUNT(*)
+                        FROM core_vacancies
+                        INNER JOIN core_sadikgroup ON (core_vacancies.sadik_group_id = core_sadikgroup.id)
+                        WHERE (core_sadikgroup.sadik_id = core_sadik.id
+                           AND core_vacancies.status = %s
+                           AND core_sadikgroup.year BETWEEN '%s-01-01 00:00:00' and '%s-12-31 23:59:59.999999')'''
+                                                          ))
+            select_params.extend((VACANCY_STATUS_DISTRIBUTED, year, year))
+            select_list.append((
+                "distributed_with_benefit_{0}".format(year), '''
+                    SELECT COUNT(*)
+                        FROM core_vacancies
+                        INNER JOIN core_sadikgroup ON (core_vacancies.sadik_group_id = core_sadikgroup.id)
+                        INNER JOIN core_requestion ON (core_vacancies.id = core_requestion.distributed_in_vacancy_id)
+                        INNER JOIN core_benefitcategory ON (core_requestion.benefit_category_id = core_benefitcategory.id)
+                        WHERE (core_sadikgroup.sadik_id = core_sadik.id
+                           AND core_vacancies.status = %s
+                           AND core_sadikgroup.year BETWEEN '%s-01-01 00:00:00' and '%s-12-31 23:59:59.999999'
+                           AND core_benefitcategory.priority != %s)'''))
+            select_params.extend((VACANCY_STATUS_DISTRIBUTED, year, year, settings.WITHOUT_BENEFIT_PRIORITY))
+        select_dict = OrderedDict(select_list)
+
+        return self.extra(select=select_dict, select_params=select_params)
+
+
 class Sadik(models.Model):
     u"""Класс садика"""
 

@@ -16,7 +16,7 @@ from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
-    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES
+    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES, SadikGroup
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
@@ -297,17 +297,39 @@ class SadikList(RequirePermissionsMixin, TemplateView):
 
     def get(self, request):
         sadik_list = Sadik.objects.all().select_related('address')
-        if not request.user.is_anonymous():
+        finished_years = [year.year for year in
+                          SadikGroup.objects.all().order_by('year').distinct('year').values_list('year', flat=True)]
+        current_distribution_year = get_current_distribution_year().year
+        if current_distribution_year in finished_years:
+            finished_years.remove(current_distribution_year)
+        sadik_list = sadik_list.add_distributed_requestions_number(finished_years)
+        context = {"finished_years": finished_years}
+        if not request.user.is_anonymous() and not request.user.is_requester():
             try:
                 profile = request.user.get_profile()
             except Profile.DoesNotExist:
                 pass
             else:
-                if not request.user.is_requester():
-                    return self.render_to_response(
-                        {'sadik_list': sadik_list.filter_for_profile(profile)})
-        return self.render_to_response({'sadik_list': sadik_list.filter(
-            active_registration=True)})
+                sadik_list = sadik_list.filter_for_profile(profile)
+        else:
+            sadik_list = sadik_list.filter(active_registration=True)
+
+        #для каждого года получаем  общее количество всех распределенных заявок и льготных заявок
+        total_distributed = [{"all_requestions": 0, "requestions_with_benefits": 0} for year in finished_years]
+        for sadik in sadik_list:
+            #для садика для каждого года получаем общее количество распределенных и распределенных льготных заявок
+            distributed_number_list = []
+            for i, year in enumerate(finished_years):
+                distributed_number = getattr(sadik, "distributed_{0}".format(year))
+                distributed_benefits_number = getattr(sadik, "distributed_with_benefit_{0}".format(year))
+                distributed_number_list.append(
+                    {"all_requestions": distributed_number,
+                     "requestions_with_benefits": distributed_benefits_number})
+                total_distributed[i]["all_requestions"] += distributed_number
+                total_distributed[i]["requestions_with_benefits"] += distributed_benefits_number
+            sadik.distributed_number_list = distributed_number_list
+        context.update({"sadik_list": sadik_list, "total_distributed": total_distributed})
+        return self.render_to_response(context)
 
 
 class SadikInfo(RequirePermissionsMixin, TemplateView):

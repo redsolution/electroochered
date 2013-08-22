@@ -1411,3 +1411,9 @@ tr.dynamic-form .errorlist {
     width: 600px;
     height: 500px;
 }
+
+/*Список ДОУ*/
+.sadiks-table span.icon-question-sign{
+    font-size: 16px;
+    float:right
+}
