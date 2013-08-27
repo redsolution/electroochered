@@ -390,7 +390,13 @@
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
             <p class="field-value hidden-input">
-                <label class="value">{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</label>
+                <label class="value">
+                    {% if pref_sadiks_form.areas.value %}
+                        {{ requestion.areas.all.0|default:"Весь муниципалитет" }}
+                    {% else %}
+                        Весь муниципалитет
+                    {% endif %}
+                </label>
                 {{ pref_sadiks_form.areas }}
                  <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
