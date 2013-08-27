@@ -8,5 +8,4 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         call_command('dumpdata', 
-            'core.BenefitCategory', 'chunks.Chunk',
-            'core.EvidienceDocumentTemplate', use_natural_keys=True)
+            'core.BenefitCategory', 'core.EvidienceDocumentTemplate', use_natural_keys=True)

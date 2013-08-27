@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from Crypto.Cipher import ARC4
+import random
 from chunks.models import Chunk
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -8,6 +9,7 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
+from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction
@@ -17,11 +19,12 @@ from ordereddict import OrderedDict
 from sadiki.conf_settings import MUNICIPALITY_OCATO
 from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.fields import BooleanNextYearField, YearChoiceField, \
-    AreaChoiceField, SplitDayMonthField
+    AreaChoiceField, SplitDayMonthField, validate_no_spaces
 from sadiki.core.utils import add_crc, calculate_luhn_digit, \
-    get_current_distribution_year, get_qs_attr
+    get_current_distribution_year, get_qs_attr, get_user_by_email
 from sadiki.core.validators import birth_date_validator, \
     registration_date_validator
+from sadiki.settings import REQUESTER_USERNAME_PREFIX
 from south.modelsinspector import add_introspection_rules
 import datetime
 import re
@@ -36,7 +39,6 @@ STATUS_WAIT_REVIEW = 1  # Ожидает рассмотрения
 STATUS_REJECTED = 2  # Заявление отклонено
 STATUS_REQUESTER_NOT_CONFIRMED = 3  # Очередник - не подтвержден
 STATUS_REQUESTER = 4  # Очередник
-STATUS_WANT_TO_CHANGE_SADIK = 5  # Желает сменить ДОУ
 STATUS_DECISION = 6  # Принято решение о зачислении(выделено место в ДОУ)
 STATUS_PASS_GRANTED = 9  # Выдана путевка (3Б,3В)
 STATUS_TEMP_PASS_TRANSFER = 12  # Выдана путевка на временной основе (4А)
@@ -48,7 +50,6 @@ STATUS_REMOVE_REGISTRATION = 17  # Снят с учёта
 STATUS_ARCHIVE = 18  # Архив
 STATUS_ON_DISTRIBUTION = 50  # На комплектовании
 STATUS_ON_TEMP_DISTRIBUTION = 51  # На временном комплектовании
-STATUS_ON_TRANSFER_DISTRIBUTION = 52  # На комплектовании перевода
 STATUS_NOT_APPEAR_EXPIRE = 53  # Сроки на обжалование неявки истекли
 STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутствия истекли
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
@@ -58,7 +59,6 @@ STATUS_CHOICES = (
     (STATUS_REJECTED, u'Заявление отклонено'),
     (STATUS_REQUESTER_NOT_CONFIRMED, u'Очередник - не подтвержден'),
     (STATUS_REQUESTER, u'Очередник'),
-    (STATUS_WANT_TO_CHANGE_SADIK, u'Желает сменить ДОУ'),
     (STATUS_DECISION, u'Выделено место'),
     (STATUS_PASS_GRANTED, u'Выдана путевка'),
 
@@ -72,7 +72,6 @@ STATUS_CHOICES = (
     (STATUS_ARCHIVE, u'Архивная'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
     (STATUS_ON_TEMP_DISTRIBUTION, u'На временном комплектовании'),
-    (STATUS_ON_TRANSFER_DISTRIBUTION, u'На комплектовании перевода'),
     (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
@@ -81,8 +80,7 @@ STATUS_CHOICES = (
 REQUESTION_MUTABLE_STATUSES = (
     STATUS_WAIT_REVIEW,
     STATUS_REQUESTER_NOT_CONFIRMED,
-    STATUS_REQUESTER,
-    STATUS_WANT_TO_CHANGE_SADIK)
+    STATUS_REQUESTER)
 
 REQUESTION_TYPE_OPERATOR = 0
 REQUESTION_TYPE_IMPORTED = 1
@@ -116,7 +114,7 @@ BENEFIT_DOCUMENT = 2
 
 DOCUMENT_TEMPLATE_TYPES = (
     (PROFILE_IDENTITY, u'идентифицирует родителя'),
-    (REQUESTION_IDENTITY, u'идентифицирует ребенка'),
+    (REQUESTION_IDENTITY, u'идентифицирует ребёнка'),
     (BENEFIT_DOCUMENT, u'документы к льготам'),
     )
 
@@ -125,6 +123,7 @@ class EvidienceDocumentTemplate(models.Model):
     class Meta:
         verbose_name = u'Тип документа'
         verbose_name_plural = u'Типы документов'
+        unique_together = (("name", "destination"),)
 
     name = models.CharField(verbose_name=u'название', max_length=255)
     format_tips = models.CharField(verbose_name=u'подсказка к формату',
@@ -133,6 +132,7 @@ class EvidienceDocumentTemplate(models.Model):
         verbose_name=u'назначение документа',
         choices=DOCUMENT_TEMPLATE_TYPES)
     regex = models.TextField(verbose_name=u'Регулярное выражение')
+    import_involved = models.BooleanField(verbose_name=u"Учитывается при импорте", default=False)
 
     def __unicode__(self):
         return self.name
@@ -149,6 +149,10 @@ class EvidienceDocumentQueryset(models.query.QuerySet):
             content_type=ContentType.objects.get_for_model(obj),
             object_id=obj.id)
 
+    def requestion_identity_documents(self):
+        return self.filter(template__destination=REQUESTION_IDENTITY)
+
+
 class EvidienceDocument(models.Model):
 
     class Meta:
@@ -163,13 +167,10 @@ class EvidienceDocument(models.Model):
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
+    fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
+                               default=False)
 
     objects = query_set_factory(EvidienceDocumentQueryset)
-
-    def clean(self):
-        if self.pk:
-            if not re.match(self.template.regex, self.document_number):
-                raise ValidationError(u'Номер не соответвует формату %s' % self.template.format_tips)
 
     def make_other_appocryphal(self):
 #        документы для льгот могут быть с совпадающими номерами
@@ -204,9 +205,9 @@ class BenefitCategory(models.Model):
     name = models.CharField(verbose_name=u"Название", max_length=100)
     description = models.CharField(verbose_name=u"Описание", null=True,
         max_length=255)
-    priority = models.IntegerField(verbose_name=u"Приоритетность льготы",
+    priority = models.PositiveIntegerField(verbose_name=u"Приоритетность льготы",
         help_text=u"Чем больше число, тем выше приоритет",
-        validators=[MaxValueValidator(settings.BENEFIT_SYSTEM_MIN - 1)])
+        validators=[MaxValueValidator(settings.BENEFIT_SYSTEM_MIN - 1)], unique=True)
     immediately_distribution_active = models.BooleanField(
         verbose_name=u"Учавствует в немедленном зачислении", default=False)
 
@@ -224,13 +225,12 @@ class Benefit(models.Model):
         verbose_name_plural = u'Льготы'
 
     category = models.ForeignKey("BenefitCategory", verbose_name=u'тип льгот')
-    description = models.CharField(verbose_name=u'описание', max_length=255)
-    name = models.CharField(verbose_name=u'название', max_length=255)
+    name = models.CharField(verbose_name=u'название', max_length=255, unique=True)
+    description = models.CharField(verbose_name=u'описание', max_length=255, blank=True)
     evidience_documents = models.ManyToManyField(EvidienceDocumentTemplate,
         verbose_name=u"Необходимые документы")
     sadik_related = models.ManyToManyField("Sadik",
         verbose_name=u"ДОУ в которых есть группы", blank=True, null=True,)
-    identifier = models.IntegerField(verbose_name=u"Идентификатор для импорта")
 
     def __unicode__(self):
         return self.name
@@ -264,7 +264,16 @@ class Address(models.Model):
 
     @property
     def text(self):
-        return u" ".join([el for el in (self.street, self.building_number, self.block_number) if el])
+        address_elements = []
+        if self.town:
+            town = "%s," % self.town
+            address_elements.append(town)
+        if self.building_number and self.street:
+            street = "%s," % self.street
+        else:
+            street = self.street
+        address_elements.extend([self.block_number, street, self.building_number])
+        return u" ".join([el for el in address_elements if el])
 
     def __unicode__(self):
         return self.text
@@ -285,7 +294,7 @@ class SadikQueryset(models.query.QuerySet):
 #        а как же prefetch_related? пока что используется dj 1.3, так что при случае можно будет заменить
         sadiks_dict = OrderedDict([(sadik.id, sadik) for sadik in self])
 #        и сразу захватим с собой имена возрастных групп
-        sadik_groups = SadikGroup.objects.filter(sadik__in=self
+        sadik_groups = SadikGroup.objects.active().filter(sadik__in=self
             ).select_related("age_group__name")
         if only_active:
             sadik_groups = sadik_groups.active()
@@ -307,12 +316,13 @@ class Sadik(models.Model):
     name = models.CharField(u'полное название', max_length=255)
     short_name = models.CharField(u'короткое название', max_length=255)
     number = models.IntegerField(u'номер', null=True)
+    identifier = models.CharField(u'идентификатор', null=True, max_length=25)
     address = models.ForeignKey("Address", verbose_name=u"Адрес")
     email = models.CharField(u'электронная почта',
         max_length=255, blank=True)
     site = models.CharField(u'сайт', max_length=255, blank=True,
         null=True)
-    head_name = models.CharField(u'ФИО директора(заведующей)', max_length=255)
+    head_name = models.CharField(u'ФИО директора (заведующей)', max_length=255)
     phone = models.CharField(u'телефон', max_length=255,
         blank=True, null=True)
     cast = models.CharField(u'тип(категория) ДОУ', max_length=255, blank=True)
@@ -327,7 +337,7 @@ class Sadik(models.Model):
         upload_to=u'upload/sadiki/routeinfo/', blank=True, null=True)
     # Дополнительные поля
     extended_info = models.TextField(
-        u'дополнительная информация в формате HTML',
+        u'дополнительная информация',
         blank=True, null=True)
     active_registration = models.BooleanField(
         verbose_name=u'может быть указан как приоритетный', default=True)
@@ -336,6 +346,56 @@ class Sadik(models.Model):
     age_groups = models.ManyToManyField("AgeGroup",
         verbose_name=u"Возрастные группы")
     objects = query_set_factory(SadikQueryset)
+
+    def get_number(self):
+        result = re.match(ur'^\D*(\d+)\D*$', self.short_name)
+        if result:
+            return result.group(1)
+        else:
+            return None
+
+    def create_default_sadikgroups(self):
+        u'''
+        Для ДОУ создаются возрастные группы, если они не существуют
+        '''
+        age_groups = self.age_groups.all()
+        age_groups_created_ids = self.groups.active().values_list('age_group_id', flat=True)
+        for age_group in age_groups:
+            if age_group.id not in age_groups_created_ids:
+                sadik_group = SadikGroup(sadik=self, age_group=age_group, year=get_current_distribution_year(),)
+                sadik_group.min_birth_date = age_group.min_birth_date()
+                sadik_group.max_birth_date = age_group.max_birth_date()
+                sadik_group.save()
+
+    def get_groups_with_distributed_requestions(self):
+        u"""
+        Возвращает ordereddict {sadik_group: [distributed_requestion_1, distributed_requestion_2]}
+        возрастные группы в которых нет заявок с выделенными местами опускаются
+        словарь отсортирован по возрастным группам(год, минимальная дата ождения по убыванию),
+        заявки по дате выделения места по убыванию
+        """
+        distributed_requestions = Requestion.objects.provided_places().filter(
+            distributed_in_vacancy__sadik_group__sadik=self).select_related(
+            'benefit_category__name', 'distributed_in_vacancy__sadik_group',
+            'distributed_in_vacancy__sadik_group__age_group').order_by('-decision_datetime')
+        distributed_requestions.add_related_documents()
+        groups_with_distributed_requestions = {}
+        # собираем все заявки в словарь
+        for requestion in distributed_requestions:
+            sadik_group = requestion.distributed_in_vacancy.sadik_group
+            if sadik_group not in groups_with_distributed_requestions:
+                groups_with_distributed_requestions[sadik_group] = []
+            groups_with_distributed_requestions[requestion.distributed_in_vacancy.sadik_group].append(requestion)
+        # сортируем словарь
+        groups_with_distributed_requestions = OrderedDict(sorted(groups_with_distributed_requestions.items(),
+                               key=lambda (sadik_group, requestions): (sadik_group.year, sadik_group.min_birth_date),
+                               reverse=True))
+        return groups_with_distributed_requestions
+
+    def save(self, *args, **kwargs):
+        # обновляем номер ДОУ
+        self.number = self.get_number()
+        return super(Sadik, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return self.short_name or self.name
@@ -465,6 +525,7 @@ VACANCY_STATUS_MANUALLY_CHANGED = 5
 VACANCY_STATUS_DISTRIBUTED = 1
 VACANCY_STATUS_TEMP_ABSENT = 2
 VACANCY_STATUS_TEMP_DISTRIBUTED = 3
+VACANCY_STATUS_NOT_PROVIDED = 6
 
 VACANCY_STATUS_CHOICES = (
     (None, u"Место свободно"),
@@ -474,6 +535,7 @@ VACANCY_STATUS_CHOICES = (
     (VACANCY_STATUS_DISTRIBUTED, u"Зачислена"),
     (VACANCY_STATUS_TEMP_ABSENT, u"Отсутствует по уважительной причине"),
     (VACANCY_STATUS_TEMP_DISTRIBUTED, u"Временная путевка"),
+    (VACANCY_STATUS_NOT_PROVIDED, u"Место не было никому выделено"),
     )
 
 
@@ -589,6 +651,11 @@ AGENT_TYPE_CHOICES = (
     (AGENT_TYPE_OTHER, u"иное"),
     )
 
+SOCIAL_PUBLIC_CHOICES = (
+    (True, 'Отображать в публичной очереди'),
+    (False, 'Не отображать в публичной очереди'),
+)
+
 class Profile(models.Model):
     u"""Класс профиля пользователя"""
     # Profile data
@@ -598,27 +665,26 @@ class Profile(models.Model):
 
     user = models.OneToOneField('auth.User', verbose_name=u'Пользователь',
         unique=True)
+    # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-    last_name = models.CharField(u'Фамилия', max_length=255, null=True,
-        help_text=u'Фамилия родителя (представителя)')
-    first_name = models.CharField(u'Имя', max_length=255, null=True,
-        help_text=u'Имя родителя (представителя)')
-    patronymic = models.CharField(u'Отчество', max_length=255, null=True,
-        help_text=u'Отчество родителя (представителя)')
+    first_name = models.CharField(u'Имя', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
-    phone_number = models.CharField(u'Основной телефон', max_length=255,
+    phone_number = models.CharField(u'Телефон для связи', max_length=255,
         blank=False, null=True,
         help_text=u"Номер телефона для связи")
     mobile_number = models.CharField(u'Дополнительный телефон',
         max_length=255, blank=True, null=True,
         help_text=u"Дополнительный номер телефона для связи")
+    skype = models.CharField(u'Skype',
+        max_length=255, blank=True, null=True,
+        help_text=u"Учетная запись в сервисе Skype")
+    # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
-
-    def fio(self):
-        return ' '.join(filter(None, (self.last_name, self.first_name,
-            self.patronymic)))
+    social_auth_public = models.NullBooleanField(
+        u"Показывать мой профиль ВКонтакте в публичной очереди",
+        choices=SOCIAL_PUBLIC_CHOICES, blank=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
@@ -628,6 +694,18 @@ class Profile(models.Model):
         return (self.area == sadik.area if self.area else True
             and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
+
+    def social_auth_clean_data(self):
+        self.phone_number = None
+        self.first_name = None
+        self.skype = None
+
+    def update_vkontakte_data(self, data):
+        self.first_name = data.get('first_name')
+        self.phone_number = data.get('home_phone')
+        self.skype = data.get('skype')
+
+
 
     def __unicode__(self):
         return self.user.username
@@ -651,12 +729,10 @@ DISTRIBUTION_PROCESS_STATUSES = (
 
 DEFAULT_DISTRIBUTION_TYPE = 0
 PERMANENT_DISTRIBUTION_TYPE = 1
-TRANSFER_DISTRIBUTION_TYPE = 2
 
 DISTRIBUTION_TYPE_CHOICES = (
     (DEFAULT_DISTRIBUTION_TYPE, u'Обычное зачисление'),
     (PERMANENT_DISTRIBUTION_TYPE, u'Зачисление на постоянной основе'),
-    (TRANSFER_DISTRIBUTION_TYPE, u'Зачисление переводом'),
     )
 
 class RequestionQuerySet(models.query.QuerySet):
@@ -666,23 +742,29 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
-                        STATUS_WANT_TO_CHANGE_SADIK,
-                        STATUS_ON_TRANSFER_DISTRIBUTION,
+                        STATUS_DISTRIBUTED,
                         STATUS_TEMP_DISTRIBUTED,
-                        STATUS_ON_TEMP_DISTRIBUTION)).order_by(
-                '-benefit_category__priority', 'registration_datetime', 'id')
+                        STATUS_ON_TEMP_DISTRIBUTION,
+                        STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
+                        ))
 
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
-            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,
-                STATUS_WANT_TO_CHANGE_SADIK)).order_by(
+            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,)).order_by(
                 '-benefit_category__priority', 'registration_datetime', 'id')
 
     def decision_requestions(self):
         return self.filter(
             status=STATUS_DECISION).order_by(
                 '-benefit_category__priority', 'registration_datetime', 'id')
+
+    def provided_places(self):
+        u"""
+        Заявки которые занимают место в ДОУ(выделено место, зачислена, не явился(но еще не снят с учета))
+        """
+        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED,
+                                       STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE))
 
     def not_confirmed(self):
         u"""заявки для которых не установлено документальное подтверждение"""
@@ -711,7 +793,15 @@ class RequestionQuerySet(models.query.QuerySet):
         заявкой ``instance`` в выдаче с сортировкой **включая** саму заявку.
         """
         if self.ordered:
-            order_fields = self.query.order_by
+            # copy from django.db.models.sql.compiler method get_ordering of SQLCompiler class
+            if self.query.extra_order_by:
+                order_fields = self.query.extra_order_by
+            elif not self.query.default_ordering:
+                order_fields = self.query.order_by
+            else:
+                order_fields = (self.query.order_by
+                                or self.query.model._meta.ordering
+                                or [])
 
             q_object = None
             for n, current_sort_param in enumerate(order_fields):
@@ -747,6 +837,24 @@ class RequestionQuerySet(models.query.QuerySet):
                 WHERE core_vacancies.id = core_requestion.distributed_in_vacancy_id)'''
             })
 
+    def enrollment_in_progress(self):
+        return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
+            STATUS_NOT_APPEAR_EXPIRE))
+
+    def add_related_documents(self):
+#        а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
+#        а как же prefetch_related? пока что используется dj 1.3, так что при случае можно будет заменить
+        requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in self])
+#        и сразу захватим с собой имена возрастных групп
+        documents = EvidienceDocument.objects.filter(object_id__in=self.values_list('id', flat=True
+                ), content_type=ContentType.objects.get_for_model(Requestion)).requestion_identity_documents(
+            ).select_related('template__name')
+        relation_dict = {}
+        for document in documents:
+            relation_dict.setdefault(document.object_id, []).append(document)
+        for id, related_documents in relation_dict.items():
+            requestions_dict[id].related_documents = related_documents
+
 
 class Requestion(models.Model):
     u"""Класс для заявки на зачисление в ДОУ"""
@@ -754,31 +862,16 @@ class Requestion(models.Model):
     class Meta:
         verbose_name = u'Заявка в очереди'
         verbose_name_plural = u'Заявки в очереди'
+        ordering = ['-benefit_category__priority', 'registration_datetime', 'id']
 
     areas = AreaChoiceField('Area',
         verbose_name=u'Предпочитаемые территориальные области',
         help_text=u"""Территориальная область в которой вы хотели бы посещать ДОУ.""")
 
     # Child data
-    if settings.DESIRED_DATE == settings.DESIRED_DATE_NO:
-        admission_date = models.DateField(u'Желаемая дата поступления',
-            default=None, editable=False,
-            help_text=u"Дата, начиная с которой заявка может быть зачислена")
-    elif settings.DESIRED_DATE == settings.DESIRED_DATE_NEXT_YEAR:
-        admission_date = BooleanNextYearField(u'Немедленное зачисление',
-            blank=True, null=True,
-            help_text=u"Если не выбрано, то заявка может быть распределена \
-                только во время ближайшего массового комплектования")
-    elif settings.DESIRED_DATE == settings.DESIRED_DATE_SPEC_YEAR:
-        admission_date = YearChoiceField(u'Желаемый год поступления',
-            blank=True, null=True,
-            help_text=u"Год, начиная с которого заявка может быть зачислена")
-    elif settings.DESIRED_DATE == settings.DESIRED_DATE_ANY:
-        admission_date = models.DateField(u'Желаемая дата поступления',
-            blank=True, null=True,
-            help_text=u"Дата, начиная с которой заявка может быть зачислена")
-    else:
-        raise NotImplementedError('settings.DESIRED_DATE value %s not supported' % settings.DESIRED_DATE)
+    admission_date = YearChoiceField(u'Желаемый год поступления',
+        blank=True, null=True,
+        help_text=u"Год, начиная с которого заявка может быть зачислена")
 #    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
 #        choices=ADMISSION_DATE_TYPE_CHOICES)
     requestion_number = models.CharField(verbose_name=u'Номер заявки',
@@ -795,17 +888,15 @@ class Requestion(models.Model):
         'Vacancies', blank=True, null=True)
 
 #    Child info
-    agent_type = models.IntegerField(u'вид представительства',
-        choices=AGENT_TYPE_CHOICES, help_text=u"Вид представительства заявителя\
-            к ребенку")
-    birth_date = models.DateField(u'дата рождения ребенка', validators=[birth_date_validator])
-    last_name = models.CharField(u'фамилия ребёнка', max_length=255, null=True)
-    first_name = models.CharField(u'имя ребёнка', max_length=255, null=True)
-    patronymic = models.CharField(u'отчество ребёнка', max_length=255, null=True)
+    birth_date = models.DateField(u'Дата рождения ребёнка', validators=[birth_date_validator])
+    #сейчас в формах имя пользователя ограничено 20 символами
+    name = models.CharField(u'имя ребёнка', max_length=255, null=True,
+                            validators=[validate_no_spaces, ],
+                            help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
     sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     cast = models.IntegerField(verbose_name=u'Тип заявки',
-        choices=REQUESTION_TYPE_CHOICES, default=0)
+        choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
     status = models.IntegerField(verbose_name=u'Статус', choices=STATUS_CHOICES,
         null=True, default=STATUS_REQUESTER_NOT_CONFIRMED)
     registration_datetime = models.DateTimeField(
@@ -818,17 +909,24 @@ class Requestion(models.Model):
         verbose_name=u"Категория льгот", null=True)
     pref_sadiks = models.ManyToManyField('Sadik')
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
-    address = models.ForeignKey('Address', null=True)
+    location = PointField(verbose_name=u'Местоположение', blank=True, null=True,
+                          help_text=u"Относительно этого местоположения будут определятся ближайшие ДОУ")
+    location_properties = models.CharField(verbose_name=u'Параметры местоположения',
+                                           max_length=250, blank=True, null=True)
 
     # Поля, назначаемые системой
     status_change_datetime = models.DateTimeField(
         verbose_name=u'дата и время последнего изменения статуса', blank=True, null=True)
+    decision_datetime = models.DateTimeField(
+        verbose_name=u'дата и время выделения места', blank=True, null=True)
+    distribution_datetime = models.DateTimeField(
+        verbose_name = u"дата и время окончательного зачисления", blank=True, null=True)
 
     # Flags
     distribute_in_any_sadik = models.BooleanField(
-        verbose_name=u'Пользователь согласен на зачисление в ДОУ отличные от приоритетных',
-        default=True, help_text=u"""Снимите этот флаг, если согласны пропустить набор,
-        если нет мест в выбранных Вами ДОУ""")
+        verbose_name=u'Пользователь согласен на зачисление в ДОУ, отличные от приоритетных, в выбранных территориальных областях',
+        default=False, help_text=u"""Установите этот флаг, если готовы получить место в любом детском саду в выбранных
+            территориальных областях, в случае, когда в приоритетных ДОУ не окажется места""")
 
     objects = query_set_factory(RequestionQuerySet)
 
@@ -906,14 +1004,10 @@ class Requestion(models.Model):
             template__destination=BENEFIT_DOCUMENT).update(confirmed=True)
 
     def set_document_unauthentic(self):
-        try:
-            document = self.evidience_documents().get(
-                template__destination=REQUESTION_IDENTITY)
-        except EvidienceDocument.DoesNotExist:
-            pass
-        else:
-            document.confirmed = False
-            document.save()
+        u"""
+        все документы у пользователя помечаются как недостоверные
+        """
+        self.evidience_documents().update(confirmed=False)
 
     def document_confirmed(self):
         return self.status not in NOT_CONFIRMED_STATUSES
@@ -931,14 +1025,12 @@ class Requestion(models.Model):
                     self.birth_date).filter(sadik=sadik)
 
     def age_groups(self, age_groups=None, current_distribution_year=None):
+        if not current_distribution_year:
+            current_distribution_year = get_current_distribution_year()
         if not age_groups:
             age_groups = AgeGroup.objects.all()
         return filter(lambda group: group.min_birth_date(current_distribution_year) < self.birth_date <= group.max_birth_date(current_distribution_year),
             age_groups)
-
-    def fio(self):
-        return ' '.join(filter(None, (self.last_name, self.first_name,
-            self.patronymic)))
 
     def days_for_appeal(self):
         u"""
@@ -972,10 +1064,10 @@ class Requestion(models.Model):
         sadik_groups = self.get_sadik_groups(sadik=sadik)
 
         assert (Vacancies.objects.filter(sadik_group__in=sadik_groups,
-            status__isnull=True).exists()), u'В садике должны быть путевки'
+            status__isnull=True, distribution__status=DISTRIBUTION_STATUS_INITIAL).exists()), u'В садике должны быть путевки'
 
         vacancy = Vacancies.objects.filter(sadik_group__in=sadik_groups,
-            status__isnull=True)[0]
+            status__isnull=True, distribution__status=DISTRIBUTION_STATUS_INITIAL)[0]
         self.distributed_in_vacancy = vacancy
         vacancy.status = VACANCY_STATUS_PROVIDED
         sadik_group = vacancy.sadik_group
@@ -997,62 +1089,15 @@ class Requestion(models.Model):
         self.distribution_type = PERMANENT_DISTRIBUTION_TYPE
         return self._distribute_in_sadik(sadik)
 
-    def distribute_in_sadik_from_sadikchange(self, sadik):
-        u"""Зачисление переводом из другого ДОУ"""
-        self.distribution_type = TRANSFER_DISTRIBUTION_TYPE
-        return self._distribute_in_sadik(sadik)
-
-    @transaction.commit_on_success
-    def swap_vacancies(self, target_requestion):
-        u"""Обмен путевками"""
-        source_requestion = self
-
-        # Пометить обменные путевки как измененные вручную
-        source_vacancy = source_requestion.distributed_in_vacancy
-        target_vacancy = target_requestion.distributed_in_vacancy
-        source_vacancy.status = VACANCY_STATUS_MANUALLY_CHANGED
-        source_vacancy.save()
-        target_vacancy.status = VACANCY_STATUS_MANUALLY_CHANGED
-        target_vacancy.save()
-
-        # Сам обмен заявками
-        source_requestion.distributed_in_vacancy, target_requestion.distributed_in_vacancy = \
-            target_requestion.distributed_in_vacancy, source_requestion.distributed_in_vacancy
-        target_requestion.save()
-        self.save()
-
-    def vacate_previous_place(self):
-        u"""
-        освобождает место, которое заявка занимала раньше на постоянной или
-        временной основе
-        """
-        # временное зачисление
-        if self.distribution_type == PERMANENT_DISTRIBUTION_TYPE:
-            vacancy = self.previous_distributed_in_vacancy
-            vacancy.status = VACANCY_STATUS_TEMP_ABSENT
-            vacancy.save()
-        # если зачисление перевдом, то освобождаем место в прошлом ДОУ
-        elif self.distribution_type == TRANSFER_DISTRIBUTION_TYPE:
-            sadik_group = self.previous_distributed_in_vacancy.sadik_group
-            sadik_group.free_places += 1
-            sadik_group.save()
-
     def permanent_distribution(self):
         return self.distribution_type == PERMANENT_DISTRIBUTION_TYPE
-
-    def transfer_distribution(self):
-        return self.distribution_type == TRANSFER_DISTRIBUTION_TYPE
 
     def get_vacancy_distributed(self):
         u"""
         возвращает путевку в которую заявка уже распределена
         """
-        if self.status in (STATUS_DISTRIBUTED,
-                STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TRANSFER_DISTRIBUTION):
+        if self.status == STATUS_DISTRIBUTED:
             return self.distributed_in_vacancy
-        elif (self.status in DISTRIBUTION_PROCESS_STATUSES and
-                self.distribution_type == TRANSFER_DISTRIBUTION_TYPE):
-            return self.previous_distributed_in_vacancy
         else:
             return None
 
@@ -1076,9 +1121,16 @@ class Requestion(models.Model):
         if self.status in DISTRIBUTION_PROCESS_STATUSES:
             return self.distributed_in_vacancy
 
+    def position_in_queue(self):
+        return Requestion.objects.queue().requestions_before(self).count() + 1
+
     def save(self, *args, **kwargs):
-        u"""Если сохраняется в первый раз(добавление заявки), то определяем статус
-        и генерируем номер заявки"""
+        u"""
+        Осуществляется проверка возможности изменения статуса.
+        Сохраняется дата последнего изменения статуса, дата выделения места и дата зачисления.
+        Если сохраняется в первый раз(добавление заявки), то определяем статус
+        и генерируем номер заявки
+        """
 #        проверяем изменился ли статус
         if self.id:
             status = Requestion.objects.get(id=self.id).status
@@ -1100,7 +1152,12 @@ class Requestion(models.Model):
             from sadiki.core.workflow import workflow
             if self.status not in workflow.available_transition_statuses(status):
                 raise TransitionNotRegistered
-
+            # если заявке было выделено место или она окончательно зачислена, то сохраняем дату и время
+            if self.status == STATUS_DECISION:
+                self.decision_datetime = datetime.datetime.now()
+            elif self.status == STATUS_DISTRIBUTED:
+                self.distribution_datetime = datetime.datetime.now()
+            # сохраняем дату и время последнего изменения статуса
             self.status_change_datetime = datetime.datetime.now()
         super(Requestion, self).save(*args, **kwargs)
         if not self.requestion_number:
@@ -1129,6 +1186,20 @@ class Requestion(models.Model):
             extra={'user': user, 'obj': self, 'profile': profile},
             reason=reason)
 
+    def set_location(self, coords):
+        coords = map(float, coords)
+        self.location = Point(*coords, srid=4326)
+
+    def have_all_benefit_documents(self):
+        documents = set(self.evidience_documents().filter(template__destination=BENEFIT_DOCUMENT).values_list("template", flat=True))
+        required_documents = set(self.benefits.all().values_list('evidience_documents', flat=True))
+        return required_documents.issubset(documents)
+
+    @property
+    def is_fake_identity_documents(self):
+        return self.evidience_documents().filter(fake=True,
+                template__destination=REQUESTION_IDENTITY).exists()
+
     def __unicode__(self):
         return self.requestion_number
 
@@ -1139,9 +1210,8 @@ class Area(models.Model):
         verbose_name = u'территориальная область'
         verbose_name_plural = u'территориальная область'
 
-    name = models.CharField(verbose_name=u"Название", max_length=100)
+    name = models.CharField(verbose_name=u"Название", max_length=100, unique=True)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
-    address = models.ForeignKey('Address', verbose_name=u'Адрес отделения')
     # Cache
     bounds = PolygonField(verbose_name=u'Границы области', blank=True, null=True)
 
@@ -1173,6 +1243,7 @@ PREFERENCE_EMAIL_KEY_VALID = "EMAIL_KEY_VALID"
 
 # настройки, изменяемые системой
 PREFERENCE_IMPORT_FINISHED = "IMPORT_STATUS_FINISHED"
+PREFERENCE_REQUESTIONS_IMPORTED = "REQUESTIONS_IMPORTED"
 
 PREFERENCE_CHOICES = (
     (PREFERENCE_MUNICIPALITY_NAME, u'Название муниципалитета'),
@@ -1180,6 +1251,7 @@ PREFERENCE_CHOICES = (
     (PREFERENCE_MUNICIPALITY_PHONE, u'Контактный телефон'),
     (PREFERENCE_EMAIL_KEY_VALID, u'Срок действия ключа для подтверждения почты(дней)'),
     (PREFERENCE_IMPORT_FINISHED, u'Статус завершения импорта'),
+    (PREFERENCE_REQUESTIONS_IMPORTED, u'Были импортированы заявки'),
     (PREFERENCE_LOCAL_AUTHORITY, u"""Наименование органа местного самоуправления, 
         осуществляющего управление в сфере образования (родительный падеж)"""),
     (PREFERENCE_AUTHORITY_HEAD, u"""ФИО главы органа местного самоуправления,
@@ -1195,7 +1267,7 @@ PREFERENCES_MAP = {
         PREFERENCE_AUTHORITY_HEAD
     ],
     PREFERENCE_SECTION_SYSTEM: [PREFERENCE_EMAIL_KEY_VALID],
-    PREFERENCE_SECTION_HIDDEN: [PREFERENCE_IMPORT_FINISHED],
+    PREFERENCE_SECTION_HIDDEN: [PREFERENCE_IMPORT_FINISHED, PREFERENCE_REQUESTIONS_IMPORTED],
 }
 
 
@@ -1277,7 +1349,7 @@ class UserFunctions:
         u"""
         является ли пользователь администратором, оператором или супервайзером
         """
-        return any((self.is_operator(), self.is_administrator(),
+        return any((self.is_operator(), self.is_sadik_operator(), self.is_administrator(),
             self.is_supervisor()))
 
     def perms_for_area(self, areas):
@@ -1291,17 +1363,27 @@ class UserFunctions:
         else:
             return (user_area is None) or not areas or (user_area in areas)
 
+    def email_busy(self):
+        return bool(get_user_by_email(self.email))
+
     def get_verbose_name(self):
         u"""возвращает имя отчество пользователя с учетом типа учетки"""
         try:
             profile = self.get_profile()
         except Profile.DoesNotExist:
             pass
-        else:
-            if profile.first_name and profile.patronymic:
-                return u'%s %s' % (profile.first_name, profile.patronymic)
 #        если не смогли получить имя отчество у профиля, то берем их у пользователя
-        return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+        if self.first_name or self.last_name:
+            return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+        else:
+            return self.username
+
+    def set_username_by_id(self):
+        username = "%s_%d" % (REQUESTER_USERNAME_PREFIX, self.id)
+        new_username = username
+        while User.objects.filter(username=new_username).exists():
+            new_username = "%s_%s" % (username, random.randrange(1,999))
+        self.username = new_username
 
 
 def update_benefit_category(action, instance, **kwargs):
@@ -1322,6 +1404,8 @@ def update_benefit_category(action, instance, **kwargs):
 m2m_changed.connect(update_benefit_category, sender=Requestion.benefits.through)
 
 User.__bases__ += (UserFunctions,)
+
+del User.get_absolute_url
 
 add_introspection_rules([], ["^sadiki\.core\.fields\.BooleanNextYearField"])
 add_introspection_rules([], ["^sadiki\.core\.fields\.YearChoiceField"])

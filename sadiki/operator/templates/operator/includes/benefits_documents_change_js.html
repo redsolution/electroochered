@@ -1,0 +1,96 @@
+<script type="text/javascript" src="{{ STATIC_URL }}js/libs/underscore.js"></script>
+<script type="text/javascript">
+    function removeDocumentForm(field){
+{#            удаление документа, вызывается при ручном и автоматическом удалении#}
+        field.find('input[id $= "-DELETE"]').attr('checked', true);
+        field.find('.field-value input[id $= "-document_number"]').val('');
+        field.find('.field-value label.value').text('Не указано')
+        field.find('.field-label').removeClass('changed')
+        field.find('.field-label .value-changed').remove()
+        field.hide()
+    }
+{#        удаление документа вручную#}
+    function manualRemoveDocumentForm(el){
+        removeDocumentForm($(el).parents('.field'))
+    }
+    function cloneDocumentForm(selector, type, documentTemplate) {
+{#            добавление формы документа#}
+        var newElement = $(selector).clone(true);
+        newElement.removeClass('original-form')
+        var total = $('#id_' + type + '-TOTAL_FORMS').val();
+        newElement.find(':input').each(function() {
+            var name = $(this).attr('name').replace(/-\d-/,'-' + total + '-');
+            var id = 'id_' + name;
+            $(this).attr({'name': name, 'id': id})
+        });
+{#            задаем необходимый шаблон документа#}
+        newElement.find('label.field-label').text(documentTemplate.name);
+        var templateInput = newElement.find('input[id $= "-template"]');
+        templateInput.val(documentTemplate['id'])
+        total++;
+        $('#id_' + type + '-TOTAL_FORMS').val(total);
+        newElement.hide();
+        $(selector).parent().append(newElement);
+        newElement.show();
+        return newElement
+    };
+    function autoRemoveDocumentForm(documentTemplate){
+{#            автоматическое удаление документа, если не задан номер#}
+        var field = $('.documents-form input[value='+documentTemplate['id']+'][id $= "-template"]').parents('.field');
+        if (!field.find('.field-value input[id $= "-document_number"]').val()){
+            removeDocumentForm(field);
+        } else {
+            if (!field.find('.delete-form').length){
+                field.find('.field-value').append('<a class="delete-form" onclick="manualRemoveDocumentForm(this)" href="javascript:void(0)"><i class="red icon-remove">&nbsp;</i></a>')
+            }
+        }
+    }
+    var documentTemplates = _.values(DOCUMENT_TEMPLATES);
+    function benefits_changed(el){
+        var selectedBenefits = _.map($(el).val(), function(item){return Number(item)});
+        var requiredTemplates = _.filter(
+            documentTemplates, function(item){
+                return _.intersection(item.benefits, selectedBenefits).length > 0;
+        });
+        var templateElements = $('.field').not(':hidden').find('input[id $= "-template"]');
+        var documentListIds = _.map(templateElements, function(item){return Number($(item).val())});
+        var documentList = _.filter(documentTemplates, function(item){return _.contains(documentListIds, item.id)})
+{#            отсутствующие документы#}
+        var absentDocuments = _.difference(requiredTemplates, documentList);
+{#        если документ уже отображается, то убрать возможность его удалить#}
+        for (var i = 0; i < documentList.length; i++) {
+            var field = $('.documents-form input[value='+documentList[i].id+'][id $= "-template"]').parents('.field')
+            field.find('.delete-form').remove()
+        }
+        for (var i = 0; i < absentDocuments.length; i++) {
+{#                если элемент уже существует, то его нужно отобразить#}
+            var field = $('.documents-form input[value='+absentDocuments[i].id+'][id $= "-template"]').parents('.field')
+            if (field.length){
+                field.find('input[id $= "-DELETE"]').attr('checked', false);
+                field.show()
+                field.find('.delete-form').remove()
+            } else {
+{#                    иначе добавить#}
+                field = cloneDocumentForm('.documents-form .original-form', 'core-evidiencedocument-content_type-object_id', absentDocuments[i]);
+            }
+        }
+        var notRequiredDocuments = _.difference(documentList, requiredTemplates)
+        for (var i = 0; i < notRequiredDocuments.length; i++){
+            autoRemoveDocumentForm(notRequiredDocuments[i])
+        }
+{#        для всех существующих документов нужно задать подсказку и валидацию по формату#}
+        $(".documents-form .field:not(.original-form)").each(function (){
+            var templateInput = $(this).find('input[id $= "-template"]')
+            var documentTemplate = DOCUMENT_TEMPLATES[templateInput.val()]
+            var documentInput = $(this).find('input[id $= "-document_number"]')
+            change_document_hint(documentInput, documentTemplate['help_text'], 'hint');
+            bind_new_regexp(documentInput, documentTemplate['regexp'], 'hint');
+        })
+    };
+    $(document).ready(function(){
+        $("#id_benefits").change(function(){
+            benefits_changed(this);
+        })
+        benefits_changed("#id_benefits")
+    })
+</script>

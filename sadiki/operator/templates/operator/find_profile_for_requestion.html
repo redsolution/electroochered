@@ -3,28 +3,12 @@
 
 
 {% block content_title %}
-    <h1>{% block title %}Поиск заявки{% endblock %}</h1>
+    <h1>{% block title %}Поиск профиля для заявки {{ requestion }}{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
     <div class="content-main">
-        <form action="." method="post" class="uniForm">
-        {% zenform form options notag=1 %}
-            <div class="row">
-            <div class="span5">
-                {% fieldset 'requestion_number' 'email' %}
-            </div>
-            <div class="span5">
-                {% fieldset unused_fields %}
-            </div>
-            </div>
-            <div class="row">
-                <div class="span10">
-                {% submit "Поиск" %}
-                </div>
-            </div>
-        {% endzenform %}
-        </form>
+        {% izenform form options submit="Поиск" %}
     {% if query %}
         <div class="row vertical-margins"><div class="span10">
             <div class="well query">
@@ -43,9 +27,8 @@
                 <thead>
                 <tr>
                     <th>№</th>
-                    <th>ФИО</th>
-                    <th>Адрес электронной почты</th>
-                    <th>Адрес почты подтвержден</th>
+                    <th>Имя пользователя</th>
+                    <th>Имя родителя</th>
                     <th>Номера заявок в очереди</th>
                     <th></th>
                 </tr>
@@ -54,15 +37,20 @@
                     {% for profile in results %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td>{{ profile.fio }}</td>
-                        <td>{{ profile.user.email }}</td>
-                        <td>{{ profile.email_verified|yesno:"Да, Нет" }}</td>
+                        <td>{{ profile.user.username }}</td>
+                        <td>{{ profile.first_name|verbose_value }}</td>
                         <td>
                             {% for requestion in profile.requestion_set.all %}
-                                <a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a>
+                                <a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a><br>
                             {% endfor %}
                         </td>
-                        <td><a href="{% url embed_requestion_to_profile requestion_id=params.requestion.id profile_id=profile.id %}">Привязать заявку</a></td>
+                        <td>
+                            {% if profile == requestion.profile %}
+                                Заявка принадлежит этому профилю
+                            {% else %}
+                                <a href="{% url embed_requestion_to_profile requestion_id=params.requestion.id profile_id=profile.id %}">Привязать заявку</a>
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -78,7 +66,7 @@
                             <dd>{{ field.value }}</dd>
                         </dl>
                     {% endfor %}
-                    <strong>{{ more_results.count }} профи{{ results.count|choose_plural:"ль, ля, лей" }}</strong>
+                    <strong>{{ more_results.count }} профи{{ more_results.count|choose_plural:"ль, ля, лей" }}</strong>
                 </div>
             {% endif %}
         {% endif %}

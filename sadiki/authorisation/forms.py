@@ -6,7 +6,14 @@ from sadiki.core.utils import get_user_by_email
 
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(label=u'Электронная почта или имя пользователя', max_length=75)
+    username = forms.CharField(
+        label=u'Имя пользователя', max_length=75,
+        widget=forms.TextInput(attrs={'placeholder': u'Введите имя пользователя, выданное при регистрации'}))
+
+    def __init__(self, *args, **kwargs):
+        self.base_fields['password'].widget = forms.PasswordInput(
+            attrs={'placeholder': u'Введите пароль'})
+        return super(LoginForm, self).__init__(*args, **kwargs)
 
 
 class EmailResetForm(forms.Form):

@@ -6,9 +6,6 @@ from sadiki.supervisor.views import FrontPage, ChangeRegistrationDateTime, \
 
 urlpatterns = patterns('',
     url(r'^$', FrontPage.as_view(), name='supervisor_frontpage'),
-    url(r'^requestion_search/$',
-        RequestionSearch.as_view(),
-        name=u'supervisor_requestion_search'),
     url(r'^requestion_info/(?P<requestion_id>\d{1,7})/$',
         RequestionInfo.as_view(), name=u'supervisor_requestion_info'),
     url(r'^change_registration_datetime/(?P<requestion_id>\d{1,7})/$',

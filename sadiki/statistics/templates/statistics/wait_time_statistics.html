@@ -1,5 +1,5 @@
 {% extends "anonym/base.html" %}
-{% load sadiki_core_tags sadiki_statistics_tags %}
+{% load sadiki_statistics_tags cache %}
 {% block js %}
     {{ block.super }}
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
@@ -10,113 +10,8 @@
 {% endblock %}
 
 {% block content %}
-    <h3>Учитываются только документально подтвержденные заявки</h3>
-    <script type="text/javascript">
-        google.load("visualization", "1", {packages: ["corechart"]});
-        var requestions_numbers_by_groups = jQuery.parseJSON('{{ json.requestions_numbers_by_groups|safe }}');
-        var distributed_requestions_numbers_by_groups = jQuery.parseJSON('{{ json.distributed_requestions_numbers_by_groups|safe }}');
-        var wait_intervals = jQuery.parseJSON('{{ json.wait_intervals|safe }}');
-        {# для каждого интервала для заявок в очереди и зачисленных добавляем группу "все заявки" #}
-        for (var i=0; i<requestions_numbers_by_groups.length; i++){
-            var total = 0;
-            for (var j=0; j<requestions_numbers_by_groups[i].length; j++){
-                total += requestions_numbers_by_groups[i][j]
-            }
-            requestions_numbers_by_groups[i].push(total);
-            var total = 0;
-            for (var j=0; j<distributed_requestions_numbers_by_groups[i].length; j++){
-                total += distributed_requestions_numbers_by_groups[i][j]
-            }
-            distributed_requestions_numbers_by_groups[i].push(total);
-        };
-
-        function drawChart() {
-            var group_number = $("input[name='group']:checked").val();
-            var data = new google.visualization.DataTable();
-            data.addColumn('string', 'Время ожидания');
-            data.addRows(wait_intervals.length);
-            for (var i=0; i<wait_intervals.length; i++){
-                data.setValue(i, 0, wait_intervals[i].name);
-            };
-            data.addColumn('number', 'Заявки в очереди');
-            for (var i=0; i<requestions_numbers_by_groups.length; i++){
-                data.setValue(i, 1, requestions_numbers_by_groups[i][group_number]);
-            };
-            data.addColumn('number', 'Распределенные заявки');
-            for (var i=0; i<distributed_requestions_numbers_by_groups.length; i++){
-                data.setValue(i, 2, distributed_requestions_numbers_by_groups[i][group_number]);
-            };
-            var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-            chart.draw(data,
-                    {
-                        width: 630,
-                        height: 320,
-                        chartArea:{left:40,top:60,width:"90%",height:"70%"},
-                        title: 'Время ожидания в очереди',
-                        legend: 'top',
-                        pointSize: 3
-                    });
-        };
-        google.setOnLoadCallback(drawChart);
-        $(document).ready(function(){
-            $('#group_choice input').each(function(){
-                $(this).change(function(){
-                    drawChart();
-                })
-            })
-        });
-    </script>
-    <div class="row">
-        <div id="group_choice" class="span3">
-            <h2>Возрастные группы</h2>
-            <ul>
-            {% for group in groups %}
-                <li><label class="radio"><input type="radio" name="group" class="radio" value="{{ forloop.counter0 }}">{{ group.name }}</label></li>
-            {% endfor %}
-            <li><label class="radio"><input type="radio" name="group" class="radio" value="{{ groups|length }}" checked>Все заявки</label></li>
-            </ul>
-        </div>
-        <div id="chart_div" class="span8"></div>
-    </div>
-    <h2>Время ожидания для заявок, находящихся в очереди</h2>
-    <h3 class="total_requestions_number">Всего заявок: {{ total_requestions_number }}</h3>
-    <table class="table table-striped table-bordered table-condensed">
-        <thead>
-        <tr>
-            <th></th>
-            <th colspan="{{ groups|length }}">Возрастная группа</th>
-        </tr>
-        <tr>
-            <th>Время ожидания в очереди(месяцы)</th>
-            {% for group in groups %}
-                <th>{{ group.name }}</th>
-            {% endfor %}
-        </tr>
-        </thead>
-        <tfoot>
-            <tr>
-                <td>Итого</td>
-                {% for number in total_requestions_numbers_by_groups %}
-                    <td>{{ number }}</td>
-                {% endfor %}
-            </tr>
-        </tfoot>
-        <tbody>
-        {% for requestions_numbers_for_interval in requestions_numbers_by_groups %}
-            <tr class="{% cycle 'even' 'odd' %}">
-                <td>
-                    {% with wait_intervals|element_by_index:forloop.counter0 as interval %}
-                        {{ interval.name }}
-                    {% endwith %}
-                </td>
-                {% for number in requestions_numbers_for_interval %}
-                    <td>
-                        {{ number|default_if_none:"-" }}
-                    </td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    {% requestions_statistics %}
+    {% cache 86400 "wait_time_statistics" %}
+        {% show_wait_time_statistics %}
+        {% requestions_statistics %}
+    {% endcache %}
 {% endblock %}

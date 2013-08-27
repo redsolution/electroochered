@@ -3,13 +3,8 @@
     <head>
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
         <style type="text/css">
-            @font-face {
-                font-family: Ubuntu;
-                src: url("{{ media_root }}/Ubuntu-Regular.ttf");
-            }
-            
             body {
-                font-family: Ubuntu;
+                font-family: Serif;
             }
         </style>
     </head>
@@ -23,14 +18,14 @@
                 <h2>Ошибки в строке {{ row.row_index|add:"1" }}</h2>
                     {% if row.logic_exception %}
                         {% for message in row.logic_exception.messages %}
-                        <p>{{ message }}<p>
+                        <p style = "white-space:PRE">{{ message }}<p>
                         {% endfor %}
                     {% endif %}
                     {% for cell in row %}
                         {% if cell.messages %}
                             {% with logic.format_doc.cells|element_by_index:forloop.counter0 as current_cell %}
                                 {% for error in cell.messages %}
-                                    <p>{{ current_cell.name }}: {{ error }}</p>
+                                    <p style = "white-space:PRE">{{ current_cell.name }}: {{ error }}</p>
                                 {% endfor %}
                             {% endwith %}
                         {% endif %}

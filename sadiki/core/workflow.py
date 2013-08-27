@@ -4,7 +4,6 @@ from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION, ET
 from sadiki.core.models import *
 from sadiki.core.permissions import OPERATOR_PERMISSION, DISTRIBUTOR_PERMISSION, REQUESTER_PERMISSION, SUPERVISOR_PERMISSION
 from sadiki.core.settings import *
-from sadiki.operator.forms import ConfirmationForm
 from sadiki.logger.models import ACCOUNT_LOG, ANONYM_LOG, OPERATOR_LOG
 
 
@@ -41,7 +40,7 @@ class Transition(object):
         self.comment = comment
         self.required_permissions = permissions
         self.permission_cb = permission_callback
-        self.confirmation_form_class = ConfirmationForm
+        self.confirmation_form_class = None
 
 
 class Workflow(object):
@@ -85,18 +84,14 @@ class Workflow(object):
             return None
 
 # Изменение статуса заявки()
-REQUESTION_REGISTRATION = 0             # Регистрация через оператора
+REQUESTION_REGISTRATION_BY_OPERATOR = 0             # Регистрация через оператора
 REQUESTION_IMPORT = 1                   # Импорт заявки
-ADD_REQUESTION = 2                      # Добавление заявки пользователем
+REQUESTION_ADD_BY_REQUESTER = 2                      # Добавление заявки пользователем
 CONFIRM_REQUESTION = 3                  # Документальное подтверждение заявки
-WANT_TO_CHANGE_SADIK = 4                # Заявка на смену ДОУ
 ON_DISTRIBUTION = 5                     # Переход в комплектование
 DECISION = 6                            # Выделено место
 ON_DISTRIBUTION_RETURN = 7              # возврат в очередь нераспределенных
 IMMEDIATELY_DECISION = 8                # Выделено место(немедленное зачисление)
-ON_TRANSFER_DISTRIBUTION = 9            # Переход в комплектование заявки желающей сменить ДОУ
-TRANSFER_APROOVED = 10                  # Перевод одобрен
-IMMEDIATELY_TRANSFER_APROOVED = 11      # Перевод одобрен(немедленное зачисление)
 ON_TEMP_DISTRIBUTION = 12               # Переход в комплектование временно зачисленной заявки
 ON_TEMP_DISTRIBUTION_RETURN = 58        # Возврат в очередь нераспределенной временно зач-й
 PERMANENT_DECISION = 13                 # Выделение места временно зачисленному
@@ -120,7 +115,6 @@ ABSENT_REMOVE_REGISTRATION = 41         # Снять с учета при нев
 NOT_APPEAR_REMOVE_REGISTRATION = 42     # Снять с учета при неявке
 REMOVE_REGISTRATION_ARCHIVE = 43        # Помещение снятой заявки в архив
 DISTRIBUTED_ARCHIVE = 44                # Помещение распределенной заявки в архив
-WANT_TO_CHANGE_SADIK_DISTRIBUTED = 45   # Отказ от смены ДОУ
 DECISION_REQUESTER = 46                 # Отказ от места в ДОУ
 NOT_APPEAR_REQUESTER = 52               # Возврат в очередь после неявки
 ABSENT_REQUESTER = 53                   # Возврат в очередь при невозможности связаться
@@ -132,28 +126,62 @@ NOT_APPEAR_EXPIRE = 51                  # Истечение сроков обж
 REQUESTION_REJECT = 55                  # Истечение сроков на подтверждение документов
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
-#отказ от зачилсения переводника
-DECISION_WANT_TO_CHANGE_SADIK = 59      # Отказ от места в ДОУ
-NOT_APPEAR_WANT_TO_CHANGE_SADIK = 60    # Отказ от места в ДОУ после неявки
-ABSENT_WANT_TO_CHANGE_SADIK = 61        # Отказ от места в ДОУ после невозожности связаться 
+DISTRIBUTION_BY_RESOLUTION = 58
 #отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
-ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться 
+ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться
 
+#Изменение данных заявки
+CHANGE_REQUESTION = 71
+CHANGE_REQUESTION_BY_OPERATOR = 72
+CHANGE_ADMISSION_DATE = 73
+CHANGE_ADMISSION_DATE_BY_OPERATOR = 74
+CHANGE_PROFILE = 75
+CHANGE_PROFILE_BY_OPERATOR = 76
+CHANGE_REGISTRATION_DATETIME = 79
+CHANGE_BIRTHDATE = 80
+CHANGE_DOCUMENTS_BY_OPERATOR = 84 # используется при указании документа для заявки оператором
+CREATE_PROFILE = 85
+CREATE_PROFILE_BY_OPERATOR = 86
+IMPORT_PROFILE = 87
+EMBED_REQUESTION_TO_PROFILE = 88
+CHANGE_REQUESTION_LOCATION = 89
+ACCOUNT_CHANGE_REQUESTION = 90
+
+
+#Распределение
+DISTRIBUTION_INIT = 100
+DISTRIBUTION_AUTO = 103
+DISTRIBUTION_START = 101
+DISTRIBUTION_END = 102
+
+#Изменение данных ДОУ
+CHANGE_SADIK_GROUP_PLACES = 104
+CHANGE_SADIK_INFO = 105
+
+#изменение путевки
+VACANCY_DISTRIBUTED = 110
+
+START_NEW_YEAR = 106
+
+# устаревшие статусы, сохраняются для совместимости
+CHANGE_PREFERRED_SADIKS = 77
+CHANGE_PREFERRED_SADIKS_BY_OPERATOR = 78
+CHANGE_BENEFITS = 81
+CHANGE_BENEFITS_BY_OPERATOR = 82
+CHANGE_DOCUMENTS = 83
 
 workflow = Workflow()
 
 # 1) Подача заявления
-workflow.add(None, STATUS_REQUESTER_NOT_CONFIRMED, ADD_REQUESTION,
+workflow.add(None, STATUS_REQUESTER_NOT_CONFIRMED, REQUESTION_ADD_BY_REQUESTER,
     u'Самостоятельная регистрация',)
 workflow.add(None, STATUS_REQUESTER, REQUESTION_IMPORT, u'Импорт заявки')
-workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION,
+workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR,
     u'Регистрация через оператора',)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, CONFIRM_REQUESTION,
-    u'Подтверждение документов', permissions=[OPERATOR_PERMISSION[0]])
-workflow.add(STATUS_DISTRIBUTED, STATUS_WANT_TO_CHANGE_SADIK, WANT_TO_CHANGE_SADIK,
-    u'Подача заявки на смену ДОУ', permissions=[OPERATOR_PERMISSION[0]])
+    u'Подтверждение заявки', permissions=[OPERATOR_PERMISSION[0]])
 
 # 2) Комплектование
 # 2.1) Очередники
@@ -168,15 +196,6 @@ if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
     workflow.add(STATUS_REQUESTER, STATUS_DECISION, IMMEDIATELY_DECISION,
         u'Выделение места в ДОУ (немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
 
-# 2.2) Смена ДОУ
-workflow.add(STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TRANSFER_DISTRIBUTION,
-    ON_TRANSFER_DISTRIBUTION, u'Перевод в комплектование на перевод')
-workflow.add(STATUS_ON_TRANSFER_DISTRIBUTION, STATUS_DECISION,
-    TRANSFER_APROOVED, u'Выделение места в ДОУ переводнику')
-if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
-    workflow.add(STATUS_WANT_TO_CHANGE_SADIK, STATUS_DECISION,
-        IMMEDIATELY_TRANSFER_APROOVED,
-        u'Выделение места в ДОУ переводнику(немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 # 2.3) Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
@@ -199,8 +218,10 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
              u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
-workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
-             u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
+workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION, u'Зачисление по резолюции Начальника',
+             permissions=[SUPERVISOR_PERMISSION[0]])
+# workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
+#              u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_NOT_APPEAR, DECISION_NOT_APPEAR,
              u'Неявка в ДОУ', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_DISTRIBUTED, ABSENT_DISTRIBUTED,
@@ -236,7 +257,7 @@ workflow.add(STATUS_REQUESTER, STATUS_REMOVE_REGISTRATION,
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER,
     RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]])
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION,
-    NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение документов', permissions=[OPERATOR_PERMISSION[0]])
+    NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
     u'Истечение сроков на обжалование отсутствия')
 workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
@@ -252,8 +273,6 @@ workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_ARCHIVE,
 workflow.add(STATUS_DISTRIBUTED, STATUS_ARCHIVE, DISTRIBUTED_ARCHIVE,
     u'Архивация зачисленных')
 
-workflow.add(STATUS_WANT_TO_CHANGE_SADIK, STATUS_DISTRIBUTED,
-    WANT_TO_CHANGE_SADIK_DISTRIBUTED, u'Отказ от смены ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_REQUESTER, DECISION_REQUESTER,
     u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 workflow.add(STATUS_NOT_APPEAR, STATUS_REQUESTER, NOT_APPEAR_REQUESTER,
@@ -263,19 +282,6 @@ workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
     REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
 
-#отказ от зачисления переводом
-workflow.add(STATUS_DECISION, STATUS_WANT_TO_CHANGE_SADIK,
-    DECISION_WANT_TO_CHANGE_SADIK,
-    u'Отказ от места в ДОУ на постоянное основе',
-    permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
-workflow.add(STATUS_NOT_APPEAR, WANT_TO_CHANGE_SADIK,
-    NOT_APPEAR_WANT_TO_CHANGE_SADIK,
-    u'Отказ от места в ДОУ на постоянной основе после неявки',
-    permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
-workflow.add(STATUS_ABSENT, STATUS_WANT_TO_CHANGE_SADIK,
-    ABSENT_WANT_TO_CHANGE_SADIK,
-    u'Отказ от места в ДОУ на постоянной основе после отсутствия',
-    permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 
 # отказ от зачисления на постоянной основе
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
@@ -310,50 +316,17 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_REQUESTER,
             RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки', permissions=[OPERATOR_PERMISSION[0]])
 
-#Изменение данных заявки
-CHANGE_REQUESTION = 71
-CHANGE_REQUESTION_BY_OPERATOR = 72
-CHANGE_ADMISSION_DATE = 73
-CHANGE_ADMISSION_DATE_BY_OPERATOR = 74
-CHANGE_PROFILE = 75
-CHANGE_PROFILE_BY_OPERATOR = 76
-CHANGE_PREFERRED_SADIKS = 77
-CHANGE_PREFERRED_SADIKS_BY_OPERATOR = 78
-CHANGE_REGISTRATION_DATETIME = 79
-CHANGE_BIRTHDATE = 80
-CHANGE_BENEFITS = 81
-CHANGE_BENEFITS_BY_OPERATOR = 82
-CHANGE_DOCUMENTS = 83
-CHANGE_DOCUMENTS_BY_OPERATOR = 84
-CREATE_PROFILE = 85
-CREATE_PROFILE_BY_OPERATOR = 86
-IMPORT_PROFILE = 87
-EMBED_REQUESTION_TO_PROFILE = 88
+DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
-
-#Распределение
-DISTRIBUTION_INIT = 100
-DISTRIBUTION_AUTO = 103
-DISTRIBUTION_START = 101
-DISTRIBUTION_END = 102
-
-#Изменение данных ДОУ
-CHANGE_SADIK_GROUP_PLACES = 104
-CHANGE_SADIK_INFO = 105
-
-#изменение путевки
-VACANCY_DISTRIBUTED = 110
-
-START_NEW_YEAR = 106
-
-DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION, TRANSFER_APROOVED]
+STATUS_CHANGE_TRANSITIONS = [transition.index for transition in workflow.transitions]
 
 ACTION_CHOICES = [(transition.index, transition.comment) for transition in
                     workflow.transitions]
 
 ACTION_CHOICES.extend(
 #    добавляем действия с заявками
-    [(CHANGE_REQUESTION, u"Изменение заявки пользователем"),
+    [(CHANGE_REQUESTION, u"Изменение заявки пользователем"), # старый статус(отдельно от изменения ДОУ и льгот)
+    (ACCOUNT_CHANGE_REQUESTION, u"Изменение заявки пользователем"), # также изменяются льготы и ДОУ
     (CHANGE_REQUESTION_BY_OPERATOR, u"Изменение заявки оператором"),
     (CHANGE_ADMISSION_DATE, u"Изменение ЖДП"),
     (CHANGE_ADMISSION_DATE_BY_OPERATOR, u"Изменение ЖДП оператором"),
@@ -366,12 +339,13 @@ ACTION_CHOICES.extend(
     (CHANGE_BIRTHDATE, u"Изменение даты рождения"),
     (CHANGE_BENEFITS, u"Изменение льгот"),
     (CHANGE_BENEFITS_BY_OPERATOR, u"Изменение льгот оператором"),
-    (CHANGE_DOCUMENTS, u"Изменение льгот"),
-    (CHANGE_DOCUMENTS_BY_OPERATOR, u"Изменение льгот оператором"),
+    (CHANGE_DOCUMENTS, u"Изменение документов"),
+    (CHANGE_DOCUMENTS_BY_OPERATOR, u"Изменение документов оператором"),
     (CREATE_PROFILE, u"Регистрация профиля"),
     (CREATE_PROFILE_BY_OPERATOR, u"Регистрация профиля оператором"),
     (IMPORT_PROFILE, u"Импорт профиля"),
     (EMBED_REQUESTION_TO_PROFILE, u"Прикрепление заявки к профилю"),
+    (CHANGE_REQUESTION_LOCATION, u"Изменение местоположения заявки во время распределения"),
 #    Распределения
     (DISTRIBUTION_INIT, u'Начало распределения'),
     (DISTRIBUTION_AUTO, u'Начало автоматического комплектования'),
@@ -391,13 +365,28 @@ ACTION_TEMPLATES = dict(
         for transition in workflow.transitions]
 )
 
+# ----------------------------------
+# Шаблоны для записи логов
+#
+# В контекст можно передавать changed_data и cleaned_data из формы
+# также в шаблон передается заявка для которой происходит сохранение логов под именем requestion
+# (удобно получать занчение полей через get_FOO_display)
+# 
+# {% if "field_name" in changed_data %}
+#     {{ cleaned_data.field_name }} {{ requestion.get_field_name_display }}
+# {% endif %}
+# ------------------------------------
+
 #переопределеяем стандартные шаблоны для действий с заявкой
 
 document_confirmation_template = u"""
-        Заявки с таким же идентифицируюим документом были сняты с учета:
-        {% for requestion in other_requestions %}
-            {{ requestion }}{% if not forloop.last %}; {% endif %}
-        {% endfor %}"""
+        {% if other_requestions %}
+            Заявки с таким же идентифицирующим документом были сняты с учета:
+            {% for requestion in other_requestions %}
+                {{ requestion }}{% if not forloop.last %}; {% endif %}
+            {% endfor %}
+        {% endif %}
+        """
 
 ACTION_TEMPLATES.update({
     NOT_CONFIRMED_REMOVE_REGISTRATION:{
@@ -415,14 +404,18 @@ ACTION_TEMPLATES.update({
 })
 
 requestion_account_template = u"""
-    {% if requestion.adent_type %}Вид представительства: {{ requestion.agent_type }};{% endif %}
     {% if requestion.sex %}Пол: {{ requestion.get_sex_display }};{% endif %}
-    {% if requestion.last_name %}Фамилия: {{ requestion.last_name }};{% endif %}
-    {% if requestion.first_name %}Имя: {{ requestion.first_name }};{% endif %}
-    {% if requestion.patronymic %}Отчество: {{ requestion.patronymic }};{% endif %}
+    {% if requestion.name %}Имя: {{ requestion.name }};{% endif %}
     {% if requestion.comment %}Комментарий: {{ requestion.comment }};{% endif %}
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
+    {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+    {% if benefit_documents %}
+        Документы для льгот:
+        {% for document in benefit_documents %}
+            {{ document.template }}: {{ document.document_number }}{% if not forloop.last %},{% else %};{% endif %}
+        {% endfor %}
+    {% endif %}
     """
 
 requestion_anonym_template = u"""
@@ -434,7 +427,7 @@ requestion_anonym_template = u"""
     {% endfor %}
     {% if requestion.birth_date %}Дата рождения: {{ requestion.birth_date }};{% endif %}
     {% if not requestion.distribute_in_any_sadik == None %}Зачислять в любой ДОУ: {{ requestion.distribute_in_any_sadik|yesno:"Да, Нет" }};{% endif %}
-    {% if requestion.admission_date %}Желаемая дата поступления: {{ requestion.admission_date }};{% endif %}
+    {% if requestion.admission_date %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
     {% if pref_sadiks %}
         Приоритетные МДОУ: {% for sadik in pref_sadiks %}{{ sadik }};{% endfor %}
     {% endif %}
@@ -442,9 +435,6 @@ requestion_anonym_template = u"""
 
 registration_account_template = u"""
     {% if user.email %}Электронная почта:{{ user.email }}{% endif %}
-    {% if profile.last_name %}Фамилия: {{ profile.last_name }};{% endif %}
-    {% if profile.first_name %}Имя: {{ profile.first_name }};{% endif %}
-    {% if profile.patronymic %}Отчество: {{ profile.patronymic }};{% endif %}
     {% if profile.phone_number %}Основной телефон: {{ profile.phone_number }};{% endif %}
     {% if profile.mobile_number %}Дополнительный телефон: {{ profile.mobile_number }};{% endif %}
     {% with profile.get_identity_documents as document %}
@@ -456,18 +446,66 @@ registration_account_template = u"""
     """
 
 change_profile_account_template = u'''
-    {% if "last_name" in changed_data %}Фамилия: {{ profile.last_name }};{% endif %}
-    {% if "first_name" in changed_data %}Имя: {{ profile.first_name }};{% endif %}
-    {% if "patronymic" in changed_data %}Отчество: {{ profile.patronymic }};{% endif %}
     {% if "phone_number" in changed_data %}Телефон: {{ profile.phone_number }};{% endif %}
     {% if "mobile_number" in changed_data %}Мобильный телефон: {{ profile.mobile_number }};{% endif %}
     '''
 
+change_requestion_anonym_template = u"""
+        {% if "admission_date" in changed_fields %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
+        {% if "benefits" in changed_data %}
+            Основная категория льгот: {{ requestion.benefit_category }};
+        {% endif %}
+        {% if "areas" in changed_data %}
+            Территориальные области:
+            {% for area in cleaned_data.areas %}
+                {{ area }};
+            {% empty %}
+                Весь муниципалитет;
+            {% endfor %}
+        {% endif %}
+        {% if "pref_sadiks" in changed_data %}
+            Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
+        {% endif %}
+        {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
+        """
+
+change_requestion_account_template = u"""
+        {% if "sex" in changed_data %}Пол: {{ requestion.get_sex_display }};{% endif %}
+        {% if "name" in changed_data %}Имя: {{ requestion.name }};{% endif %}
+        {% if "comment" in changed_data %}Комментарий: {{ requestion.comment }};{% endif %}
+        {% if "location" in changed_data %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        {% if "benefits" in changed_data %}
+            {% if cleaned_data.benefits %}
+                Льготы: {% for benefit in cleaned_data.benefits %}{{ benefit }}; {% endfor %}
+            {% endif %}
+        {% endif %}
+        {% with profile.get_identity_documents as document %}
+        {% if "benefit_documents" in cleaned_data %}
+            {% if cleaned_data.benefit_documents %}
+                Документы для льгот:
+                {% for document in cleaned_data.benefit_documents %}
+                    {{ document.template }}: {{ document.document_number }}{% if not forloop.last %},{% else %};{% endif %}
+                {% endfor %}
+            {% else %}
+                Документы для льгот не заданы;
+            {% endif %}
+        {% endif %}
+    {% endwith %}
+        """
+
 change_preferred_sadiks_anonym_template = u'''
-    {% if "pref_sadiks" in changed_data %}
-        Приоритетные МДОУ: {% for sadik in pref_sadiks %}{{ sadik }}; {% endfor %}
+    {% if "areas" in changed_data %}
+        Территориальные области:
+        {% for area in cleaned_data.areas %}
+            {{ area }};
+        {% empty %}
+            Весь муниципалитет;
+        {% endfor %}
     {% endif %}
-    {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
+    {% if "pref_sadiks" in changed_data %}
+        Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
+    {% endif %}
+    {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
     '''
 
 change_benefits_anonym_template = u"""
@@ -480,12 +518,28 @@ change_benefits_account_template = u"""
     {% endif %}
     """
 
-change_documents_account_template = Template(u"""
-    
-    """)
+change_documents_account_template = u"""
+    {% if benefit_documents %}
+        Документы для льгот:
+        {% for document in benefit_documents %}
+            {{ document.document_number }} ({{ document.template }});
+        {% endfor %}.
+    {% endif %}
+    {% if requestion_documents %}
+        Документы для льгот:
+        {% for document in requestion_documents %}
+            {{ document.document_number }} ({{ document.template }});
+        {% endfor %}.
+    {% endif %}
+    """
+
+
+decision_distribution_anonym = u"""Было завершено зачисление в {{ sadik }}"""
+decision_not_appear_anonym = u"""Заявитель не явился в назначенный срок для зачисления в {{ sadik }}"""
+decision_requster_anonym = u"""Заявитель отказался от выделенного места в {{ sadik }}. Заявка была возвращена в очередь"""
 
 ACTION_TEMPLATES.update({
-    ADD_REQUESTION:{
+    REQUESTION_ADD_BY_REQUESTER:{
         ACCOUNT_LOG:Template(requestion_account_template + change_benefits_account_template),
         ANONYM_LOG:Template(requestion_anonym_template + change_benefits_anonym_template)
     },
@@ -495,7 +549,7 @@ ACTION_TEMPLATES.update({
     CREATE_PROFILE_BY_OPERATOR:{
         ACCOUNT_LOG: Template(registration_account_template),
     },
-    REQUESTION_REGISTRATION:{
+    REQUESTION_REGISTRATION_BY_OPERATOR:{
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
         ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template),
     },
@@ -506,53 +560,25 @@ ACTION_TEMPLATES.update({
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
         ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template),
     },
-    CHANGE_REQUESTION: {
-        ANONYM_LOG:Template(u'''
-                    {% if "admission_date" in changed_fields %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
-                    '''),
-        ACCOUNT_LOG:Template(u'''
-                    {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
-                    {% if "last_name" in changed_fields %}Фамилия: {{ requestion.last_name }};{% endif %}
-                    {% if "first_name" in changed_fields %}Имя: {{ requestion.first_name }};{% endif %}
-                    {% if "patronymic" in changed_fields %}Отчество: {{ requestion.patronymic }};{% endif %}
-                    {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
-                    '''),
+    ACCOUNT_CHANGE_REQUESTION: {
+        ANONYM_LOG: Template(change_requestion_anonym_template),
+        ACCOUNT_LOG: Template(change_requestion_account_template),
         },
     CHANGE_REQUESTION_BY_OPERATOR: {
-        ANONYM_LOG:Template(u'''
-                    {% if "admission_date" in changed_fields %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
-                    '''),
-        ACCOUNT_LOG:Template(u'''
-                    {% if "sex" in changed_fields %}Пол: {{ requestion.get_sex_display }};{% endif %}
-                    {% if "last_name" in changed_fields %}Фамилия: {{ requestion.last_name }};{% endif %}
-                    {% if "first_name" in changed_fields %}Имя: {{ requestion.first_name }};{% endif %}
-                    {% if "patronymic" in changed_fields %}Отчество: {{ requestion.patronymic }};{% endif %}
-                    {% if "comment" in changed_fields %}Комментарий: {{ requestion.comment }};{% endif %}
-                    '''),
+        ANONYM_LOG: Template(change_requestion_anonym_template),
+        ACCOUNT_LOG: Template(change_requestion_account_template),
         },
+    CHANGE_REQUESTION_LOCATION:{
+        ACCOUNT_LOG: Template(u"""
+            {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        """)
+    },
     CHANGE_PROFILE: {
         ACCOUNT_LOG: Template(change_profile_account_template),
         },
     CHANGE_PROFILE_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_profile_account_template),
         },
-    CHANGE_PREFERRED_SADIKS: {
-        ANONYM_LOG: Template(change_preferred_sadiks_anonym_template)
-    },
-    CHANGE_PREFERRED_SADIKS_BY_OPERATOR: {
-        ANONYM_LOG: Template(change_preferred_sadiks_anonym_template)
-    },
-    CHANGE_BENEFITS: {
-        ANONYM_LOG: Template(change_benefits_anonym_template),
-        ACCOUNT_LOG: Template(change_benefits_account_template),
-    },
-    CHANGE_BENEFITS_BY_OPERATOR: {
-        ANONYM_LOG: Template(change_benefits_anonym_template),
-        ACCOUNT_LOG: Template(change_benefits_account_template),
-    },
-    CHANGE_DOCUMENTS: {
-        ACCOUNT_LOG: Template(change_documents_account_template),
-    },
     CHANGE_DOCUMENTS_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_documents_account_template),
     },
@@ -595,8 +621,34 @@ ACTION_TEMPLATES.update({
     },
     VACANCY_DISTRIBUTED: {
         ANONYM_LOG: Template(u"""
-            Было завершено распределение в {{ sadik }}
+            Было завершено выделение места в {{ sadik }}
         """)
+    },
+    DECISION_DISTRIBUTION: {
+        ANONYM_LOG: Template(decision_distribution_anonym)
+    },
+    NOT_APPEAR_DISTRIBUTED: {
+        ANONYM_LOG: Template(decision_distribution_anonym)
+    },
+    DECISION_REQUESTER: {
+        ANONYM_LOG: Template(decision_requster_anonym)
+    },
+    NOT_APPEAR_REQUESTER: {
+        ANONYM_LOG: Template(decision_requster_anonym)
+    },
+    DECISION_NOT_APPEAR: {
+        ANONYM_LOG: Template(decision_not_appear_anonym)
+    },
+    DECISION: {
+        ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
+    },
+    DISTRIBUTION_BY_RESOLUTION: {
+        ANONYM_LOG: Template(
+            u"""Зачислен в {{ sadik }}. Должность резолюционера: {{ resolutioner_post }}.
+            ФИО резолюционера: {{ resolutioner_fio }}. Номер документа: {{ resolution_number }}.
+            """)
     }
+
+
 })
 

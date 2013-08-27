@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.gis.admin.options import OSMGeoAdmin
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Point
-from sadiki.administrator.models import ImportTask
 from sadiki.core.models import Profile, Requestion, Sadik, Address, \
     EvidienceDocument, EvidienceDocumentTemplate, Distribution, Area
 
@@ -31,10 +30,9 @@ class AreaAdmin(CustomGeoAdmin):
     pass
 
 class RequestionAdmin(admin.ModelAdmin):
-    list_display = ('requestion_number', 'number_in_old_list', 'last_name',
-        'first_name', 'patronymic')
+    list_display = ('requestion_number', 'number_in_old_list', 'name')
     search_fields = ('profile__user__username', 'number_in_old_list')
-    raw_id_fields = ('profile', 'address')
+    raw_id_fields = ('profile', )
 
 
 class SadikAdmin(admin.ModelAdmin):
@@ -63,4 +61,3 @@ admin.site.register(Requestion, RequestionAdmin)
 admin.site.register(Sadik, SadikAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(Profile, ProfileAdmin)
-admin.site.register(ImportTask)

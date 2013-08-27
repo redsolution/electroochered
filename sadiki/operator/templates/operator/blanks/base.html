@@ -4,16 +4,16 @@
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
         <style type="text/css">
             @font-face {
-                font-family: Arial;
-                src: url("{{ media_root }}/font/Ubuntu.ttf");
+                font-family: Ubuntu;
+                src: url("{{ media_root }}/font/UbuntuMono-R.ttf");
             }
             
             body {
-                padding: 10mm;
+                padding: 0px;
                 width: 210mm;
                 height: 297mm;
-                margin: 0px;
-                font-family: Arial;
+                margin: 5mm;
+                font-family: Ubuntu;
                 font-size: 11pt;
             }
             .header{
@@ -26,9 +26,16 @@
             .content{
                 text-align: justify;
             }
-            .content h2{
+            h2{
                 text-align: center;
-                margin-top: 20mm;
+                margin-top: 10mm;
+                margin-bottom: 0mm;
+            }
+
+            h3{
+                margin-top: 0mm;
+                padding-top: 0mm;
+                text-align: center;
             }
             
             .footer{
@@ -37,7 +44,6 @@
             }
             
             .footer tr td{
-                text-align: left;
                 padding: 0mm;
                 margin: 0mm;
             }
@@ -50,10 +56,13 @@
             }
             
             .blank_field{
+                font-size: 6pt;
                 white-space-collapse: discard;
                 text-decoration: underline;
             }
         </style>
+        {% block extra_head %}
+        {% endblock %}
     </head>
     
     <body>

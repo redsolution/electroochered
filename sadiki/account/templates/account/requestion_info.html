@@ -1,4 +1,4 @@
-{% extends "account/requestion_base.html" %}
+{% extends "account/account_base.html" %}
 {% load zenforms sadiki_core_tags pytils_numeral %}
 
 {% block content_title %}
@@ -7,125 +7,472 @@
 
 {% block css %}
     {{ block.super }}
-    {% if requestion.address.coords %}
-        {% include "includes/leaflet_css.html" %}
-    {% endif %}
+    {% include "includes/leaflet_css.html" %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.css" />
 {% endblock %}
 
 {% block bottomjs %}
     {{ block.super }}
-    {% with requestion.address.coords as point %}
-        {% if point %}
-            {% include "includes/leaflet_js.html" %}
-            <script type="text/javascript">
-                $(document).ready(function(){
-                    draw_map_for_point('requestion_map', {{ point.x }}, {{ point.y }});
+    {% load_settings %}
+        <script src="{{ STATIC_URL }}leaflet/leaflet.js"></script>
+        <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
+        <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
+        <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
 
-                    {% queue_tooltips as tooltips %}
-                    $("#requestion-status-row .icon-question-sign").popover({
-                        title: "Статусы заявки",
-                        content: "{{ tooltips.requestion_status_tooltip }}",
-                        placement: "left", html: true})
-                    $("#special-actions-row .icon-question-sign").popover({
-                        title: "Особые действия",
-                        content: "Действия уполномоченного лица, которые могли повлиять на очередность",
-                        placement: "left"})
-                    $("#age-groups-row .icon-question-sign").popover({
-                        title: "Возрастные группы в системе",
-                        content: "{{ tooltips.age_groups_tooltip }}",
-                        placement: "top", html:true})
-                    $("#benefit-categories-row .icon-question-sign").popover({
-                        title: "Категории льгот",
-                        content: "{{ tooltips.benefit_categories_tooltip }}",
-                        placement: "top", html:true})
+        <script>
+            {% with requestion.location as point %}
+            {% if point %}
+                var requestion_point = [{{ point.y }}, {{ point.x }}]
+                var requestion_marker = L.marker(requestion_point)
+            {% else %}
+                var requestion_marker = null
+            {% endif %}
+            {% if requestion.distribute_in_any_sadik %}
+                var areas_ids = {{ areas_ids }};
+            {% else %}
+                var areas_ids = null;
+            {% endif %}
+            var map;
+            var sadiksLayer;
+            var prefSadikLayer;
+            var sadik_location_data = {{ sadiks_location_data|safe }};
+            var pref_sadiks_ids = {{ pref_sadiks_ids|safe }};
+            var sadik_markers;
+
+            function field_changed(element) {
+                if (!$(element).find('label span.value-changed').length){
+                    $(element).children("label").append('<span class="value-changed"> (Изменено)</span>');
+                    $(element).children("label").addClass('changed');
+                }
+                // submit активный
+                $('#requestion-form button:submit').attr('disabled', false);
+                // сообщение при закрытии окна
+                function confirmmsg() {
+                    return "Все несохраненные изменения будут утеряны";
+                }
+                window.onbeforeunload = confirmmsg;
+            }
+
+            //отрисовка садиков на карте
+            function renderMarkers(markers, map) {
+                sadik_markers = {}
+                if (sadiksLayer){
+                    map.removeLayer(sadiksLayer)
+                }
+                if (prefSadikLayer){
+                    map.removeLayer(prefSadikLayer)
+                }
+                sadiksLayer = new L.MarkerClusterGroup({
+                    maxClusterRadius: 30
                 });
-            </script>
-        {% endif %}
-    {% endwith %}
+                prefSadikLayer = new L.LayerGroup()
+                var activeSadikIcon = L.icon({
+                    iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                    iconSize:     [22, 23], // size of the icon
+                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                    shadowAnchor: [4, 62]  // the same for the shadow
+                });
+                var areaSadikIcon = L.icon({
+                    iconUrl: '{{ STATIC_URL }}img/sadik-icon-yellow.png',
+
+                    iconSize:     [22, 23], // size of the icon
+                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                    shadowAnchor: [4, 62]  // the same for the shadow
+                });
+                var inactiveSadikIcon = L.icon({
+                    iconUrl: '{{ STATIC_URL }}img/sadik-icon-gray.png',
+
+                    iconSize:     [22, 23], // size of the icon
+                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                    shadowAnchor: [4, 62]  // the same for the shadow
+                });
+                function bind_popup(marker){
+                    marker.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
+                }
+                for (var key in markers) {
+                    if (jQuery.inArray(markers[key].id, pref_sadiks_ids) != -1){
+                        var m = L.marker(markers[key].location.slice().reverse(),
+                                {title: markers[key].name, icon: activeSadikIcon, zIndexOffset: 1000});
+                        m.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
+                        prefSadikLayer.addLayer(m)
+                        sadik_markers[markers[key].id] = m;
+                    } else {
+                        if ((areas_ids !== null && areas_ids.length == 0) || jQuery.inArray(markers[key].area_id, areas_ids) != -1){
+                            var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
+                        } else {
+                            var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
+                        }
+                    bind_popup(m)
+                    sadiksLayer.addLayer(m);
+                    }
+                    sadik_markers[markers[key].id] = m;
+                }
+                map.addLayer(sadiksLayer, true);
+                map.addLayer(prefSadikLayer)
+            }
+            $(document).ready(function(){
+                if (requestion_marker) {
+                    var map_center = requestion_point
+                } else {
+                    var map_center = [{{ settings.MAP_CENTER }}].reverse();
+                }
+                map = new L.Map("account-requestion-map", {
+                    center: map_center,
+                    zoom: 12
+                });
+                var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+                    subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+                });
+                osmLayer.addTo(map);
+
+                var points = L.layerGroup([]);
+
+                var drawnItems = new L.FeatureGroup();
+                map.addLayer(drawnItems);
+                drawnItems.addLayer(requestion_marker);
+
+                {% if can_change_requestion %}
+                    // Initialize the draw control and pass it the FeatureGroup of editable layers
+                    var drawControl = new L.Control.Draw({
+                        edit: {
+                            featureGroup: drawnItems,
+                            remove: false,
+                            edit: {title: 'Изменить местоположение'}
+                        },
+                        draw: {
+                            polyline: false,
+                            polygon: false,
+                            circle: false, // Turns off this drawing tool
+                            rectangle: false,
+                            marker: false
+                        }
+                    });
+                    map.addControl(drawControl);
+                {% endif %}
+
+
+                map.on('draw:edited', function (e) {
+                    e.layers.eachLayer(function (layer) {
+                        lat_lng = layer.getLatLng()
+                        requestion_point = [lat_lng.lat, lat_lng.lng]
+                        requestion_marker = L.marker(requestion_point)
+                        $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
+                        field_changed($("#location-header"));
+                    });
+                });
+
+                $('.leaflet-draw-edit-edit').click(function(){
+                    map.panTo(requestion_point);
+                })
+                renderMarkers(sadik_location_data, map)
+            // изменение приоритетных ДОУ
+            $("#id_pref_sadiks").change(function(e, data) {
+                var value = parseInt(data.value);
+                if (data.type == 'add'){
+                    pref_sadiks_ids.push(value);
+                    renderMarkers(sadik_location_data, map)
+                    map.panTo(sadik_location_data[value].location.slice().reverse())
+                    sadik_markers[value].openPopup()
+                } else {
+                    var index = pref_sadiks_ids.indexOf(value);
+                    pref_sadiks_ids.splice(index, 1);
+                    renderMarkers(sadik_location_data, map)
+                }
+
+              });
+            });
+            $('#id_areas, #id_distribute_in_any_sadik').change(function(){
+                if ($("#id_distribute_in_any_sadik").is(':checked')){
+                    if ($("#id_areas").val()){
+                        areas_ids = [parseInt($("#id_areas").val())]
+                    } else {
+                        areas_ids = []
+                    }
+
+                } else {
+                    areas_ids = null;
+                }
+                renderMarkers(sadik_location_data, map)
+            })
+        {% endwith %}
+
+        //при отправке формы нужно убрать запрос на обновление страницы
+        function form_submit(f){
+            window.onbeforeunload = null;
+            f.submit();
+        }
+
+        //обработка нажатия на кнопку редактирвания поля
+        function change_field(element){
+            var parent = $(element.parentElement);
+            parent.children('a').hide();
+            parent.children('label').hide();
+            parent.children('input, select').show();
+            parent.children('input, select').focus();
+            parent.children('input').blur(function() {
+                parent.children('label').html(parent.children('input').val())
+                parent.children('a').show();
+                parent.children('label').show();
+                parent.children('input').hide();
+            })
+            parent.children('select').blur(function() {
+                parent.children('label').html(parent.find("select option:selected").text())
+                parent.children('a').show();
+                parent.children('label').show();
+                parent.children('select').hide();
+            });
+        }
+
+        $(document).ready(function(){
+            // сообщение о том, что поле было изменено + запрос при закрытии окна
+            $('input, select').bind('change', function(){
+                var container_el = $(this).parents('.field');
+                field_changed(container_el);
+            })
+        });
+        </script>
 {% endblock %}
 
 {% block content %}
-    {% if not requestion.editable %}
-        <div class="label label-important">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
-    {% else %}
-        {% if requestion.status != STATUS_REQUESTER_NOT_CONFIRMED %}
-            <div class="label label-important">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
-        {% endif %}
-<div class="row">
-    <div class="span6">
-            <div class="page-header"><h2>Информация о заявке</h2></div>
-            <dl>
-                <dt>Адрес электронной почты</dt>
-                <dd><h3>{{ requestion.profile.user.email|verbose_value }}</h3></dd>
-                <dt>Ребенок</dt>
-                <dd><h3>{{ requestion.fio|verbose_value }}</h3></dd>
-
-                <dt>Родитель</dt>
-                <dd><h3>{{ requestion.profile.fio|verbose_value }}</h3></dd>
-                <dt>Возрастная категория</dt>
-                <dd>{{ requestion.age_groups.0|default:"Ваш ребенок не попадает ни в одну возрастную категорию, наверное, ему нужно подрасти" }}</dd>
-            </dl>
-        <hr />
-            <p>Перед Вами <strong>{{ requestions_before }}</strong> заяв{{ requestions_before|choose_plural:"ка,ки,ок" }},
-                из них <strong>{{ benefits_before }}</strong> льготник{{ benefits_before|choose_plural:",а,ов" }}
-                и <strong>{{ confirmed_before }}</strong> документально подтвержденн{{ confirmed_before|choose_plural:"ая,ые,ых" }}</p>
-
-            {% if requestions_after > 0 %}
-                <p>А после Вас <strong>{{ requestions_after }}</strong> заявк{{ requestions_after|choose_plural:"а,ки,ок" }},
-                из них <strong>{{ benefits_after }}</strong> льготник{{ benefits_after|choose_plural:",а,ов" }}
-                и <strong>{{ confirmed_after }}</strong> документально подтвержденн{{ confirmed_after|choose_plural:"ая,ые,ых" }}</p>
+    {% block top_block %}
+        <div class='notification-area'>
+        {% if not can_change_requestion %}
+            <div class="alert alert-error">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
+        {% else %}
+            {% if not requestion.document_confirmed %}
+                <div class="alert alert-error">Вам необходимо в ближайшее время подтвердить заявку, обратившись в управление образования.</div>
             {% else %}
-                <p>Ваша заявка самая новая!</p>
+                <div class="alert alert-error">После документального подтверждения, изменение льгот и документов возможно только через оператора.</div>
             {% endif %}
+        {% endif %}
+        </div>
+    {% endblock top_block %}
+<form id="requestion-form" action='.' method="post" class="requestion-form {% if not can_change_requestion %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
+<div class="row">
+    {% csrf_token %}
+    {{ pref_sadiks_form.media }}
+    {{ change_requestion_form.media }}
+    {{ change_benefits_form.media }}
+    {{ pref_sadiks_form.non_field_errors }}
+    {{ change_requestion_form.non_field_errors }}
+    {{ change_benefits_form.non_field_errors }}
+    <div class="span6">
+    <div class="requestion-info">
+        <div class="block-head">Информация о заявке:</div>
+        <div class="{% if change_requestion_form.name.errors %}error {% endif %}field">
+            <label class="field-label">{{ change_requestion_form.name.label }}{% if change_requestion_form.name.errors %}<span class="value-changed"> ({{ change_requestion_form.name.errors|striptags }})</span>{% endif %}</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ change_requestion_form.name.value }}</label>
+                {{ change_requestion_form.name }}
+                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
+            <label class="field-label">{{ change_requestion_form.sex.label }}{% if change_requestion_form.sex.errors %}<span class="value-changed"> ({{ change_requestion_form.sex.errors|striptags }})</span>{% endif %}</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ change_requestion_form.sex|form_field_verbose }}</label>
+                {{ change_requestion_form.sex }}
+                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Дата регистрации</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.registration_datetime }}</span>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Дата рождения</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.birth_date }}</span>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Возрастная группа</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.age_groups.0|default:"Ребёнок не попадает ни в одну возрастную категорию." }}</span>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Желаемый год поступления</label>
+            <p class="field-value hidden-input">
+                <label class="value">{{ requestion.admission_date.year }}</label>
+                {{ change_requestion_form.admission_date }}
+                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
 
+            </p>
+        </div>
 
-            <div class="page-header"><h2>Данные заявки</h2></div>
-
-            <dl>
-                <dt>Территориальная область:</dt>
-                <dd>{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</dd>
-                <dt>Дата рождения:</dt>
-                <dd>{{ requestion.birth_date }}</dd>
-                <dt>Статус:</dt>
-                <dd>{{ requestion.get_status_display }}</dd>
-                <dt>Льготы:</dt>
-                <dd>{{ requestion.benefit_category }}</dd>
-                <dt>Приоритетные ДОУ:</dt>
-                <dd><ul>
-                    {% for sadik in requestion.pref_sadiks.all %}
-                        <li><a href="{% url sadik_info sadik_id=sadik.id %}">{{ sadik.short_name }}</a></li>
-                    {% endfor %}
+        <div class="hidden">
+            {{ change_requestion_form.location }}
+        </div>
+    </div>
+    </div>
+    <div class="span5">
+        {% block top_right %}
+        <div class="requestion-info">
+        <div class="field">
+            <label class="field-label">Статус</label>
+            {% if requestion.document_confirmed %}
+                <p class="field-value">{{ requestion.get_status_display }}</p>
+            {% else %}
+                <div class="document-info">
+                <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                <p class="field-value">
+                    {{ requestion.get_status_display }}
+                    {% if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
+                    <span class="status-not-approved">Статус не подтвержден оператором</span>
+                    {% endif %}
+                </p>
+                </div>
+            {% endif %}
+        </div>
+        <div class="block-head top-indent">Документы:</div>
+        <div class="field">
+            {% for document in requestion.evidience_documents %}
+            <label class="field-label">{{ document.template }}</label>
+            <div>
+                <span class="document-info">
+                {% if not document.confirmed %}
+                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-not-approved">Документ не подтвержден оператором</span>
+                    </div>
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-approved">Документ подтвержден</span>
+                    </div>
+                {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="field">
+            <label class="field-label">Льготы</label>
+            {% if can_change_benefits %}
+                {{ change_benefits_form.benefits }}
+            {% else %}
+                {% with requestion.benefits.all as requestion_benefits %}
+                    {% if requestion_benefits %}
+                    <ul class="benefits-list">
+                        {% for benefit in requestion_benefits%}
+                            <li class="bsmListItem"><span class="bsmListItemLabel">{{ benefit }}</span></li>
+                        {% endfor %}
                     </ul>
-                </dd>
-            </dl>
+                    {% else %}
+                        <p class="field-value">Не заданы</p>
+                    {% endif %}
+                {% endwith %}
+                {% if can_change_requestion %}
+                    <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
+                {% endif %}
+            {% endif %}
         </div>
-        <div class="span3">
-            <div class="page-header"><h2>Документы</h2></div>
-                <ul class="documents">
-                    {% for doc in requestion.evidience_documents %}
-                    <li>
-                        <p>{{ doc.template }}</p>
-                        Номер {{ doc.document_number }}
-                        {% if doc.confirmed %}<i class="green icon-ok-circle"></i>Подтвержден
-                        {% else %}<i class="red icon-ban-circle"></i>Не подтвержден
-                        {% endif %}
-                        <hr />
-                    </li>
-                    {% endfor %}
-
-                </ul>
-                {% if requestion.address.coords %}<div id="requestion_map"></div>{% endif %}
         </div>
+        {% endblock top_right %}
+    </div>
 </div>
-        <h2 class="page-header">Очередь заявок</h2>
 
+<div class="row">
+    <div class="requestion-info span11">
+        <div class="split-line"></div>
+        <div class="block-head">Выбор ДОУ</div>
+    </div>
+</div>
+<div class="row sadiks-block">
+    <div class="span6">
+        <div class="requestion-info">
+
+        <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
+            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
+            <p class="field-value hidden-input">
+                <label class="value">
+                    {% if pref_sadiks_form.areas.value %}
+                        {{ requestion.areas.all.0|default:"Весь муниципалитет" }}
+                    {% else %}
+                        Весь муниципалитет
+                    {% endif %}
+                </label>
+                {{ pref_sadiks_form.areas }}
+                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+            </p>
+        </div>
+        <div class="field">
+            <label class="field-label">Приоритетные ДОУ</label>
+            {% if can_change_requestion %}
+                {{ pref_sadiks_form.pref_sadiks }}
+            {% else %}
+                {% with requestion.pref_sadiks.all as requestion_sadiks %}
+                    {% if requestion_sadiks %}
+                    <ul class="benefits-list">
+                        {% for sadik in requestion_sadiks %}
+                            <li class="bsmListItem"><span class="bsmListItemLabel">{{ sadik }}</span></li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                        <p class="field-value">Не заданы</p>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        </div>
+        <div class="field">
+            {% with pref_sadiks_form.distribute_in_any_sadik as field %}
+                {% if can_change_requestion %}
+                    {{ field }}
+                    <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% else %}
+                    <label class="field-label distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ field.label }}</label>
+                {% endif %}
+            {% endwith %}
+        </div>
+        </div>
+    </div>
+    <div class="span5">
+        <div class="requestion-info">
+        <div id="location-header" class="field">
+            <label class="field-label">{{ change_requestion_form.location.label }}</label>
+        </div>
+        <div id="account-requestion-map"></div>
+        <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
+        </div>
+        <ul class='map-legend'>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
+            <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
+        </ul>
+    </div>
+</div>
+{% if can_change_requestion %}
+<div class="row">
+    <div class="span11">
+        <button class="btn btn-primary btn-large" type="submit" disabled="disabled">Сохранить</button>
+    </div>
+</div>
+{% endif %}
+</form>
+{% block bottom %}
+    <div class="requestion-queue">
+        <div class="split-line"></div>
+        <div class="block-head">Очередь заявок</div>
+        <div class="queue-info">
+            <p>Заявок перед Вами: <span class="number">{{ requestions_before }}</span>
+                (Из них льготников: <span class="number">{{ benefits_before }}.</span>
+                Документально подтвержденных: <span class="number">{{ confirmed_before }}</span>)</p>
+            <p>Заявок после Вас: <span class="number">{{ requestions_after }}</span> (
+                Из них льготников: <span class="number">{{ benefits_after }}.</span>
+                Документально подтвержденных: <span class="number">{{ confirmed_after }}</span>)</p>
+        </div>
         {% with queue as object_list %}
         {% with requestion as target_requestion %}
             {% include "anonym/includes/queue_include.html" %}
         {% endwith %}
         {% endwith %}
 
-        <h2><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></h2>
-
-    {% endif %}
+        <div class="block-head"><a href="{% url anonym_queue  %}?requestion_number={{ requestion.requestion_number }}">Смотреть всю очередь</a></div>
+    </div>
+{% endblock bottom %}
 {% endblock %}

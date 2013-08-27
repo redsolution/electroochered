@@ -2,7 +2,7 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import TemplateView
 from ordereddict import OrderedDict
@@ -11,11 +11,10 @@ from sadiki.core.models import Distribution, Sadik, SadikGroup, STATUS_DECISION,
     DISTRIBUTION_STATUS_START, Requestion, STATUS_REQUESTER, STATUS_DISTRIBUTED, \
     STATUS_REMOVE_REGISTRATION
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js
-from sadiki.core.workflow import CHANGE_SADIK_GROUP_PLACES, CHANGE_SADIK_INFO, \
-    TRANSFER_APROOVED
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
+from sadiki.core.workflow import CHANGE_SADIK_GROUP_PLACES, CHANGE_SADIK_INFO
 from sadiki.logger.models import Logger
-from sadiki.operator.forms import SadikGroupForm, SadikForm, ChangeSadikForm
+from sadiki.operator.forms import get_sadik_group_form, SadikForm, ChangeSadikForm, BaseSadikGroupFormSet
 
 
 class SadikOperatorPermissionMixin(RequirePermissionsMixin):
@@ -90,19 +89,22 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
             super(SadikGroupChangePlaces, self).check_permissions(request, sadik)
             and sadik.active_distribution == True and not Distribution.objects.active())
 
-    def get_formset(self):
-        return inlineformset_factory(Sadik, SadikGroup, form=SadikGroupForm,
-            fields=('cast', 'free_places', 'age_group'), extra=1, can_delete=False)
+    def get_formset(self, sadik):
+        return inlineformset_factory(Sadik, SadikGroup, form=get_sadik_group_form(sadik=sadik),
+                                     formset=BaseSadikGroupFormSet,
+                                     fields=('free_places',), extra=0, can_delete=False)
 
     def get(self, request, sadik):
-        formset = self.get_formset()(instance=sadik,
-            queryset=SadikGroup.objects.all())
+        # создаем возрастные группы
+        sadik.create_default_sadikgroups()
+        formset = self.get_formset(sadik=sadik)(instance=sadik,
+            queryset=SadikGroup.objects.active())
         return self.render_to_response(
             {'sadik': sadik, 'formset': formset})
 
     def post(self, request, sadik):
-        formset = self.get_formset()(instance=sadik,
-            queryset=SadikGroup.objects.all(),
+        formset = self.get_formset(sadik=sadik)(instance=sadik,
+            queryset=SadikGroup.objects.active(),
             data=request.POST)
         if formset.is_valid():
             if any(form.has_changed() for form in formset.forms):
@@ -126,7 +128,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
     template_name = "operator/requestion_list_distributed.html"
     required_permissions = ["is_operator", "is_sadik_operator"]
 
-    def get(self, request):
+    def get(self, request, sadik_id):
 #        получаем ДОУ для данного района в которых есть заявки с выделенными местами
         profile = request.user.get_profile()
         sadiks_query = Sadik.objects.filter(
@@ -139,12 +141,20 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
             'distribution_started': Distribution.objects.filter(
                 status=DISTRIBUTION_STATUS_START).exists(),
         }
-        if sadiks_query.count() == 1:
+        if sadik_id:
+            sadik = get_object_or_404(Sadik, id=sadik_id)
+            form = SadikForm(sadiks_query=sadiks_query)
+            context.update({
+                'form': form,
+            })
+        elif sadiks_query.count() == 1:
             sadik = sadiks_query[0]
         else:
             form = SadikForm(sadiks_query=sadiks_query, data=request.GET)
             if form.is_valid():
                 sadik = form.cleaned_data.get('sadik')
+                if sadik:
+                    return HttpResponseRedirect(reverse('requestion_list_enroll', kwargs={'sadik_id': sadik.id}))
             else:
                 form = SadikForm(sadiks_query=sadiks_query)
                 sadik = None
@@ -172,3 +182,55 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
                             "STATUS_REQUESTER": STATUS_REQUESTER})
             return self.render_to_response(context)
         return self.render_to_response(context)
+
+
+class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
+    required_permissions = ["is_operator", "is_sadik_operator"]
+
+    def get(self, request, sadik_id):
+        sadik = Sadik.objects.get(id=sadik_id)
+        groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
+
+        response = HttpResponse(mimetype='application/vnd.ms-excel')
+        file_name = u'Sadik_%s' % sadik.number
+        response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
+        import xlwt
+        style = xlwt.XFStyle()
+        style.num_format_str = 'DD-MM-YYYY'
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet(u'Результаты распределения')
+        header = [
+            u'№',
+            u'Номер заявки',
+            u'Документ',
+            u'Имя ребенка',
+            u'Дата рождения',
+            u'Дата регистрации',
+            u'Категория льгот',
+            u'Статус заявки',
+        ]
+        ws.write_merge(0, 0, 0, len(header), sadik.name)
+        row_number = 1
+        for sadik_group, requestions in groups_with_distributed_requestions.iteritems():
+            sadik_group_name = u"{name} ({short_name}) за {year} год".format(
+                name=sadik_group.age_group.name, short_name=sadik_group.age_group.short_name,
+                year=sadik_group.year.year)
+            ws.write_merge(row_number, row_number, 0, len(header), sadik_group_name)
+            row_number += 1
+            for column_number, element in enumerate(header):
+                ws.write(row_number, column_number, element, style)
+            row_number += 1
+            for i, requestion in enumerate(requestions, start=1):
+                if requestion.related_documents:
+                    document = requestion.related_documents[0]
+                    document_number = u"{0} ({1})".format(document.document_number, document.template.name)
+                else:
+                    document_number = u''
+                row = [unicode(i), requestion.requestion_number, document_number, requestion.name, requestion.birth_date,
+                       requestion.registration_datetime.date(), unicode(requestion.benefit_category),
+                       requestion.get_status_display()]
+                for column_number, element in enumerate(row):
+                    ws.write(row_number, column_number, element, style)
+                row_number += 1
+        wb.save(response)
+        return response

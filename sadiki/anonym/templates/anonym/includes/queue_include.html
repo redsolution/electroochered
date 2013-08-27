@@ -4,11 +4,13 @@
     <thead>
     <tr>
         <th>№</th>
-        <th>Номер заявки</th>
+        <th id="requestion-number-head">Номер заявки <span class="icon-question-sign"></span></th>
+        <th>Территориальная область</th>
         <th>Дата рождения</th>
         <th>Дата регистрации</th>
         <th id="benefit-categories-row">Категория льгот <span class="icon-question-sign"></span></th>
         <th id="age-groups-row">Возрастная категория <span class="icon-question-sign"></span></th>
+        <th id="admission-date">Желаемый год поступления</th>
         <th id="requestion-status-row">Статус заявки <span class="icon-question-sign"></span></th>
         <th id="special-actions-row">Особые действия <span class="icon-question-sign"></span></th>
     </tr>
@@ -17,7 +19,21 @@
         {% for requestion in object_list %}
         <tr {% if target_requestion.id == requestion.id %}class="highlight" id="target" {% endif %}>
             <td>{{ forloop.counter|add:offset }}</td>
-            <td><a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a></td>
+            <td class="requestion-number">
+                <div class="social-button">
+                {% with requestion.profile.user.social_auth.all as social_accounts %}
+                    {% if social_accounts %}
+                        {% if requestion.profile.social_auth_public %}
+                            <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ social_accounts.0.uid }}"><img src="{{ STATIC_URL }}img/vkontakte_small.png"/></a>
+                        {% else %}
+                            <img src="{{ STATIC_URL }}img/vkontakte_small_inactive.png"/>
+                        {% endif %}
+                    {% endif %}
+                {% endwith %}
+                </div>
+                {% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
+            </td>
+            <td>{{ requestion.areas.all.0 }}</td>
             <td>{{ requestion.birth_date }}</td>
             <td>{{ requestion.registration_datetime }}</td>
             <td>{{ requestion.benefit_category }}</td>
@@ -25,9 +41,24 @@
                 {{ requestion.age_groups_calculated.0.short_name }}
             </td>
             <td>
+                {{ requestion.admission_date.year }}
+            </td>
+            <td>
                 {{ requestion.get_status_display }}
                 {% if requestion.status == STATUS_DECISION %}
+                в {{ requestion.sadik_name }}
                 <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a>
+                {% else %}
+                    {% if requestion.status == STATUS_DISTRIBUTED %}
+                        в {{ requestion.sadik_name }}
+                        <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home green"></i></a>
+                    {% else %}
+                        {% if requestion.status in NOT_APPEAR_STATUSES %}
+                            (осталось {{ requestion.days_for_appeal }} дней)
+                            <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home red"></i></a>
+
+                        {% endif %}
+                    {% endif %}
                 {% endif %}
             </td>
             <td>
@@ -38,3 +69,28 @@
     </tbody>
 </table>
 </div>
+<script type="text/javascript">
+    $(document).ready(function(){
+        {% queue_tooltips as tooltips %}
+        $("#requestion-number-head .icon-question-sign").popover({
+            title: "Профиль ВКонтакте",
+            content: "{{ tooltips.requestion_number_tooltip }}",
+            placement: "top", html: true})
+        $("#requestion-status-row .icon-question-sign").popover({
+            title: "Статусы заявки",
+            content: "{{ tooltips.requestion_status_tooltip }}",
+            placement: "left", html: true})
+        $("#special-actions-row .icon-question-sign").popover({
+            title: "Особые действия",
+            content: "Действия уполномоченного лица, которые могли повлиять на очередность",
+            placement: "left"})
+        $("#age-groups-row .icon-question-sign").popover({
+            title: "Возрастные группы в системе",
+            content: "{{ tooltips.age_groups_tooltip }}",
+            placement: "top", html:true})
+        $("#benefit-categories-row .icon-question-sign").popover({
+            title: "Категории льгот",
+            content: "{{ tooltips.benefit_categories_tooltip }}",
+            placement: "top", html:true})
+    })
+</script>

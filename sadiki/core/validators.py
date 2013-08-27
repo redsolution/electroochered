@@ -9,7 +9,7 @@ def birth_date_validator(value):
     end_date = current_date.replace(
             year=current_date.year - settings.MAX_CHILD_AGE)
     if value < end_date:
-        raise ValidationError(u"Возраст ребенка превышает максимальный")
+        raise ValidationError(u"Возраст ребёнка превышает максимальный")
     elif value > current_date:
         raise ValidationError(u"Дата рождения не может превышать текущую дату")
 

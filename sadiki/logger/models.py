@@ -37,13 +37,14 @@ class LoggerManager(models.Manager):
         context = Context(context_dict)
         if extra is None:
             extra = {}
+        log_dict = {'reason': reason,
+                'action_flag': action_flag,
+                'user': extra.get('user')
+                }
         obj = extra.get('obj')
-        log = Logger(
-                reason=reason,
-                action_flag=action_flag,
-                content_object=obj,
-                user=extra.get('user')
-            )
+        if obj:
+            log_dict.update({'content_object': obj})
+        log = Logger(**log_dict)
 #        к логу добавляем дополнительную информацию
         if isinstance(obj, Requestion):
             if obj.distributed_in_vacancy:
@@ -97,6 +98,10 @@ class LoggerManager(models.Manager):
                     message=message,
                     from_email=None, recipient_list=[obj.profile.user.email, ])
 
+    def filter_for_object(self, obj):
+        content_type = ContentType.objects.get_for_model(obj)
+        return self.filter(content_type=content_type, object_id=obj.id)
+
 ANONYM_LOG = logging.DEBUG
 ACCOUNT_LOG = logging.INFO
 OPERATOR_LOG = logging.WARNING
@@ -113,7 +118,6 @@ class Logger(models.Model):
     хранение логов выполненных действий
     """
     from sadiki.core.workflow import ACTION_CHOICES
-
     user = models.ForeignKey('auth.User', verbose_name=u"пользователь",
         null=True)
     reason = models.TextField(verbose_name=u"Основание",
@@ -131,7 +135,7 @@ class Logger(models.Model):
     age_groups = models.ManyToManyField('core.AgeGroup')
     profile = models.ForeignKey('core.Profile', null=True)
     action_flag = models.IntegerField(verbose_name=u'Произведенное действие',
-        choices=ACTION_CHOICES)
+                                      choices=ACTION_CHOICES)
     distribution_type = models.IntegerField(verbose_name=u'Тип распределения',
         choices=DISTRIBUTION_TYPE_CHOICES, null=True)
 
@@ -169,54 +173,3 @@ class LoggerMessage(models.Model):
 
     class Meta:
         ordering = ['-level']
-
-REPORT_FILLABILITY = 0
-REPORT_TRANSITIONS = 1
-REPORT_STATUSES = 2
-REPORT_SADIKS_REQUESTS = 3
-
-REPORT_DECISION_CHOICES = (
-    (0, u"Первое распределение в году"),
-    (1, u"Доукомплектование"),
-    )
-
-REPORTS_CHOICES = (
-    (REPORT_FILLABILITY, u"Отчет о заполняемости ДОУ"),
-    (REPORT_TRANSITIONS, u"Отчет по операциям в динамике"),
-    (REPORT_STATUSES, u"Отчет по статусам обращений в разрезе муниципальных образований"),
-    (REPORT_SADIKS_REQUESTS, u"Отчет по приему заявлений ДОУ"),
-    )
-
-
-class ReportQuerySet(models.query.QuerySet):
-
-    def create_report(self, report_type, from_date, to_date, age_group=None,
-        decision_type=None):
-        from sadiki.logger.views import REPORTS_INFO
-        kwargs = {"from_date": from_date, "to_date": to_date}
-        if age_group:
-            kwargs.update({"age_group": age_group})
-        if decision_type:
-            kwargs.update({"decision_type": decision_type})
-        data = REPORTS_INFO["functions"][report_type](**kwargs)
-        data_json = json.dumps(data, cls=DjangoJSONEncoder)
-        return Report.objects.create(data=data_json, type=report_type,
-            from_date=from_date, to_date=to_date, age_group=age_group, decision_type=decision_type)
-
-
-class Report(models.Model):
-    type = models.IntegerField(u"Тип отчета", choices=REPORTS_CHOICES)
-    from_date = models.DateField(u"Дата начала отчетного периода")
-    to_date = models.DateField(u"Дата окончания отчетного периода")
-    data = models.TextField(verbose_name=u"Данные отчета")
-    age_group = models.ForeignKey(u"core.AgeGroup", null=True)
-    decision_type = models.IntegerField(u"Тип комплектования", null=True)
-    objects = query_set_factory(ReportQuerySet)
-
-    def get_data(self):
-        return json.loads(self.data)
-
-    def __unicode__(self):
-        return u"%s с %s по %s" % (self.get_type_display(),
-            self.from_date.strftime('%d-%m-%Y'),
-            self.to_date.strftime('%d-%m-%Y'))

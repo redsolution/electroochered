@@ -2,21 +2,23 @@
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db.models import Q, Sum
-from django.http import HttpResponseForbidden, HttpResponseRedirect
+from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext, loader
 from django.views.generic import TemplateView
 from django.views.generic.base import View
+from ordereddict import OrderedDict
 from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion, \
     STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Vacancies, Sadik, \
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_ENDING, STATUS_DECISION, \
     SadikGroup, AgeGroup, STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION, \
-    STATUS_WANT_TO_CHANGE_SADIK, STATUS_ON_TRANSFER_DISTRIBUTION, Area
+    Area, REQUESTION_TYPE_IMPORTED, VACANCY_STATUS_NOT_PROVIDED
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year, run_command
 from sadiki.core.workflow import DISTRIBUTION_INIT
 from sadiki.distribution.forms import SelectSadikForm
 from sadiki.logger.models import Logger
+from sadiki.operator.forms import ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin
 import datetime
 
@@ -33,13 +35,33 @@ class DistributionInfo(RequirePermissionsMixin, TemplateView):
             pass
         else:
             return self.render_to_response({'ending_distribution': ending_distribution})
-        if not distribution_id:
-            return self.render_to_response(
-                {
-                    'finished_distributions': Distribution.objects.filter(
-                        status=DISTRIBUTION_STATUS_END).order_by('-end_datetime'),
-                    'distribution': Distribution.objects.active(),
-                })
+        return self.render_to_response(
+            {
+                'finished_distributions': Distribution.objects.filter(
+                    status=DISTRIBUTION_STATUS_END).order_by('-end_datetime'),
+                'distribution': Distribution.objects.active(),
+            })
+
+
+class EndedDistributions(OperatorPermissionMixin, TemplateView):
+    required_permissions = ['is_operator']
+    template_name = 'distribution/ended_distributions.html'
+
+    def get(self,request):
+        distributions = Distribution.objects.filter(status=DISTRIBUTION_STATUS_END)
+        return self.render_to_response({'distributions': distributions})
+
+
+class DistributionResults(OperatorPermissionMixin, TemplateView):
+    template_name = 'distribution/distribution_results.html'
+
+    def get(self, request, distribution_id):
+        try:
+            ending_distribution = Distribution.objects.get(status=DISTRIBUTION_STATUS_ENDING)
+        except Distribution.DoesNotExist:
+            pass
+        else:
+            return self.render_to_response({'ending_distribution': ending_distribution})
         distribution = get_object_or_404(Distribution, id=distribution_id)
         if distribution.status != DISTRIBUTION_STATUS_END:
             return HttpResponseForbidden(u'Распределение еще не было завершено')
@@ -51,11 +73,79 @@ class DistributionInfo(RequirePermissionsMixin, TemplateView):
             requestions = Requestion.objects.filter(
                 distributed_in_vacancy__distribution=distribution,
                 distributed_in_vacancy__sadik_group__sadik=sadik).order_by(
-                    '-birth_date').select_related('profile')
+                    '-birth_date').select_related('profile').select_related(
+                'distributed_in_vacancy__sadik_group__age_group')
+            requestions.add_related_documents()
             if requestions:
                 requestions_by_sadiks.append([sadik, requestions])
+        if request.GET.get('type') == 'xls':
+            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            file_name = u'Raspredelenie_%s' % (distribution.end_datetime.strftime('%d-%m-%Y_%H-%M'))
+            response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
+            import xlwt
+            style = xlwt.XFStyle()
+            style.num_format_str = 'DD-MM-YYYY'
+            wb = xlwt.Workbook()
+            ws = wb.add_sheet(u'Результаты распределения')
+            header = [
+                u'Номер заявки',
+                u'Номер в списке',
+                u'Дата рождения',
+                u'Группа',
+                u'Документ',
+            ]
+            row_number = 0
+            for requestions_by_sadik in requestions_by_sadiks:
+                if requestions_by_sadik[1]:
+                    ws.write_merge(row_number, row_number, 0, 4, requestions_by_sadik[0].name)
+                    row_number += 1
+                    for column_number, element in enumerate(header):
+                        ws.write(row_number, column_number, element, style)
+                    row_number += 1
+                    for requestion in requestions_by_sadik[1]:
+                        row = [requestion.requestion_number, requestion.number_in_old_list, requestion.birth_date,
+                               unicode(requestion.distributed_in_vacancy.sadik_group)]
+                        if requestion.related_documents:
+                            document = requestion.related_documents[0]
+                            row.append("%s (%s)" % (document.document_number, document.template.name))
+                        for column_number, element in enumerate(row):
+                            ws.write(row_number, column_number, element, style)
+                        row_number += 1
+            wb.save(response)
+            return response
         return self.render_to_response({'current_distribution': distribution,
             'requestions_by_sadiks': requestions_by_sadiks})
+
+
+class DistributionPlacesResults(OperatorPermissionMixin, TemplateView):
+    template_name = "distribution/distribution_places_results.html"
+
+    def get(self, request, distribution_id):
+        try:
+            ending_distribution = Distribution.objects.get(status=DISTRIBUTION_STATUS_ENDING)
+        except Distribution.DoesNotExist:
+            pass
+        else:
+            return self.render_to_response({'ending_distribution': ending_distribution})
+        distribution = get_object_or_404(Distribution, id=distribution_id)
+        if distribution.status != DISTRIBUTION_STATUS_END:
+            return HttpResponseForbidden(u'Распределение еще не было завершено')
+        context = {'current_distribution': distribution}
+        sadiks = Sadik.objects.filter(groups__vacancies__distribution=distribution).distinct()
+        sadiks.add_related_groups()
+        sadiks_with_groups = OrderedDict()
+        for sadik in sadiks:
+            sadik_groups_with_places = OrderedDict()
+            for sadik_group in sadik.related_groups:
+                sadik_groups_with_places[sadik_group] = {'free_places': 0, 'capacity': 0}
+            sadiks_with_groups[sadik] = sadik_groups_with_places
+        vacancies = Vacancies.objects.filter(distribution=distribution).select_related('sadik_group', 'sadik_group__sadik')
+        for vacancy in vacancies:
+            sadiks_with_groups[vacancy.sadik_group.sadik][vacancy.sadik_group]['capacity'] += 1
+            if vacancy.status == VACANCY_STATUS_NOT_PROVIDED:
+                sadiks_with_groups[vacancy.sadik_group.sadik][vacancy.sadik_group]['free_places'] += 1
+        context.update({'sadiks_with_groups': sadiks_with_groups, })
+        return self.render_to_response(context)
 
 
 class DistributionInit(OperatorPermissionMixin, TemplateView):
@@ -77,6 +167,8 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
 #            инициируем зачисление
             distribution = Distribution.objects.create(
                 year=get_current_distribution_year())
+            distribution.start_datetime = datetime.datetime.now()
+            distribution.save()
             Vacancies.objects.filter(distribution__isnull=True,
                 status__isnull=True).update(distribution=distribution)
             Logger.objects.create_for_action(DISTRIBUTION_INIT,
@@ -85,8 +177,6 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
                 status=STATUS_ON_DISTRIBUTION)
             Requestion.objects.filter(status=STATUS_TEMP_DISTRIBUTED).update(
                 status=STATUS_ON_TEMP_DISTRIBUTION)
-            Requestion.objects.filter(status=STATUS_WANT_TO_CHANGE_SADIK).update(
-                status=STATUS_ON_TRANSFER_DISTRIBUTION)
         return HttpResponseRedirect(reverse('decision_manager'))
 
 
@@ -99,8 +189,7 @@ class DecisionManager(OperatorPermissionMixin, View):
         info_dict = {}
         distribution = Distribution.objects.filter(status=DISTRIBUTION_STATUS_INITIAL)
         full_queue = Requestion.objects.queue().confirmed().filter(Q(
-            status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION,
-                STATUS_ON_TRANSFER_DISTRIBUTION),
+            status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION),
         ) | Q(
             status=STATUS_DECISION,
             distributed_in_vacancy__distribution=distribution
@@ -146,6 +235,8 @@ class DecisionManager(OperatorPermissionMixin, View):
             if requestions_with_places.exists():
                 current_requestion = requestions_with_places[0]
                 info_dict.update({'current_requestion': current_requestion,
+                    'current_requestion_imported': current_requestion.cast == REQUESTION_TYPE_IMPORTED,
+                    'location_form': ChangeLocationForm(instance=current_requestion),
                     'current_requestion_age_groups': current_requestion.age_groups(
                         current_distribution_year=current_distribution_year)})
                 current_requestion_index = full_queue.requestions_before(
@@ -184,13 +275,13 @@ class DecisionManager(OperatorPermissionMixin, View):
         available_sadiks_ids = available_sadik_groups.filter(
             query_available_sadiks).values_list('sadik', flat=True)
         available_sadiks = Sadik.objects.filter(id__in=available_sadiks_ids)
-        pref_sadiks = requestion.pref_sadiks.filter(id__in=available_sadiks_ids)
+        pref_sadiks = requestion.pref_sadiks.filter(id__in=available_sadiks_ids).select_related("address__coords")
         any_sadiks = Sadik.objects.exclude(
-            id__in=pref_sadiks).filter(id__in=available_sadiks)
+            id__in=pref_sadiks).filter(id__in=available_sadiks).select_related("address__coords")
         return {'pref_sadiks': pref_sadiks, 'any_sadiks': any_sadiks}
     
     def decision_manager(self, request):
-        from sadiki.core.workflow import DECISION, TRANSFER_APROOVED, PERMANENT_DECISION
+        from sadiki.core.workflow import DECISION, PERMANENT_DECISION
         
         queue_info_dict = self.queue_info()
         
@@ -223,26 +314,33 @@ class DecisionManager(OperatorPermissionMixin, View):
             if form.is_valid():
                 sadik_id = form.cleaned_data.get('sadik', None)
                 sadik = Sadik.objects.get(id=sadik_id)
+                # удаляем адрес
+                if current_requestion.cast == REQUESTION_TYPE_IMPORTED:
+                    current_requestion.location_properties = None
+                    current_requestion.save()
                 if current_requestion.status == STATUS_ON_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_requester(sadik)
-                    Logger.objects.create_for_action(DECISION, extra={'user': None, 'obj': current_requestion})
+                    Logger.objects.create_for_action(
+                        DECISION, extra={'user': request.user, 'obj': current_requestion},
+                        context_dict={"sadik": current_requestion.distributed_in_vacancy.sadik_group.sadik})
     
                 if current_requestion.status == STATUS_ON_TEMP_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_tempdistr(sadik)
-                    Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': None, 'obj': current_requestion})
+                    Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': request.user, 'obj': current_requestion})
     
-                if current_requestion.status == STATUS_ON_TRANSFER_DISTRIBUTION:
-                    current_requestion.distribute_in_sadik_from_sadikchange(sadik)
-                    Logger.objects.create_for_action(TRANSFER_APROOVED, extra={'user': None, 'obj': current_requestion})
                 messages.info(request, u'''
-                     Для заявки %s был назначен МДОУ %s
+                     Для заявки %s был назначен %s
                      ''' % (current_requestion.requestion_number, sadik))
                 return HttpResponseRedirect(reverse('decision_manager'))
         else:
             form = SelectSadikForm(current_requestion,
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query)
         queue_info_dict.update({'sadik_list': sadiks_query,
-            'select_sadik_form': form,})
+            'select_sadik_form': form,
+            "sadiks_coords": dict([(sadik.id, {"x": sadik.address.coords.x, "y": sadik.address.coords.y})
+                                   if sadik.address and sadik.address.coords else (sadik.id, {})
+                                   for sadik in sadiks_query]),
+        })
         return render_to_response('distribution/decision_manager.html',
             queue_info_dict, context_instance=RequestContext(request),
         )
@@ -277,4 +375,4 @@ class DistributionEnd(OperatorPermissionMixin, TemplateView):
             start_distribution.to_datetime = datetime.datetime.now()
             start_distribution.save()
             run_command('end_distribution', request.user.username)
-        return HttpResponseRedirect(reverse('distribution_info', kwargs={'distribution_id': start_distribution.id}))
+        return HttpResponseRedirect(reverse('distribution_results', kwargs={'distribution_id': start_distribution.id}))

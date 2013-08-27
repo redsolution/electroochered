@@ -1,0 +1,97 @@
+<script type="text/javascript">
+    {% if point %}
+        var point = [{{ point.y }}, {{ point.x }}];
+        var point_marker = L.marker(point)
+    {% else %}
+        var point = null;
+        var point_marker = null
+    {% endif %}
+    var map;
+
+    var drawnItems = new L.FeatureGroup();
+    // Initialize the draw control and pass it the FeatureGroup of editable layers
+    var draw_control_options = {
+        edit: {
+            featureGroup: drawnItems,
+            remove: false,
+            edit: {title: 'Изменить местоположение'}
+        },
+        draw: {
+            polyline: false,
+            polygon: false,
+            circle: false, // Turns off this drawing tool
+            rectangle: false,
+            marker: true
+        }
+    }
+    if (point){
+        draw_control_options['draw']['marker'] = false;
+    }
+    var drawControl = new L.Control.Draw(draw_control_options);
+    function add_draw_control(map, control){
+        map.addControl(control);
+        $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+            if (point) {
+                    map.panTo(point);
+            } else {
+                map.panTo(map_center);
+            }
+        })
+    }
+
+    $(document).ready(function(){
+        if (point_marker) {
+            map_center = point
+        } else {
+            map_center = [{{ MAP_CENTER }}].reverse();
+        }
+        map = new L.Map("{{ map_id }}", {
+            center: map_center,
+            zoom: 12
+        });
+
+        var osmLayer = new L.TileLayer("{{ LEAFLET_TILES_URL }}", {
+            subdomains: {{ LEAFLET_TILES_SUBDOMAINS|safe }}
+        });
+        osmLayer.addTo(map);
+
+        var points = L.layerGroup([]);
+
+        map.addLayer(drawnItems);
+        if (point_marker){
+            drawnItems.addLayer(point_marker);
+        }
+
+        add_draw_control(map, drawControl);
+
+        map.on('draw:edited', function (e) {
+            e.layers.eachLayer(function (layer) {
+                lat_lng = layer.getLatLng()
+                point = [lat_lng.lat, lat_lng.lng]
+                point_marker = L.marker(point)
+                $('#{{ textarea_id }}').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
+            });
+        });
+
+        map.on('draw:created', function (e) {
+            var type = e.layerType,
+                layer = e.layer;
+            //убрать элемент добавления маркера
+            map.removeControl(drawControl);
+            draw_control_options['draw']['marker'] = false;
+            drawControl = new L.Control.Draw(draw_control_options);
+            add_draw_control(map, drawControl);
+
+            drawnItems.clearLayers();
+            drawnItems.addLayer(layer);
+            lat_lng = layer.getLatLng()
+            point = [lat_lng.lat, lat_lng.lng]
+            point_marker = L.marker(point)
+            $('#{{ textarea_id }}').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
+        });
+    })
+</script>
+<div style="display:none">
+{{ textarea|safe }}
+</div>
+<div id="{{ map_id }}" class="map"></div>

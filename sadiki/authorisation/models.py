@@ -10,6 +10,7 @@ from settings import VERIFICATION_KEY_DAYS
 import datetime
 import random
 
+
 class VerificationKeyManager(models.Manager):
     def create_key(self, user):
         u"""В базе данных создается новый ключ для пользователя"""
@@ -20,14 +21,8 @@ class VerificationKeyManager(models.Manager):
                 self.get_query_set().get(key=key)
             except self.model.DoesNotExist:
                 break
-        try:
-            email_key = self.get_query_set().get(user=user)
-        except self.model.DoesNotExist:
-            email_key = self.model(user=user, key=key)
-        else:
-            email_key.key = key
-            email_key.unused = True
-            email_key.created = datetime.datetime.today()
+
+        email_key = self.model(user=user, key=key)
         email_key.save()
         return email_key
 
@@ -57,7 +52,7 @@ class VerificationKey(models.Model):
             return False
 
     def send_email(self, subject, template, context):
-        context.update({'user': self.user, })
+        context.update({'user': self.user, 'VERIFICATION_KEY_DAYS': VERIFICATION_KEY_DAYS})
         context.update(scheme_and_domain())
         message = render_to_string(template, context)
         return send_mail(subject=subject,
@@ -92,3 +87,4 @@ class VerificationKey(models.Model):
             }
         self.send_email(u'Сброс пароля',
             'authorisation/emails/recovery_password.txt', context)
+

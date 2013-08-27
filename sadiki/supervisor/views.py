@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.db import transaction
@@ -7,26 +7,21 @@ from django.shortcuts import get_object_or_404
 from django.utils.formats import date_format
 from django.views.generic.base import TemplateView
 from sadiki.core.models import Requestion, STATUS_REQUESTER, SadikGroup, \
-    AgeGroup, Distribution, STATUS_NOT_APPEAR, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, \
-    STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION, STATUS_DECISION, \
-    STATUS_DISTRIBUTED, STATUS_WANT_TO_CHANGE_SADIK, BenefitCategory, \
-    STATUS_ARCHIVE
+    Distribution, STATUS_NOT_APPEAR, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, \
+    STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION, STATUS_DECISION
 from sadiki.core.permissions import SUPERVISOR_PERMISSION, \
     RequirePermissionsMixin
-from sadiki.core.settings import FACILITY_TRANSFER_CATEGORY
 from sadiki.core.utils import get_current_distribution_year, \
     get_distribution_year, check_url
 from sadiki.core.workflow import CHANGE_REGISTRATION_DATETIME, CHANGE_BIRTHDATE, \
     NOT_APPEAR_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
-    DECISION_REQUESTER, WANT_TO_CHANGE_SADIK, DISTRIBUTED_ARCHIVE, START_NEW_YEAR
+    DECISION_REQUESTER, START_NEW_YEAR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import BaseConfirmationForm
 from sadiki.operator.views.requestion import RequestionSearch as OperatorRequestionSearch, \
     RequestionInfo as OperatorRequestionInfo, RequestionStatusChange as OperatorRequestionStatusChange
-from sadiki.statistics.models import StatisticsArchive, DECISION_STATISTICS, \
-    DISTRIBUTION_STATISTICS
+
 from sadiki.supervisor.forms import RegistrationDateTimeForm, BirthDateForm
-import datetime
 
 
 class SupervisorBases(RequirePermissionsMixin, TemplateView):
@@ -45,6 +40,12 @@ class RequestionSearch(OperatorRequestionSearch):
 class RequestionInfo(OperatorRequestionInfo):
     template_name = "supervisor/requestion_info.html"
     required_permissions = [SUPERVISOR_PERMISSION[0], ]
+
+    def can_change_benefits(self, requestion):
+        return False
+
+    def can_change_requestion(self, requestion):
+        return False
 
 
 class ChangeRegistrationDateTime(SupervisorBases):
@@ -133,7 +134,8 @@ class DistributionYearInfo(SupervisorBases):
 
     def get_context_data(self, **kwargs):
         context = super(DistributionYearInfo, self).get_context_data(**kwargs)
-        context.update({'current_distribution_year': get_current_distribution_year()})
+        context.update({'current_distribution_year': get_current_distribution_year(),
+                        'not_distributed_requestions_number': Requestion.objects.enrollment_in_progress().count()})
         return context
 
 
@@ -145,7 +147,7 @@ class StartDistributionYear(SupervisorBases):
         return (super(StartDistributionYear, self).check_permissions(
             request, *args, **kwargs) and
             get_current_distribution_year() != get_distribution_year() and
-            not Distribution.objects.active())
+            not Distribution.objects.active() and not Requestion.objects.enrollment_in_progress().exists())
 
     def dispatch(self, request):
         redirect_to = request.REQUEST.get('next', '')
@@ -177,73 +179,12 @@ class StartDistributionYear(SupervisorBases):
                     status__in=action['from'])
                 action['requestions_list'] = list(requestions)
                 requestions.update(status=action['to'])
-#            сохраняем статистику по выделению мест и зачислению в архив
-            StatisticsArchive.objects.create_statistic_record(
-                type=DECISION_STATISTICS)
-            StatisticsArchive.objects.create_statistic_record(
-                type=DISTRIBUTION_STATISTICS)
-#            теперь начинаем новый учебный год
-            for age_group in AgeGroup.objects.all():
-                if age_group.next_age_group:
-#                    для всех ДОУ у которых есть новая возрастная группа переводим
-                    SadikGroup.objects.active().filter(
-                        sadik__age_groups=age_group.next_age_group,
-                        age_group=age_group
-                        ).update(age_group=age_group.next_age_group,
-                        year=distribution_year)
-#                    для тех, кому не повезло устанавливаем льготный перевод
-                    transfer_benefit_category = BenefitCategory.objects.get(
-                        priority=FACILITY_TRANSFER_CATEGORY)
-                    transfer_requestions = Requestion.objects.filter(
-                        distributed_in_vacancy__sadik_group__age_group=age_group,
-                        distributed_in_vacancy__sadik_group__active=True,
-                        status=STATUS_DISTRIBUTED).exclude(
-                        distributed_in_vacancy__sadik_group__sadik__age_groups=age_group.next_age_group
-                        )
-                    transfer_requestions_list = list(transfer_requestions)
-                    transfer_requestions.update(
-                            benefit_category=transfer_benefit_category,
-                            status=STATUS_WANT_TO_CHANGE_SADIK,
-                            registration_datetime=datetime.datetime.now())
-#                    а группы, которые не могут быть переведены в новый год
-#                    закрываем
-                    SadikGroup.objects.active().filter(
-                        age_group=age_group,
-                        ).exclude(
-                        sadik__age_groups=age_group.next_age_group
-                        ).update(active=False)
-                else:
-#                    если нет более старшей группы, то заявки в архив
-                    archive_requestions = Requestion.objects.filter(
-                        distributed_in_vacancy__sadik_group__age_group=age_group,
-                        distributed_in_vacancy__sadik_group__active=True
-                        )
-                    archive_requestions_list = list(archive_requestions)
-                    archive_requestions.update(status=STATUS_ARCHIVE)
-#                    а группы помечаем неактивными
-                    SadikGroup.objects.active().filter(
-                        age_group=age_group).update(active=False)
+#             закрываем все возрастные группы на текущий год
+            SadikGroup.objects.active().update(active=False)
             transaction.commit()
             Logger.objects.create_for_action(START_NEW_YEAR,
                 context_dict={},
                 extra={'user': request.user, 'obj': None})
-#            записываем в логи изменения заявок
-            for action in transitions_actions:
-                for requestion in action['requestions_list']:
-                    context_dict = {'status': requestion.get_status_display()}
-                    Logger.objects.create_for_action(action['transition'],
-                        context_dict=context_dict,
-                        extra={'user': request.user, 'obj': requestion})
-#            записываем в логи информацию о заявках переводниках
-            for requestion in transfer_requestions_list:
-                Logger.objects.create_for_action(
-                    action_flag=WANT_TO_CHANGE_SADIK,
-                    extra={'user': request.user, 'obj': requestion})
-#            записываем в логи информацию о заявках помещенных в архив
-            for requestion in archive_requestions_list:
-                Logger.objects.create_for_action(
-                    action_flag=DISTRIBUTED_ARCHIVE,
-                    extra={'user': request.user, 'obj': requestion})
             transaction.commit()
         return HttpResponseRedirect(redirect_to)
 

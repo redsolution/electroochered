@@ -9,6 +9,7 @@ from django.views.generic.base import TemplateView
 from sadiki.core.models import Vacancies, Distribution, AgeGroup, Requestion, \
     STATUS_REQUESTER, STATUS_DECISION, STATUS_DISTRIBUTED, \
     VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED, DISTRIBUTION_STATUS_END
+from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.operator.views.base import OperatorPermissionMixin
 from sadiki.statistics.models import StatisticsArchive, DECISION_STATISTICS, \
@@ -38,7 +39,7 @@ def get_decision_statistics_data():
                 distribution=distribution, sadik_group__age_group=age_group)
             free_places_before = vacancies.count()
             places_decision = vacancies.filter(
-                status=VACANCY_STATUS_PROVIDED).count()
+                status__in=(VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED)).count()
             distribution_data.append(
                     {'free_places_before': free_places_before,
                      'places_decision': places_decision})
@@ -72,7 +73,7 @@ def get_distribution_statistics_data():
             vacancies = Vacancies.objects.filter(
                 distribution=distribution, sadik_group__age_group=age_group)
             places_decision = vacancies.filter(
-                status=VACANCY_STATUS_PROVIDED).count()
+                status__in=(VACANCY_STATUS_PROVIDED, VACANCY_STATUS_DISTRIBUTED)).count()
             number_of_distributed = vacancies.filter(
                 status=VACANCY_STATUS_DISTRIBUTED).count()
             distribution_data.append(
@@ -128,86 +129,5 @@ class DistributionStatistics(Statistics):
     record_type = DISTRIBUTION_STATISTICS
 
 
-class WaitTimeStatistics(TemplateView):
+class WaitTimeStatistics(RequirePermissionsMixin, TemplateView):
     template_name = 'statistics/wait_time_statistics.html'
-
-    def get(self, request):
-        requestions = Requestion.objects.all()
-        max_child_age_months = settings.MAX_CHILD_AGE * 12
-        current_datetime = datetime.datetime.now()
-        groups = [{"name": age_group.name, 'min_birth_date': age_group.min_birth_date(),
-            'max_birth_date': age_group.max_birth_date(), } for age_group
-                in AgeGroup.objects.all()]
-        if groups:
-        #    добавляем самую младшую возрастную группу
-            small_group = {'name': '0-1 год', 'max_birth_date': datetime.date.today(),
-                          'min_birth_date': groups[0]['max_birth_date']}
-            groups.insert(0, small_group)
-        wait_intervals = []
-        from_months = 0
-        for months in xrange(3, max_child_age_months + 1, 3):
-            interval = {'name': '%s-%s' % (from_months, months - 1),
-                        'from_months': from_months, 'to_months': months, }
-            wait_intervals.append(interval)
-            from_months = months
-    #    добавляем дополнительный интервал итого
-#        wait_intervals.append({'name': u'Итого', 'from_months': 0,
-#                               'to_months': max_child_age_months})
-        requestions_numbers_by_groups = []
-        distributed_requestions_numbers_by_groups = []
-        total_requestions_numbers_by_groups = [0 for group in groups]
-    #    проходим по всем интервалам времени ожидания
-        for interval in wait_intervals:
-            from_months = interval['from_months']
-            to_months = interval['to_months']
-            requestions_numbers = []
-            distributed_requestions_numbers = []
-    #        добавляем в список интервал
-    #        пробегаемся по группам и определяем кол-во заявок
-            for i, group in enumerate(groups):
-                delta = relativedelta(
-                    current_datetime.date(), group['max_birth_date'])
-    #            если для данной возрастной группы не может быть такого времени ожидания
-                if from_months > delta.years * 12 + delta.months:
-                    requestions_numbers.append(None)
-                    distributed_requestions_numbers.append(None)
-                else:
-    #                подсчитываем кол-во заявок в очереди для данной группы и для данного интервала
-                    requestions_for_group = requestions.filter_for_age(
-                        min_birth_date=group['min_birth_date'],
-                        max_birth_date=group['max_birth_date'])
-                    requestions_number = requestions_for_group.filter(
-                        Q(registration_datetime__lte=current_datetime -
-                                                     relativedelta(months=from_months)) &
-                        Q(registration_datetime__gt=current_datetime -
-                                                    relativedelta(months=to_months)),
-                        status=STATUS_REQUESTER).count()
-                    requestions_numbers.append(requestions_number)
-#                    для группы прибавляем общее кол-во заявок в ней
-                    total_requestions_numbers_by_groups[i] += requestions_number
-    #                кол-во распределенных заявок
-                    distributed_requestions_number = requestions_for_group.filter(
-                        Q(registration_datetime__lte=F(
-                            'distributed_in_vacancy__distribution__end_datetime') +
-                                                     datetime.timedelta(days= -30 * from_months)) &
-                        Q(registration_datetime__gt=F(
-                            'distributed_in_vacancy__distribution__end_datetime') +
-                                                    datetime.timedelta(days= -30 * to_months)),
-                        status__in=(STATUS_DECISION, STATUS_DISTRIBUTED)).count()
-                    distributed_requestions_numbers.append(distributed_requestions_number)
-    #        для данного интервала список кол-ва заявок по группам
-            requestions_numbers_by_groups.append(requestions_numbers)
-            distributed_requestions_numbers_by_groups.append(distributed_requestions_numbers)
-        total_requestions_number = sum(total_requestions_numbers_by_groups)
-        return self.render_to_response({
-            'requestions_numbers_by_groups':requestions_numbers_by_groups,
-            'total_requestions_numbers_by_groups': total_requestions_numbers_by_groups,
-            'wait_intervals': wait_intervals,
-            'groups':groups,
-            'total_requestions_number': total_requestions_number,
-            'json': {
-                'requestions_numbers_by_groups': simplejson.dumps(requestions_numbers_by_groups),
-                'distributed_requestions_numbers_by_groups': simplejson.dumps(distributed_requestions_numbers_by_groups),
-                'wait_intervals': simplejson.dumps(wait_intervals),
-                },
-            })

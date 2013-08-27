@@ -1,62 +1,149 @@
-{% extends "operator/requestion_base.html" %}
+{% extends "account/requestion_info.html" %}
 {% load sadiki_core_tags %}
 
-{% block css %}
-    {{ block.super }}
-    {% if requestion.address.coords %}
-        {% include "includes/leaflet_css.html" %}
-    {% endif %}
+{% block content_menu %}
+    {% include "operator/includes/requestion_menu.html" %}
 {% endblock %}
 
 {% block bottomjs %}
-{{ block.super }}
-    <script type="text/javascript">
-        $(function(){$('.tooltip').tooltip();});
-        function blink(element_class){
-            $("."+element_class).animate({opacity:0.3},1000,"swing",function(){
-                $(this).animate({opacity:1},1000, "swing");});
-            window.setTimeout("blink('distributed_info')", 3000);
-        };
-        $(document).ready(function(){
-            blink("distributed_info");
-        });
-    </script>
-    {% with requestion.address.coords as point %}
-        {% if point %}
-            {% include "includes/leaflet_js.html" %}
-            <script type="text/javascript">
-                $(document).ready(function(){
-                    draw_map_for_point('requestion_map', {{ point.x }}, {{ point.y }});
-                });
-            </script>
-        {% endif %}
-    {% endwith %}
+    {{ block.super }}
+    {% include "operator/includes/benefits_documents_change_js.html" %}
 {% endblock %}
 
-{% block title %}Страница заявки {{ requestion }}{% endblock %}
+{% block top_block %}
+    {# генерация бланков #}
+    <div class="row requestion_blanks">
+        <div class="span11">
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
+            Заявление на регистрацию
+        </a>
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_info">
+            Заявление на изменение данных
+        </a>
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_preferred_sadiks">
+            Заявление на изменение приоритетных ДОУ
+        </a>
+        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=remove_registration">
+            Заявление на cнятие с учета
+        </a>
+        </div>
+    </div>
+    {# уведомления наверху страницы #}
+    <div class='notification-area'>
+        {% if not requestion.have_all_benefit_documents and requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
+            <div class="alert alert-error">Для документального подтверждения необходимо задать все документы для льгот.</div>
+        {% endif %}
+        {% if not can_change_requestion %}
+            {% if requestion.is_fake_identity_documents %}
+                <div class="alert alert-error">
+                    У заявки указан временный номер документа, чтобы изменить заявку, нужно
+                    <a href="{% url operator_requestion_set_identity_document requestion_id=requestion.id %}?next={{ request.get_full_path|urlencode }}">указать</a>
+                    номер документа.
+                </div>
+            {% else %}
+                <div class="alert alert-error">Статус заявки: {{ requestion.get_status_display }}. Редактирование невозможно.</div>
 
-{% block content %}
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
-        Заявление на регистрацию
-    </a>
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_info">
-        Заявление на изменение данных
-    </a>
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_preferred_sadiks">
-        Заявление на изменение приоритетных ДОУ
-    </a>
-    <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=remove_registration">
-        Заявление на cнятие с учета
-    </a>
-    {% include "operator/includes/requestion_info.html" %}
+            {% endif %}
+        {% endif %}
+        {% with requestion.get_vacancy_distributed as vacancy_distributed %}
+            {% if vacancy_distributed %}
+                <div class="alert alert-success">Заявка зачислена в <a href="{% url sadik_info sadik_id=vacancy_distributed.sadik_group.sadik.id %}">{{ vacancy_distributed.sadik_group.sadik }}</a></div>
+            {% else %}
+                {% with requestion.get_vacancy_temp_distributed as vacancy_temp_distributed %}
+                    {% if vacancy_temp_distributed %}
+                        <div class="alert alert-success">Заявка временно зачислена в <a href="{% url sadik_info sadik_id=vacancy_temp_distributed.sadik_group.sadik.id %}">{{ vacancy_temp_distributed.sadik_group.sadik }}</a></div>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        {% endwith %}
+        {% with requestion.get_vacancy_decision as vacancy_decision %}
+            {% if vacancy_decision %}
+                <div class="alert alert-success">Происходит процесс распределения в <a href="{% url sadik_info sadik_id=vacancy_decision.sadik_group.sadik.id %}">{{ vacancy_decision.sadik_group.sadik }}</a></div>
+            {% endif %}
+        {% endwith %}
+    </div>
+{% endblock top_block %}
 
+{# документы и льготы #}
+{% block top_right %}
+    <div class="requestion-info">
+    <div class="field">
+        <label class="field-label">Статус</label>
+        {% if requestion.document_confirmed %}
+            <p class="field-value">{{ requestion.get_status_display }}</p>
+        {% else %}
+            <div class="document-info">
+            <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+            <p class="field-value">
+                {{ requestion.get_status_display }}
+                {% if requestion.status == STATUS_REQUESTER_NOT_CONFIRMED %}
+                <span class="status-not-approved">Статус не подтвержден оператором</span>
+                {% endif %}
+            </p>
+            </div>
+        {% endif %}
+    </div>
+    <div class="block-head top-indent">Документы:</div>
+    <div class="field">
+        {% for document in requestion.evidience_documents.requestion_identity_documents %}
+        <label class="field-label">{{ document.template }}</label>
+        <div>
+            <span class="document-info">
+            {% if not document.confirmed %}
+                <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                <div class="field-value">
+                    {{ document.document_number }}
+                    <span class="status-not-approved">Документ не подтвержден оператором</span>
+                </div>
+            {% else %}
+                <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                <div class="field-value">
+                    {{ document.document_number }}
+                    <span class="status-approved">Документ подтвержден</span>
+                </div>
+            {% endif %}
+            </span>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="documents-form">
+        {% include "operator/includes/documents_formset.html" %}
+    </div>
+    <div class="field">
+        <label class="field-label">Льготы</label>
+        {% if can_change_benefits %}
+            {{ change_benefits_form.benefits }}
+        {% else %}
+            {% with requestion.benefits.all as requestion_benefits %}
+                {% if requestion_benefits %}
+                <ul class="benefits-list">
+                    {% for benefit in requestion_benefits%}
+                        <li class="bsmListItem"><span class="bsmListItemLabel">{{ benefit }}</span></li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                    <p class="field-value">Не заданы</p>
+                {% endif %}
+            {% endwith %}
+            {% if can_change_requestion %}
+                <span class="status-not-approved">Для изменения льгот обратитесь к оператору</span>
+            {% endif %}
+        {% endif %}
+    </div>
+    </div>
+{% endblock top_right %}
+
+{# действия с заявкой #}
+{% block bottom %}
     <h2 class="page-header">Действия с заявкой</h2>
     <div class="btn-group">
-    {% for transition in requestion.available_transitions %}
-        {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
-        {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
-    {% endfor %}
+        {% for transition in requestion.available_transitions %}
+            {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
+            {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
+        {% endfor %}
+        {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
+        {% if find_profile_for_requestion_url|check_url_availability:request.user %}
+            <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
+        {% endif %}
     </div>
-
-
-{% endblock %}
+{% endblock bottom %}

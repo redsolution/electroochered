@@ -3,23 +3,6 @@ import os
 gettext_noop = lambda s: s
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
-#ADMINS = (
-#    ('src', 'src@redsolution.ru'),
-#)
-#
-#MANAGERS = ADMINS
-
-#DATABASES = {
-#    'default': {
-#        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-#        'NAME': 'sadiki3',
-#        'USER': 'sadiki3',
-#        'PASSWORD': DATABASE_PASSWORD,
-#        'HOST': 'localhost',
-#        'PORT': '5432',
-#    }
-#}
-
 TIME_ZONE = None
 
 LANGUAGE_CODE = 'ru'
@@ -45,6 +28,9 @@ STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
 
 UPLOAD_ROOT = os.path.join(MEDIA_ROOT, 'upload')
 UPLOAD_DIR = 'upload'
+
+IMPORT_STATIC_DIR = 'import_files'
+SECURE_STATIC_ROOT = os.path.join(PROJECT_DIR, 'secure_static')
 
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash if there is a path component (optional in other cases).
@@ -74,6 +60,7 @@ MIDDLEWARE_CLASSES = [
     'sadiki.core.middleware.SettingsJSMiddleware',
 #    'sadiki.core.middleware.LogPIDMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
+    'sadiki.social_auth_custom.middleware.SocialAuthExceptionMiddlewareCustom',
 ]
 
 ROOT_URLCONF = 'sadiki.urls'
@@ -99,15 +86,17 @@ INSTALLED_APPS = [
     'sadiki.statistics',
     'sadiki.distribution',
     'sadiki.custom_flatpages',
+    'sadiki.social_auth_custom',
 #    'sadiki.feedback',
     'south',
     'pytils',
-#    'tastypie',
     'zenforms',
     'chunks',
     'tinymce',
     'trustedhtml',
+    'social_auth',
     'attachment',
+    'hex_storage',
 ]
 
 TEMPLATE_LOADERS = (
@@ -143,6 +132,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 AUTHENTICATION_BACKENDS = (
+    'sadiki.social_auth_custom.backens.vkontakte_custom.VKontakteOAuth2BackendCustom',
     'django.contrib.auth.backends.ModelBackend',
     'sadiki.authorisation.backends.EmailAuthBackend',
 )
@@ -150,20 +140,29 @@ AUTH_PROFILE_MODULE = 'core.Profile'
 
 LOGIN_REDIRECT_URL = '/'
 
-DATE_FORMAT = 'Y-m-d'
-JS_DATE_FORMAT = 'yy-mm-dd'
+DATE_FORMAT = 'd.m.Y'
+JS_DATE_FORMAT = 'dd.mm.yy'
 TIME_FORMAT = 'H:i'
-DATETIME_FORMAT = 'Y-m-d H:i'
-SHORT_DATE_FORMAT = 'Y-m-d'
-DATETIME_FORMAT = 'Y-m-d H:i'
-DATE_INPUT_FORMATS = ('%Y-%m-%d', "%Y/%m/%d")
+DATETIME_FORMAT = 'd.m.Y H:i'
+SHORT_DATE_FORMAT = 'd.m.Y'
+DATE_INPUT_FORMATS = ('%d.%m.%Y', "%Y/%m/%d")
+
+LOGIN_URL = '/auth/login/'
 
 #Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
+# ------ trustedhtml ------
+
+# Object tags (swf players an so on) from these sites are allowed
+TRUSTEDHTML_OBJECT_SITES = [
+    'youtube.com',
+    'www.youtube.com',
+]
+
 # ------ TinyMCE ------
 
-TINYMCE_JS_URL = '%stiny_mce/tiny_mce.js' % STATIC_URL
+TINYMCE_JS_URL = '%s/tinymce/jscripts/tiny_mce/tiny_mce.js' % STATIC_URL
 
 TINYMCE_DEFAULT_CONFIG = {
     'mode': 'exact',
@@ -177,10 +176,10 @@ TINYMCE_DEFAULT_CONFIG = {
     'theme_advanced_buttons3': 'visualaid,tablecontrols,|,blockquote,del,ins,|,preview,code',
     'theme_advanced_toolbar_location': 'top',
     'theme_advanced_toolbar_align': 'left',
-    'extended_valid_elements': 'noindex',
     'custom_elements': 'noindex',
     'external_image_list_url': 'images/',
     'external_link_list_url': 'links/',
+    'extended_valid_elements': 'noindex,iframe[src|style|width|height|scrolling|marginwidth|marginheight|frameborder]',
 }
 
 #attachment прикреплен к Chunk через админку, т.к. не нашел поддержки второй админки в настройках приложения
@@ -190,3 +189,25 @@ ATTACHMENT_IKSPECS = 'sadiki.attachment_ikspecs'
 
 POSTGIS_VERSION = (1, 4, 0)
 LOCK_DIR = os.path.join(PROJECT_DIR, 'lock')
+
+REQUESTER_USERNAME_PREFIX = 'requester'
+
+SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['username', 'email', 'first_name', 'last_name', ]
+
+VK_EXTRA_SCOPE = ['offline', ]
+VK_EXTRA_DATA = ['contacts', 'connections', ]
+
+SOCIAL_AUTH_PIPELINE = (
+    'social_auth.backends.pipeline.social.social_auth_user',
+    'social_auth.backends.pipeline.user.get_username',
+    'sadiki.social_auth_custom.pipeline.user.check_authorisation_type',
+    'sadiki.social_auth_custom.pipeline.user.check_single_association',
+    'sadiki.social_auth_custom.pipeline.user.create_user',
+    'social_auth.backends.pipeline.social.associate_user',
+    'social_auth.backends.pipeline.social.load_extra_data',
+    'sadiki.social_auth_custom.pipeline.user.update_user_info',
+)
+
+LOGIN_ERROR_URL = '/auth/login/'
+
+DEFAULT_FILE_STORAGE = 'hex_storage.HexFileSystemStorage'

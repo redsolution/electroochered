@@ -1,11 +1,57 @@
 {# Операция: Подтверждение документов #}
-{% if requestion.other_requestions_with_ident_document.count %}
-<div class="ctrlHolder">
-    <p><strong>Внимание!</strong> При подтверждении текущей заявки, все указанные ниже заявки будут отклонены автоматически</p>
-    {% for other_requestion in requestion.other_requestions_with_ident_document.all %}
-    <ul>
-        <li><a href="{% url operator_requestion_info other_requestion.id %}">{{ other_requestion }}</a></li>
-    </ul>
-    {% endfor %}
-</div>
-{% endif %}
+{% extends "operator/requestion_status_change.html" %}
+{% load zenforms %}
+
+{% block content %}
+    {% zenform form %}
+        <h3>Проверьте:</h3>
+        <div class="ctrlHolder {% if form.name_confirm.errors %}error{% endif %} {% if field.field.required %}required{% endif %}">
+            {% if form.name_confirm.errors %}
+                {{ form.name_confirm.errors }}
+            {% endif %}
+            <label>Имя:</label>
+            {{ form.name_confirm }}
+            {{ requestion.name }}
+        </div>
+        <div class="ctrlHolder {% if form.birth_date_confirm.errors %}error{% endif %} {% if field.field.required %}required{% endif %}">
+            {% if form.birth_date_confirm.errors %}
+                {{ form.birth_date_confirm.errors }}
+            {% endif %}
+            <label>Дата рождения:</label>
+            {{ form.birth_date_confirm }}
+            {{ requestion.birth_date }}
+        </div>
+        <div class="ctrlHolder {% if form.document_confirm.errors %}error{% endif %} {% if field.field.required %}required{% endif %}">
+            {% if form.document_confirm.errors %}
+                {{ form.document_confirm.errors }}
+            {% endif %}
+            <label>Номер документа:</label>
+            {{ form.document_confirm }}
+            {{ requestion.evidience_documents.all.0 }}
+        </div>
+        <div class="ctrlHolder {% if form.benefits_confirm.errors %}error{% endif %} {% if field.field.required %}required{% endif %}">
+            {% if form.benefits_confirm.errors %}
+                {{ form.benefits_confirm.errors }}
+            {% endif %}
+            <label>Наличие льготы:</label>
+            {{ form.benefits_confirm }}
+            {{ requestion.benefit_category }}
+        </div>
+        {% if requestion.other_requestions_with_ident_document.count %}
+        <div class="ctrlHolder">
+            <label><strong>Внимание!</strong> При подтверждении текущей заявки, все указанные ниже заявки будут отклонены автоматически</label>
+            {% for other_requestion in requestion.other_requestions_with_ident_document.all %}
+            <ul>
+                <li><a href="{% url operator_requestion_info other_requestion.id %}">{{ other_requestion }}</a></li>
+            </ul>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <input type="hidden" name="next" value="{{ redirect_to }}" />
+        <h2>Вы уверены, что данные совпадают с предъявленными документами?</h2>
+        <div class="buttonHolder">
+            <button class="primaryAction" type="submit">Да</button>
+            <button name="confirmation" class="primaryAction not-primary" value="no" type="submit">Нет</button>
+        </div>
+    {% endzenform %}
+{% endblock %}

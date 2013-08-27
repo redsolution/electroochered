@@ -51,3 +51,6 @@ msgstr "файлы"
 #: attachment/redsolution_setup/models.py:16
 msgid "Mode"
 msgstr "Режим"
+
+msgid "This field is required."
+msgstr "Обязательное поле"

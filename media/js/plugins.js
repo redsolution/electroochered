@@ -78,41 +78,42 @@ parseUri.options = {
  *        V                                     V
  * $('#id_template').regexpValidate('#id_document_number');
  */
-(function ($) {
-    function bind_new_regexp($input, regexp) {
-        var pattern = new RegExp(regexp);
-        $input.off('keyup').on('keyup', function(){
-            var input_value = $input.val();
-            if (input_value) {
-                if (pattern.test(input_value)) {
-                    $input.parents('div.ctrlHolder').removeClass('error');
-                }
-                else {
-                    $input.parents('div.ctrlHolder').addClass('error');
-                }
+
+function bind_new_regexp($input, regexp) {
+    var pattern = new RegExp(regexp);
+    $input.off('keyup').on('keyup', function(){
+        var input_value = $input.val();
+        if (input_value) {
+            if (pattern.test(input_value)) {
+                $input.parents('div.field').removeClass('error');
             }
             else {
-                $input.parents('div.ctrlHolder').removeClass('error');
+                $input.parents('div.field').addClass('error');
             }
-        });
-    }
+        }
+        else {
+            $input.parents('div.field').removeClass('error');
+        }
+    });
+}
 
-    function change_document_hint($input, help_text) {
+function change_document_hint($input, help_text) {
+    $input = $input.parent()
+    if (help_text){
         help_text = "Формат документа: " + help_text;
-        if ($input.siblings('p.formHint').length) {
-            $input.siblings('p.formHint').text(help_text);
-        } else {
-            var help_element = $('<p class="formHint">').text(help_text);
-            $input.after(help_element);
-        }
+    } else {
+        help_text = '&nbsp;';
     }
 
-    function remove_document_hint($input) {
-        if ($input.siblings('p.formHint')){
-            $input.siblings('p.formHint').remove();
-        }
+    if ($input.siblings('p.hint').length) {
+        $input.siblings('p.hint').html(help_text);
+    } else {
+        var help_element = $('<p class="hint">').html(help_text);
+        $input.after(help_element);
     }
+}
 
+(function ($) {
     $.fn.regexpValidate = function (input_selector) {
         var $docnumber_input = $(input_selector);
         return this.each(function() {
@@ -124,7 +125,7 @@ parseUri.options = {
                     bind_new_regexp($docnumber_input, doc_template['regexp']);
                 }
                 else{
-                    remove_document_hint($docnumber_input);
+                    change_document_hint($docnumber_input, '');
                 }
             }).trigger('change');
         });

@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
+import re
 from django import forms
-from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
+from django.forms.formsets import DELETION_FIELD_NAME
+from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
-from sadiki.account.forms import RequestionForm, PreferredSadikForm
+from sadiki.account.forms import RequestionForm, ChangeRequestionForm
 from sadiki.administrator.admin import SadikAdminForm
-from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
-    ProfileRegistrationForm, FormWithDocument
+from sadiki.anonym.forms import PublicSearchForm, FormWithDocument
+from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
-    VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, Profile, Address, \
-    STATUS_REQUESTER
+    VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, \
+    STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
-from sadiki.core.widgets import JqueryUIDateWidget, PrefSadiksJS
+from sadiki.core.widgets import JqueryUIDateWidget, LeafletMap
 
 
 def select_list_from_qs(queryset, requestion):
@@ -24,13 +26,13 @@ def select_list_from_qs(queryset, requestion):
         select_list.append((obj.id, u'%d мест %s' % (groups[0].free_places, unicode(obj))))
     return select_list
 
+
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""
-    pref_sadiks = forms.ModelMultipleChoiceField(label=u'Выберите приоритетные ДОУ',
-        required=False, widget=PrefSadiksJS(attrs={'areas_name': "requestion-areas"}),
-        queryset=Sadik.objects.filter(active_registration=True),
-        help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
 
+    def __init__(self, *args, **kwargs):
+        super(OperatorRequestionForm, self).__init__(*args, **kwargs)
+        self.fields['location'].label = u'Укажите местоположение заявителя'
 
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(
@@ -43,50 +45,20 @@ class OperatorRequestionForm(RequestionForm):
     
     def save(self, *args, **kwargs):
         self.instance.status = STATUS_REQUESTER
+        self.instance.cast = REQUESTION_TYPE_OPERATOR
         return super(OperatorRequestionForm, self).save(*args, **kwargs)
 
-class OperatorProfileRegistrationForm(ProfileRegistrationForm):
-    u"""Форма создания пользовательского профиля через оператора"""
 
-    def create_document(self, profile, commit=True):
-        document = super(OperatorProfileRegistrationForm, self).create_document(
-            profile, commit=False)
-        document.confirmed = True
-        if commit:
-            document.save()
-        return document
+class OperatorChangeRequestionForm(ChangeRequestionForm):
 
-class OperatorRegistrationForm(RegistrationForm):
-    u"""Форма для регистрации пользователя через оператора"""
-    email = forms.EmailField(label=u'Электронная почта',
-        help_text=u'''
-            Если у пользователя есть электронная почта, то укажите её, чтобы 
-            пользователь впоследствии мог сам управлять своими заявками.''',
-        required=False)
-
-    class Meta(RegistrationForm.Meta):
-        fields = ('email',)
-
-    def __init__(self, password=None, *args, **kwargs):
-        super(OperatorRegistrationForm, self).__init__(*args, **kwargs)
-        self.fields.pop('password1')
-        self.fields.pop('password2')
-        self.password = password
-
-    def save(self, commit=True):
-        user = super(OperatorRegistrationForm, self).save(commit=False)
-        if user.email and self.password:
-            user.set_password(self.password)
-        else:
-            user.set_unusable_password()
-        if commit:
-            user.save()
-        return user
+    def __init__(self, *args, **kwargs):
+        super(OperatorChangeRequestionForm, self).__init__(*args, **kwargs)
+        self.fields['location'].label = u"Местоположение заявителя"
 
 
 class OperatorSearchForm(PublicSearchForm):
     requestion_number = forms.CharField(label=u'Номер заявки в системе',
-        required=False, widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}))
+        required=False, widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}))
     birth_date = forms.DateField(label=u'Дата рождения ребёнка',
             widget=JqueryUIDateWidget(), required=False)
 
@@ -95,8 +67,7 @@ class OperatorSearchForm(PublicSearchForm):
         'birth_date': 'birth_date__exact',
         'registration_date': 'registration_datetime__range',
         'number_in_old_list': 'number_in_old_list__exact',
-        'parent_last_name': 'profile__last_name__icontains',
-        'child_last_name': 'last_name__icontains',
+        'child_name': 'name__icontains',
         'document_number': 'id__in'
     }
 
@@ -115,34 +86,47 @@ class OperatorSearchForm(PublicSearchForm):
         else:
             return self.cleaned_data
 
+def get_sadik_group_form(sadik):
+    class SadikGroupForm(forms.ModelForm):
 
-class SadikGroupForm(forms.ModelForm):
+        age_group = forms.ModelChoiceField(queryset=AgeGroup.objects.exclude(
+                    id__in=sadik.groups.active().values_list('age_group__id', flat=True)),
+            label=u'Возрастная категория')
 
-    age_group = forms.ModelChoiceField(queryset=AgeGroup.objects.all(),
-        label=u'Возрастная категория')
+        def __init__(self, *args, **kwds):
+            super(SadikGroupForm, self).__init__(*args, **kwds)
+            # Для новых групп исключить изменение возрастной категории
+            if self.instance.pk:
+                del self.fields['age_group']
 
-    def __init__(self, *args, **kwds):
-        super(SadikGroupForm, self).__init__(*args, **kwds)
-        # Для новых групп исключить изменение возрастной категории
-        if self.instance.pk:
-            del self.fields['age_group']
+        class Meta:
+            model = SadikGroup
 
-    class Meta:
-        model = SadikGroup
-
-    def save(self, commit=True):
-        free_places = self.cleaned_data.get('free_places')
-        if self.initial:
-            # изменение группы
-            places_difference = free_places - self.initial.get('free_places')
-            self.instance.capacity += places_difference
-        else:
-            # Создание новой группы
+        def save(self, commit=True):
+            free_places = self.cleaned_data.get('free_places')
             self.instance.capacity = free_places
-            self.instance.year = get_current_distribution_year()
-            self.instance.min_birth_date = self.cleaned_data['age_group'].min_birth_date()
-            self.instance.max_birth_date = self.cleaned_data['age_group'].max_birth_date()
-        return super(SadikGroupForm, self).save(commit)
+            if not self.initial:
+                # Создание новой группы
+                self.instance.year = get_current_distribution_year()
+                self.instance.min_birth_date = self.cleaned_data['age_group'].min_birth_date()
+                self.instance.max_birth_date = self.cleaned_data['age_group'].max_birth_date()
+            return super(SadikGroupForm, self).save(commit)
+    return SadikGroupForm
+
+
+class BaseSadikGroupFormSet(BaseInlineFormSet):
+    def clean(self):
+        if any(self.errors):
+            # Don't bother validating the formset unless each form is valid on its own
+            return
+        age_groups = []
+        for i in range(0, self.total_form_count()):
+            form = self.forms[i]
+            age_group = form.cleaned_data.get('age_group')
+            if age_group:
+                if age_group in age_groups:
+                    raise forms.ValidationError(u"В ДОУ не может быть двух одинаковых возрастных групп")
+                age_groups.append(age_group)
 
 
 class SadikForm(forms.Form):
@@ -151,35 +135,6 @@ class SadikForm(forms.Form):
         super(SadikForm, self).__init__(*args, **kwargs)
         self.fields['sadik'] = forms.ModelChoiceField(queryset=sadiks_query,
             label=u'Выберите ДОУ', required=False)
-
-
-class RequestionsFromDistributedForm(forms.Form):
-    u"""
-    Форма выбора из текущего комплектования заявок к ручному комплектованию
-    """
-
-    def __init__(self, distribution, *args, **kwds):
-        self.distribution = distribution
-        super(RequestionsFromDistributedForm, self).__init__(*args, **kwds)
-        self.fields['vacancies'] = forms.ModelMultipleChoiceField(
-            label=u"Путевки для освобождения",
-            queryset=Vacancies.objects.filter(distribution=self.distribution,
-                status=VACANCY_STATUS_PROVIDED),
-            widget=CheckboxSelectMultiple()
-        )
-
-
-class DocumentGenericInlineFormSet(BaseGenericInlineFormSet):
-
-    def save_new(self, form, commit=True):
-#        для новых документов задается подтверждение
-        instance = super(DocumentGenericInlineFormSet, self).save_new(
-            form, commit=False)
-        instance.confirmed = True
-        if commit:
-            instance.save()
-            form.save_m2m()
-        return instance
 
 
 class RequestionIdentityDocumentForm(FormWithDocument):
@@ -209,9 +164,8 @@ class ChangeSadikForm(SadikAdminForm):
             'active_distribution', 'age_groups',)
         
     def __init__(self, *args, **kwargs):
-        map_widget = admin.site._registry[Address].get_map_widget(Address._meta.get_field_by_name('coords')[0])
-        self.base_fields['coords'].widget = map_widget()
         super(ChangeSadikForm, self).__init__(*args, **kwargs)
+        self.fields["coords"].widget = LeafletMap()
 
     def save(self, commit=True):
         """
@@ -254,13 +208,6 @@ class ConfirmationForm(ConfirmationFormMixin, forms.Form):
         super(ConfirmationForm, self).__init__(*args, **kwds)
 
 
-class PreferredSadikConfirmationForm(ConfirmationFormMixin, PreferredSadikForm):
-
-    def __init__(self, requestion, *args, **kwargs):
-        kwargs.update({'instance': requestion})
-        super(PreferredSadikConfirmationForm, self).__init__(*args, **kwargs)
-
-
 class TempDistributionConfirmationForm(ConfirmationForm):
     sadik = forms.ModelChoiceField(queryset=Sadik.objects.all(), label="Выберите ДОУ")
 
@@ -293,55 +240,113 @@ class ImmediatelyDistributionConfirmationForm(ConfirmationForm):
         self.fields['sadik'].choices = choices
 
 
-class EmailForm(forms.ModelForm):
-
-    class Meta:
-        model = User
-        fields = ("email",)
-
-    def clean_email(self):
-        if get_user_by_email(self.cleaned_data.get('email', '')):
-            raise forms.ValidationError(u'Такой адрес электронной почты уже зарегистрирован.')
-        return self.cleaned_data['email']
-
-
 class ProfileSearchForm(forms.Form):
+    username = forms.CharField(label=u"Имя пользователя", required=False,
+                               help_text=u'Имя, используемое пользователем для входа в систему')
     requestion_number = forms.CharField(
-        label=u'Номер заявки привязанной к данному профилю',
+        label=u'Номер заявки, привязанной к профилю',
         required=False,
-        widget=forms.TextInput(attrs={'data-mask': u'99999999999-Б-999999999'}))
-    email = forms.EmailField(
-        label=u"Адрес электронной почты", required=False)
-    last_name = forms.CharField(
-        label=u'Фамилия родителя', required=False, widget=forms.TextInput())
-    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}))
+    parent_first_name = forms.CharField(
         label=u'Имя родителя', required=False, widget=forms.TextInput())
-    parent_last_name = forms.CharField(
-        label=u'Отчество родителя', required=False, widget=forms.TextInput())
 
     field_map = {
+        'username': 'user__username__exact',
         'requestion_number': 'requestion__requestion_number__exact',
-        'email': 'user__email__exact',
-        'last_name': 'last_name__icontains',
-        'first_name': 'first_name__icontains',
-        'patronymic': 'patronymic__icontains',
+        'parent_first_name': 'first_name__icontains',
     }
 
     def __init__(self, *args, **kwds):
         super(ProfileSearchForm, self).__init__(*args, **kwds)
         self.reverse_field_map = dict((v, k) for k, v in self.field_map.iteritems())
 
+    def clean(self):
+        if not any([value for value in self.cleaned_data.itervalues()]):
+            raise forms.ValidationError(u"Необходимо указать хотя бы один параметр для поиска.")
+        return self.cleaned_data
+
     def build_query(self):
         if self.cleaned_data:
             filter_kwargs = {}
-            if 'requestion_number' in self.changed_data:
-                filter_kwargs[self.field_map['requestion_number']] = self.cleaned_data['requestion_number']
-            if 'email' in self.changed_data:
-                filter_kwargs[self.field_map['email']] = self.cleaned_data['email']
-            if 'last_name' in self.changed_data:
-                filter_kwargs[self.field_map['last_name']] = self.cleaned_data['last_name']
-            if 'first_name' in self.changed_data:
-                filter_kwargs[self.field_map['first_name']] = self.cleaned_data['first_name']
-            if 'patronymic' in self.changed_data:
-                filter_kwargs[self.field_map['patronymic']] = self.cleaned_data['patronymic']
+            requestion_number = self.cleaned_data.get('requestion_number')
+            parent_first_name = self.cleaned_data.get('parent_first_name')
+            username = self.cleaned_data.get('username')
+            if username:
+                filter_kwargs[self.field_map['username']] = username
+            if requestion_number:
+                filter_kwargs[self.field_map['requestion_number']] = requestion_number
+            if parent_first_name:
+                filter_kwargs[self.field_map['parent_first_name']] = parent_first_name
             return filter_kwargs
+
+
+class HiddenConfirmation(forms.Form):
+    action = forms.CharField(widget=forms.HiddenInput)
+
+
+class ChangeLocationForm(forms.ModelForm):
+
+    class Meta:
+        model = Requestion
+        fields = ('location',)
+
+    def __init__(self, *args, **kwargs):
+
+        super(ChangeLocationForm, self).__init__(*args, **kwargs)
+        self.fields['location'].widget = forms.HiddenInput()
+
+
+class RequestionConfirmationForm(forms.Form):
+    name_confirm = forms.BooleanField()
+    birth_date_confirm = forms.BooleanField()
+    document_confirm = forms.BooleanField()
+    benefits_confirm = forms.BooleanField()
+
+    def __init__(self, requestion, *args, **kwargs):
+        super(RequestionConfirmationForm, self).__init__(*args, **kwargs)
+
+    def clean(self):
+        if not all(self.cleaned_data.values()):
+            raise forms.ValidationError(u"Необходимо подтвердить все данные заявки.")
+        return self.cleaned_data
+
+
+class CustomGenericInlineFormSet(BaseGenericInlineFormSet):
+
+    def add_fields(self, form, index):
+        super(CustomGenericInlineFormSet, self).add_fields(form, index)
+        form.fields[DELETION_FIELD_NAME].widget.attrs = {'class': 'delete'}
+
+    def save(self, commit=True):
+        instances = super(CustomGenericInlineFormSet, self).save(commit=False)
+        for instance in instances:
+            # Do something with `instance`
+            instance.confirmed = True
+            if commit:
+                instance.save()
+        if commit:
+            self.save_m2m()
+        return instances
+
+
+class DocumentForm(forms.ModelForm):
+
+    class Meta:
+        model = EvidienceDocument
+
+    def __init__(self, *args, **kwargs):
+        super(DocumentForm, self).__init__(*args, **kwargs)
+        self.fields['template'].widget = forms.HiddenInput()
+        self.fields['template'].queryset = EvidienceDocumentTemplate.objects.filter(
+            destination=BENEFIT_DOCUMENT)
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        document_number = self.cleaned_data.get('document_number')
+        template = self.cleaned_data.get('template')
+#        проверяем, что номер документа соответствует шаблону
+        if document_number and template and not re.match(
+            template.regex, document_number):
+            self._errors["document_number"] = self.error_class(
+                [u'Неверный формат'])
+        return cleaned_data

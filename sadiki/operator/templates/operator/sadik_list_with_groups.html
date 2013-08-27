@@ -8,28 +8,30 @@
     {% endif %}
     {% if distribution %}
         <h2 class="page-header">Распределение началось, свободные места регистрировать нельзя</h2>
-    {% else %}
-        {% for sadik in sadiks %}
-        <h3><a name="sadik_{{ sadik.id }}"></a><a href="{% url sadikgroup_change_places sadik.id %}">{{ sadik.short_name }}</a></h3>
+    {% endif %}
+    {% for sadik in sadiks %}
+        <h3>
+        {% if not distribution %}
+            <a name="sadik_{{ sadik.id }}"></a><a href="{% url sadikgroup_change_places sadik.id %}">{{ sadik.short_name }}</a>
+        {% else %}
+            {{ sadik.short_name }}
+        {% endif %}
+        </h3>
         {% if sadik.related_groups %}
-        <table class="table table-striped table-bordered table-condensed">
+        <table class="table table-striped table-bordered table-condensed places-table">
             <thead>
                 <tr>
-                    <th>Название группы</th>
-                    <th>Тип</th>
                     <th>Возрастная категория</th>
-                    <th>Свободных мест</th>
-                    <th>Всего мест</th>
+                    <th class="capacity">Выделено мест</th>
+                    <th class="free-places">Свободных мест</th>
                 </tr>
             </thead>
             <tbody>
                 {% for group in sadik.related_groups %}
                 <tr>
-                    <td>{{ group }}</td>
-                    <td>{{ group.get_cast_display }}</td>
-                    <td>{{ group.age_group }} (с {{ group.min_birth_date }} по {{ group.max_birth_date }})</td>
-                    <td>{{ group.free_places }}</td>
+                    <td>{{ group.age_group }} за {{ group.year.year }} год (с {{ group.min_birth_date }} по {{ group.max_birth_date }})</td>
                     <td>{{ group.capacity }}</td>
+                    <td>{{ group.free_places }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -38,6 +40,5 @@
             Группы не заданы
         {% endif %}
     {% endfor %}
-    {% endif %}
 
 {% endblock %}

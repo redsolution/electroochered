@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+from django.utils.safestring import mark_safe
+import re
+from django.utils.text import capfirst
 from classytags.arguments import Argument, MultiKeywordArgument
 from classytags.core import Options, Tag
 from classytags.helpers import InclusionTag
@@ -87,7 +90,7 @@ class CheckUrlAvailability(Tag):
     options = Options(
         Argument('url', required=True),
         'as',
-        Argument('varname', required=True)
+        Argument('varname', required=True, resolve=False)
     )
 
     def render_tag(self, context, url, varname):
@@ -104,7 +107,7 @@ class ActionButtonForUrl(InclusionTag):
     по результатам отображается ссылка и может быть возвращен результат
     доступности
     {% action_button_for_url url [get_params par1 = 1 par2 = 2]
-        [options text = "text" hide_disabled = 1] [result result] %}
+        [options text = "text" hide_disabled = 1] [result result_var] %}
     """
 
     template = "core/template_tags/action_button_for_url.html"
@@ -170,10 +173,11 @@ def load_urlpatterns(context):
     from sadiki.statistics.urls import urlpatterns as statictics_patterns
     from sadiki.logger.urls import urlpatterns as logger_patterns
     from sadiki.distribution.urls import urlpatterns as distribution_patterns
+    from sadiki.core.urls import urlpatterns as core_patterns
 
     all_patterns = anonym_patterns + auth_patterns + operator_patterns \
                    + supervisor_patterns + statictics_patterns + account_patterns \
-                   + logger_patterns + distribution_patterns
+                   + logger_patterns + distribution_patterns + core_patterns
     extra_context = {}
 
     for pattern in all_patterns:
@@ -251,16 +255,32 @@ class QueueTooltips(Tag):
     )
 
     def render_tag(self, context, varname):
+        def get_tooltip(template_name, context=None):
+            tooltip = render_to_string(template_name, context)
+            return mark_safe(re.sub(r'\n', '', tooltip))
         tooltips = {}
-        tooltips.update({"age_groups_tooltip": render_to_string(
+        tooltips.update({"requestion_number_tooltip": get_tooltip(
+            "core/tooltips/requestion_number_tooltip.html", {'STATIC_URL': settings.STATIC_URL})})
+        tooltips.update({"age_groups_tooltip": get_tooltip(
             "core/tooltips/age_groups_tooltip.html",
             {'age_groups': AgeGroup.objects.all()})})
-        tooltips.update({"requestion_status_tooltip": render_to_string(
+        tooltips.update({"requestion_status_tooltip": get_tooltip(
             "core/tooltips/requestion_status_tooltip.html")})
-        tooltips.update({"benefit_categories_tooltip": render_to_string(
+        tooltips.update({"benefit_categories_tooltip": get_tooltip(
             "core/tooltips/benefit_categories_tooltip.html",
             {'benefit_categories': BenefitCategory.objects.all().order_by('-priority')})})
         context[varname] = tooltips
         return ''
 
 register.tag(QueueTooltips)
+
+
+@register.filter
+def get_field_verbose_name(instance, arg):
+    return capfirst(instance._meta.get_field(arg).verbose_name)
+
+@register.filter
+def form_field_verbose(field):
+    if hasattr(field.field, 'choices'):
+        return dict(field.field.choices)[field.value()]
+    return field.value

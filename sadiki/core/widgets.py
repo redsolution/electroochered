@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
+from django.forms.util import flatatt
 from django.forms.widgets import MultiWidget, DateInput, TextInput
 from time import strftime
 from django import forms
 from django.conf import settings
+from django.template.loader import render_to_string
 from django.utils import simplejson
+from django.utils.encoding import force_unicode
+from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
 
 DEFAULT_WIDTH = 500
@@ -121,7 +125,7 @@ class YearChoiceDateWigdet(forms.Select):
 
     def render(self, name, value, **kwds):
         if type(value) is datetime.date:
-            value = '%s-01-01' % value.year
+            value = '01.01.%s' % value.year
         return super(YearChoiceDateWigdet, self).render(name, value, **kwds)
 
 
@@ -132,6 +136,17 @@ class BooleanNextYearWidget(forms.CheckboxInput):
         return super(BooleanNextYearWidget, self).render(name, value, **kwds)
     
 class AreaWidget(forms.Select):
+
+    def value_from_datadict(self, *args, **kwargs):
+        """
+        Given a dictionary of data and this widget's name, returns the value
+        of this widget. Returns None if it's not provided.
+        """
+        # если возвращать число и производить преобразование в поле, то будет считаться, что поле всегда изменяется
+        value = super(AreaWidget, self).value_from_datadict(*args, **kwargs)
+        if value:
+            return [int(value), ]
+        return []
 
     def render(self, name, value, **kwds):
         if value:
@@ -171,24 +186,21 @@ class SelectMultipleJS(forms.SelectMultiple):
         return output
 
 
-class PrefSadiksJS(SelectMultipleJS):
+class LeafletMap(forms.Textarea):
 
-    def render(self, name, *args, **kwargs):
-        from sadiki.core.models import Sadik, Area
-        output = super(PrefSadiksJS, self).render(name, *args, **kwargs)
-        sadiks_for_areas = {}
-        for area in Area.objects.all():
-            sadiks_dict=[unicode(sadik.id) for sadik in area.sadik_set.filter(active_registration=True)]
-            sadiks_for_areas.update({unicode(area.id): sadiks_dict})
-        sadiks_for_areas.update({"": [unicode(sadik.id) for sadik in Sadik.objects.all()]})
-        areas_name=self.attrs.get('areas_name') or 'areas'
-#        TODO:как-нибудь переделать,чтобы работа с id_areas была нормальной
-        js = u"""
-            <script type="text/javascript">
-                //<![CDATA[
-                $(function(){
-                    $("#id_%s").filterOn("#id_%s", %s);
-                });
-                //]]>
-            </script>""" % (name, areas_name, simplejson.dumps(sadiks_for_areas))
-        return mark_safe(output+js)
+    def render(self, name, value, attrs=None):
+        if value is None: value = ''
+        final_attrs = self.build_attrs(attrs, name=name)
+        textarea = u'<textarea%s>%s</textarea>' % (flatatt(final_attrs),
+                conditional_escape(force_unicode(value)))
+        id = final_attrs.get('id')
+        return render_to_string(
+            "core/leaflet_map.html",
+            {'point': value,
+             'name': name,
+             'textarea_id': id,
+             'map_id': "%s_map" % id,
+             'textarea': textarea,
+             "MAP_CENTER": settings.MAP_CENTER,
+             "LEAFLET_TILES_SUBDOMAINS": settings.LEAFLET_TILES_SUBDOMAINS,
+             "LEAFLET_TILES_URL": settings.LEAFLET_TILES_URL})

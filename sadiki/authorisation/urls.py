@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*- 
 from django.conf.urls.defaults import patterns, url
 from forms import LoginForm
-from sadiki.authorisation.views import EmailVerification, ResetPassword,\
-    ResetPasswordRequest
+
+# django generic views
+from sadiki.authorisation.views import password_set
 
 urlpatterns = patterns('django.contrib.auth.views',
     url(r'^login/$', 'login',
@@ -16,10 +17,12 @@ urlpatterns = patterns('django.contrib.auth.views',
 )
 
 urlpatterns += patterns('',
-    url(r'^email_verification/(?P<key>\w{40})/$',
-        EmailVerification.as_view(), name='email_verification'),
-    url(r'^reset_password_request/$',
-        ResetPasswordRequest.as_view(), name='reset_password_request'),
-    url(r'^reset_password/(?P<key>\w{40})/$',
-        ResetPassword.as_view(), name='reset_password'),
+    url(r'^passwd_set/$', password_set, name='passwd_set'),
+    # url(r'^email_verification/(?P<key>\w{40})/$',
+    #     EmailVerification.as_view(), name='email_verification'),
+    # url(r'^reset_password_request/$',
+    #     ResetPasswordRequest.as_view(), name='reset_password_request'),
+    # url(r'^reset_password/(?P<key>\w{40})/$',
+    #     ResetPassword.as_view(), name='reset_password'),
+
 )

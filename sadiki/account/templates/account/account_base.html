@@ -1,0 +1,30 @@
+{% extends 'account/base.html' %}
+
+{% load zenforms sadiki_core_tags %}
+
+{% block content_title %}
+    <h1>{% block title %}Личный кабинет{% endblock %}</h1>
+{% endblock %}
+
+{% block content_menu %}
+    {% load_urlpatterns %}
+    <ul class="content-menu">
+        <li {% if request.path == account_frontpage %}class="active"{% endif %}>
+            <a href="{{ account_frontpage }}">Мой профиль</a>
+        </li>
+        {% for requestion in request.user.get_profile.requestion_set.all %}
+            {% url account_requestion_info requestion.id as account_requestion_info_url %}
+            <li {% if request.path == account_requestion_info_url %}class="active"{% endif %}>
+                <a href="{{ account_requestion_info_url }}">{{ requestion.requestion_number }}</a>
+            </li>
+        {% endfor %}
+        <li {% if request.path == requestion_add_by_user %}class="active"{% endif %}>
+            <a href="{{ requestion_add_by_user }}">Добавить заявку
+                <img class='requestion-add-menu' src="{{ STATIC_URL }}img/requestion_add_menu.png"/>
+            </a>
+        </li>
+        <li {% if request.path == account_logs %}class="active"{% endif %}>
+            <a href="{{ account_logs }}">История изменений</a>
+        </li>
+    </ul>
+{% endblock %}

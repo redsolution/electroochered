@@ -1,13 +1,13 @@
 {% extends "operator/requestion_base.html" %}
 {% load zenforms %}
-{% block title %}Подтверждение операции №{{ transition.index }} {{ transition.comment }} для заявки {{ requestion }}{% endblock %}
+{% block title %}Подтверждение операции «{{ transition.comment }}». Заявка {{ requestion }}{% endblock %}
 
 {% block bottomjs %}
     {{ block.super }}
     <script type="text/javascript">
         $(function(){
             var delay = 3;
-            $(':submit').attr('disabled', 'disabled');
+            $(':submit:not(".not-primary")').attr('disabled', 'disabled');
             $(':submit').append('<span id="countdown"/>');
             function countdown(){
                 var counterEl = document.getElementById('countdown');
@@ -29,9 +29,7 @@
     {% zenform form %}
         {% fieldset unused_fields %}
         <input type="hidden" name="next" value="{{ redirect_to }}" />
-        {% if extra_template %}
-            {% include extra_template.name %}
-        {% endif %}
+        {% block extra_content %}{% endblock %}
         {% submit "Подтвердить" %}
     {% endzenform %}
 {% endblock %}

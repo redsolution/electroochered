@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import forms
+from sadiki.core.models import REQUESTION_TYPE_IMPORTED
+
 
 class SelectSadikForm(forms.Form):
     sadik = forms.ChoiceField(label=u'Выбрать МДОУ:', choices=(), widget=forms.Select())
@@ -27,6 +29,11 @@ class SelectSadikForm(forms.Form):
         super(SelectSadikForm, self).__init__(*args, **kwargs)
         self.fields['sadik'].choices = choices
         self.fields['requestion_id'].initial = self.requestion.id
+        # изменяем порядок полей
+        if requestion.cast == REQUESTION_TYPE_IMPORTED:
+            self.fields['accept_location'] = forms.BooleanField(label=u'Координаты на карте совпадают с адресом',)
+            self.fields.keyOrder.remove('accept_location')
+            self.fields.keyOrder.insert(0, 'accept_location')
 
     def clean_requestion_id(self):
         requestion_id = self.cleaned_data.get('requestion_id')

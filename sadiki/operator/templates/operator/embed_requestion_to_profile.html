@@ -3,60 +3,81 @@
 
 
 {% block content_title %}
-    <h1>{% block title %}Привязка заявки {{ params.requestion }} к другому профилю{% endblock %}</h1>
+    <h1>{% block title %}Прикрепление заявки {{ params.requestion }} к другому профилю{% endblock %}</h1>
 {% endblock %}
 
 {% block content %}
     <div class="row">
         <div class="span5">
-            <div class="page-header"><h2>Информация о заявке {{ requestion }}</h2></div>
+        <div class="requestion-info">
+            <div class="block-head">Информация о заявке:</div>
             {% with params.requestion as requestion %}
-            <dl>
-                <dt>ФИО ребенка</dt>
-                <dd>{{ requestion.fio }}</dd>
-                <dt>Территориальная область:</dt>
-                <dd>{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</dd>
-                <dt>Дата рождения:</dt>
-                <dd>{{ requestion.birth_date }}</dd>
-                <dt>Статус:</dt>
-                <dd>{{ requestion.get_status_display }}</dd>
-                <dt>Льготы:</dt>
-                <dd>{{ requestion.benefit_category }}</dd>
-            </dl>
-            <div class="page-header"><h2>Документы</h2></div>
-            <ul class="documents">
-                {% for doc in requestion.evidience_documents %}
-                <li>
-                    <p>{{ doc.template }}</p>
-                    Номер {{ doc.document_number }}
-                    {% if doc.confirmed %}<i class="green icon-ok-circle"></i>Подтвержден
-                    {% else %}<i class="red icon-ban-circle"></i>Не подтвержден
-                    {% endif %}
-                    <hr />
-                </li>
-                {% endfor %}
-
-            </ul>
+                <div class="field">
+                    <label class="field-label">Территориальная область</label>
+                    <p class="field-value">{{ requestion.areas.all.0|default:"Весь муниципалитет" }}</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Дата рождения</label>
+                    <p class="field-value">{{ requestion.birth_date }}</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Дата регистрации</label>
+                    <p class="field-value">{{ requestion.registration_datetime }}</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Статус</label>
+                    <p class="field-value">{{ requestion.get_status_display }}</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Льготы</label>
+                    <p class="field-value">{{ requestion.benefit_category }}</p>
+                </div>
             {% endwith %}
+            <div class="block-head top-indent">Документы</div>
+            <div class="field">
+                {% for document in requestion.evidience_documents %}
+                <label class="field-label">{{ document.template }}</label>
+                <div>
+                    <span class="document-info">
+                    {% if not document.confirmed %}
+                        <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                        <div class="field-value">
+                            {{ document.document_number }}
+                            <span class="status-not-approved">Документ не подтвержден оператором</span>
+                        </div>
+                    {% else %}
+                        <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                        <div class="field-value">
+                            {{ document.document_number }}
+                            <span class="status-approved">Документ подтвержден</span>
+                        </div>
+                    {% endif %}
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
         </div>
         <div class="span5">
-            <div class="page-header"><h2>Информация о профиле</h2></div>
+        <div class="requestion-info">
+            <div class="block-head">Информация о профиле</div>
             {% with params.profile as profile %}
-            <dl>
-                <dt>ФИО</dt>
-                <dd>{{ profile.fio }}</dd>
-                <dt>Адрес электронной почты</dt>
-                <dd>{{ profile.user.email|verbose_value }}</dd>
-                <dt>Адрес электронной почты подтвержден</dt>
-                <dd>{{ profile.email_verified|yesno:"Да, Нет" }}</dd>
-                <dt>Заявки, принадлежащие, профилю</dt>
-                <dd>
+                <div class="field">
+                    <label class="field-label">Имя пользователя</label>
+                    <p class="field-value">{{ profile.user.username }}</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Имя родителя</label>
+                    <p class="field-value">{{ profile.first_name|verbose_value }}</p>
+                </div>
+                <div class="field">
+                    <label class="field-label">Заявки, принадлежащие профилю</label>
                     {% for requestion in profile.requestion_set.all %}
-                        <a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a>;
+                        <p class="field-value"><a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a></p>
                     {% endfor %}
-                </dd>
-            </dl>
+                </div>
             {% endwith %}
+        </div>
         </div>
     </div>
     {% izenform form options submit="Прикрепить заявку" %}

@@ -57,7 +57,7 @@ class YearChoiceFormField(forms.ChoiceField):
 
     def __init__(self, start_year, end_year, input_formats=None, *args, **kwargs):
         super(YearChoiceFormField, self).__init__(*args, **kwargs)
-        self.choices = [('%s-01-01' % y, y) for y in range(start_year, end_year)]
+        self.choices = [('01.01.%s' % y, y) for y in range(start_year, end_year)]
         self.input_formats = input_formats
 
     def to_python(self, value):
@@ -76,7 +76,7 @@ class YearChoiceFormField(forms.ChoiceField):
     def valid_value(self, value):
         """Check to see if the provided value is a valid choice"""
         for k, v in self.choices:
-            if isinstance(value, datetime.date) and value.strftime('%Y-%m-%d') == smart_unicode(k):
+            if isinstance(value, datetime.date) and value.strftime('%d.%m.%Y') == smart_unicode(k):
                 return True
         return False
 
@@ -134,11 +134,12 @@ class TemplateFormField(forms.ModelChoiceField):
             cache_choices=False, required=True, widget=None, label=None,
             initial=None, help_text=None, to_field_name=None, *args, **kwargs):
 #        нам нужен первый элемент
-        initial=0
         from sadiki.core.models import EvidienceDocumentTemplate
         if not queryset:
             queryset = EvidienceDocumentTemplate.objects.filter(
                 destination=destination)
+        if queryset.count() == 1:
+            initial = queryset[0].id
         super(TemplateFormField, self).__init__(queryset, empty_label,
             cache_choices, required, widget, label, initial, help_text,
             to_field_name, *args, **kwargs)
@@ -146,23 +147,30 @@ class TemplateFormField(forms.ModelChoiceField):
 
 class AreaFormField(forms.ModelChoiceField):
     widget = AreaWidget
+    default_error_messages = {
+        'required': _(u'Укажите территориальную область'),
+    }
 
     def __init__(self, queryset, empty_label=u"---------", cache_choices=False,
                  required=True, widget=None, label=None, initial=None,
                  *args, **kwargs):
-        empty_label = u"Весь муниципалитет"
-        required = False
         super(AreaFormField, self).__init__(queryset, empty_label,
             cache_choices, required, widget, label,
             initial, *args, **kwargs)
 
     def to_python(self, value):
+        # виджет должен возвращать значение совпадающее с начальным, иначе поле будет считаться измененным
+        if value:
+            value = value[0]
+        else:
+            value = None
         value = super(AreaFormField, self).to_python(value)
         if value is None:
             return []
         else:
 #        т.к. у модели поле MtM, необходимо вернуть список значений
             return [value, ]
+
 
 class AreaChoiceField(models.ManyToManyField):
 
@@ -215,6 +223,17 @@ class SplitDayMonthField(models.CharField):
         defaults = {'form_class': SplitDayMonthFormField, }
         defaults.update(kwargs)
         return super(SplitDayMonthField, self).formfield(**defaults)
+
+
+class SadikWithAreasNameField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return u"{0} ({1})".format(smart_unicode(obj), smart_unicode(obj.area))
+
+
+def validate_no_spaces(value):
+    if value and u' ' in value:
+        raise ValidationError(u"Поле не должно содержать пробелов")
+
 
 add_introspection_rules([], ["^sadiki\.core\.fields\.AreaChoiceField"])
 add_introspection_rules([], ["^sadiki\.core\.fields\.SplitDatMonthField"])

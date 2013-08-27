@@ -2,7 +2,6 @@
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
-import sys
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -11,8 +10,6 @@ import datetime
 import re
 import uuid
 
-#utils for calculate requestion number
-from django.core import management
 from django.db.models.aggregates import Min
 from django.utils.safestring import mark_safe
 
@@ -169,13 +166,13 @@ def run_command(command_name, *args):
     #if sys.argv[1] == 'test':
     #    management.call_command(command_name, *args)
     #else:
-    bin_django = join(settings.PROJECT_DIR, 'bin/django')
+    manage_file = join(settings.PROJECT_DIR, 'manage.py')
     lockname = join(settings.LOCK_DIR, command_name.replace(' ', '-').replace('/', '-'))
     if not exists(settings.LOCK_DIR):
         makedirs(settings.LOCK_DIR)
-    cmd_line = 'flock -n %(lockname)s -c "%(django)s %(command)s %(args)s"' % {
+    cmd_line = 'flock -n %(lockname)s -c "python %(manage_file)s %(command)s %(args)s"' % {
         'lockname': lockname,
-        'django': bin_django,
+        'manage_file': manage_file,
         'command': command_name,
         'args': u' '.join(args),
     }

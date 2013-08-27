@@ -38,16 +38,16 @@
             <form action="." method="get" class='uniForm'>
             {% izenform form options notag=1 nocsrf=1 %}
             <div class="buttonHolder">
-                <button class="primaryAction" value="submit"><i class="icon-filter"></i> Фильтр</button>
+                <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
             </div>
             </form>
         </div>
-    {% if requestions_dict %}
+    {% if requestions %}
         <div class="pagination-page">
             {% digg_paginator %}
         </div>
 
-        {% with requestions_dict.itervalues as object_list %}
+        {% with requestions as object_list %}
         {% block queue_table %}
             {% include 'anonym/includes/queue_include.html' %}
         {% endblock queue_table %}
@@ -57,7 +57,7 @@
             {% digg_paginator %}
         </div>
     {% else %}
-        <h2 class="vertical-margins center-aligned">Нет ни одной заявки в очереди, соответсвующей вашему запросу</h2>
+        <h2 class="vertical-margins center-aligned">Нет ни одной заявки в очереди, соответствующей вашему запросу</h2>
     {% endif %}
 
 {% endblock %}

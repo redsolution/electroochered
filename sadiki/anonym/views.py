@@ -2,7 +2,6 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
-from django.contrib.contenttypes.models import ContentType
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -12,77 +11,63 @@ from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
-from ordereddict import OrderedDict
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
-    ProfileRegistrationForm, QueueFilterForm, PersonalDataApproveForm
-from sadiki.authorisation.models import VerificationKey
-from sadiki.conf_settings import SPECIAL_TRANSITIONS
+    QueueFilterForm
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
-    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference
+    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
 from sadiki.logger.models import Logger
+from sadiki.logger.utils import add_special_transitions_to_requestions
 
 
-class Frontpage(TemplateView):
+class Frontpage(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/frontpage.html'
 
 
-class Registration(TemplateView, RequirePermissionsMixin):
+class Registration(RequirePermissionsMixin, TemplateView):
     u"""Регистрация пользователя в системе"""
     template_name = 'anonym/registration.html'
 
-    def check_permissions(self, request):
-        """Return True if user is anonymous"""
-        return request.user.is_anonymous()
-
     def get(self, request, *args, **kwargs):
         registration_form = RegistrationForm()
-        profile_form = ProfileRegistrationForm()
-        personal_data_approve_form = PersonalDataApproveForm()
-        context = {'registration_form': registration_form,
-            'profile_form': profile_form,
-            'personal_data_approve_form': personal_data_approve_form}
+        context = {'registration_form': registration_form,}
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         registration_form = RegistrationForm(request.POST)
-        profile_form = ProfileRegistrationForm(request.POST)
-        personal_data_approve_form = PersonalDataApproveForm(request.POST)
-        if (registration_form.is_valid() and profile_form.is_valid() and
-                personal_data_approve_form.is_valid()):
+        if registration_form.is_valid():
             user = registration_form.save()
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
-            profile = profile_form.save(user=user)
+            profile = Profile.objects.create(user=user)
+            user.set_username_by_id()
+            user.save()
             user = authenticate(username=user.username,
                     password=registration_form.cleaned_data['password1'])
             if user is not None:
                 if user.is_active:
                     login(request, user)
-            verification_key_object = VerificationKey.objects.create_key(user)
-            verification_key_object.send_email_verification()
             Logger.objects.create_for_action(CREATE_PROFILE,
                 context_dict={'user': user, 'profile': profile},
                 extra={'user': request.user, 'obj': profile})
             return HttpResponseRedirect(reverse('frontpage'))
         else:
-            context = {'registration_form': registration_form,
-                'profile_form': profile_form,
-                'personal_data_approve_form': personal_data_approve_form}
+            context = {'registration_form': registration_form,}
             return self.render_to_response(context)
 
 
-class Queue(ListView):
+class Queue(RequirePermissionsMixin, ListView):
     u"""Отображение очереди в район"""
     template_name = 'anonym/queue.html'
-    queryset = Requestion.objects.queue().add_distributed_sadiks(
+    queryset = Requestion.objects.add_distributed_sadiks(
         # TODO: ОЧЕНЬ долго работает.
-        ).select_related('benefit_category__priority')
+        ).select_related('benefit_category__priority', 'profile'
+    ).prefetch_related('areas', "profile__user__social_auth")
     paginate_by = 200
     form = QueueFilterForm
     requestion = None  # Заявка, найденная через форму поиска
@@ -96,7 +81,7 @@ class Queue(ListView):
 
         if page is None:
             if self.requestion:
-                page = (self.queryset.queue().requestions_before(self.requestion).count() / page_size) + 1
+                page = (self.queryset.requestions_before(self.requestion).count() / page_size) + 1
             else:
                 # Номер страницы по умолчанию 1
                 page = 1
@@ -125,7 +110,6 @@ class Queue(ListView):
             form_data.pop('page')
         except KeyError:
             pass
-
         if form_data:
             form = self.form(query_dict)
             if form.is_valid():
@@ -134,24 +118,31 @@ class Queue(ListView):
 
                 # Обработка формы вручную
                 if form.cleaned_data.get('confirmed', None):
-                    queryset = queryset.filter(status=STATUS_REQUESTER)
+                    queryset = queryset.confirmed()
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
-                    queryset = queryset.filter(birth_date__gte=age_group.min_birth_date(),
-                        birth_date__lt=age_group.max_birth_date())
+                    queryset = queryset.filter_for_age(min_birth_date=age_group.min_birth_date(),
+                                                       max_birth_date=age_group.max_birth_date())
                 if form.cleaned_data.get('benefit_category', None):
                     queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
-                if form.cleaned_data.get('area', None):
+                area = form.cleaned_data.get('area')
+                if area:
                     queryset = queryset.filter(
-                        Q(areas=form.cleaned_data['area']) |
-                        Q(areas__isnull=True))
-
+                        (Q(areas=area) |
+                        Q(areas__isnull=True) | Q(pref_sadiks__area=area)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
+                        Q(distributed_in_vacancy__sadik_group__sadik__area=area)
+                        & Q(status__in=DISTRIBUTION_PROCESS_STATUSES+(STATUS_DISTRIBUTED,)))
+                    ).distinct()
+                else:
+                    queryset = queryset.queue()
+                if form.cleaned_data.get('without_facilities'):
+                    queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
                     try:
                         self.requestion = queryset.get(requestion_number=form.cleaned_data['requestion_number'])
                     except Requestion.DoesNotExist:
                         try:
-                            self.hidden_requestion = initial_queryset.get(
+                            self.hidden_requestion = initial_queryset.queue().get(
                                 requestion_number=form.cleaned_data['requestion_number'])
                             raise RequestionHidden
                         except Requestion.DoesNotExist:
@@ -161,9 +152,9 @@ class Queue(ListView):
 
                 return queryset, form
             else:
-                return queryset, form
+                return queryset.queue(), form
         else:
-            return queryset, self.form()
+            return queryset.queue(), self.form()
 
     def get_context_data(self, **kwargs):
         queryset = kwargs.pop('object_list')
@@ -180,34 +171,26 @@ class Queue(ListView):
 #        для всех заявок получаем возрастные группы, которые подходят для них
         age_groups = AgeGroup.objects.all()
         current_distribution_year = get_current_distribution_year()
-        for requestion in queryset:
+        requestions = queryset
+        for requestion in requestions:
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
 #        для анонимного и авторизованного пользователя нужно отобразить какие особые действия совершались с заявкой
-        requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in queryset])
-#        нам нужны не все логи, а только с определенными действиями
-        if queryset:
+        if requestions:
 #            если получать логи при пустом queryset, то все упадет, паджинатор возвращает queryset[0:0] с пустым query
-            logs = Logger.objects.filter(content_type=ContentType.objects.get_for_model(Requestion),
-                object_id__in=queryset.values_list('id', flat=True), action_flag__in=SPECIAL_TRANSITIONS)
-            relation_dict = {}
-            for log in logs:
-                requestion_log = relation_dict.get(log.object_id)
-    #            если для данной заявки не задан лог или он более старый
-                if not requestion_log or requestion_log.datetime < log.datetime:
-                    relation_dict[log.object_id] = log
-            for id, log in relation_dict.items():
-                requestions_dict[id].action_log = log
+            requestions = add_special_transitions_to_requestions(requestions)
         context = {
             'paginator': paginator,
             'page_obj': page,
             'is_paginated': is_paginated,
-            'requestions_dict': requestions_dict,
+            'requestions': requestions,
             'form': form,
             'target_requestion': self.requestion,
             'offset': (page.number - 1) * page_size,
             'STATUS_DECISION': STATUS_DECISION,
+            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
+            'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'import_finished': Preference.objects.filter(
                 key=PREFERENCE_IMPORT_FINISHED).exists()
         }
@@ -233,7 +216,7 @@ class Queue(ListView):
             return response
 
 
-class RequestionSearch(TemplateView):
+class RequestionSearch(RequirePermissionsMixin, TemplateView):
     u"""Публичный поиск заявок"""
     template_name = 'anonym/requestion_search.html'
     form = PublicSearchForm
@@ -243,8 +226,7 @@ class RequestionSearch(TemplateView):
         'registration_datetime__range': 2,
         'number_in_old_list__exact': 1,
         'id__in': 5,
-        'profile__last_name__icontains': 4,
-        'last_name__icontains': 3,
+        'name__icontains': 3,
     }
 
     def get_context_data(self, **kwargs):
@@ -285,10 +267,8 @@ class RequestionSearch(TemplateView):
 
     def post(self, request, **kwargs):
         form = self.form(request.POST)
-        context_data = {
-            'form': form,
-            'params': kwargs,
-        }
+        context_data = self.get_context_data(**kwargs)
+        context_data['form'] = form
         if form.is_valid():
             query = form.build_query()
             results = self.initial_query.filter(**query)
@@ -312,7 +292,7 @@ class RequestionSearch(TemplateView):
         else:
             return self.render_to_response(context_data)
 
-class SadikList(TemplateView):
+class SadikList(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_list.html'
 
     def get(self, request):
@@ -329,7 +309,8 @@ class SadikList(TemplateView):
         return self.render_to_response({'sadik_list': sadik_list.filter(
             active_registration=True)})
 
-class SadikInfo(TemplateView):
+
+class SadikInfo(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_info.html'
 
     def get(self, request, sadik_id):
@@ -345,22 +326,17 @@ class SadikInfo(TemplateView):
         }
         age_groups = AgeGroup.objects.all()
         requestions_numbers_by_groups = []
+        current_distribution_year = get_current_distribution_year()
         for group in age_groups:
             requestions_numbers_by_groups.append(requestions.filter_for_age(
-                min_birth_date=group.min_birth_date(), max_birth_date=group.max_birth_date()).count())
-#        список распределенных заявок с путевками в работающие группы этого ДОУ
-        distributed_for_groups = []
-        for sadik_group in sadik.groups.active():
-            distributed_requestions = Requestion.objects.filter(
-                status=STATUS_DISTRIBUTED,
-                distributed_in_vacancy__sadik_group=sadik_group,)
-            if distributed_requestions:
-                distributed_for_groups.append(
-                    (sadik_group, distributed_requestions))
+                min_birth_date=group.min_birth_date(current_distribution_year=current_distribution_year),
+                max_birth_date=group.max_birth_date(current_distribution_year=current_distribution_year)).count())
+       # список распределенных заявок с путевками в работающие группы этого ДОУ
+        groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
         return self.render_to_response({
             'sadik': sadik,
             'requestions_statistics': requestions_statistics,
             'requestions_numbers_by_groups': requestions_numbers_by_groups,
             'groups': age_groups,
-            'distributed_for_groups': distributed_for_groups,
+            'groups_with_distributed_requestions': groups_with_distributed_requestions,
         })

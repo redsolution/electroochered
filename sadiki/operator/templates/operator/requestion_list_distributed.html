@@ -1,7 +1,7 @@
 {% extends "anonym/sadik_list.html" %}
 {% load sadiki_core_tags zenforms %}
 
-{% block title %}Работа с заявками для которых выделены места{% endblock %}
+{% block title %}Работа с заявками, для которых выделены места{% endblock %}
 
 {% block content %}
     {% if current_area %}
@@ -10,7 +10,8 @@
     {% if form %}
         <div class="row">
             <div class="content span8 offset2">
-                {% izenform form options method='GET' submit="Выбрать" %}
+                {% url requestion_list_enroll as requestion_list_enroll_url %}
+                {% izenform form options method='GET' action=requestion_list_enroll_url submit="Выбрать" %}
             </div>
         </div>
     {% endif %}
@@ -18,11 +19,12 @@
         <h3 class="important">Во время распределения заявки не могут быть возвращены в очередь</h3>
     {% endif %}
     {% if sadik %}
-        <h3>{{ sadik }}</h3>
+        <h2>{{ sadik }}</h2>
+        {% if requestions_by_groups %}
         <div class="decision_requestions_list clearfix">
             {% for group, requestions in requestions_by_groups %}
                 {% if requestions %}
-                    <h3>Группа {{ group }}</h3>
+                    <h3>Группа: {{ group }}</h3>
                     <table class="table table-striped table-bordered table-condensed">
                         <thead>
                             <tr>
@@ -38,7 +40,7 @@
                         {% for requestion in requestions %}
                             <tr>
                                 <td>
-                                    {% if requestion.user.is_operator %}
+                                    {% if request.user.is_operator %}
                                         <a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a>
                                     {% else %}
                                         <p>{{ requestion }}</p>
@@ -48,19 +50,18 @@
                                     {{ requestion.number_in_old_list|verbose_value }}
                                 </td>
                                 <td>
-                                    {{ requestion.birth_date|date:"d-M-Y" }}
+                                    {{ requestion.birth_date }}
                                 </td>
                                 <td>
-                                    <p>Адрес: {{ requestion.address|verbose_value }}</p>
                                     <p>Телефон: {{ requestion.profile.phone_number|verbose_value }}</p>
-                                    <p>Мобильный: {{ requestion.profile.mobile_number|verbose_value }}</p>
-                                    <p>Родитель: {{ requestion.profile.fio|verbose_value }}</p>
-                                    <p>Ребёнок: {{ requestion.fio|verbose_value }}</p>
+                                    <p>Skype: {{ requestion.profile.skype|verbose_value }}</p>
+                                    <p>Родитель: {{ requestion.profile.first_name|verbose_value }}</p>
+                                    <p>Ребёнок: {{ requestion.name|verbose_value }}</p>
                                 </td>
                                 <td>
                                     {{ requestion.get_status_display }}
                                     {% if requestion.status in appeal_statuses %}
-                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p> 
+                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p>
                                     {% endif %}
                                 </td>
                                 <td>
@@ -79,5 +80,8 @@
                 {% endif %}
             {% endfor %}
         </div>
+        {% else %}
+            <h3>Нет доступных для зачисления заявок</h3>
+        {% endif %}
    {% endif %}
 {% endblock content %}

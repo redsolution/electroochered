@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+from django.templatetags.static import static
+import re
 from attachment.admin import AttachmentImageInlines
 from attachment.forms import AttachmentImageForm
 from chunks.models import Chunk
-from django import template, forms
+from django import forms
 from django.conf import settings
-from django.conf.urls.defaults import patterns, url
 from django.contrib import admin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.admin.widgets import RelatedFieldWidgetWrapper
@@ -12,36 +13,38 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User, Group
 from django.contrib.gis.forms.fields import GeometryField
 from django.core.urlresolvers import reverse, NoReverseMatch
-from django.db import transaction
 from django.db.models.query_utils import Q
 from django.forms.widgets import CheckboxSelectMultiple
-from django.http import HttpResponseForbidden, HttpResponseRedirect
-from django.shortcuts import render_to_response
-from django.template.context import RequestContext
+from django.template.response import TemplateResponse
+from django.utils import six
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 from django.utils.text import capfirst
 from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect
-from sadiki.administrator.models import ImportTask, IMPORT_INITIAL, IMPORT_START, \
-    IMPORT_FINISH, IMPORT_ERROR
 from sadiki.core.admin import CustomGeoAdmin
+from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
     Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, \
-    PREFERENCE_SECTION_CHOICES, PREFERENCE_IMPORT_FINISHED, ChunkCustom
+    ChunkCustom
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME, \
     SUPERVISOR_PERMISSION, OPERATOR_PERMISSION, SADIK_OPERATOR_PERMISSION, \
     ADMINISTRATOR_PERMISSION
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN, IMMEDIATELY_DISTRIBUTION_NO, \
     WITHOUT_BENEFIT_PRIORITY
-from sadiki.core.utils import run_command
 import urllib
 import urlparse
 
 csrf_protect_m = method_decorator(csrf_protect)
+
+
+def clean_str(text):
+    text = re.sub("\n", ' ', text)
+    text = re.sub("\s\s+", ' ', text)
+    return text.strip()
 
 
 def add_get_params_to_url(url, params=None):
@@ -76,11 +79,14 @@ class CustomRelatedFieldWidgetWrapper(RelatedFieldWidgetWrapper):
             # API to determine the ID dynamically.
             output.append(u'<a href="%s" class="add-another" id="add_id_%s" onclick="return showAddAnotherPopup(this);"> ' % \
                           (related_url, name))
-            output.append(u'<img src="%simg/admin/icon_addlink.gif" width="10" height="10" alt="%s"/></a>' % (settings.ADMIN_MEDIA_PREFIX, _('Add Another')))
+            output.append(u'<img src="%s" width="10" height="10" alt="%s"/></a>'
+                          % (static('admin/img/icon_addlink.gif'), _('Add Another')))
         return mark_safe(u''.join(output))
 
 
 class AddressForm(forms.ModelForm):
+    town = forms.CharField(label=u"Населенный пункт", max_length=255, required=False)
+    block_number = forms.CharField(label=u'№ квартала', max_length=255, required=False)
     postindex = forms.IntegerField(label=u"Почтовый индекс", max_value=999999)
     street = forms.CharField(label=u"Улица", max_length=255)
     building_number = forms.CharField(label=u"Дом", max_length=255)
@@ -88,6 +94,8 @@ class AddressForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
         if self.instance and self.instance.id:
+            self.fields["town"].initial = self.instance.address.town
+            self.fields["block_number"].initial = self.instance.address.block_number
             self.fields["postindex"].initial = self.instance.address.postindex
             self.fields["street"].initial = self.instance.address.street
             self.fields["building_number"].initial = self.instance.address.building_number
@@ -96,8 +104,10 @@ class AddressForm(forms.ModelForm):
         if defaults is None:
             defaults = {}
         return Address.objects.get_or_create(
+                town = self.cleaned_data.get("town"),
                 postindex=self.cleaned_data.get("postindex"),
                 street=self.cleaned_data.get("street"),
+                block_number = self.cleaned_data.get("block_number"),
                 building_number=self.cleaned_data.get("building_number"),
                 defaults=defaults)
 
@@ -107,9 +117,8 @@ class AddressWithMapForm(AddressForm):
 
     def __init__(self, *args, **kwargs):
         super(AddressWithMapForm, self).__init__(*args, **kwargs)
-        map_widget = admin.site._registry[Address].get_map_widget(
-            Address._meta.get_field_by_name('coords')[0])
         self.fields["coords"].widget = map_widget()
+        self.fields['coords'].error_messages.update(location_errors)
         if self.instance and self.instance.id:
             self.fields["coords"].initial = self.instance.address.coords
 
@@ -138,7 +147,7 @@ class SadikiAdminSite(AdminSite):
         """
         Displays the main admin index page, which lists all of the installed
         apps that have been registered in this site.
-        
+
         убрал проверку прав на модуль(в интерфейсе администратора нет разграничения прав)
         """
         app_dict = {}
@@ -153,39 +162,47 @@ class SadikiAdminSite(AdminSite):
                 # Check whether user has any perm for this module.
                 # If so, add the module to the model_list.
                 if True in perms.values():
+                    info = (app_label, model._meta.module_name)
                     model_dict = {
                         'name': capfirst(model._meta.verbose_name_plural),
-                        'admin_url': mark_safe('%s/%s/' % (app_label, model.__name__.lower())),
                         'perms': perms,
                     }
+                    if perms.get('change', False):
+                        try:
+                            model_dict['admin_url'] = reverse('admin:%s_%s_changelist' % info, current_app=self.name)
+                        except NoReverseMatch:
+                            pass
+                    if perms.get('add', False):
+                        try:
+                            model_dict['add_url'] = reverse('admin:%s_%s_add' % info, current_app=self.name)
+                        except NoReverseMatch:
+                            pass
                     if app_label in app_dict:
                         app_dict[app_label]['models'].append(model_dict)
                     else:
                         app_dict[app_label] = {
                             'name': app_label.title(),
-                            'app_url': app_label + '/',
+                            'app_url': reverse('admin:app_list', kwargs={'app_label': app_label}, current_app=self.name),
                             'has_module_perms': has_module_perms,
                             'models': [model_dict],
                         }
 
         # Sort the apps alphabetically.
-        app_list = app_dict.values()
-        app_list.sort(lambda x, y: cmp(x['name'], y['name']))
+        app_list = list(six.itervalues(app_dict))
+        app_list.sort(key=lambda x: x['name'])
 
         # Sort the models alphabetically within each app.
         for app in app_list:
-            app['models'].sort(lambda x, y: cmp(x['name'], y['name']))
+            app['models'].sort(key=lambda x: x['name'])
 
         context = {
             'title': _('Site administration'),
             'app_list': app_list,
-            'root_path': self.root_path,
         }
         context.update(extra_context or {})
-        context_instance = template.RequestContext(request, current_app=self.name)
-        return render_to_response(self.index_template or 'admin/index.html', context,
-            context_instance=context_instance
-        )
+        return TemplateResponse(request, self.index_template or
+                                'admin/index.html', context,
+                                current_app=self.name)
 
 
 site = SadikiAdminSite(name='sadiki_admin')
@@ -193,7 +210,6 @@ site = SadikiAdminSite(name='sadiki_admin')
 USER_TYPE_CHOICES = (
     (SUPERVISOR_PERMISSION[0], u'Суперпользователь'),
     (OPERATOR_PERMISSION[0], u'Оператор'),
-    (SADIK_OPERATOR_PERMISSION[0], u'Оператор ДОУ'),
     (ADMINISTRATOR_PERMISSION[0], u'Администратор'),
     )
 
@@ -215,16 +231,6 @@ def get_user_type(instance):
 class OperatorAdminChangeForm(forms.ModelForm):
     user_type = forms.ChoiceField(label=u"Тип учетной записи",
         required=False, choices=USER_TYPE_CHOICES)
-    area = forms.ModelChoiceField(label=u"Территориальное образование",
-        queryset=Area.objects.all(), empty_label=u"Весь муниципалитет",
-        required=False)
-    sadik = forms.ModelChoiceField(label=u'ДОУ которым руководит',
-        queryset=Sadik.objects.all(), required=False)
-    is_distributor = forms.BooleanField(
-        label=u"Может работать с распределением", required=False)
-    is_sadik_operator = forms.BooleanField(
-        label=u"Есть права на работу с ДОУ в своем территориальном образовании",
-        required=False)
 
     class Meta:
         model = User
@@ -233,26 +239,7 @@ class OperatorAdminChangeForm(forms.ModelForm):
         super(OperatorAdminChangeForm, self).__init__(*args, **kwargs)
         instance = kwargs.get('instance')
         if instance:
-            if not instance.is_administrator():
-                self.fields['area'].initial = instance.get_profile().area
-                if instance.id and instance.get_profile().sadiks.all().exists():
-                    self.fields['sadik'].initial = instance.get_profile().sadiks.all()[0]
-                else:
-                    self.fields['sadik'].initial = None
-                user_permissions = instance.get_all_permissions()
-                self.fields['is_distributor'].initial = ("auth.is_distributor"
-                    in user_permissions)
-                self.fields['is_sadik_operator'].initial = (
-                    "auth.is_sadik_operator" in instance.get_all_permissions())
             self.fields['user_type'].initial = get_user_type(instance)
-
-    def clean(self):
-        cleaned_data = super(OperatorAdminChangeForm, self).clean()
-        if (cleaned_data.get('user_type') == SADIK_OPERATOR_PERMISSION[0] and
-                not cleaned_data.get('sadik')):
-            self._errors["sadik"] = self.error_class(
-                [u"Необходимо указать ДОУ которым руководит пользователь"])
-        return cleaned_data
 
 
 class OperatorAdminAddForm(OperatorAdminChangeForm):
@@ -279,6 +266,12 @@ class OperatorAdminAddForm(OperatorAdminChangeForm):
 
 
 class ModelAdminWithoutPermissionsMixin(object):
+
+    class Media:
+        css = {
+                 'all': ('css/admin_override.css',)
+            }
+
     def has_add_permission(self, request):
         return True
 
@@ -295,27 +288,14 @@ verbose_user_type.short_description = 'Тип учетной записи'
 
 
 class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
-    model = User
     change_form_template = "adm/user/operator_change_template.html"
     fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
         'is_active']}),
-        (u'Опции оператора',
-            {'classes': ('operator',),
-            'fields': ['area', 'is_distributor', 'is_sadik_operator']}),
-        (u'Опции оператора ДОУ',
-            {'classes': ('sadik_operator',),
-            'fields': ['sadik', ]}),
     )
     add_fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
         'password1', 'password2']}),
-        (u'Опции оператора',
-            {'classes': ('operator',),
-            'fields': ['area', 'is_distributor', 'is_sadik_operator']}),
-        (u'Опции оператора ДОУ',
-            {'classes': ('sadik_operator',),
-            'fields': ['sadik', ]}),
     )
     add_form = OperatorAdminAddForm
     form = OperatorAdminChangeForm
@@ -323,8 +303,9 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     list_filter = ()
 
     class Media:
-        js = ("%sjs/admin/user.js" % settings.STATIC_URL,)
-
+        css = {
+                 'all': ('css/admin_override.css',)
+            }
 
     def queryset(self, request):
         """
@@ -339,68 +320,46 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
 
     def save_model(self, request, obj, form, change):
         obj.save()
-#        для оператора создаем профиль с привязкой к району
-        area = form.cleaned_data.get('area')
-        sadik = form.cleaned_data.get('sadik')
         try:
-            profile = obj.get_profile()
+            obj.get_profile()
         except Profile.DoesNotExist:
-            profile = Profile.objects.create(user=obj)
-#        два списка групп, которые у пользователя есть и которых нет
+            Profile.objects.create(user=obj)
+#        список групп, которые нужно назначить пользователю
         user_groups = []
         supervisor_group = Group.objects.get(name=SUPERVISOR_GROUP_NAME)
         operator_group = Group.objects.get(name=OPERATOR_GROUP_NAME)
         sadik_operator_group = Group.objects.get(name=SADIK_OPERATOR_GROUP_NAME)
         administrator_group = Group.objects.get(name=ADMINISTRATOR_GROUP_NAME)
         distributor_group = Group.objects.get(name=DISTRIBUTOR_GROUP_NAME)
-        all_groups = (supervisor_group, operator_group, sadik_operator_group,
-            administrator_group, distributor_group)
         user_type = form.cleaned_data.get('user_type')
         if user_type == SUPERVISOR_PERMISSION[0]:
 #        если супервайзер
             user_groups.append(supervisor_group)
         elif user_type == OPERATOR_PERMISSION[0]:
 #        если оператор
-            profile.area = area
             user_groups.append(operator_group)
-#            может ли учавствовать в распределении
-            if form.cleaned_data.get('is_distributor'):
-                user_groups.append(distributor_group)
-#            есть ли у оператора права на работу с ДОУ
-            if form.cleaned_data.get('is_sadik_operator'):
-                user_groups.append(sadik_operator_group)
-        elif user_type == SADIK_OPERATOR_PERMISSION[0]:
-#        оператор ДОУ
-            if sadik:
-                profile.sadiks = (sadik,)
+            user_groups.append(distributor_group)
             user_groups.append(sadik_operator_group)
         elif user_type == ADMINISTRATOR_PERMISSION[0]:
 #        если администратор
             user_groups.append(administrator_group)
-        profile.save()
-        other_groups = list(set(all_groups) - set(user_groups))
-        obj.groups.add(*user_groups)
-        obj.groups.remove(*other_groups)
+        obj.groups = user_groups
 
 
-class AreaForm(AddressForm, forms.ModelForm):
-    class Meta:
-        model = Area
+class AreaAdminForm(forms.ModelForm):
+    model = Sadik
+
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
 
 
 class AreaAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
-    form = AreaForm
     model = Area
-    fields = ['name', 'postindex', 'street', 'building_number', 'ocato']
-    raw_id_fields = ['address', ]
+    form = AreaAdminForm
+    fields = ['name', 'ocato']
 
-    def save_model(self, request, obj, form, change):
-        """
-        Given a model instance save it to the database.
-        """
-        address, created = form.get_address()
-        obj.address = address
-        obj.save()
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
 
 
 class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
@@ -426,16 +385,21 @@ class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
                     u"Во время распределения нельзя запретить зачисление в ДОУ")
         return active_distribution
 
+    def clean_identifier(self):
+        return clean_str(self.cleaned_data.get('identifier'))
+
 
 class SadikAdmin(ModelAdminWithoutPermissionsMixin, CustomGeoAdmin):
+
     form = SadikAdminForm
     model = Sadik
-    fields = ('area', 'name', 'short_name', 'number', 'postindex', 'street',
+    fields = ('area', 'name', 'short_name', 'identifier', 'town', 'postindex',
+        'block_number', 'street',
         'building_number', 'coords', 'email', 'site',
         'head_name', 'phone', 'cast', 'tech_level', 'training_program',
         'route_info', 'extended_info', 'active_registration',
         'active_distribution', 'age_groups',)
-    list_display = ['name', 'number']
+    list_display = ['name', 'identifier']
     raw_id_fields = ['address']
 
     def save_model(self, request, obj, form, change):
@@ -452,87 +416,6 @@ class EvidienceDocumentTemplateAdmin(ModelAdminWithoutPermissionsMixin, admin.Mo
     list_display = ['name', 'destination']
 
 
-class ImportTaskAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
-    model = ImportTask
-    change_list_template = 'administrator/change_task_list.html'
-    change_form_template = 'administrator/change_task_form.html'
-    list_display = ['__unicode__', 'status']
-    fields = ['source_file', 'fake', 'data_format']
-    readonly_fields = ['status', 'errors', 'total', ]
-
-    def import_finished(self):
-        return Preference.objects.filter(
-            key=PREFERENCE_IMPORT_FINISHED).exists()
-
-    def has_add_permission(self, request):
-        return not self.import_finished()
-
-    def has_change_permission(self, request, obj=None):
-        return self.has_add_permission(request)
-
-    def get_urls(self):
-        urls = super(ImportTaskAdmin, self).get_urls()
-        my_urls = patterns('',
-            url(r'^start_import/$', self.admin_site.admin_view(self.start_import), name="start_import"),
-            url(r'^finish_import/$', self.admin_site.admin_view(self.finish_import), name="finish_import"),
-        )
-        return my_urls + urls
-
-    @csrf_protect_m
-    def start_import(self, request):
-        if self.import_finished():
-            return HttpResponseForbidden(u"Процесс импорта был завершен")
-        if ImportTask.objects.filter(status=IMPORT_START).exists():
-            return HttpResponseForbidden(u"Импорт заявок уже проводится")
-        if request.method == "POST":
-            if request.POST['confirmation'] == 'yes':
-                ImportTask.objects.filter(status=IMPORT_INITIAL
-                    ).update(status=IMPORT_START)
-                run_command('execute_import_tasks')
-            return HttpResponseRedirect(
-                reverse('admin:administrator_importtask_changelist',
-                    current_app=self.admin_site.name))
-        message = u"""Вы уверены, что хотите начать процесс импорта?
-            Это действие нельзя будет отменить"""
-        return render_to_response('administrator/ask_confirmation.html',
-            {'message': message}, context_instance=RequestContext(request))
-
-    def finish_import(self, request):
-        if self.import_finished():
-            return HttpResponseForbidden(u"Процесс импорта был завершен")
-        if request.method == "POST":
-            if request.POST['confirmation'] == 'yes':
-                import_preference, created = Preference.objects.get_or_create(
-                    key=PREFERENCE_IMPORT_FINISHED)
-                import_preference.value = True
-                import_preference.save()
-                return HttpResponseRedirect(
-                    reverse('admin:index', current_app=self.admin_site.name))
-            else:
-                return HttpResponseRedirect(
-                    reverse("admin:administrator_importtask_changelist",
-                        current_app=self.admin_site.name))
-        message = u"""Вы уверены, что хотите завершить импорт?
-            Это действие нельзя будет отменить."""
-        return render_to_response('administrator/ask_confirmation.html',
-            {'message': message}, context_instance=RequestContext(request))
-
-    @csrf_protect_m
-    @transaction.commit_on_success
-    def change_view(self, request, object_id, extra_context=None):
-        if ImportTask.objects.filter(status=IMPORT_START).exists():
-            return HttpResponseForbidden("Во время импорта нельзя изменять файлы с данными")
-        extra_context = {'IMPORT_INITIAL': IMPORT_INITIAL, 'IMPORT_START': IMPORT_START,
-             'IMPORT_FINISH': IMPORT_FINISH, 'IMPORT_ERROR': IMPORT_ERROR}
-        return super(ImportTaskAdmin, self).change_view(request, object_id, extra_context)
-
-    @csrf_protect_m
-    def changelist_view(self, request, extra_context=None):
-        extra_context = {'import_active': ImportTask.objects.filter(status=IMPORT_START).exists(),
-                       'initial_tasks_exists': ImportTask.objects.filter(status=IMPORT_INITIAL).exists()}
-        return super(ImportTaskAdmin, self).changelist_view(request, extra_context)
-
-
 benefit_category_query = (Q(priority__lt=BENEFIT_SYSTEM_MIN) &
     ~Q(priority=WITHOUT_BENEFIT_PRIORITY))
 
@@ -541,7 +424,7 @@ class BenefitCategoryAdminForm(forms.ModelForm):
     class Meta:
         model = BenefitCategory
         if settings.IMMEDIATELY_DISTRIBUTION == IMMEDIATELY_DISTRIBUTION_NO:
-            exclude = ('immediately_distribution_active')
+            exclude = ('immediately_distribution_active',)
 
     def clean_priority(self):
         priority = self.cleaned_data.get('priority')
@@ -583,23 +466,15 @@ class BenefitAdminForm(forms.ModelForm):
         self.fields["evidience_documents"].queryset = EvidienceDocumentTemplate.objects.filter(
             destination=BENEFIT_DOCUMENT)
 
-    def clean_identifier(self):
-        identifier = self.cleaned_data.get('identifier')
-        other_benefits = Benefit.objects.filter(identifier=identifier)
-        if self.instance.id:
-            other_benefits = other_benefits.exclude(id=self.instance.id)
-        if other_benefits.exists():
-            raise forms.ValidationError(u"Такой идентификатор уже используется")
-        else:
-            return identifier
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
 
 
 class BenefitAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = Benefit
     form = BenefitAdminForm
     exclude = ('sadik_related',)
-    list_display = ['name', 'identifier', 'category']
-    
+    list_display = ['name', 'category']
 
 
 class AgeGroupForm(forms.ModelForm):
@@ -617,12 +492,18 @@ class AgeGroupForm(forms.ModelForm):
         else:
             self.fields['sadiks'].initial = Sadik.objects.all()
 
+    def clean_name(self):
+        return clean_str(self.cleaned_data.get('name'))
+
+    def clean_short_name(self):
+        return clean_str(self.cleaned_data.get('short_name'))
+
     def clean(self):
         from_age = self.cleaned_data.get('from_age')
         to_age = self.cleaned_data.get('to_age')
         if (from_age and to_age and from_age >= to_age):
             raise forms.ValidationError(
-                "Минимальный возраст должен быть меньше максимального")
+                u"Минимальный возраст должен быть меньше максимального")
         return self.cleaned_data
 
     def save(self, commit=True):
@@ -666,6 +547,15 @@ class AttachmentImageFormCustom(AttachmentImageForm):
 class AttachmentImageInlinesCustom(AttachmentImageInlines):
     form = AttachmentImageFormCustom
 
+    def has_add_permission(self, request):
+        return True
+
+    def has_change_permission(self, request, obj=None):
+        return self.has_add_permission(request)
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
 
 class ChunkAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 
@@ -706,7 +596,6 @@ site.register(User, UserAdmin)
 site.register(Sadik, SadikAdmin)
 site.register(Area, AreaAdmin)
 site.register(EvidienceDocumentTemplate, EvidienceDocumentTemplateAdmin)
-site.register(ImportTask, ImportTaskAdmin)
 site.register(AgeGroup, AgeGroupAdmin)
 site.register(BenefitCategory, BenefitCategoryAdmin)
 site.register(Benefit, BenefitAdmin)

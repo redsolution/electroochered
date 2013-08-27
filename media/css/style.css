@@ -15,6 +15,10 @@
     color: #468847;
 }
 
+.blue {
+    color: #0088cc;
+}
+
 .imgicon {
     background-image: url('../img/icons_bw.png');
     background-repeat: none;
@@ -119,7 +123,6 @@ a:hover {
 }
 
 img.ui-datepicker-trigger {
-    float:left;
     margin: 5px 0px 0px 3px;
     vertical-align: middle;
 }
@@ -131,7 +134,7 @@ img.ui-datepicker-trigger {
     text-align: left;
 }
 .right-aligned {
-    text-align: right;
+    text-align: right !important;
 }
 
 .quiet {
@@ -140,6 +143,11 @@ img.ui-datepicker-trigger {
 
 .data-table .icon-question-sign{
     font-size: 16px !important;
+}
+
+/*** Zenforms ***/
+.bsmListItemLabel{
+    margin-right: 61px;
 }
 
 /*** Загрузка таблицы ***/
@@ -296,6 +304,26 @@ table.table.table-bordered tr.highlight td {
     font-size: 17px;
 }
 
+#queue_table #requestion-number-head{
+    min-width: 170px
+}
+
+#queue_table .requestion-number .social-button{
+    float:left;
+    height:1px;
+    width: 20px;
+    margin-right: 3px
+}
+
+#queue_table .requestion-number img{
+    float:left;
+}
+
+/**** Queue tooltips ****/
+.requestion-number-tooltip li img{
+    vertical-align: middle;
+}
+
 /**** Кнопочка "Наверх" при скорллинге таблицы ****/
 #up {
     height: 30px;
@@ -328,6 +356,10 @@ table.table.table-bordered tr.highlight td {
     font-size: 16pt;
     font-weight: bold;
     line-height: 32px;
+}
+
+.errorlist li{
+    color: #A60000;
 }
 
 /*** Uni Forms overrides ***/
@@ -436,9 +468,9 @@ table.table.table-bordered tr.highlight td {
 }
 
 .uniForm .readOnly .formHint {
-    position: absolute;
     right: 0;
     bottom: 0.3em;;
+    width: auto;
 }
 
 .uniForm label.checkbox{
@@ -497,10 +529,6 @@ table.table.table-bordered tr.highlight td {
     text-decoration: none;
 }
 
-.header .logarea {
-    float: right;
-}
-
 .header .logarea .signup a,
 .header .logarea .signup a:visited,
 .header .logarea .signup a:focus,
@@ -511,7 +539,6 @@ table.table.table-bordered tr.highlight td {
 }
 
 .header .logarea .signup li{
-    float:left;
     margin-right: 10px;
     line-height: 45px;
 }
@@ -521,8 +548,9 @@ table.table.table-bordered tr.highlight td {
 }
 
 .dropdown{
-    height: 40px;
+    height: 42px;
     padding-top: 10px;
+    float: right;
 }
 
 .header .logarea .dropdown-toggle{
@@ -550,10 +578,63 @@ table.table.table-bordered tr.highlight td {
 }
 
 .dropdown-menu{
+    left: auto;
     right: 0px;
 }
 
 /*** Стили страниц ****/
+
+/* Добавление заявки */
+.requestion-add-form select{
+    margin-left: 0px !important;
+}
+
+.requestion-add-form .bsmList{
+    margin-bottom: 0px;
+}
+
+.requestion-add-form .bsmListItem{
+    margin-right: 110px;
+}
+
+.requestion-add-form .ui-datepicker-trigger{
+    margin-top: -5px;
+}
+
+.requestion-add-form #account-requestion-map{
+    width: 550px;
+}
+
+.requestion-info .small-field .field-value{
+    font-size: 13px !important;
+    min-height: 20px;
+    margin-top: 0px;
+}
+
+.requestion-add-form input{
+    width: 100%
+}
+
+.requestion-add-form input.hasDatepicker{
+    width: 94%
+}
+
+.requestion-add-form .field{
+    margin-bottom: 5px;
+}
+
+.map-legend{
+    list-style-type: none;
+}
+
+.map-legend li{
+    margin-bottom: 10px;
+    color: #a9a9a9;
+}
+
+.map-legend li img{
+    vertical-align: middle;
+}
 
 /* Распределение */
 .inactive_requestion a{
@@ -570,6 +651,14 @@ table.table.table-bordered tr.highlight td {
 
 .current_group {
     color: #008000;
+}
+
+.location_save_actions{
+    height: 25px;
+}
+
+.loaction_save_actions span{
+    text-align: center;
 }
 
 /**** Футер ****/
@@ -732,7 +821,7 @@ html, body {
 }
 
 .content-header{
-    border-bottom: 1px #dddddd solid;
+    border-bottom: 1px #bfd0bf solid;
     padding-left: 30px;
 }
 
@@ -742,14 +831,20 @@ html, body {
 }
 
 .content-menu{
-    margin:0px 0px 6px 0px;
+    padding-left: 16px;
+    margin:2px 0px 4px 0px;
 }
 
 .content-menu li{
     list-style: none;
     display: inline;
-    padding: 7px 10px;
-    margin: 0px 10px 0px 0px ;
+    height: 14px;
+    padding: 7px 10px 5px 10px;
+    border: 1px #bfd0bf solid;
+}
+
+.content-menu li:not(:first-child){
+    border-left: none;
 }
 
 .content-menu li a{
@@ -758,7 +853,6 @@ html, body {
 
 .content-menu li.active{
     background-color: #FFFFFF;
-    border: 1px #DDDDDD solid;
     border-bottom: 1px #FFFFFF solid;
 }
 
@@ -774,9 +868,8 @@ html, body {
 /*Sadik info*/
 
 .sadik_contacts{
-    float:left;
-    margin-right: 610px;
     min-height: 310px;
+    max-width: 900px;
 }
 
 .sadik_contacts dt{
@@ -794,8 +887,11 @@ html, body {
 #sadik_map{
     width: 570px;
     height: 300px;
-    position: absolute;
-    right: 30px;
+    float: right;
+}
+
+.sadik_info_distributed .status{
+    width: 30%;
 }
 
 
@@ -870,4 +966,448 @@ tr.dynamic-form .errorlist {
 /* bootstrap popover */
 .popover-inner {
   width: 350px;
+}
+
+.requestion_blanks{
+    margin-bottom: 15px;
+}
+
+.requestion_blanks div a{
+    margin-bottom: 5px;
+}
+
+/* Страница статистики */
+#group_choice ul{
+    list-style-type: none;
+    margin-left: 10px;
+}
+
+#group_choice ul li input{
+    margin-right: 5px;
+}
+
+/* Главная страница оператора */
+.blanks_drafts {
+    font-size: 13pt;
+}
+
+.blanks_drafts li{
+    list-style-type: none;
+    margin-top: 3pt;
+}
+
+.confirmation-dialog{
+    display: none;
+}
+
+/* Таблица с информацией о свободных местах */
+.places-table .free-places{
+    width: 20%;
+}
+.places-table .capacity{
+    width: 20%;
+}
+
+
+/*страница профиля и заявки для заявителя*/
+.requestion-info .block-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 8px;
+    line-height: normal;
+}
+
+.requestion-info .block-head.top-indent{
+    margin-top: 10px;
+}
+
+.requestion-block{
+    padding-left: 10px;
+    margin-bottom: 40px;
+}
+
+.requestion-block.gray{
+    background-color: #fbfcfe;
+}
+
+.requestion-info .field-label{
+    font-size: 16px;
+    color: #a9a9a9;
+}
+
+.requestion-info .field-label.changed{
+    color: #A60000;
+}
+
+.requestion-info .field-value{
+    margin-top: 8px;
+    font-size: 25px;
+    min-height: 26px;
+    margin-bottom: 7px;
+}
+
+.requestion-info .field-value .value{
+    vertical-align: top;
+}
+
+.requestion-info [class*="span"]{
+    margin-left: 0px;
+    padding-left: 0px;
+}
+
+.vkontakte-info{
+    margin-top: 34px;
+    padding-top: 21px;
+    border-top: 2px #eeeeee solid;
+}
+
+.social-profile-public{
+
+}
+
+#profile-form{
+    font-size: 25px;
+    height: 10px;
+    margin: 3px 0px 15px 0px;
+}
+
+#profile-form select{
+    border: 1px solid #d7d7d7;
+    background-color: #fff;
+}
+
+#profile-form img{
+    vertical-align: middle;
+}
+
+#profile-form input{
+    margin-top: -5px;
+}
+
+.requestion-info .split-line{
+    border-top: 2px #eeeeee solid;
+    margin-bottom: 10px;
+}
+
+.requestion-queue .queue-info{
+    color: #999999;
+    margin-bottom: 10px;
+}
+
+.requestion-queue .queue-info p{
+    margin: 0px;
+    padding: 0px;
+}
+
+.requestion-queue .queue-info .number{
+    color: #327fbd;
+}
+
+.vkontakte-info .controls{
+    min-height: 32px;
+}
+
+.vkontakte-info p{
+    font-size: 16px;
+}
+
+.vkontakte-info .loading{
+    display: none;
+}
+
+.requestion-info .action-link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.requestion-info a.link-with-image img{
+    float: left;
+}
+
+.requestion-info .status-not-approved{
+    color: #d90000;
+    font-size: 10px;
+    display: block;
+}
+
+.requestion-info .status-approved{
+    color: #00b22d;
+    font-size: 10px;
+    display: block;
+}
+
+.requestion-info .requestion-add{
+    line-height: 20px;
+}
+
+.title-notification{
+    width:50px;
+    margin-left: 50px;
+}
+
+.document-info img{
+    float: left;
+    margin-top: 3px;
+}
+
+.document-info .field-value{
+    line-height: normal;
+    margin-left: 30px;
+}
+
+.requestion-map-header{
+    margin: 35px 0px 10px 0px;
+    font-size: 16px;
+    color: #b20000;
+    text-decoration: underline;
+}
+
+#account-requestion-map{
+    width: 470px;
+    height: 300px;
+    margin-bottom: 10px;
+}
+
+.requestion-info .pref-sadiks{
+    margin-left: 0px;
+    margin-top: 14px;
+    color: #327fbd;
+    list-style-type: none;
+}
+
+.requestion-info .pref-sadiks li{
+    margin-top: 1px;
+}
+
+.requestion-info .pref-sadiks li a{
+    border-bottom: 2px solid;
+    font-size: 18px !important;
+}
+
+.requestion-queue{
+    margin-top: 20px;
+}
+
+
+.requestion-queue .split-line{
+    border-top: 1px #eeeeee solid;
+}
+
+.requestion-queue .block-head{
+    font-size: 26px;
+    color: #327fbd;
+    line-height: normal;
+}
+
+.requestion-info .row{
+    margin-left: 0px;
+}
+
+.requestion-info input[type=checkbox]{
+    width: 15px;
+    height: 15px;
+}
+
+.requestion-form .hidden-input input, .requestion-form .hidden-input select{
+    display: none;
+}
+
+.requestion-form input, .requestion-form select{
+    padding: 0px 0px;
+    border: 1px solid #d7d7d7;
+    background: #fff;
+}
+
+.requestion-form input{
+    margin-top: -6px;
+}
+
+.requestion-form select{
+    margin-top: -7px;
+    margin-left: -5px;
+}
+
+.requestion-form select{
+    width: 100%
+}
+
+.requestion-form .bsmSelect{
+    margin: 0px;
+}
+
+.requestion-form .bsmListItem{
+    width: 100%;
+}
+
+.notification-area{
+    margin-bottom: 20px;
+}
+
+.buttonHolder .social-button{
+    float: left;
+}
+
+.requestion-add-menu{
+    margin: 0px -7px -3px 4px;
+}
+
+#location-header{
+    margin-bottom: 10px;
+}
+
+#requestion-form button[type=submit]{
+    margin-top: 5px;
+    float: right;
+}
+
+.field .benefits-list{
+    list-style-type: none;
+    margin-left: 0px;
+}
+
+.requestion-info .vkontakte-profile{
+    margin-bottom: 10px;
+}
+
+.requestion-info .vkontakte-profile a{
+    margin-right: 15px;
+}
+
+.requestion-info .vkontakte-profile .label{
+    margin-top: 5px;
+}
+
+.requestion-info .vkontakte-profile a img{
+    vertical-align: middle;
+    margin-top: -3px;
+    margin-right: 3px;
+}
+
+/*Leaflet draw*/
+.leaflet-draw-actions a{
+    width: 60px !important;
+}
+
+.form-disabled .field-value a{
+    display: none;
+}
+
+.requestion-info .hint{
+    color: #a9a9a9;
+    font-size: 13px;
+}
+
+.requestion-info .field{
+    padding: 5px;
+    margin-left: -5px;
+    border: 1px solid white;
+}
+
+.requestion-info .field.error .field-label{
+    color: #A60000;
+}
+
+.requestion-info .field.error{
+    background: #ffdfdf; border: 1px solid #f3afb5;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-info #errorMsg{
+    background: #ffdfdf; border: 1px solid #f3afb5; margin: 0 0 1.5em 0; padding: 0 1.5em;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+.requestion-info #errorMsg h3{} /* Feel free to use a heading level suitable to your page structure */
+.requestion-info #errorMsg ol{ margin: 0 0 1.5em 0; padding: 0; }
+.requestion-info #errorMsg ol li{ margin: 0 0 3px 1.5em; padding: 7px; background: #f6bec1; position: relative; font-size: .85em;
+    /* CSS3 */
+    border-radius:         4px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius:    4px;
+    -o-border-radius:      4px;
+    -khtml-border-radius:  4px;
+}
+
+/*Login registration pages*/
+.registrationForm input{
+    border: 1px solid #dddddd !important;
+    height: 30px;
+    width: 100% !important;
+    font-size: 17px;
+}
+
+.right-split{
+    border-right: 1px solid #c7c7c7;
+    padding-right: 10px;
+}
+
+.registrationForm .formHint{
+    display: none;
+}
+
+
+.registrationForm .ctrlHolder{
+    border-bottom: 0px;
+}
+
+.vkontakte-registration{
+    margin-top: 30px;
+}
+
+.vkontakte-registration .social-button{
+    font-size: 18px;
+    line-height: 60px;
+}
+
+.vkontakte-registration .social-button img{
+    float: left;
+    margin-right: 10px;
+}
+
+.registrationForm .hint{
+    color: #909090;
+    margin-top: 20px;
+    margin-left: 10px;
+}
+
+.vkontakte-registration .hint{
+    margin-top: 100px;
+    color: #909090;
+    text-align: justify;
+}
+
+.documents-form .original-form{
+    display: none;
+}
+
+.documents-form .delete{
+    display: none;
+}
+
+.documents-form .field{
+    padding: 0px 5px;
+}
+
+.documents-form .field-value{
+    margin-bottom: 0px;
+}
+
+.documents-form .field .hint{
+    margin-bottom: 0px;
+}
+
+.sadik-change-form .map{
+    width: 600px;
+    height: 500px;
 }
