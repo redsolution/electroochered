@@ -93,6 +93,7 @@
 
     python manage.py syncdb --noinput --migrate
     python manage.py update_initial_data
+    python manage.py loaddata sadiki/core/fixtures/chunks_initial.json
 
 2. Для проверки правильности наполнения БД в каталоге программы выполните команду ``python manage.py validate_db_initial``. Результатом выполнения должно быть сообщение ``Ошибок не обнаружено``.
 
