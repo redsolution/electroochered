@@ -1417,9 +1417,14 @@ tr.dynamic-form .errorlist {
     margin-top: 20px;
 }
 
-.sadiks-table span.icon-question-sign{
-    font-size: 16px;
-    float:right
+.sadiks-table .requestions-number{
+    display: inline-block;
+    min-width: 35px;
+    font-size: 19px;
+}
+
+.sadiks-table .year-column{
+    width: 130px;
 }
 
 .sadikListForm input, .sadikListForm select{

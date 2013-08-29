@@ -1,5 +1,5 @@
 {% extends "anonym/base.html" %}
-{% load sadiki_core_tags zenforms %}
+{% load sadiki_core_tags zenforms pytils_numeral %}
 
 {% block content_title %}
     <h1>{% block title %}Список ДОУ{% endblock %}</h1>
@@ -23,7 +23,7 @@
                 <th>Адрес</th>
                 <th>Телефон</th>
                 {% for year in finished_years %}
-                    <th>{{ year }}</th>
+                    <th class="year-column">Зачислено в {{ year }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -34,16 +34,14 @@
                 <td>{{ sadik.address|verbose_value }}</td>
                 <td>{{ sadik.phone|verbose_value }}</td>
                 {% for distributed_number in sadik.distributed_number_list %}
-                    {% if distributed_number.all_requestions %}
-                        <td>
-                            {{ distributed_number.all_requestions }}
-                            <span class="icon-question-sign" title="В том числе льготных заявок: {{ distributed_number.requestions_with_benefits }}"></span>
-                        </td>
-                    {% else %}
-                        <td>
-                            {{ distributed_number.all_requestions }}
-                        </td>
-                    {% endif %}
+                    <td>
+                        <span class="requestions-number">{{ distributed_number.all_requestions }}</span>
+                        {% with distributed_number.requestions_with_benefits as requestions_number %}
+                            {% if requestions_number %}
+                                ({{ requestions_number }} льготн{{ requestions_number|choose_plural:"ая, ых, ых" }})
+                            {% endif %}
+                        {% endwith %}
+                    </td>
                 {% endfor %}
             </tr>
         {% endfor %}
@@ -53,8 +51,12 @@
             <td></td>
             {% for distributed_number in total_distributed %}
                 <td>
-                    {{ distributed_number.all_requestions }}
-                    <span class="icon-question-sign" title="В том числе льготных заявок: {{ distributed_number.requestions_with_benefits }}"></span>
+                    <span class="requestions-number">{{ distributed_number.all_requestions }}</span>
+                    {% with distributed_number.requestions_with_benefits as requestions_number %}
+                        {% if requestions_number %}
+                            ({{ requestions_number }} льготн{{ requestions_number|choose_plural:"ая, ых, ых" }})
+                        {% endif %}
+                    {% endwith %}
                 </td>
             {% endfor %}
         </tr>
