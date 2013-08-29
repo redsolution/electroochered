@@ -12,7 +12,7 @@ from django.utils.translation import ugettext as _
 from django.views.generic import ListView
 from django.views.generic.base import TemplateView
 from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
-    QueueFilterForm
+    QueueFilterForm, AreaChoiceForm
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
@@ -296,14 +296,19 @@ class SadikList(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_list.html'
 
     def get(self, request):
+        form = AreaChoiceForm(request.GET)
         sadik_list = Sadik.objects.all().select_related('address')
+        if form.is_valid():
+            areas = form.cleaned_data.get("areas")
+            if areas:
+                sadik_list = sadik_list.filter(area__in=areas)
         finished_years = [year.year for year in
                           SadikGroup.objects.all().order_by('year').distinct('year').values_list('year', flat=True)]
         current_distribution_year = get_current_distribution_year().year
         if current_distribution_year in finished_years:
             finished_years.remove(current_distribution_year)
         sadik_list = sadik_list.add_distributed_requestions_number(finished_years)
-        context = {"finished_years": finished_years}
+        context = {"finished_years": finished_years, 'form': form}
         if not request.user.is_anonymous() and not request.user.is_requester():
             try:
                 profile = request.user.get_profile()

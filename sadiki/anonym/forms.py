@@ -6,8 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
-from sadiki.core.fields import TemplateFormField
-from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
+from sadiki.core.fields import TemplateFormField, AreaFormField
+from sadiki.core.models import Requestion, PROFILE_IDENTITY, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area
 from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
@@ -182,3 +182,8 @@ class QueueFilterForm(SimpleFilterForm):
         help_text=mark_safe(u"""В порядке очередности заявки отображаются исходя из приоритета категории льгот:
             внеочередная, первоочередная, заявки без льгот.<br>
             В порядке подачи заявлений заявки отображаются только хронологически."""))
+
+
+class AreaChoiceForm(forms.Form):
+    areas = AreaFormField(queryset=Area.objects.all(), empty_label=u"Весь муниципалитет",
+                           required=False, label=u"Территориальная область")
