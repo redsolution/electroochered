@@ -35,6 +35,7 @@ from sadiki.operator.views.base import OperatorPermissionMixin, \
 from django.forms.models import ModelFormMetaclass
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm
+from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
 
 
 class FrontPage(OperatorPermissionMixin, TemplateView):
@@ -160,6 +161,7 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
 
 
 class SetIdentityDocument(OperatorRequestionMixin, TemplateView):
+    required_permissions = ["is_operator", "is_supervisor"]
     template_name = u"operator/set_identity_document.html"
 
     def dispatch(self, request, requestion_id):
@@ -277,15 +279,15 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
             self.template_name = self.get_custom_template_name() or self.template_name
 
         response = super(RequestionStatusChange, self).dispatch(request, requestion)
-        # если проверка прав прошла, то проверяем есть ли у заявки документы
-        if isinstance(response, TemplateResponse):
-            if not requestion.evidience_documents().filter(
-                    template__destination=REQUESTION_IDENTITY).exists():
-                return HttpResponseRedirect(
-                    u'%s?next=%s' %
-                    (reverse('operator_requestion_set_identity_document',
-                             kwargs={'requestion_id': requestion_id}),
-                     urlquote(request.get_full_path()))
+        # если проверка прав прошла успешно, переход предполагает проверку документов и
+        # у заявки не указан документ, то перенаправляем на страницу указания документа
+        if (isinstance(response, TemplateResponse) and not isinstance(request, FakeWSGIRequest) and
+                self.transition and self.transition.check_document and requestion.is_fake_identity_documents):
+            return HttpResponseRedirect(
+                u'%s?next=%s' %
+                (reverse('operator_requestion_set_identity_document',
+                    kwargs={'requestion_id': requestion_id}),
+                    urlquote(request.get_full_path()))
                 )
         return response
 
