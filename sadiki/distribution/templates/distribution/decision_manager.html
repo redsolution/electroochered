@@ -15,6 +15,7 @@
     <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
     <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
     <script>
+        var layers;
         var sadiks_coords = {{ sadiks_coords|safe }};
         $(document).ready(function(){
             var activeSadikIcon = L.icon({
@@ -36,9 +37,17 @@
                     var requestion_point = [{{ point.y }}, {{ point.x }}]
                     var requestion_marker = L.marker(requestion_point)
                 {% else %}
+                    var requestion_point = null
                     var requestion_marker = null
                 {% endif %}
             {% endwith %}
+            {% load_settings %}
+{#            при редактировании карта будет центрироваться на этой точке#}
+            if (requestion_marker) {
+                var map_center = requestion_point
+            } else {
+                var map_center = [{{ settings.MAP_CENTER }}].reverse();
+            }
             var map = new L.Map("requestion_map", {});
             var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
                 subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
@@ -49,38 +58,55 @@
 
             var drawnItems = new L.FeatureGroup();
             map.addLayer(drawnItems);
-            drawnItems.addLayer(requestion_marker);
+            if (requestion_marker){
+                drawnItems.addLayer(requestion_marker);
+            }
 
-            {% if current_requestion_imported %}
+
+            {% if location_not_verified %}
             // !!!В библиотеке Leaflet.draw не нашел возможности заменить некоторые надписи, поэтому поправил js файл, также изменил стили
-
+{#             добавляем элементы управления для изменения местополжение и при их активации центрирование карты#}
+             function add_draw_control(map, control){
+                map.addControl(control);
+                $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+                    if (requestion_point) {
+                            map.panTo(requestion_point);
+                    } else {
+                        map.panTo(map_center);
+                    }
+                })
+             }
             // Initialize the draw control and pass it the FeatureGroup of editable layers
-            var drawControl = new L.Control.Draw({
-                edit: {
-                    featureGroup: drawnItems,
-                    remove: false
-                },
+            var draw_control_options = {
+                edit: {featureGroup: drawnItems,
+                        remove: false},
                 draw: {
                     polyline: false,
                     polygon: false,
                     circle: false, // Turns off this drawing tool
                     rectangle: false,
-                    marker: false
+                    marker: true
                 }
-            });
-            map.addControl(drawControl);
+            }
+{#            если у заявки указаны координаты, то отключаем возможность добавлнеия точки, иначе возможность изменения.#}
+{#                т.к. при изменении моментально происходит сохранение#}
+            if (requestion_marker){
+                draw_control_options['draw']['marker'] = false;
+            } else {
+                draw_control_options['edit'] = false;
+            }
+            var drawControl = new L.Control.Draw(draw_control_options);
+            add_draw_control(map, drawControl)
 
-
-            map.on('draw:edited', function (e) {
+{#            через ajax запрос сохраняем местположение заявки#}
+            function ajax_change_location(layer){
                 $('#location_saved').hide()
                 $('#location_not_saved').hide()
                 $('#location_saving').show();
-                e.layers.eachLayer(function (layer) {
-                    lat_lng = layer.getLatLng()
-                    requestion_point = [lat_lng.lat, lat_lng.lng]
-                    requestion_marker = L.marker(requestion_point)
-                    $('#change_location_form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
-                });
+                lat_lng = layer.getLatLng()
+                requestion_point = [lat_lng.lat, lat_lng.lng]
+                requestion_marker = L.marker(requestion_point)
+                $('#change_location_form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
                 // запрос на изменение координат
                 $.ajax($('#change_location_form').attr('action'), {
                     type: 'POST',
@@ -100,7 +126,30 @@
                         $('#location_not_saved').show();
                     }
                 });
+            }
+
+            map.on('draw:edited', function (e) {
+                layer = e.layers.getLayers()[0]
+                ajax_change_location(layer);
             });
+            map.on('draw:created', function (e) {
+                layer = e.layer;
+                //убрать элемент добавления маркера и добавить возможность изменения
+                map.removeControl(drawControl);
+                draw_control_options['draw']['marker'] = false;
+                draw_control_options['edit'] = {
+                    featureGroup: drawnItems,
+                    remove: false}
+                drawControl = new L.Control.Draw(draw_control_options);
+                add_draw_control(map, drawControl);
+
+                drawnItems.clearLayers();
+                drawnItems.addLayer(layer);
+                ajax_change_location(layer);
+                $("#location_not_set").hide()
+                $("#id_accept_location").attr("disabled", false)
+            });
+{#            пока оператор не поставит галку нельзя выделить место#}
             $('#select_sadik_form #id_accept_location').change(function(){
                 if ($(this).is(':checked')) {
                     $('#select_sadik_form input:submit').attr('disabled', false);
@@ -110,6 +159,7 @@
             })
             {% endif %}
 
+{#            при выборе ДОУ происходит изменение отображаемой информации и карты#}
             $('#select_sadik_form #id_sadik').change(function(){
                 points.clearLayers();
                 var sadik_id = $(this).find('option:selected').val();
@@ -135,7 +185,7 @@
                     if (requestion_marker) {
                         map.fitBounds([requestion_point, sadik_point]);
                     } else {
-                        map.fitBounds([sadik_point]);
+                        map.setView(sadik_point, 14)
                     }
                 };
             });
@@ -258,7 +308,7 @@
                 <form action="." method="POST" id="select_sadik_form">
                     {% csrf_token %}
                     {{ select_sadik_form.as_p }}
-                    {% if current_requestion_imported %}
+                    {% if location_not_verified %}
                         <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()" disabled="disabled"/>
                     {% else %}
                         <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
@@ -273,6 +323,9 @@
 
                 <h3 id="sadik_info_list">Информация о МДОУ</h3>
                 <div class="location_save_actions">
+                    {% if not current_requestion.location %}
+                        <span id="location_not_set" class="label label-important"></i>Необходимо задать местоположение заявки</span>
+                    {% endif %}
                     <span id="location_saved" class="label label-success" style="display: none">Местоположение сохранено</span>
                     <span id="location_not_saved" class="label label-important" style="display: none"></i>Ошибка при сохранении</span>
                     <span id="location_saving" style="display: none"><img src="{{ STATIC_URL }}img/small-ajax-loader.gif"/><span class="label label-info">Сохранение местоположения</span></span>

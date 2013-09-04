@@ -1202,6 +1202,17 @@ class Requestion(models.Model):
         return required_documents.issubset(documents)
 
     @property
+    def location_not_verified(self):
+        u"""
+        необходимо ли подтверждение местоположения
+        """
+        # подтверждение необходимо, если заявка была импортировна или зарегистрирована через госуслуги
+        # и при этом у нее не указано местоположение или указан адрес в виде текста
+        return (self.cast in (REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_GOSUSLUGI)
+            and (not self.location or self.location_properties))
+
+
+    @property
     def is_fake_identity_documents(self):
         return self.evidience_documents().filter(fake=True,
                 template__destination=REQUESTION_IDENTITY).exists()
