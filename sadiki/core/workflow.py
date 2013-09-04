@@ -87,6 +87,7 @@ class Workflow(object):
 
 # Изменение статуса заявки()
 REQUESTION_REGISTRATION_BY_OPERATOR = 0             # Регистрация через оператора
+REQUESTION_REGISTRATION_BY_PGU = 59     # Регистрация через портал госуслуг
 REQUESTION_IMPORT = 1                   # Импорт заявки
 REQUESTION_ADD_BY_REQUESTER = 2                      # Добавление заявки пользователем
 CONFIRM_REQUESTION = 3                  # Документальное подтверждение заявки
@@ -150,6 +151,7 @@ IMPORT_PROFILE = 87
 EMBED_REQUESTION_TO_PROFILE = 88
 CHANGE_REQUESTION_LOCATION = 89
 ACCOUNT_CHANGE_REQUESTION = 90
+SET_REQUESTION_LOCATION_BY_PGU = 91 # изменение местоположения заявки через портал госуслуг
 
 
 #Распределение
@@ -333,7 +335,8 @@ ACTION_CHOICES = [(transition.index, transition.comment) for transition in
 
 ACTION_CHOICES.extend(
 #    добавляем действия с заявками
-    [(CHANGE_REQUESTION, u"Изменение заявки пользователем"), # старый статус(отдельно от изменения ДОУ и льгот)
+    [(REQUESTION_REGISTRATION_BY_PGU, u"Регистрация через портал госуслуг"),
+    (CHANGE_REQUESTION, u"Изменение заявки пользователем"), # старый статус(отдельно от изменения ДОУ и льгот)
     (ACCOUNT_CHANGE_REQUESTION, u"Изменение заявки пользователем"), # также изменяются льготы и ДОУ
     (CHANGE_REQUESTION_BY_OPERATOR, u"Изменение заявки оператором"),
     (CHANGE_ADMISSION_DATE, u"Изменение ЖДП"),
@@ -354,6 +357,7 @@ ACTION_CHOICES.extend(
     (IMPORT_PROFILE, u"Импорт профиля"),
     (EMBED_REQUESTION_TO_PROFILE, u"Прикрепление заявки к профилю"),
     (CHANGE_REQUESTION_LOCATION, u"Изменение местоположения заявки во время распределения"),
+    (SET_REQUESTION_LOCATION_BY_PGU, u"Изменение местоположения заявки через портал госуслуг"),
 #    Распределения
     (DISTRIBUTION_INIT, u'Начало распределения'),
     (DISTRIBUTION_AUTO, u'Начало автоматического комплектования'),
@@ -555,6 +559,10 @@ ACTION_TEMPLATES.update({
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
         ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template),
     },
+    REQUESTION_REGISTRATION_BY_PGU:{
+        ACCOUNT_LOG: Template(requestion_account_template),
+        ANONYM_LOG: Template(requestion_anonym_template),
+    },
     IMPORT_PROFILE:{
         ACCOUNT_LOG: Template(registration_account_template),
     },
@@ -573,6 +581,11 @@ ACTION_TEMPLATES.update({
     CHANGE_REQUESTION_LOCATION:{
         ACCOUNT_LOG: Template(u"""
             {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        """)
+    },
+    SET_REQUESTION_LOCATION_BY_PGU:{
+        ACCOUNT_LOG: Template(u"""
+            {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
         """)
     },
     CHANGE_PROFILE: {

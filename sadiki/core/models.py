@@ -86,12 +86,14 @@ REQUESTION_TYPE_OPERATOR = 0
 REQUESTION_TYPE_IMPORTED = 1
 REQUESTION_TYPE_CORRECTED = 2
 REQUESTION_TYPE_NORMAL = 3
+REQUESTION_TYPE_GOSUSLUGI = 4
 
 REQUESTION_TYPE_CHOICES = (
     (REQUESTION_TYPE_OPERATOR, u'Регистрация через оператора'),
     (REQUESTION_TYPE_IMPORTED, u'Импортированная заявка'),
     (REQUESTION_TYPE_CORRECTED, u'Заявка зарегистрирована до запуска системы и введена вручную'),
     (REQUESTION_TYPE_NORMAL, u'Cамостоятельная регистрация'),
+    (REQUESTION_TYPE_GOSUSLUGI, u'Регистрация через госуслуги'),
 )
 
 def query_set_factory(query_set_class):
@@ -685,6 +687,10 @@ class Profile(models.Model):
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
+    pgu_email = models.EmailField(verbose_name=u'Адрес электронной почты на портале государственных услуг',
+                                  null=True)
+    pgu_mobile_phone = models.CharField(verbose_name=u'Мобильный телефон на портале государственных услуг',
+                                        max_length=255, null=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
