@@ -1111,7 +1111,7 @@ tr.dynamic-form .errorlist {
     font-size: 16px;
 }
 
-.vkontakte-info .loading{
+.requestion-info .loading{
     display: none;
 }
 
@@ -1410,4 +1410,8 @@ tr.dynamic-form .errorlist {
 .sadik-change-form .map{
     width: 600px;
     height: 500px;
+}
+
+.pgu_info{
+    margin-top: 15px;
 }

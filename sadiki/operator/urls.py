@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
     RequestionAdd, \
     RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
+    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic, OperatorPGUDataRemove
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
 
@@ -53,4 +53,6 @@ urlpatterns = patterns('',
         RequestionListEnrollment.as_view(), name=u'requestion_list_enroll'),
     url(r'^dou/(?P<sadik_id>\d{1,7})/distributed_requestions/$',
         DistributedRequestionsForSadik.as_view(), name=u'distributed_requestions_for_sadik'),
+    url(r'^operator_pgu_data_remove/(?P<user_id>\d{1,7})/$',
+        OperatorPGUDataRemove.as_view(), name='operator_pgu_data_remove'),
 )

@@ -348,3 +348,26 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
 class GenerateBlank(AccountRequestionMixin, GenerateBlankBase):
     pass
+
+
+class AccountPGUDataRemove(AccountPermissionMixin, View):
+
+    def dispatch(self, request):
+        profile = request.user.get_profile()
+        return super(AccountPGUDataRemove, self).dispatch(request, profile)
+
+    def post(self, request, profile):
+        if request.is_ajax():
+            field = request.POST.get("field")
+            if field == "pgu_email":
+                profile.pgu_email = None
+            elif field == "pgu_mobile_phone":
+                profile.pgu_mobile_phone = None
+            else:
+                return HttpResponse(content=json.dumps({'ok': False}),
+                        mimetype='text/javascript')
+            profile.save()
+            return HttpResponse(content=json.dumps({'ok': True}),
+                    mimetype='text/javascript')
+        else:
+            return HttpResponseBadRequest()

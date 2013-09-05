@@ -13,7 +13,8 @@ from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
 from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
     RequestionAdd as AccountRequestionAdd, \
-    RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage
+    RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage, \
+    AccountPGUDataRemove
 from sadiki.anonym.views import Queue as AnonymQueue, \
     RequestionSearch as AnonymRequestionSearch
 from sadiki.core.models import Requestion, \
@@ -487,3 +488,11 @@ class SocialProfilePublic(OperatorPermissionMixin, AccountSocialProfilePublic):
     def dispatch(self, request, profile_id):
         profile = get_object_or_404(Profile, id=profile_id)
         return super(AccountSocialProfilePublic, self).dispatch(request, profile)
+
+
+class OperatorPGUDataRemove(OperatorPermissionMixin, AccountPGUDataRemove):
+
+    def dispatch(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        profile = user.get_profile()
+        return super(AccountPGUDataRemove, self).dispatch(request, profile)
