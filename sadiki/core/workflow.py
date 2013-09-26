@@ -33,7 +33,7 @@ class Transition(object):
 
     ANONYMOUS_PERMISSION = '*'
 
-    def __init__(self, src, dst, transition, comment, permissions, permission_callback=None):
+    def __init__(self, src, dst, transition, comment, permissions, permission_callback=None, check_document=False):
         self.src = src
         self.dst = dst
         self.index = transition
@@ -41,6 +41,7 @@ class Transition(object):
         self.required_permissions = permissions
         self.permission_cb = permission_callback
         self.confirmation_form_class = None
+        self.check_document = check_document
 
 
 class Workflow(object):
@@ -48,13 +49,14 @@ class Workflow(object):
         self.transitions = []
         super(Workflow, self).__init__()
 
-    def add(self, src, dst, transition, comment=u'', permissions=None, permission_callback=None):
+    def add(self, src, dst, transition, comment=u'', permissions=None, permission_callback=None, check_document=False):
         #проверим, что у нас нет повторяющихся id переходов
         if permissions is None:
             permissions = []
         if [tr for tr in self.transitions if tr.index == transition]:
             raise AttributeError('Transition with id=%d already added' % transition)
-        self.transitions.append(Transition(src, dst, transition, comment, permissions, permission_callback))
+        self.transitions.append(Transition(src, dst, transition, comment, permissions, permission_callback,
+                                           check_document))
 
     def available_transition_statuses(self, src):
         u"""
@@ -217,17 +219,19 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 3) Зачисление
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
-             u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
+             u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]], check_document=True)
 workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION, u'Зачисление по резолюции Начальника',
-             permissions=[SUPERVISOR_PERMISSION[0]])
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 # workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
 #              u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_NOT_APPEAR, DECISION_NOT_APPEAR,
              u'Неявка в ДОУ', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_DISTRIBUTED, ABSENT_DISTRIBUTED,
-             u'Явка в дополнительное время отсутствующих', permissions=[DISTRIBUTOR_PERMISSION[0]])
+             u'Явка в дополнительное время отсутствующих', permissions=[DISTRIBUTOR_PERMISSION[0]],
+             check_document=True)
 workflow.add(STATUS_NOT_APPEAR, STATUS_DISTRIBUTED, NOT_APPEAR_DISTRIBUTED,
-             u'Явка в дополнительное время неявившихся', permissions=[DISTRIBUTOR_PERMISSION[0]])
+             u'Явка в дополнительное время неявившихся', permissions=[DISTRIBUTOR_PERMISSION[0]],
+             check_document=True)
 # Путевки
 if ETICKET != ETICKET_NO:
     workflow.add(STATUS_DECISION, STATUS_PASS_GRANTED, PASS_GRANTED,
@@ -255,7 +259,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 workflow.add(STATUS_REQUESTER, STATUS_REMOVE_REGISTRATION,
     REQUESTER_REMOVE_REGISTRATION, u'Снятие с учёта', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER,
-    RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]])
+    RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]],
+    check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION,
     NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
@@ -274,11 +279,14 @@ workflow.add(STATUS_DISTRIBUTED, STATUS_ARCHIVE, DISTRIBUTED_ARCHIVE,
     u'Архивация зачисленных')
 
 workflow.add(STATUS_DECISION, STATUS_REQUESTER, DECISION_REQUESTER,
-    u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+    u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+    check_document=True)
 workflow.add(STATUS_NOT_APPEAR, STATUS_REQUESTER, NOT_APPEAR_REQUESTER,
-    u'Отказ от места в ДОУ после неявки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+    u'Отказ от места в ДОУ после неявки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+    check_document=True)
 workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
-    u'Отказ от места в ДОУ после отсутствия', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+    u'Отказ от места в ДОУ после отсутствия', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+    check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
     REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
 
@@ -519,14 +527,8 @@ change_benefits_account_template = u"""
     """
 
 change_documents_account_template = u"""
-    {% if benefit_documents %}
-        Документы для льгот:
-        {% for document in benefit_documents %}
-            {{ document.document_number }} ({{ document.template }});
-        {% endfor %}.
-    {% endif %}
     {% if requestion_documents %}
-        Документы для льгот:
+        Документы:
         {% for document in requestion_documents %}
             {{ document.document_number }} ({{ document.template }});
         {% endfor %}.

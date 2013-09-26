@@ -13,7 +13,7 @@ from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, \
-    STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT
+    STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT, NOT_CONFIRMED_STATUSES
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
 from sadiki.core.widgets import JqueryUIDateWidget, LeafletMap
 
@@ -144,7 +144,10 @@ class RequestionIdentityDocumentForm(FormWithDocument):
     def create_document(self, requestion, commit=True):
         document = super(RequestionIdentityDocumentForm, self).create_document(
             requestion, commit=False)
-        document.confirmed = True
+        # в зависимости от статуса заявки(документ может быть задан для снятой с учета заявки)
+        # документ может быть подтвержден или нет
+        if requestion.status not in NOT_CONFIRMED_STATUSES:
+            document.confirmed = True
         if commit:
             document.save()
         return document
