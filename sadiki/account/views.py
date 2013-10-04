@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from django.contrib.auth.decorators import login_required
 import json
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
@@ -69,6 +71,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
     """
     template_name = 'account/frontpage.html'
 
+    @method_decorator(login_required)
     def dispatch(self, request):
         profile = request.user.get_profile()
         return super(AccountFrontPage, self).dispatch(request, profile=profile)
@@ -89,6 +92,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
 
 class SocialProfilePublic(AccountPermissionMixin, View):
 
+    @method_decorator(login_required)
     def dispatch(self, request):
         profile = request.user.get_profile()
         return super(SocialProfilePublic, self).dispatch(request, profile)
@@ -124,6 +128,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def redirect_to(self, requestion):
         return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
 
+    @method_decorator(login_required)
     def dispatch(self, request):
         profile = request.user.get_profile()
         return super(RequestionAdd, self).dispatch(request, profile=profile)
