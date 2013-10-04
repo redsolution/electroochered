@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.decorators import login_required
 import json
+
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
@@ -11,6 +12,7 @@ from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
     BenefitsForm, ChangeRequestionForm,\
     PreferredSadikForm, SocialProfilePublicForm
+from sadiki.account.utils import get_plugin_menu_items
 from sadiki.core.models import Requestion, \
     STATUS_REQUESTER_NOT_CONFIRMED, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
@@ -82,7 +84,8 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         context = {
             'params': kwargs,
             'profile': profile,
-            'profile_change_form': profile_change_form
+            'profile_change_form': profile_change_form,
+            'plugin_menu_items': get_plugin_menu_items(),
         }
         vkontakte_associations = profile.user.social_auth.filter(provider='vkontakte-oauth2')
         if vkontakte_associations:
@@ -120,6 +123,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         return {
             'profile': kwargs.get('profile'),
             'sadiks_location_data': get_json_sadiks_location_data(),
+            'plugin_menu_items': get_plugin_menu_items(),
         }
 
     def create_profile(self):
@@ -344,6 +348,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'areas_ids': requestion.areas.all().values_list('id', flat=True),
             'can_change_benefits': self.can_change_benefits(requestion),
             'can_change_requestion': self.can_change_requestion(requestion),
+            'plugin_menu_items': get_plugin_menu_items(),
         }
 
         context.update(kwargs)

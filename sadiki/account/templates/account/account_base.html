@@ -23,6 +23,11 @@
                 <img class='requestion-add-menu' src="{{ STATIC_URL }}img/requestion_add_menu.png"/>
             </a>
         </li>
+        {% for url, name in plugin_menu_items.iteritems %}
+            <li {% if request.path == url %}class="active"{% endif %}>
+                <a href="{{ url }}">{{ name }}</a>
+            </li>
+        {% endfor %}
         <li {% if request.path == account_logs %}class="active"{% endif %}>
             <a href="{{ account_logs }}">История изменений</a>
         </li>
