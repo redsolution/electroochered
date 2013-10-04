@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
+from sadiki.account.plugins import plugins
 from sadiki.account.views import RequestionAdd, \
     AccountFrontPage, RequestionInfo, GenerateBlank, SocialProfilePublic
 
@@ -15,3 +16,9 @@ urlpatterns = patterns('',
     url(r'^social_profile_public/$',
         SocialProfilePublic.as_view(), name='social_profile_public'),
 )
+
+for plugin in plugins:
+    try:
+        urlpatterns += plugin.get_urls()
+    except NotImplementedError:
+        pass
