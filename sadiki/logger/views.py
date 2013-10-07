@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
+from sadiki.account.utils import get_plugin_menu_items
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Requestion, Profile
 from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
@@ -62,7 +63,8 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
     def get(self, request):
         profile = request.user.get_profile()
         return self.render_to_response(
-            {'requestions_with_logs': self.get_logs_for_profile(profile)})
+            {'requestions_with_logs': self.get_logs_for_profile(profile),
+             'plugin_menu_items': get_plugin_menu_items()})
 
 
 class OperatorLogs(OperatorPermissionMixin, AccountLogs):
