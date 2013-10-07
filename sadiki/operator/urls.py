@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from django.views.decorators.csrf import csrf_exempt
+from sadiki.operator.plugins import plugins
 
 from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
     RequestionAdd, \
@@ -54,3 +55,9 @@ urlpatterns = patterns('',
     url(r'^dou/(?P<sadik_id>\d{1,7})/distributed_requestions/$',
         DistributedRequestionsForSadik.as_view(), name=u'distributed_requestions_for_sadik'),
 )
+
+for plugin in plugins:
+    try:
+        urlpatterns += plugin.get_urls()
+    except NotImplementedError:
+        pass

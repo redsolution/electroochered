@@ -13,6 +13,7 @@ from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
     DECISION_DISTRIBUTION, PASS_DISTRIBUTED, \
     DISTRIBUTED_ARCHIVE, STATUS_CHANGE_TRANSITIONS
 from sadiki.logger.models import Logger
+from sadiki.operator.plugins import get_operator_plugin_menu_items
 from sadiki.operator.views.base import OperatorPermissionMixin
 
 DECISION_TRANSFERS = (DECISION, IMMEDIATELY_DECISION, PERMANENT_DECISION,
@@ -74,7 +75,8 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
         profile = get_object_or_404(Profile, id=profile_id)
         return self.render_to_response(
             {'requestions_with_logs': self.get_logs_for_profile(profile),
-             'profile': profile})
+             'profile': profile,
+             'plugin_menu_items': get_operator_plugin_menu_items(profile_id)})
 
 
 
