@@ -19,6 +19,11 @@
             <img class='requestion-add-menu' src="{{ STATIC_URL }}img/requestion_add_menu.png"/>
         </a>
     </li>
+    {% for url, name in plugin_menu_items.iteritems %}
+        <li {% if request.path == url %}class="active"{% endif %}>
+            <a href="{{ url }}">{{ name }}</a>
+        </li>
+    {% endfor %}
     <li {% if request.path == operator_logs_url %}class="active"{% endif %}>
         <a href="{{ operator_logs_url }}">История изменений</a>
     </li>

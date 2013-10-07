@@ -29,6 +29,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
     ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm
+from sadiki.operator.plugins import get_operator_plugin_menu_items
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
@@ -89,6 +90,13 @@ class Registration(OperatorPermissionMixin, AccountRequestionAdd):
 class RequestionAdd(Registration):
     template_name = "operator/requestion_add.html"
 
+    def get_context_data(self, **kwargs):
+        context = super(RequestionAdd, self).get_context_data(**kwargs)
+
+        context['plugin_menu_items'] = get_operator_plugin_menu_items(context['profile'].id)
+
+        return context
+
 
 class RequestionSearch(OperatorPermissionMixin, AnonymRequestionSearch):
     u"""
@@ -133,7 +141,8 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
     def get_context_data(self, **kwargs):
         context = super(ProfileInfo, self).get_context_data(**kwargs)
         context.update(
-            {'reset_password_form': HiddenConfirmation(initial={'action': 'reset_password'})})
+            {'reset_password_form': HiddenConfirmation(initial={'action': 'reset_password'}),
+             'plugin_menu_items': get_operator_plugin_menu_items(context['profile'].id)})
         return context
 
 
@@ -158,6 +167,13 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
 
     def can_change_requestion(self, requestion):
         return requestion.editable and not requestion.is_fake_identity_documents
+
+    def get_context_data(self, requestion, **kwargs):
+        context = super(RequestionInfo, self).get_context_data(requestion, **kwargs)
+
+        context['plugin_menu_items'] = get_operator_plugin_menu_items(context['profile'].id)
+
+        return context
 
 
 class SetIdentityDocument(OperatorRequestionMixin, TemplateView):
