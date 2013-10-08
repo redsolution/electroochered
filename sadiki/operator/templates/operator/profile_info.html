@@ -143,7 +143,7 @@
     <div class="span5">
         <div class="requestion-info">
             <div class="block-head">Заявки профиля:</div>
-            {% for requestion in profile.requestion_set.all %}
+            {% for requestion in profile.requestion_set.all|dictsort:"id" %}
                 <div class="requestion-block {% cycle "white" "gray" %}">
                 <label class="field-label">№ заявки:</label>
                 {% url operator_requestion_info requestion_id=requestion.id as requestion_url %}

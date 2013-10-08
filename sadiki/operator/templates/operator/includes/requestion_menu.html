@@ -8,7 +8,7 @@
     <li {% if request.path == profile_url %}class="active"{% endif %}>
         <a href="{{ profile_url }}">Профиль</a>
     </li>
-    {% for requestion in profile.requestion_set.all %}
+    {% for requestion in profile.requestion_set.all|dictsort:"id" %}
         {% url operator_requestion_info requestion.id as operator_requestion_info_url %}
         <li {% if request.path == operator_requestion_info_url %}class="active"{% endif %}>
             <a href="{{ operator_requestion_info_url }}">{{ requestion.requestion_number }}</a>
