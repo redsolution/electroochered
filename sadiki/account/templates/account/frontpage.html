@@ -201,7 +201,7 @@
     <div class="span5">
         <div class="requestion-info">
             <div class="block-head">Мои заявки:</div>
-            {% for requestion in profile.requestion_set.all %}
+            {% for requestion in profile.requestion_set.all|dictsort:"id" %}
                 <div class="requestion-block {% cycle "white" "gray" %}">
                 <label class="field-label">№ заявки:</label>
                 {% if request.user.is_operator %}
