@@ -654,3 +654,11 @@ ACTION_TEMPLATES.update({
 
 })
 
+
+def extend_action_choices(extension_data):
+    ACTION_CHOICES.extend(extension_data)
+    pass
+
+
+def extend_action_templates(extension_data):
+    ACTION_TEMPLATES.update(extension_data)
