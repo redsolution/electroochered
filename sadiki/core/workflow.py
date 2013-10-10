@@ -178,42 +178,43 @@ workflow = Workflow()
 
 # 1) Подача заявления
 workflow.add(None, STATUS_REQUESTER_NOT_CONFIRMED, REQUESTION_ADD_BY_REQUESTER,
-    u'Самостоятельная регистрация',)
+             u'Самостоятельная регистрация', )
 workflow.add(None, STATUS_REQUESTER, REQUESTION_IMPORT, u'Импорт заявки')
 workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR,
-    u'Регистрация через оператора',)
+             u'Регистрация через оператора', )
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, CONFIRM_REQUESTION,
-    u'Подтверждение заявки', permissions=[OPERATOR_PERMISSION[0]])
+             u'Подтверждение заявки', permissions=[OPERATOR_PERMISSION[0]])
 
 # 2) Комплектование
 # 2.1) Очередники
 workflow.add(STATUS_REQUESTER, STATUS_ON_DISTRIBUTION, ON_DISTRIBUTION,
-    u'Перевод в комплектование')
+             u'Перевод в комплектование')
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_DECISION, DECISION,
-    u'Выделение места в ДОУ')
+             u'Выделение места в ДОУ')
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, ON_DISTRIBUTION_RETURN,
-    u'Возврат в очередь нераспределенных')
+             u'Возврат в очередь нераспределенных')
 # Немедленное зачисление
 if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
     workflow.add(STATUS_REQUESTER, STATUS_DECISION, IMMEDIATELY_DECISION,
-        u'Выделение места в ДОУ (немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Выделение места в ДОУ (немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 
 # 2.3) Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     workflow.add(STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION,
-        ON_TEMP_DISTRIBUTION,
-        u'Комплектование временно зачисленных')
+                 ON_TEMP_DISTRIBUTION,
+                 u'Комплектование временно зачисленных')
     workflow.add(STATUS_ON_TEMP_DISTRIBUTION, STATUS_TEMP_DISTRIBUTED,
-        ON_TEMP_DISTRIBUTION_RETURN,
-        u'Возврат нераспределенных в очередь(временно зачисленные)')
+                 ON_TEMP_DISTRIBUTION_RETURN,
+                 u'Возврат нераспределенных в очередь(временно зачисленные)')
     workflow.add(STATUS_ON_TEMP_DISTRIBUTION, STATUS_DECISION,
-        PERMANENT_DECISION, u'Выделение места в ДОУ на постоянное основе')
+                 PERMANENT_DECISION, u'Выделение места в ДОУ на постоянное основе')
     # Немедленное зачисление
     if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
         workflow.add(STATUS_TEMP_DISTRIBUTED, STATUS_DECISION,
-            IMMEDIATELY_PERMANENT_DECISION,
-            u'Выделение места в ДОУ на постоянной основе(немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                     IMMEDIATELY_PERMANENT_DECISION,
+                     u'Выделение места в ДОУ на постоянной основе(немедленное зачисление)',
+                     permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 
 # 3) Зачисление
@@ -235,142 +236,145 @@ workflow.add(STATUS_NOT_APPEAR, STATUS_DISTRIBUTED, NOT_APPEAR_DISTRIBUTED,
 # Путевки
 if ETICKET != ETICKET_NO:
     workflow.add(STATUS_DECISION, STATUS_PASS_GRANTED, PASS_GRANTED,
-        u'Получение путевки', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Получение путевки', permissions=[DISTRIBUTOR_PERMISSION[0]])
     workflow.add(STATUS_PASS_GRANTED, STATUS_DISTRIBUTED, PASS_DISTRIBUTED,
-        u'Зачисление по путевке', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Зачисление по путевке', permissions=[DISTRIBUTOR_PERMISSION[0]])
     workflow.add(STATUS_PASS_GRANTED, STATUS_NOT_APPEAR, PASS_NOT_APPEAR,
-        u'Неявка в ДОУ с путевкой', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Неявка в ДОУ с путевкой', permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 # 3.3) Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 #    зачисление на постоянной основе
 #    временное зачисление
     workflow.add(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,
-        TEMP_DISTRIBUTION_TRANSFER, u'Временное зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 TEMP_DISTRIBUTION_TRANSFER, u'Временное зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
     # Путевки для временного зачисления
     if ETICKET != ETICKET_NO:
         workflow.add(STATUS_REQUESTER, STATUS_TEMP_PASS_TRANSFER,
-            TEMP_PASS_TRANSFER, u'Выдача временной путевки', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                     TEMP_PASS_TRANSFER, u'Выдача временной путевки', permissions=[DISTRIBUTOR_PERMISSION[0]])
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_TEMP_DISTRIBUTED,
-            TEMP_PASS_DISTRIBUTION, u'Временное зачисление по путевке', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                     TEMP_PASS_DISTRIBUTION, u'Временное зачисление по путевке',
+                     permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 # 4) Отказы
 
 workflow.add(STATUS_REQUESTER, STATUS_REMOVE_REGISTRATION,
-    REQUESTER_REMOVE_REGISTRATION, u'Снятие с учёта', permissions=[OPERATOR_PERMISSION[0]])
+             REQUESTER_REMOVE_REGISTRATION, u'Снятие с учёта', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER,
-    RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]],
-    check_document=True)
+             RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]],
+             check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION,
-    NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки', permissions=[OPERATOR_PERMISSION[0]])
+             NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
-    u'Истечение сроков на обжалование отсутствия')
+             u'Истечение сроков на обжалование отсутствия')
 workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
-    ABSENT_REMOVE_REGISTRATION,
-    u'Снятие с учёта по истечению срока на установление контакта', permissions=[OPERATOR_PERMISSION[0]])
+             ABSENT_REMOVE_REGISTRATION,
+             u'Снятие с учёта по истечению срока на установление контакта', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, NOT_APPEAR_EXPIRE,
-    u'Истечение сроков на обжалование неявки')
+             u'Истечение сроков на обжалование неявки')
 workflow.add(STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION,
-    NOT_APPEAR_REMOVE_REGISTRATION, u'Снятие с учёта по истечению срока явки', permissions=[OPERATOR_PERMISSION[0]])
+             NOT_APPEAR_REMOVE_REGISTRATION, u'Снятие с учёта по истечению срока явки',
+             permissions=[OPERATOR_PERMISSION[0]])
 
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_ARCHIVE,
-    REMOVE_REGISTRATION_ARCHIVE, u'Архивация снятых с учёта')
+             REMOVE_REGISTRATION_ARCHIVE, u'Архивация снятых с учёта')
 workflow.add(STATUS_DISTRIBUTED, STATUS_ARCHIVE, DISTRIBUTED_ARCHIVE,
-    u'Архивация зачисленных')
+             u'Архивация зачисленных')
 
 workflow.add(STATUS_DECISION, STATUS_REQUESTER, DECISION_REQUESTER,
-    u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
-    check_document=True)
+             u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+             check_document=True)
 workflow.add(STATUS_NOT_APPEAR, STATUS_REQUESTER, NOT_APPEAR_REQUESTER,
-    u'Отказ от места в ДОУ после неявки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
-    check_document=True)
+             u'Отказ от места в ДОУ после неявки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+             check_document=True)
 workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
-    u'Отказ от места в ДОУ после отсутствия', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
-    check_document=True)
+             u'Отказ от места в ДОУ после отсутствия', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+             check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
-    REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
+             REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
 
 
 # отказ от зачисления на постоянной основе
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     workflow.add(STATUS_DECISION, STATUS_TEMP_DISTRIBUTED,
-        DECISION_TEMP_DISTRIBUTED,
-        u'Отказ от места в ДОУ на постоянное основе',
-        permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+                 DECISION_TEMP_DISTRIBUTED,
+                 u'Отказ от места в ДОУ на постоянное основе',
+                 permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
     workflow.add(STATUS_NOT_APPEAR, STATUS_TEMP_DISTRIBUTED,
-        NOT_APPEAR_TEMP_DISTRIBUTED,
-        u'Отказ от места в ДОУ на постоянной основе после неявки',
-        permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+                 NOT_APPEAR_TEMP_DISTRIBUTED,
+                 u'Отказ от места в ДОУ на постоянной основе после неявки',
+                 permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
     workflow.add(STATUS_ABSENT, STATUS_TEMP_DISTRIBUTED,
-        ABSENT_TEMP_DISTRIBUTED,
-        u'Отказ от места в ДОУ на постоянной основе после отсутствия',
-        permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+                 ABSENT_TEMP_DISTRIBUTED,
+                 u'Отказ от места в ДОУ на постоянной основе после отсутствия',
+                 permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 
 # Путевки
 if ETICKET != ETICKET_NO:
     workflow.add(STATUS_PASS_GRANTED, STATUS_REQUESTER, PASS_GRANTED_REQUESTER,
-        u'Возврат путевки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+                 u'Возврат путевки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 
 # Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     workflow.add(STATUS_DISTRIBUTED, STATUS_TEMP_ABSENT, TEMP_ABSENT,
-        u"Длительное отсутствие по уважительной причине", permissions=[OPERATOR_PERMISSION[0]])
+                 u"Длительное отсутствие по уважительной причине", permissions=[OPERATOR_PERMISSION[0]])
     workflow.add(STATUS_TEMP_ABSENT, STATUS_DISTRIBUTED, TEMP_ABSENT_CANCEL,
-        u"Возврат после отсутствия по уважительной причине", permissions=[OPERATOR_PERMISSION[0]])
+                 u"Возврат после отсутствия по уважительной причине", permissions=[OPERATOR_PERMISSION[0]])
     workflow.add(STATUS_TEMP_DISTRIBUTED, STATUS_REQUESTER,
-        RETURN_TEMP_DISTRIBUTED, u'Возвращение в очередь из временно зачисленных', permissions=[OPERATOR_PERMISSION[0]])
+                 RETURN_TEMP_DISTRIBUTED, u'Возвращение в очередь из временно зачисленных',
+                 permissions=[OPERATOR_PERMISSION[0]])
     # Путевки
     if ETICKET != ETICKET_NO:
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_REQUESTER,
-            RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки', permissions=[OPERATOR_PERMISSION[0]])
+                     RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки', permissions=[OPERATOR_PERMISSION[0]])
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
 STATUS_CHANGE_TRANSITIONS = [transition.index for transition in workflow.transitions]
 
 ACTION_CHOICES = [(transition.index, transition.comment) for transition in
-                    workflow.transitions]
+                  workflow.transitions]
 
 ACTION_CHOICES.extend(
-#    добавляем действия с заявками
+    #    добавляем действия с заявками
     [(CHANGE_REQUESTION, u"Изменение заявки пользователем"), # старый статус(отдельно от изменения ДОУ и льгот)
-    (ACCOUNT_CHANGE_REQUESTION, u"Изменение заявки пользователем"), # также изменяются льготы и ДОУ
-    (CHANGE_REQUESTION_BY_OPERATOR, u"Изменение заявки оператором"),
-    (CHANGE_ADMISSION_DATE, u"Изменение ЖДП"),
-    (CHANGE_ADMISSION_DATE_BY_OPERATOR, u"Изменение ЖДП оператором"),
-    (CHANGE_PROFILE, u"Изменение профиля пользователем"),
-    (CHANGE_PROFILE_BY_OPERATOR, u"Изменение профиля оператором"),
-    (CHANGE_PREFERRED_SADIKS, u"Изменение приоритетных ДОУ пользователем"),
-    (CHANGE_PREFERRED_SADIKS_BY_OPERATOR,
-        u"Изменение приоритетных ДОУ оператором"),
-    (CHANGE_REGISTRATION_DATETIME, u"Изменение даты регистрации"),
-    (CHANGE_BIRTHDATE, u"Изменение даты рождения"),
-    (CHANGE_BENEFITS, u"Изменение льгот"),
-    (CHANGE_BENEFITS_BY_OPERATOR, u"Изменение льгот оператором"),
-    (CHANGE_DOCUMENTS, u"Изменение документов"),
-    (CHANGE_DOCUMENTS_BY_OPERATOR, u"Изменение документов оператором"),
-    (CREATE_PROFILE, u"Регистрация профиля"),
-    (CREATE_PROFILE_BY_OPERATOR, u"Регистрация профиля оператором"),
-    (IMPORT_PROFILE, u"Импорт профиля"),
-    (EMBED_REQUESTION_TO_PROFILE, u"Прикрепление заявки к профилю"),
-    (CHANGE_REQUESTION_LOCATION, u"Изменение местоположения заявки во время распределения"),
-#    Распределения
-    (DISTRIBUTION_INIT, u'Начало распределения'),
-    (DISTRIBUTION_AUTO, u'Начало автоматического комплектования'),
-    (DISTRIBUTION_START, u'Начало ручного комплектования'),
-    (DISTRIBUTION_END, u'Завершение распределения'),
-#    ДОУ
-    (CHANGE_SADIK_GROUP_PLACES, u'Изменение мест в группу ДОУ'),
-    (CHANGE_SADIK_INFO, u'Изменение информации о ДОУ'),
-    (START_NEW_YEAR, u'Начало нового учебного года'),
-#    Путевки
-    (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
+     (ACCOUNT_CHANGE_REQUESTION, u"Изменение заявки пользователем"), # также изменяются льготы и ДОУ
+     (CHANGE_REQUESTION_BY_OPERATOR, u"Изменение заявки оператором"),
+     (CHANGE_ADMISSION_DATE, u"Изменение ЖДП"),
+     (CHANGE_ADMISSION_DATE_BY_OPERATOR, u"Изменение ЖДП оператором"),
+     (CHANGE_PROFILE, u"Изменение профиля пользователем"),
+     (CHANGE_PROFILE_BY_OPERATOR, u"Изменение профиля оператором"),
+     (CHANGE_PREFERRED_SADIKS, u"Изменение приоритетных ДОУ пользователем"),
+     (CHANGE_PREFERRED_SADIKS_BY_OPERATOR,
+      u"Изменение приоритетных ДОУ оператором"),
+     (CHANGE_REGISTRATION_DATETIME, u"Изменение даты регистрации"),
+     (CHANGE_BIRTHDATE, u"Изменение даты рождения"),
+     (CHANGE_BENEFITS, u"Изменение льгот"),
+     (CHANGE_BENEFITS_BY_OPERATOR, u"Изменение льгот оператором"),
+     (CHANGE_DOCUMENTS, u"Изменение документов"),
+     (CHANGE_DOCUMENTS_BY_OPERATOR, u"Изменение документов оператором"),
+     (CREATE_PROFILE, u"Регистрация профиля"),
+     (CREATE_PROFILE_BY_OPERATOR, u"Регистрация профиля оператором"),
+     (IMPORT_PROFILE, u"Импорт профиля"),
+     (EMBED_REQUESTION_TO_PROFILE, u"Прикрепление заявки к профилю"),
+     (CHANGE_REQUESTION_LOCATION, u"Изменение местоположения заявки во время распределения"),
+     #    Распределения
+     (DISTRIBUTION_INIT, u'Начало распределения'),
+     (DISTRIBUTION_AUTO, u'Начало автоматического комплектования'),
+     (DISTRIBUTION_START, u'Начало ручного комплектования'),
+     (DISTRIBUTION_END, u'Завершение распределения'),
+     #    ДОУ
+     (CHANGE_SADIK_GROUP_PLACES, u'Изменение мест в группу ДОУ'),
+     (CHANGE_SADIK_INFO, u'Изменение информации о ДОУ'),
+     (START_NEW_YEAR, u'Начало нового учебного года'),
+     #    Путевки
+     (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
     ]
 )
 
 ACTION_TEMPLATES = dict(
-    [(transition.index, {ANONYM_LOG:Template(u"")})
-        for transition in workflow.transitions]
+    [(transition.index, {ANONYM_LOG: Template(u"")})
+     for transition in workflow.transitions]
 )
 
 # ----------------------------------
@@ -397,18 +401,19 @@ document_confirmation_template = u"""
         """
 
 ACTION_TEMPLATES.update({
-    NOT_CONFIRMED_REMOVE_REGISTRATION:{
-        ANONYM_LOG:Template(u""),
-        OPERATOR_LOG:Template(u"""Заявка {{ other_requestion }} с таким же идентифицирующим документом была документально подтверждена"""),
+    NOT_CONFIRMED_REMOVE_REGISTRATION: {
+        ANONYM_LOG: Template(u""),
+        OPERATOR_LOG: Template(
+            u"""Заявка {{ other_requestion }} с таким же идентифицирующим документом была документально подтверждена"""),
     },
-    CONFIRM_REQUESTION:{
-        ANONYM_LOG:Template(u""),
-        OPERATOR_LOG:Template(document_confirmation_template),
+    CONFIRM_REQUESTION: {
+        ANONYM_LOG: Template(u""),
+        OPERATOR_LOG: Template(document_confirmation_template),
     },
-    RESTORE_REQUESTION:{
-        ANONYM_LOG:Template(u""),
-        OPERATOR_LOG:Template(document_confirmation_template),
-        },
+    RESTORE_REQUESTION: {
+        ANONYM_LOG: Template(u""),
+        OPERATOR_LOG: Template(document_confirmation_template),
+    },
 })
 
 requestion_account_template = u"""
@@ -535,74 +540,73 @@ change_documents_account_template = u"""
     {% endif %}
     """
 
-
 decision_distribution_anonym = u"""Было завершено зачисление в {{ sadik }}"""
 decision_not_appear_anonym = u"""Заявитель не явился в назначенный срок для зачисления в {{ sadik }}"""
 decision_requster_anonym = u"""Заявитель отказался от выделенного места в {{ sadik }}. Заявка была возвращена в очередь"""
 
 ACTION_TEMPLATES.update({
-    REQUESTION_ADD_BY_REQUESTER:{
-        ACCOUNT_LOG:Template(requestion_account_template + change_benefits_account_template),
-        ANONYM_LOG:Template(requestion_anonym_template + change_benefits_anonym_template)
+    REQUESTION_ADD_BY_REQUESTER: {
+        ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
+        ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template)
     },
-    CREATE_PROFILE:{
+    CREATE_PROFILE: {
         ACCOUNT_LOG: Template(registration_account_template),
     },
-    CREATE_PROFILE_BY_OPERATOR:{
+    CREATE_PROFILE_BY_OPERATOR: {
         ACCOUNT_LOG: Template(registration_account_template),
     },
-    REQUESTION_REGISTRATION_BY_OPERATOR:{
+    REQUESTION_REGISTRATION_BY_OPERATOR: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
         ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template),
     },
-    IMPORT_PROFILE:{
+    IMPORT_PROFILE: {
         ACCOUNT_LOG: Template(registration_account_template),
     },
-    REQUESTION_IMPORT:{
+    REQUESTION_IMPORT: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
         ANONYM_LOG: Template(requestion_anonym_template + change_benefits_anonym_template),
     },
     ACCOUNT_CHANGE_REQUESTION: {
         ANONYM_LOG: Template(change_requestion_anonym_template),
         ACCOUNT_LOG: Template(change_requestion_account_template),
-        },
+    },
     CHANGE_REQUESTION_BY_OPERATOR: {
         ANONYM_LOG: Template(change_requestion_anonym_template),
         ACCOUNT_LOG: Template(change_requestion_account_template),
-        },
-    CHANGE_REQUESTION_LOCATION:{
+    },
+    CHANGE_REQUESTION_LOCATION: {
         ACCOUNT_LOG: Template(u"""
             {% if "location" in changed_fields %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
         """)
     },
     CHANGE_PROFILE: {
         ACCOUNT_LOG: Template(change_profile_account_template),
-        },
+    },
     CHANGE_PROFILE_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_profile_account_template),
-        },
+    },
     CHANGE_DOCUMENTS_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_documents_account_template),
     },
-    DISTRIBUTION_INIT:{
+    DISTRIBUTION_INIT: {
         OPERATOR_LOG: Template(u'''Распеределение создано''')
     },
-    DISTRIBUTION_START:{
+    DISTRIBUTION_START: {
         OPERATOR_LOG: Template(u'''Распеределение начато''')
     },
-    DISTRIBUTION_END:{
+    DISTRIBUTION_END: {
         OPERATOR_LOG: Template(u'''Распеределение завершено''')
     },
-    CHANGE_REGISTRATION_DATETIME:{
+    CHANGE_REGISTRATION_DATETIME: {
         ANONYM_LOG: Template(u"""Дата регистрации изменена на {{ registration_datetime }}""")
     },
-    CHANGE_BIRTHDATE:{
+    CHANGE_BIRTHDATE: {
         ANONYM_LOG: Template(u"""Дата рождения изменена на {{ birth_date }}""")
     },
-    CHANGE_SADIK_GROUP_PLACES:{
+    CHANGE_SADIK_GROUP_PLACES: {
         ANONYM_LOG: Template(u"""Свободных мест:{{ sadik_group.free_places }}; Всего мест:{{ sadik_group.capacity }}""")
     },
-    CHANGE_SADIK_INFO:{
+    CHANGE_SADIK_INFO: {
         ANONYM_LOG: Template(u"""
             {% if 'postindex' in changed_data or 'street' in changed_data or 'building_number' in changed_data %}
             Индекс: {{ cleaned_data.postindex }}. Улица: {{ cleaned_data.street }}. Дом: {{ cleaned_data.building_number }}
