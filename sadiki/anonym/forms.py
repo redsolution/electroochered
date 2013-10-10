@@ -154,6 +154,17 @@ class PublicSearchForm(forms.Form):
 
 
 class QueueFilterForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(QueueFilterForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = [
+            'requestion_number',
+            'confirmed',
+            'benefit_category',
+            'age_group',
+            'area',
+            'without_facilities',
+        ]
+
     requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
         widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
