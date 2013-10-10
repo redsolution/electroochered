@@ -656,9 +656,49 @@ ACTION_TEMPLATES.update({
 
 
 def extend_action_choices(extension_data):
+    if not isinstance(extension_data, list):
+        raise AttributeError(u'Attribute extension_data must be list of tuples')
+
+    existing_indices = [key for key, value in ACTION_CHOICES]
+
+    for element in extension_data:
+        if not isinstance(element, tuple) or len(element) != 2:
+            raise AttributeError(u'Elements of extension_data must be tuples with length is equal 2')
+
+        if not isinstance(element[0], int):
+            raise AttributeError(u'First element of extension_data tuple must be integer')
+
+        if not isinstance(element[1], (str, unicode)):
+            raise AttributeError(u'Second element of extension_data tuple must be string or unicode')
+
+        if element[0] in existing_indices:
+            raise AttributeError(u'Action choice with index %d already exist' % element[0])
+
     ACTION_CHOICES.extend(extension_data)
-    pass
 
 
 def extend_action_templates(extension_data):
+    if not isinstance(extension_data, dict):
+        raise AttributeError(u'Attribute extension_data must be dict')
+
+    existing_indices = [key for key, value in ACTION_TEMPLATES.iteritems()]
+
+    for index, templates in extension_data.iteritems():
+        if not isinstance(index, int):
+            raise AttributeError(u'Key of extension_data dict must be integer')
+
+        if not isinstance(templates, dict):
+            raise AttributeError(u'Value of extension_data dict must be dict')
+
+        if index in existing_indices:
+            raise AttributeError(u'Action choice with index %d already exist' % index)
+
+        for level, template in templates.iteritems():
+            if level not in [ANONYM_LOG, ACCOUNT_LOG, OPERATOR_LOG]:
+                raise AttributeError(
+                    u'Key of extension_data value dict must be ANONYM_LOG or ACCOUNT_LOG or OPERATOR_LOG')
+
+            if not isinstance(template, Template):
+                raise AttributeError(u'Value of extension data value dict must instance of Template class')
+
     ACTION_TEMPLATES.update(extension_data)
