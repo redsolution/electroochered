@@ -282,5 +282,8 @@ def get_field_verbose_name(instance, arg):
 @register.filter
 def form_field_verbose(field):
     if hasattr(field.field, 'choices'):
-        return dict(field.field.choices)[field.value()]
+        if not field.value() and not field.value() in field.field.choices:
+            return u"Не указано"
+        else:
+            return dict(field.field.choices)[field.value()]
     return field.value
