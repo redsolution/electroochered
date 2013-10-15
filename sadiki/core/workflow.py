@@ -660,6 +660,10 @@ ACTION_TEMPLATES.update({
 
 
 def extend_action_choices(extension_data):
+    """
+
+    @type extension_data: list
+    """
     if not isinstance(extension_data, list):
         raise AttributeError(u'Attribute extension_data must be list of tuples')
 
@@ -682,6 +686,10 @@ def extend_action_choices(extension_data):
 
 
 def extend_action_templates(extension_data):
+    """
+
+    @type extension_data: dict
+    """
     if not isinstance(extension_data, dict):
         raise AttributeError(u'Attribute extension_data must be dict')
 
