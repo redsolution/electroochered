@@ -478,7 +478,7 @@ class ChangeRequestionLocation(OperatorPermissionMixin, View):
 
     def post(self, request, requestion_id):
         requestion = get_object_or_404(Requestion, id=requestion_id)
-        if requestion.cast != REQUESTION_TYPE_IMPORTED or requestion.status != STATUS_ON_DISTRIBUTION:
+        if not requestion.location_not_verified or requestion.status != STATUS_ON_DISTRIBUTION:
             raise Http404
         if request.is_ajax():
             location_form = ChangeLocationForm(instance=requestion, data=request.POST)

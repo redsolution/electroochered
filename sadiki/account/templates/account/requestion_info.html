@@ -25,6 +25,7 @@
                 var requestion_point = [{{ point.y }}, {{ point.x }}]
                 var requestion_marker = L.marker(requestion_point)
             {% else %}
+                var requestion_point = null
                 var requestion_marker = null
             {% endif %}
             {% if requestion.distribute_in_any_sadik %}
@@ -130,11 +131,13 @@
 
                 var drawnItems = new L.FeatureGroup();
                 map.addLayer(drawnItems);
-                drawnItems.addLayer(requestion_marker);
+                if (requestion_marker) {
+                    drawnItems.addLayer(requestion_marker);
+                }
 
                 {% if can_change_requestion %}
                     // Initialize the draw control and pass it the FeatureGroup of editable layers
-                    var drawControl = new L.Control.Draw({
+                    var drawControlOptions = {
                         edit: {
                             featureGroup: drawnItems,
                             remove: false,
@@ -145,12 +148,26 @@
                             polygon: false,
                             circle: false, // Turns off this drawing tool
                             rectangle: false,
-                            marker: false
+                            marker: true
                         }
-                    });
+                    };
+                    if (requestion_marker) {
+                        drawControlOptions['draw']['marker'] = false;
+                    }
+                    var drawControl = new L.Control.Draw(drawControlOptions);
                     map.addControl(drawControl);
                 {% endif %}
 
+                function addDrawControl(map, control){
+                    map.addControl(control);
+                    $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+                        if (requestion_point) {
+                                map.panTo(requestion_point);
+                        } else {
+                            map.panTo(map_center);
+                        }
+                    })
+                }
 
                 map.on('draw:edited', function (e) {
                     e.layers.eachLayer(function (layer) {
@@ -162,9 +179,24 @@
                     });
                 });
 
-                $('.leaflet-draw-edit-edit').click(function(){
-                    map.panTo(requestion_point);
-                })
+                map.on('draw:created', function (e) {
+                    var type = e.layerType,
+                        layer = e.layer;
+                    //убрать элемент добавления маркераs
+                    map.removeControl(drawControl);
+                    drawControlOptions['draw']['marker'] = false;
+                    drawControl = new L.Control.Draw(drawControlOptions);
+                    addDrawControl(map, drawControl);
+
+                    drawnItems.clearLayers();
+                    drawnItems.addLayer(layer);
+                    lat_lng = layer.getLatLng()
+                    requestion_point = [lat_lng.lat, lat_lng.lng]
+                    requestion_marker = L.marker(requestion_point)
+                    $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
+                    field_changed($("#location-header"));
+                });
+
                 renderMarkers(sadik_location_data, map)
             // изменение приоритетных ДОУ
             $("#id_pref_sadiks").change(function(e, data) {

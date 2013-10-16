@@ -87,12 +87,28 @@ REQUESTION_TYPE_IMPORTED = 1
 REQUESTION_TYPE_CORRECTED = 2
 REQUESTION_TYPE_NORMAL = 3
 
-REQUESTION_TYPE_CHOICES = (
+REQUESTION_TYPE_CHOICES = [
     (REQUESTION_TYPE_OPERATOR, u'Регистрация через оператора'),
     (REQUESTION_TYPE_IMPORTED, u'Импортированная заявка'),
     (REQUESTION_TYPE_CORRECTED, u'Заявка зарегистрирована до запуска системы и введена вручную'),
     (REQUESTION_TYPE_NORMAL, u'Cамостоятельная регистрация'),
-)
+]
+
+REQUESTION_TYPE_NEEDS_LOCATION_CONFIRMATION = [REQUESTION_TYPE_IMPORTED]
+
+
+def add_requestion_type(requestion_type, description, needs_location_confirmed=False):
+    if not isinstance(requestion_type, int):
+        raise AttributeError('Attribute \'requestion_type\' must be int')
+
+    if not isinstance(description, (str, unicode)):
+        raise AttributeError('Attribute \'description\' must be string or unicode object')
+
+    REQUESTION_TYPE_CHOICES.append((requestion_type, description))
+
+    if needs_location_confirmed:
+        REQUESTION_TYPE_NEEDS_LOCATION_CONFIRMATION.append(requestion_type)
+
 
 def query_set_factory(query_set_class):
     u"""позволяет привязать методы как менеджера модели, так и для QuerySet"""
@@ -1044,6 +1060,19 @@ class Requestion(models.Model):
             return delta_for_appeal.days + 1
         else:
             return 0
+
+    @property
+    def location_not_verified(self):
+        u"""
+        необходимо ли подтверждение местоположения
+        """
+        # подтверждение необходимо, если заявка была импортировна или зарегистрирована через госуслуги
+        # и при этом у нее не указано местоположение или указан адрес в виде текста
+        return self.needs_location_confirmation and (not self.location or self.location_properties)
+
+    @property
+    def needs_location_confirmation(self):
+        return self.cast in REQUESTION_TYPE_NEEDS_LOCATION_CONFIRMATION
 
     @property
     def editable(self):

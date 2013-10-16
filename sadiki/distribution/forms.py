@@ -30,8 +30,10 @@ class SelectSadikForm(forms.Form):
         self.fields['sadik'].choices = choices
         self.fields['requestion_id'].initial = self.requestion.id
         # изменяем порядок полей
-        if requestion.cast == REQUESTION_TYPE_IMPORTED:
+        if requestion.needs_location_confirmation:
             self.fields['accept_location'] = forms.BooleanField(label=u'Координаты на карте совпадают с адресом',)
+            if not requestion.location:
+                self.fields['accept_location'].widget.attrs['disabled'] = 'disabled'
             self.fields.keyOrder.remove('accept_location')
             self.fields.keyOrder.insert(0, 'accept_location')
 
@@ -41,3 +43,9 @@ class SelectSadikForm(forms.Form):
             return requestion_id
         else:
             raise forms.ValidationError(u'Вы работаете не с последней заявкой')
+
+    def clean(self):
+        cleaned_data = self.cleaned_data
+        if cleaned_data.get('accept_location') and not self.requestion.location:
+            raise forms.ValidationError(u"Необходимо указать местоположение заявки")
+        return cleaned_data

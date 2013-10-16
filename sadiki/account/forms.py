@@ -63,7 +63,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         if commit:
             requestion.save()
             self.save_m2m()
-            self.create_document(requestion)
+            self.instance.document = self.create_document(requestion)
 
         return requestion
 
