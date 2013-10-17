@@ -70,6 +70,8 @@
         <div class="vkontakte-info">
             <div class="block-head">Профиль ВКонтакте:</div>
             {% if vkontakte_association %}
+                {% url operator_social_data_update user_id=profile.user.id as social_data_update_url %}
+                {% url operator_social_data_remove user_id=profile.user.id as social_data_remove_url %}
                 <div class="vkontakte-profile clearfix">
                 <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ vkontakte_association.uid }}"><img src="{{ STATIC_URL }}img/vkontakte.png"/> http://vk.com/id{{ vkontakte_association.uid }}</a>
                 {% if profile.user.password and profile.user.has_usable_password %}
@@ -101,8 +103,8 @@
                         <span class="value">{{ profile.first_name|verbose_value }}</span>
                         <span class="controls">
                         <span class="buttons">
-                            <a href="#" id="first_name" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                            <a href="#" id="first_name" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
                         </span>
                         <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                         </span>
@@ -114,8 +116,8 @@
                         <span class="value">{{ profile.phone_number|verbose_value }}</span>
                         <span class="controls">
                             <span class="buttons">
-                                <a href="#" id="phone_number" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="phone_number" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
                             </span>
                             <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                         </span>
@@ -127,8 +129,8 @@
                         <span class="value">{{ profile.skype|verbose_value }}</span>
                         <span class="controls">
                             <span class="buttons">
-                                <a href="#" id="skype" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="skype" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
                             </span>
                             <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                         </span>

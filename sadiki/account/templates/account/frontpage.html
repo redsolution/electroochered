@@ -22,18 +22,12 @@
             }
         });
 
-        function social_data_update(element){
-            el = element;
+        function dataChange(element, url){
             var element = $(element);
-            var field_value_element = element.closest('.field-value')
-            field_value_element.children('.controls').children('.buttons').hide()
-            field_value_element.children('.controls').children('.loading').show()
-            {% if request.user.is_operator %}
-                {% url operator_social_data_update user_id=profile.user.id as social_data_update_url %}
-            {% else %}
-                {% url account_social_data_update as social_data_update_url %}
-            {% endif %}
-            $.ajax("{{ social_data_update_url }}", {
+            var field_value_element = element.closest('.field-value');
+            field_value_element.children('.controls').children('.buttons').hide();
+            field_value_element.children('.controls').children('.loading').show();
+            $.ajax(url, {
                     type: 'POST',
                     data: {field: element.attr('id')},
                     dataType:'json',
@@ -50,37 +44,8 @@
                     error: function(){
                     },
                     complete: function(jqXHR, textStatus){
-                        field_value_element.children('.controls').children('.loading').hide()
-                        field_value_element.children('.controls').children('.buttons').show()
-                    }
-            })
-        }
-        function social_data_remove(element){
-            var element = $(element);
-            var field_value_element = element.closest('.field-value')
-            field_value_element.children('.controls').children('.buttons').hide()
-            field_value_element.children('.controls').children('.loading').show()
-            field_value_element.children('.buttons').hide()
-            field_value_element.children('.loading').show()
-            {% if request.user.is_operator %}
-                {% url operator_social_data_remove user_id=profile.user.id as social_data_remove_url %}
-            {% else %}
-                {% url account_social_data_remove as social_data_remove_url %}
-            {% endif %}
-            $.ajax("{{ social_data_remove_url }}", {
-                    type: 'POST',
-                    data: {field: element.attr('id')},
-                    dataType:'json',
-                    success: function(data, textStatus, jqXHR){
-                        if (data.ok) {
-                            field_value_element.children('.value').html('Не задано')
-                        }
-                    },
-                    error: function(){
-                    },
-                    complete: function(jqXHR, textStatus){
-                        field_value_element.children('.controls').children('.loading').hide()
-                        field_value_element.children('.controls').children('.buttons').show()
+                        field_value_element.children('.controls').children('.loading').hide();
+                        field_value_element.children('.controls').children('.buttons').show();
                     }
             })
         }
@@ -113,10 +78,12 @@
             <label class="field-label">Имя пользователя:</label>
             <p class="field-value">{{ profile.user.username }}</p>
 
-        <div class="vkontakte-info">
+        <div class="vkontakte-info clearfix">
             {% block vkontakte_info %}
             <div class="block-head">Профиль ВКонтакте:</div>
             {% if vkontakte_association %}
+                {% url account_social_data_update as social_data_update_url %}
+                {% url account_social_data_remove as social_data_remove_url %}
                 <div class="vkontakte-profile clearfix">
                 <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ vkontakte_association.uid }}"><img src="{{ STATIC_URL }}img/vkontakte.png"/> http://vk.com/id{{ vkontakte_association.uid }}</a>
                 {% if profile.user.password and profile.user.has_usable_password %}
@@ -148,8 +115,8 @@
                         <span class="value">{{ profile.first_name|verbose_value }}</span>
                         <span class="controls">
                         <span class="buttons">
-                            <a href="#" id="first_name" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                            <a href="#" id="first_name" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
                         </span>
                         <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                         </span>
@@ -161,8 +128,8 @@
                         <span class="value">{{ profile.phone_number|verbose_value }}</span>
                         <span class="controls">
                             <span class="buttons">
-                                <a href="#" id="phone_number" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="phone_number" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
                             </span>
                             <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                         </span>
@@ -174,8 +141,8 @@
                         <span class="value">{{ profile.skype|verbose_value }}</span>
                         <span class="controls">
                             <span class="buttons">
-                                <a href="#" id="skype" onclick="social_data_update(this); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="skype" onclick="social_data_remove(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
+                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
                             </span>
                             <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
                         </span>
