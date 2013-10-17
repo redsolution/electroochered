@@ -140,6 +140,9 @@
                 <p>К этой учетной записи не привязан аккаунт ВКонтакте</p>
             {% endif %}
         </div>
+        {% block profile_additions %}
+            {{ block.super }}
+        {% endblock %}
         </div>
     </div>
     <div class="span5">

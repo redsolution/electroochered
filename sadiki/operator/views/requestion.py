@@ -29,7 +29,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
     ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm
-from sadiki.operator.plugins import get_operator_plugin_menu_items
+from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_profile_additions
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
@@ -142,7 +142,8 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
         context = super(ProfileInfo, self).get_context_data(**kwargs)
         context.update(
             {'reset_password_form': HiddenConfirmation(initial={'action': 'reset_password'}),
-             'plugin_menu_items': get_operator_plugin_menu_items(context['profile'].id)})
+             'plugin_menu_items': get_operator_plugin_menu_items(context['profile'].id),
+             'profile_additions': get_operator_profile_additions(), })
         return context
 
 

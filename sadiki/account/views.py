@@ -12,7 +12,7 @@ from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
     BenefitsForm, ChangeRequestionForm,\
     PreferredSadikForm, SocialProfilePublicForm
-from sadiki.account.utils import get_plugin_menu_items
+from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
     STATUS_REQUESTER_NOT_CONFIRMED, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
@@ -86,6 +86,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             'profile': profile,
             'profile_change_form': profile_change_form,
             'plugin_menu_items': get_plugin_menu_items(),
+            'profile_additions': get_profile_additions(),
         }
         vkontakte_associations = profile.user.social_auth.filter(provider='vkontakte-oauth2')
         if vkontakte_associations:

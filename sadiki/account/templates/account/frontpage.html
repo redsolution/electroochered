@@ -163,6 +163,12 @@
             {% endif %}
             {% endblock %}
         </div>
+        {% block profile_additions %}
+            {% for addition in profile_additions %}
+                <div class="split-line"></div>
+                {% include addition %}
+            {% endfor %}
+        {% endblock %}
         </div>
     </div>
     <div class="span5">

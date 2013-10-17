@@ -13,6 +13,9 @@ class AccountPlugin:
     def get_menu_item(self):
         raise NotImplementedError
 
+    def get_profile_addition(self):
+        raise NotImplementedError
+
 
 def add_plugin(plugin):
     if not isinstance(plugin, AccountPlugin):
