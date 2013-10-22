@@ -34,6 +34,7 @@ class SelectSadikForm(forms.Form):
             self.fields['accept_location'] = forms.BooleanField(label=u'Координаты на карте совпадают с адресом',)
             if not requestion.location:
                 self.fields['accept_location'].widget.attrs['disabled'] = 'disabled'
+                self.fields['accept_location'].error_messages['required'] = u'Необходимо указать местоположение заявки'
             self.fields.keyOrder.remove('accept_location')
             self.fields.keyOrder.insert(0, 'accept_location')
 
