@@ -1,23 +1,73 @@
-[database]
+; В секции DEFAULT устанавливаются значения настроек по умолчанию
+[DEFAULT]
+
+; database
+; Настройки базы данных
+DATABASE_USER: Jonh
+DATABASE_PASSWORD: topsecret
+DATABASE_HOST:
+DATABASE_PORT: 5432
+DATABASE_NAME: sadiki3
+
+; secret
+; Секретный ключ приложения
+SECRET_KEY:
+
+; email
+; Адреса электронной почты, используемые приложением
+DEFAULT_FROM_EMAIL: noreply@example.com
+SERVER_EMAIL: webmaster@example.com
+WEBMASTER: webmaster@localhost
+STUFF: stuff@localhost
+
+; map
+; Настройки карты
+MAP_CENTER: 61.420956,55.1623483
+MAP_ZOOM: 13
+TILES_URL: http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+TILES_SUBDOMAINS: a b c
+
+; options
+;
+MUNICIPALITY_OCATO: 75401376
+EMAIL_KEY_VALID: 3
+MAX_CHILD_AGE: 7
+NEW_YEAR_START: 1 04
+APPEAL_DAYS: 30
+DESIRED_DATE: 2
+DESIRED_SADIKS: 1
+FACILITY_STORE: 1
+TEMP_DISTRIBUTION: 0
+IMMEDIATELY_DISTRIBUTION: 0
+ETICKET: 2
+SPECIAL_TRANSITIONS: 40,79,80,58
+DEFAULT_IMPORT_DOCUMENT_NAME: Свидетельство о рождении
+REGION_NAME:
+REQUESTION_NUMBER_MASK: 99999999-Б-999999999
+VK_APP_ID:
+VK_API_SECRET:
+
+; В секции custom options можно переписать значения настроек по умолчанию
+[custom options]
+
+; database
 DATABASE_USER: sadiki3
 DATABASE_PORT: 5432
 DATABASE_NAME: sadiki3
 
-[secrets]
+; secrets
 SECRET_KEY:
 
-[email]
+; email
 SERVER_EMAIL: webmaster@example.com
-
-[admin mail]
 WEBMASTER: webmaster@example.com
 
-[options]
+; options
 MUNICIPALITY_OCATO: 75401376
 REGION_NAME: Челябинская область Челябинск
 VK_APP_ID:
 VK_API_SECRET:
 
-[map]
+; map
 MAP_CENTER: 61.615617, 55.111896
 MAP_ZOOM: 12
