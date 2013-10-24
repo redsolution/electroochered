@@ -109,7 +109,6 @@ class OperatorSocialAuthDataUpdate(OperatorPermissionMixin, AccountSocialAuthDat
         return super(AccountSocialAuthDataUpdate, self).dispatch(request, user, user_social_auth)
 
 
-
 class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
     template_name = 'social_auth/disconnect.html'
 
