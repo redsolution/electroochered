@@ -141,7 +141,7 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
                 profile.social_auth_clean_data()
                 profile.save()
             else:
-                raise HttpResponseForbidden(u'Вы можете работать только с заявителями')
+                return HttpResponseForbidden(u'Вы можете работать только с заявителями')
         return HttpResponseRedirect(redirect_to)
 
 
