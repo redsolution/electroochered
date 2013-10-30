@@ -1169,6 +1169,10 @@ tr.dynamic-form .errorlist {
     margin-bottom: 10px;
 }
 
+.requestion-info .error #account-requestion-map {
+    width: 460px;
+}
+
 .requestion-info .pref-sadiks{
     margin-left: 0px;
     margin-top: 14px;
