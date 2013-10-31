@@ -109,7 +109,6 @@ class OperatorSocialAuthDataUpdate(OperatorPermissionMixin, AccountSocialAuthDat
         return super(AccountSocialAuthDataUpdate, self).dispatch(request, user, user_social_auth)
 
 
-
 class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
     template_name = 'social_auth/disconnect.html'
 
@@ -141,7 +140,7 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
                 profile.social_auth_clean_data()
                 profile.save()
             else:
-                raise HttpResponseForbidden(u'Вы можете работать только с заявителями')
+                return HttpResponseForbidden(u'Вы можете работать только с заявителями')
         return HttpResponseRedirect(redirect_to)
 
 
