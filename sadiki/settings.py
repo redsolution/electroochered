@@ -60,7 +60,6 @@ MIDDLEWARE_CLASSES = [
     'sadiki.core.middleware.SettingsJSMiddleware',
 #    'sadiki.core.middleware.LogPIDMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
-    'sadiki.social_auth_custom.middleware.SocialAuthExceptionMiddlewareCustom',
 ]
 
 ROOT_URLCONF = 'sadiki.urls'
@@ -86,7 +85,6 @@ INSTALLED_APPS = [
     'sadiki.statistics',
     'sadiki.distribution',
     'sadiki.custom_flatpages',
-    'sadiki.social_auth_custom',
 #    'sadiki.feedback',
     'south',
     'pytils',
@@ -94,7 +92,6 @@ INSTALLED_APPS = [
     'chunks',
     'tinymce',
     'trustedhtml',
-    'social_auth',
     'attachment',
     'hex_storage',
 ]
@@ -132,7 +129,6 @@ TEMPLATE_CONTEXT_PROCESSORS = (
 )
 
 AUTHENTICATION_BACKENDS = (
-    'sadiki.social_auth_custom.backens.vkontakte_custom.VKontakteOAuth2BackendCustom',
     'django.contrib.auth.backends.ModelBackend',
     'sadiki.authorisation.backends.EmailAuthBackend',
 )
@@ -191,22 +187,6 @@ POSTGIS_VERSION = (1, 4, 0)
 LOCK_DIR = os.path.join(PROJECT_DIR, 'lock')
 
 REQUESTER_USERNAME_PREFIX = 'requester'
-
-SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['username', 'email', 'first_name', 'last_name', ]
-
-VK_EXTRA_SCOPE = ['offline', ]
-VK_EXTRA_DATA = ['contacts', 'connections', ]
-
-SOCIAL_AUTH_PIPELINE = (
-    'social_auth.backends.pipeline.social.social_auth_user',
-    'social_auth.backends.pipeline.user.get_username',
-    'sadiki.social_auth_custom.pipeline.user.check_authorisation_type',
-    'sadiki.social_auth_custom.pipeline.user.check_single_association',
-    'sadiki.social_auth_custom.pipeline.user.create_user',
-    'social_auth.backends.pipeline.social.associate_user',
-    'social_auth.backends.pipeline.social.load_extra_data',
-    'sadiki.social_auth_custom.pipeline.user.update_user_info',
-)
 
 LOGIN_ERROR_URL = '/auth/login/'
 
