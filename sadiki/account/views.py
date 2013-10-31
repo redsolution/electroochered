@@ -11,7 +11,7 @@ from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
     BenefitsForm, ChangeRequestionForm,\
-    PreferredSadikForm, SocialProfilePublicForm
+    PreferredSadikForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
     STATUS_REQUESTER_NOT_CONFIRMED, \
@@ -80,37 +80,13 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         profile = kwargs.get('profile')
-        profile_change_form = SocialProfilePublicForm(instance=profile)
         context = {
             'params': kwargs,
             'profile': profile,
-            'profile_change_form': profile_change_form,
             'plugin_menu_items': get_plugin_menu_items(),
             'profile_additions': get_profile_additions(),
         }
-        vkontakte_associations = profile.user.social_auth.filter(provider='vkontakte-oauth2')
-        if vkontakte_associations:
-            context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
-
-
-class SocialProfilePublic(AccountPermissionMixin, View):
-
-    @method_decorator(login_required)
-    def dispatch(self, request):
-        profile = request.user.get_profile()
-        return super(SocialProfilePublic, self).dispatch(request, profile)
-
-    def post(self, request, profile):
-        if not request.is_ajax():
-            return HttpResponseBadRequest()
-        form = SocialProfilePublicForm(data=request.POST, instance=profile)
-        if form.is_valid():
-            form.save()
-            return HttpResponse(content=json.dumps({'ok': False}),
-                                mimetype='text/javascript')
-        return HttpResponse(content=json.dumps({'ok': False}),
-                            mimetype='text/javascript')
 
 
 class RequestionAdd(AccountPermissionMixin, TemplateView):

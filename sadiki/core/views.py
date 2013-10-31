@@ -53,20 +53,6 @@ def sadiki_json(request):
     return HttpResponse(simplejson.dumps(data), mimetype='text/json')
 
 
-class VkontakteFrame(TemplateView):
-    u"""
-    Отображение текущих настроек системы
-    """
-
-    template_name = 'vkontakte.html'
-
-    def get_context_data(self, **kwargs):
-        return {'settings': settings}
-
-    def get(self, request):
-        return super(VkontakteFrame, self).get(request)
-
-
 def registration(request, *args, **kwargs):
     if request.user.is_authenticated() and request.user.is_operator():
         return OperatorRegistration.as_view()(request, *args, **kwargs)
