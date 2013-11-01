@@ -459,7 +459,7 @@ if IMMEDIATELY_DISTRIBUTION in (IMMEDIATELY_DISTRIBUTION_YES,
 
 def permit_confirm_requestion(user, requestion, transition, request=None, form=None):
     #проверяем, что у заявки есть все необходимые документы для льгот
-    return requestion.have_all_benefit_documents()
+    return requestion.clean() and requestion.have_all_benefit_documents()
 
 register_callback(CONFIRM_REQUESTION, permit_confirm_requestion)
 
