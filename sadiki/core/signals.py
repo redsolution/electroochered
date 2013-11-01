@@ -29,6 +29,7 @@
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
 from django.contrib import messages
+from sadiki.account.forms import RequestionForm
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
@@ -459,7 +460,7 @@ if IMMEDIATELY_DISTRIBUTION in (IMMEDIATELY_DISTRIBUTION_YES,
 
 def permit_confirm_requestion(user, requestion, transition, request=None, form=None):
     #проверяем, что у заявки есть все необходимые документы для льгот
-    return requestion.clean() and requestion.have_all_benefit_documents()
+    return all([requestion.all_fields_filled(), requestion.have_all_benefit_documents()])
 
 register_callback(CONFIRM_REQUESTION, permit_confirm_requestion)
 

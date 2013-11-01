@@ -1224,6 +1224,16 @@ class Requestion(models.Model):
         required_documents = set(self.benefits.all().values_list('evidience_documents', flat=True))
         return required_documents.issubset(documents)
 
+    def all_fields_filled(self):
+        return all([
+            self.name,
+            self.birth_date,
+            self.sex,
+            self.admission_date,
+            self.areas,
+            self.location,
+        ])
+
     @property
     def is_fake_identity_documents(self):
         return self.evidience_documents().filter(fake=True,
