@@ -852,10 +852,18 @@ class RequestionFormat(Format):
             'street': data_row[16],
             'building_number': data_row[17],
             }
+        personal_data = {
+            'child_name': data_row[7],
+            'child_patronym': data_row[8],
+            'child_last_name': data_row[6],
+            'parent_name': data_row[22],
+            'parent_patronym': data_row[23],
+            'parent_last_name': data_row[21],
+        }
         requestion_data['location_properties'] = self.get_address_text(address_data)
         benefits = data_row[25]
         document = data_row[5]
-        return requestion_data, areas, preferred, benefits, document, errors
+        return requestion_data, personal_data, areas, preferred, benefits, document, errors
 
 
 sadik_list_cells = (
@@ -981,7 +989,7 @@ class RequestionLogic(object):
                 self.errors.append(ErrorRow(parsed_row, index + self.format_doc.start_line, logic_errors))
 
     def validate_record(self, data_tuple, cell_errors, row_index):
-        requestion_data, areas, sadiks_identifiers_list, benefits, document, errors = data_tuple
+        requestion_data, personal_data, areas, sadiks_identifiers_list, benefits, document, errors = data_tuple
 #        если у заявки не указано время регистрации, то устанавливаем 9:00
         if type(requestion_data.get('registration_datetime')) is datetime.date:
             requestion_data['registration_datetime'] = datetime.datetime.combine(
@@ -1039,7 +1047,8 @@ class RequestionLogic(object):
                     'areas': areas,
                     'sadiks_identifiers_list': sadiks_identifiers_list,
                     'benefits_names': benefits,
-                    'document': document
+                    'document': document,
+                    'personal_data': personal_data,
                 })
 
     def validate_document_duplicate(self, document):
