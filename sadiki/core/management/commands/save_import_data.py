@@ -106,6 +106,8 @@ class Command(BaseCommand):
             for benefit in benefits:
                 requestion.benefits.add(benefit)
                 requestion.save()
+
+        self.try_to_save_personal_data(requestion, profile, requestion_data['personal_data'])
         context_dict = {'user': user, 'profile': profile,
                         'requestion': requestion,
                         'pref_sadiks': preferred_sadiks,
@@ -137,4 +139,31 @@ class Command(BaseCommand):
             age_groups = AgeGroup.objects.all()
         sadik.save()
         sadik.age_groups = age_groups
+
+    def try_to_save_personal_data(self, requestion, profile, data):
+        try:
+            from personal_data.models import UserPersData, ChildPersData
+            from django.conf import settings
+
+            if 'personal_data' not in settings.INSTALLED_APPS:
+                return
+
+            child_data = ChildPersData(
+                first_name=data['child_name'],
+                second_name=data['child_patronym'],
+                last_name=data['child_last_name'],
+                application=requestion
+            )
+            child_data.save()
+
+            user_data = UserPersData(
+                first_name=data['parent_name'],
+                second_name=data['parent_patronym'],
+                last_name=data['parent_last_name'],
+                profile=profile
+            )
+            user_data.save()
+
+        except ImportError:
+            pass
 
