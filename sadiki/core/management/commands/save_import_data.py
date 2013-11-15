@@ -157,9 +157,9 @@ class Command(BaseCommand):
             child_data.save()
 
             user_data = UserPersData(
-                first_name=data['parent_name'],
-                second_name=data['parent_patronym'],
-                last_name=data['parent_last_name'],
+                first_name=data.get('parent_name', None),
+                second_name=data.get('parent_patronym', None),
+                last_name=data.get('parent_last_name', None),
                 profile=profile
             )
             user_data.save()

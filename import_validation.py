@@ -856,10 +856,13 @@ class RequestionFormat(Format):
             'child_name': data_row[7],
             'child_patronym': data_row[8],
             'child_last_name': data_row[6],
-            'parent_name': data_row[22],
-            'parent_patronym': data_row[23],
-            'parent_last_name': data_row[21],
         }
+        if all([data_row[21], data_row[22], data_row[23]]):
+            personal_data.update({
+                'parent_name': data_row[22],
+                'parent_patronym': data_row[23],
+                'parent_last_name': data_row[21],
+            })
         requestion_data['location_properties'] = self.get_address_text(address_data)
         benefits = data_row[25]
         document = data_row[5]
