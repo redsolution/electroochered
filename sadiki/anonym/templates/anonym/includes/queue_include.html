@@ -20,6 +20,17 @@
         <tr {% if target_requestion.id == requestion.id %}class="highlight" id="target" {% endif %}>
             <td>{{ forloop.counter|add:offset }}</td>
             <td class="requestion-number">
+                <div class="social-button">
+                {% with requestion.profile.user.social_auth.all as social_accounts %}
+                    {% if social_accounts %}
+                        {% if requestion.profile.social_auth_public %}
+                            <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ social_accounts.0.uid }}"><img src="{{ STATIC_URL }}img/vkontakte_small.png"/></a>
+                        {% else %}
+                            <img src="{{ STATIC_URL }}img/vkontakte_small_inactive.png"/>
+                        {% endif %}
+                    {% endif %}
+                {% endwith %}
+                </div>
                 {% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
             </td>
             <td>{{ requestion.areas.all.0 }}</td>
@@ -61,6 +72,10 @@
 <script type="text/javascript">
     $(document).ready(function(){
         {% queue_tooltips as tooltips %}
+        $("#requestion-number-head .icon-question-sign").popover({
+            title: "Профиль ВКонтакте",
+            content: "{{ tooltips.requestion_number_tooltip }}",
+            placement: "top", html: true})
         $("#requestion-status-row .icon-question-sign").popover({
             title: "Статусы заявки",
             content: "{{ tooltips.requestion_status_tooltip }}",

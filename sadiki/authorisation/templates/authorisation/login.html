@@ -27,5 +27,14 @@
             </div>
         </form>
         </div>
+        <div class="span5">
+            <h2>Через профиль социальной сети</h2>
+            <div class="vkontakte-registration">
+                <a class="social-button" href="{% url socialauth_login_begin 'vkontakte-oauth2' %}">
+                    <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
+                    Вход через ВКонтакте
+                </a>
+            </div>
+        </div>
     </div>
 {% endblock %}

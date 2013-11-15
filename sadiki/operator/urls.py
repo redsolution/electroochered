@@ -7,7 +7,7 @@ from sadiki.operator.plugins import plugins
 from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
     RequestionAdd, \
     RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo
+    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
 
@@ -23,6 +23,8 @@ urlpatterns = patterns('',
         RequestionAdd.as_view(), name=u'operator_requestion_add'),
     url(r'^profile/(?P<profile_id>\d{1,7})/generate_profile_password/$',
         GenerateProfilePassword.as_view(), name=u'generate_profile_password'),
+    url(r'^social_profile_public/(?P<profile_id>\d{1,7})/$',
+        SocialProfilePublic.as_view(), name='operator_social_profile_public'),
 
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',

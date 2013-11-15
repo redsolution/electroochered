@@ -105,3 +105,9 @@ class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
     class Meta:
         model = Requestion
         fields = ('areas', 'pref_sadiks', 'distribute_in_any_sadik',)
+
+
+class SocialProfilePublicForm(ModelForm):
+    class Meta:
+        model = Profile
+        fields = ('social_auth_public',)

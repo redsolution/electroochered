@@ -259,6 +259,8 @@ class QueueTooltips(Tag):
             tooltip = render_to_string(template_name, context)
             return mark_safe(re.sub(r'\n', '', tooltip))
         tooltips = {}
+        tooltips.update({"requestion_number_tooltip": get_tooltip(
+            "core/tooltips/requestion_number_tooltip.html", {'STATIC_URL': settings.STATIC_URL})})
         tooltips.update({"age_groups_tooltip": get_tooltip(
             "core/tooltips/age_groups_tooltip.html",
             {'age_groups': AgeGroup.objects.all()})})
