@@ -67,7 +67,7 @@ class Queue(RequirePermissionsMixin, ListView):
     queryset = Requestion.objects.add_distributed_sadiks(
         # TODO: ОЧЕНЬ долго работает.
         ).select_related('benefit_category__priority', 'profile'
-    ).prefetch_related('areas')
+    ).prefetch_related('areas', "profile__user__social_auth")
     paginate_by = 200
     form = QueueFilterForm
     requestion = None  # Заявка, найденная через форму поиска
