@@ -291,11 +291,11 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     change_form_template = "adm/user/operator_change_template.html"
     fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
-        'is_active']}),
+        'is_active', 'is_staff']}),
     )
     add_fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
-        'password1', 'password2']}),
+        'is_staff', 'password1', 'password2']}),
     )
     add_form = OperatorAdminAddForm
     form = OperatorAdminChangeForm
