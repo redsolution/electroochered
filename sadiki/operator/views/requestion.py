@@ -387,6 +387,7 @@ class FindProfileForRequestion(OperatorRequestionCheckIdentityMixin,
         user__user_permissions__codename=REQUESTER_PERMISSION[0])
     form = ProfileSearchForm
     field_weights = {
+        'user__username__exact': 3,
         'requestion__requestion_number__exact': 5,
         'first_name__icontains': 1,
     }

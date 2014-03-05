@@ -244,7 +244,7 @@ class ImmediatelyDistributionConfirmationForm(ConfirmationForm):
 
 
 class ProfileSearchForm(forms.Form):
-    username = forms.CharField(label=u"Имя пользователя", required=False,
+    username = forms.CharField(label=u"Имя пользователя, подавшего заявку", required=False,
                                help_text=u'Имя, используемое пользователем для входа в систему')
     requestion_number = forms.CharField(
         label=u'Номер заявки, привязанной к профилю',
