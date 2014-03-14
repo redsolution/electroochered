@@ -4,6 +4,7 @@ import sys
 import csv
 import getpass
 import urllib2
+from urllib2 import HTTPError
 
 from sadiki.core import models as core_models
 from sadiki.core.models import Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCE_MUNICIPALITY_PHONE, \
@@ -38,9 +39,11 @@ def municipality_settings(request):
 
 def get_csv():
     url = "https://docs.google.com/spreadsheet/pub?key=0AibgW8ZCe85QdHpKeFlSRXNFblpLcE1JY3BOV0k3MEE&output=csv"
-    response = urllib2.urlopen(url)
-    return csv.reader(response)
-
+    try:
+        response = urllib2.urlopen(url)
+        return csv.reader(response)
+    except HTTPError:
+        return None
 
 def write_informer_block(instance_name, messages, action):
     path_to_html = os.path.join('/srv/', instance_name, 'django', 'templates', 'includes', 'notifier.html')
@@ -63,6 +66,10 @@ def write_informer_block(instance_name, messages, action):
 def get_notifier(request):
     instance_name = getpass.getuser()
     messages = []
+    csv_file = get_csv()
+    if not csv_file:
+        return {'msgs': []}
+    
     for row in get_csv():
         if instance_name == row[0]:
             if row[1] and not row[2]:
