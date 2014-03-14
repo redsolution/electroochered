@@ -72,4 +72,4 @@ def get_notifier(request):
         write_informer_block(instance_name, messages, 'c')
     else:
         write_informer_block(instance_name, messages, 'd')
-    return {'messages': messages}
+    return {'msgs': messages}
