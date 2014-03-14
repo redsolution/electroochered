@@ -53,7 +53,7 @@ def write_informer_block(instance_name, messages, action):
             <div class="alert alert-warning alert-dismissable">
                 <button type="button" class="close" data-dismiss="alert" aria-hidden="true"
                 onclick="alert_dismiss()">&times;</button>
-                <strong>Внимание!</strong> {}
+                <strong>Внимание!</strong> {0}
             </div>
         </div>""".format('<br>'.join(messages)))
         html_file.close()
