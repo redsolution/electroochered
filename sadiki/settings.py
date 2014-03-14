@@ -129,6 +129,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'django.core.context_processors.csrf',
     'sadiki.core.context_processors.constants',
     'sadiki.core.context_processors.municipality_settings',
+    'sadiki.core.context_processors.get_notifier',
 )
 
 AUTHENTICATION_BACKENDS = (
