@@ -577,6 +577,12 @@ table.table.table-bordered tr.highlight td {
     margin-top: 13px;
 }
 
+.header_warn {
+    float:left;
+    width: 100%;
+    height: 36px;
+}
+
 .dropdown-menu{
     left: auto;
     right: 0px;
