@@ -4,7 +4,6 @@ import datetime
 import csv
 import getpass
 import urllib2
-from urllib2 import HTTPError
 
 from sadiki.core import models as core_models
 from sadiki.core.models import Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCE_MUNICIPALITY_PHONE, \
@@ -66,26 +65,26 @@ def is_modified_recently(path_to_html):
 
 
 def get_notifier(request):
-    instance_name = getpass.getuser()
     messages = []
-    path_to_html = os.path.join('/srv/', instance_name, 'django', 'templates', 'includes', 'notifier.html')
-    if os.path.isfile(path_to_html) and is_modified_recently(path_to_html):
-        return {'msgs': messages}
-    
-    csv_file = get_csv()
-    if not csv_file:
-        return {'msgs': messages}
+    try:
+        instance_name = getpass.getuser()
+        path_to_html = os.path.join('/srv/', instance_name, 'django', 'templates', 'includes', 'notifier.html')
+        if os.path.isfile(path_to_html) and is_modified_recently(path_to_html):
+            return {'msgs': messages}
 
-    for row in get_csv():
-        try:
+        csv_file = get_csv()
+        if not csv_file:
+            return {'msgs': messages}
+
+        for row in get_csv():
             if instance_name == row[0]:
                 if ((len(row) > 2 and not row[2]) or len(row) == 2) and row[1]:
                     messages.append(row[1])
-        except Exception:
-            return {'msgs': messages}
 
-    if len(messages) > 0:
-        write_informer_block(messages, path_to_html)
-    else:
-        open(path_to_html, 'w').close()
-    return {'msgs': messages}
+        if len(messages) > 0:
+            write_informer_block(messages, path_to_html)
+        else:
+            open(path_to_html, 'w').close()
+        return {'msgs': messages}
+    except Exception:
+        return {'msgs': messages}
