@@ -43,7 +43,7 @@ def get_csv():
     try:
         response = urllib2.urlopen(url)
         return csv.reader(response)
-    except HTTPError:
+    except Exception:
         return None
 
 
@@ -81,7 +81,7 @@ def get_notifier(request):
             if instance_name == row[0]:
                 if ((len(row) > 2 and not row[2]) or len(row) == 2) and row[1]:
                     messages.append(row[1])
-        except IndexError:
+        except Exception:
             return {'msgs': messages}
 
     if len(messages) > 0:
