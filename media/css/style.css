@@ -577,6 +577,11 @@ table.table.table-bordered tr.highlight td {
     margin-top: 13px;
 }
 
+.header_warn {
+    float:left;
+    width: 100%;
+}
+
 .dropdown-menu{
     left: auto;
     right: 0px;
@@ -1414,4 +1419,8 @@ tr.dynamic-form .errorlist {
 .sadik-change-form .map{
     width: 600px;
     height: 500px;
+}
+
+#alert_msg {
+    margin-bottom: 0px;
 }
