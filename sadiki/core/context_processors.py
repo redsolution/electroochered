@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
+import datetime
 import csv
 import getpass
 import urllib2
@@ -37,6 +37,7 @@ def municipality_settings(request):
         MUNICIPALITY_PHONE = None
     return {'MUNICIPALITY_NAME_GENITIVE': MUNICIPALITY_NAME_GENITIVE, 'MUNICIPALITY_PHONE': MUNICIPALITY_PHONE}
 
+
 def get_csv():
     url = "https://docs.google.com/spreadsheet/pub?key=0AibgW8ZCe85QdHpKeFlSRXNFblpLcE1JY3BOV0k3MEE&output=csv"
     try:
@@ -45,38 +46,43 @@ def get_csv():
     except HTTPError:
         return None
 
-def write_informer_block(instance_name, messages, action):
-    path_to_html = os.path.join('/srv/', instance_name, 'django', 'templates', 'includes', 'notifier.html')
-    if action == 'd':
-        open(path_to_html, 'w').close()
-    elif action == 'c':
-        html_file = open(path_to_html, 'w')
-        html_file.write("""
-        <div class="header_warn">
-            <div class="alert alert-warning alert-dismissable">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true"
-                onclick="alert_dismiss()">&times;</button>
-                <strong>Внимание!</strong> {0}
-            </div>
-        </div>""".format('<br>'.join(messages)))
-        html_file.close()
-    print path_to_html
+
+def write_informer_block(messages, path_to_html):
+    html_file = open(path_to_html, 'w')
+    html_file.write("""
+    <div class="header_warn">
+        <div class="alert alert-warning alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true"
+            onclick="alert_dismiss()">&times;</button>
+            <strong>Внимание!</strong> {0}
+        </div>
+    </div>""".format('<br>'.join(messages)))
+    html_file.close()
+
+
+def is_modified_recently(path_to_html):
+    file_modified = datetime.datetime.fromtimestamp(os.path.getmtime(path_to_html))
+    return ((datetime.datetime.now() - file_modified).seconds / 3600.0) < 1
 
 
 def get_notifier(request):
     instance_name = getpass.getuser()
     messages = []
+    path_to_html = os.path.join('/srv/', instance_name, 'django', 'templates', 'includes', 'notifier.html')
+    if os.path.isfile(path_to_html) and is_modified_recently(path_to_html):
+        return {'msgs': messages}
+    
     csv_file = get_csv()
     if not csv_file:
-        return {'msgs': []}
-    
+        return {'msgs': messages}
+
     for row in get_csv():
         if instance_name == row[0]:
             if row[1] and not row[2]:
                 messages.append(row[1])
 
     if len(messages) > 0:
-        write_informer_block(instance_name, messages, 'c')
+        write_informer_block(messages, path_to_html)
     else:
-        write_informer_block(instance_name, messages, 'd')
+        open(path_to_html, 'w').close()
     return {'msgs': messages}
