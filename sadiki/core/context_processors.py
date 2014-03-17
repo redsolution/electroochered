@@ -51,7 +51,7 @@ def write_informer_block(messages, path_to_html):
     html_file = open(path_to_html, 'w')
     html_file.write("""
     <div class="header_warn">
-        <div class="alert alert-warning alert-dismissable">
+        <div id="alert_msg" class="alert alert-warning alert-dismissable">
             <button type="button" class="close" data-dismiss="alert" aria-hidden="true"
             onclick="alert_dismiss()">&times;</button>
             <strong>Внимание!</strong> {0}

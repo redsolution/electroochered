@@ -580,7 +580,6 @@ table.table.table-bordered tr.highlight td {
 .header_warn {
     float:left;
     width: 100%;
-    height: 36px;
 }
 
 .dropdown-menu{
@@ -1420,4 +1419,8 @@ tr.dynamic-form .errorlist {
 .sadik-change-form .map{
     width: 600px;
     height: 500px;
+}
+
+#alert_msg {
+    margin-bottom: 0px;
 }
