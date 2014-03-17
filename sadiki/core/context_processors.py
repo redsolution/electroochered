@@ -77,9 +77,12 @@ def get_notifier(request):
         return {'msgs': messages}
 
     for row in get_csv():
-        if instance_name == row[0]:
-            if row[1] and not row[2]:
-                messages.append(row[1])
+        try:
+            if instance_name == row[0]:
+                if ((len(row) > 2 and not row[2]) or len(row) == 2) and row[1]:
+                    messages.append(row[1])
+        except IndexError:
+            return {'msgs': messages}
 
     if len(messages) > 0:
         write_informer_block(messages, path_to_html)
