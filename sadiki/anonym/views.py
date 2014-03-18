@@ -64,10 +64,11 @@ class Registration(RequirePermissionsMixin, TemplateView):
 class Queue(RequirePermissionsMixin, ListView):
     u"""Отображение очереди в район"""
     template_name = 'anonym/queue.html'
-    queryset = Requestion.objects.add_distributed_sadiks(
+    fullqueryset = Requestion.objects.add_distributed_sadiks(
         # TODO: ОЧЕНЬ долго работает.
         ).select_related('benefit_category__priority', 'profile'
     ).prefetch_related('areas', "profile__user__social_auth")
+    queryset = fullqueryset.hide_distributed()
     paginate_by = 200
     form = QueueFilterForm
     requestion = None  # Заявка, найденная через форму поиска
@@ -117,10 +118,10 @@ class Queue(RequirePermissionsMixin, ListView):
                 initial_queryset = queryset
 
                 # Обработка формы вручную
+                if form.cleaned_data.get('show_distributed', None):
+                    queryset = self.fullqueryset
                 if form.cleaned_data.get('confirmed', None):
                     queryset = queryset.confirmed()
-                if form.cleaned_data.get('hide_distributed', None):
-                    queryset = queryset.hide_distributed()
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(min_birth_date=age_group.min_birth_date(),
