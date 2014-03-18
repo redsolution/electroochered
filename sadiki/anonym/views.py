@@ -168,7 +168,7 @@ class Queue(RequirePermissionsMixin, ListView):
 
         # Обработать фильтры, если они есть
         self.queryset, form = self.process_filter_form(queryset, self.request.GET)
-        if self.request.user.is_anonymous or not self.request.user.is_operator():
+        if self.request.user.is_anonymous() or not self.request.user.is_operator():
             del form.fields['not_appeared']
         # Разбить на страницы
         page_size = self.paginate_by
