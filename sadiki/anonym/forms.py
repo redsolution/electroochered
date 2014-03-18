@@ -171,7 +171,7 @@ class QueueFilterForm(forms.Form):
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
     confirmed = forms.BooleanField(label=u'Документально подтвержденные',
         required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
-    hide_distributed = forms.BooleanField(label=u'Скрыть зачисленные заявки',
+    hide_distributed = forms.BooleanField(label=u'Скрыть зачисленные заявки', initial=True,
         required=False, help_text=u"Отметьте для исключения всех зачисленных заявок из очереди")
     benefit_category = forms.ModelChoiceField(label=u'Категория льгот', required=False,
         queryset=BenefitCategory.objects.exclude_system_categories(),
