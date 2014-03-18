@@ -792,6 +792,10 @@ class RequestionQuerySet(models.query.QuerySet):
         """
         return self.exclude(status__in=NOT_CONFIRMED_STATUSES)
 
+    def hide_distributed(self):
+        u"""Исключаем зачисленные заявки"""
+        return self.exclude(status__in=(STATUS_DISTRIBUTED,))
+
     def _sorting_to_kwds(self, instance, sort_param):
         u"""Берет у объекта ``instance`` параметр ``sort_param``
          и возвращает словарь для построения фильтра объектов,
