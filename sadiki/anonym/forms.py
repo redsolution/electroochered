@@ -160,6 +160,7 @@ class QueueFilterForm(forms.Form):
             'requestion_number',
             'confirmed',
             'show_distributed',
+            'not_appeared',
             'benefit_category',
             'age_group',
             'area',
@@ -173,6 +174,8 @@ class QueueFilterForm(forms.Form):
         required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
     show_distributed = forms.BooleanField(label=u'Показать зачисленные заявки',
         required=False, help_text=u"Отметьте для отображения всех зачисленных заявок из очереди")
+    not_appeared = forms.BooleanField(label=u'Показать только неявившиеся заявки',
+        required=False, help_text=u"Отметьте для отображения неявившихся заявок из очереди")
     benefit_category = forms.ModelChoiceField(label=u'Категория льгот', required=False,
         queryset=BenefitCategory.objects.exclude_system_categories(),
         help_text=u"При выборе в очереди будут отображаться заявки только этой категории льгот")
