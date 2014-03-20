@@ -235,6 +235,27 @@
             f.submit();
         }
 
+        function del_field(element) {
+            var parent = $(element.parentElement);
+            var id = parent.children('label').attr('id');
+            $('#id_areas option').each(function() {
+                if (this.value==id) {
+                    this.selected = false;
+                };
+            });
+            $(parent).remove();
+        }
+
+        function add_area(element) {
+            // $('#areas_all').show();
+            $(element).before(' \
+            <select class="areas_all"> \
+                {% for area in areas_all %} \
+                    <option value="{{ area.id }}">{{ area }}</option> \
+                {% endfor %} \
+            </select>');
+        }
+
         //обработка нажатия на кнопку редактирвания поля
         function change_field(element){
             var parent = $(element.parentElement);
@@ -256,9 +277,29 @@
             });
         }
 
+        // добавляем выбранную ТО к areas
+        $(document).on("change", ".areas_all", function() {
+            var id = $(this).val();
+            console.log(id);
+            $('#id_areas option').each(function() {
+                if (this.value==id) {
+                    this.selected = true;
+                };
+            });
+            var container_el = $(this).parents('.field');
+            field_changed(container_el);
+         });
+
         $(document).ready(function(){
+            // прячем select со всем ТО
+            $('#id_areas').hide();
+
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').bind('change', function(){
+                var container_el = $(this).parents('.field');
+                field_changed(container_el);
+            })
+            $('p').bind('remove', function(){
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
@@ -421,17 +462,20 @@
 
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
+            {% for area in requestion.areas.all %}
             <p class="field-value hidden-input">
-                <label class="value">
+                <label id="{{ area.id }}" class="value">
                     {% if pref_sadiks_form.areas.value %}
-                        {{ requestion.areas.all.0|default:"Весь муниципалитет" }}
+                        {{ area|default:"Весь муниципалитет" }}
                     {% else %}
                         Весь муниципалитет
                     {% endif %}
                 </label>
-                {{ pref_sadiks_form.areas }}
-                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                 <a href="#" onclick="del_field(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
             </p>
+            {% endfor %}
+            {{ pref_sadiks_form.areas }}
+            <a href="#" onclick="add_area(this); return false">Добавить территориальную область</a>
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>
@@ -466,7 +510,7 @@
     <div class="span5">
         <div class="requestion-info">
         <div id="location-header" class="{% if change_requestion_form.location.errors %}error {% endif %}field">
-            <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
+            <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
             <div id="account-requestion-map"></div>
             <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
         </div>

@@ -14,7 +14,7 @@ from sadiki.account.forms import RequestionForm, \
     PreferredSadikForm, SocialProfilePublicForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
-    STATUS_REQUESTER_NOT_CONFIRMED, \
+    STATUS_REQUESTER_NOT_CONFIRMED, Area, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
@@ -340,6 +340,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
         context = {
             'requestion': requestion,
+            'areas_all': Area.objects.all(),
             'profile': requestion.profile,
             'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
