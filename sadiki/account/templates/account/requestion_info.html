@@ -18,6 +18,7 @@
         <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
         <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
         <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
+        <script src="{{ STATIC_URL }}js/requestion.js"></script>
 
         <script>
             {% with requestion.location as point %}
@@ -37,6 +38,7 @@
             var sadiksLayer;
             var prefSadikLayer;
             var sadik_location_data = {{ sadiks_location_data|safe }};
+            console.log(sadik_location_data);
             var pref_sadiks_ids = {{ pref_sadiks_ids|safe }};
             var sadik_markers;
 
@@ -235,6 +237,7 @@
             f.submit();
         }
 
+        // удаление ТО пользователем по нажатию на кнопку 'X'
         function del_field(element) {
             var parent = $(element.parentElement);
             var id = parent.children('label').attr('id');
@@ -246,10 +249,11 @@
             $(parent).remove();
         }
 
+        // По клику на ссылку выводим еще один select с ТО
         function add_area(element) {
-            // $('#areas_all').show();
             $(element).before(' \
             <select class="areas_all"> \
+                <option value selected="selected">----------</option> \
                 {% for area in areas_all %} \
                     <option value="{{ area.id }}">{{ area }}</option> \
                 {% endfor %} \
@@ -280,7 +284,6 @@
         // добавляем выбранную ТО к areas
         $(document).on("change", ".areas_all", function() {
             var id = $(this).val();
-            console.log(id);
             $('#id_areas option').each(function() {
                 if (this.value==id) {
                     this.selected = true;
@@ -291,9 +294,6 @@
          });
 
         $(document).ready(function(){
-            // прячем select со всем ТО
-            $('#id_areas').hide();
-
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').bind('change', function(){
                 var container_el = $(this).parents('.field');
@@ -463,19 +463,19 @@
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
             {% for area in requestion.areas.all %}
-            <p class="field-value hidden-input">
-                <label id="{{ area.id }}" class="value">
-                    {% if pref_sadiks_form.areas.value %}
-                        {{ area|default:"Весь муниципалитет" }}
-                    {% else %}
-                        Весь муниципалитет
-                    {% endif %}
-                </label>
-                 <a href="#" onclick="del_field(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-            </p>
+                <p class="field-value hidden-input">
+                    <label id="{{ area.id }}" class="value">
+                        {% if pref_sadiks_form.areas.value %}
+                            {{ area|default:"Весь муниципалитет" }}
+                        {% else %}
+                            Весь муниципалитет
+                        {% endif %}
+                    </label>
+                     <a href="#" onclick="del_field(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                </p>
             {% endfor %}
             {{ pref_sadiks_form.areas }}
-            <a href="#" onclick="add_area(this); return false">Добавить территориальную область</a>
+            <i class="icon-plus"></i><a href="#" onclick="add_area(this); return false">Добавить территориальную область</a>
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>

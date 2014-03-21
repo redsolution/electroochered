@@ -18,6 +18,7 @@
     <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
     <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
+    <script src="{{ STATIC_URL }}js/requestion.js"></script>
     <script type="text/javascript">
         {% load_settings %}
         var areas_ids = null;
@@ -199,6 +200,27 @@
             }
             renderMarkers(sadik_location_data, map)
         })
+
+        // По клику на ссылку выводим еще один select с ТО
+        function add_area(element) {
+            $(element).before(' \
+            <select class="areas_all"> \
+                <option value selected="selected">----------</option> \
+                {% for area in areas_all %} \
+                    <option value="{{ area.id }}">{{ area }}</option> \
+                {% endfor %} \
+            </select>');
+        }
+
+        // добавляем выбранную ТО к areas
+        $(document).on("change", ".areas_all", function() {
+            var id = $(this).val();
+            $('#id_areas option').each(function() {
+                if (this.value==id) {
+                    this.selected = true;
+                };
+            });
+         });
     </script>
 
     <script type="text/javascript">
@@ -286,7 +308,22 @@
             <div class="span5">
                 <div class="requestion-info">
                 {% with form.areas as field %}
-                    {% include "account/include/requestion-form-field.html" %}
+                    <div class="small-field {% if field.errors %}error{% endif %}">
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                        <p class="field-value">
+                            {{ field }}
+                            <select class="areas_all">
+                                <option value selected="selected">----------</option>
+                                {% for area in areas_all %}
+                                <option value="{{ area.id }}">{{ area }}</option>
+                                {% endfor %}
+                            </select>
+                        </p>
+                        {% if field.help_text %}
+                            <p class="hint">{{ field.help_text }}</p>
+                        {% endif %}
+                        <i class="icon-plus"></i><a href="#" onclick="add_area(this); return false">Добавить территориальную область</a>
+                    </div>
                 {% endwith %}
                 {% with form.pref_sadiks as field %}
                     <div class="small-field">

@@ -125,6 +125,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             'profile': kwargs.get('profile'),
             'sadiks_location_data': get_json_sadiks_location_data(),
             'plugin_menu_items': get_plugin_menu_items(),
+            'areas_all': Area.objects.all(),
         }
 
     def create_profile(self):
