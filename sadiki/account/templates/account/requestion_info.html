@@ -346,6 +346,7 @@
                 if (s.id == elem.id) {
                     try {
                         map.setView([s.location[1], s.location[0]], 15);
+                        // после центрирования, показываем popup
                         for (key in sadik_markers) {
                             if (key == s.id) {
                                 sadik_markers[key].openPopup();
@@ -383,17 +384,23 @@
             if (items.length <=0) {
                 for (s in sadik_location_data) {
                     var sadik = sadik_location_data[s];
-                        if (elem.id == sadik.area_id) {
-                            var li = $('<li/>')
-                                .text(sadik.name)
-                                .appendTo($(elem).next());
-                            var icon = $('<a/>')
-                                .addClass('icon-zoom-in')
-                                .attr('onclick', 'center_to_kidgdn(this); return false')
-                                .attr('id', sadik.id)
-                                .attr('href', '#')
+                    if (elem.id == sadik.area_id) {
+                        var li = $('<li/>')
+                            .text(sadik.name)
+                            .appendTo($(elem).next());
+                        var icon = $('<a/>')
+                            .addClass('icon-zoom-in')
+                            .attr('onclick', 'center_to_kidgdn(this); return false')
+                            .attr('id', sadik.id)
+                            .attr('href', '#')
+                            .appendTo(li);
+                        if (pref_sadiks_ids.indexOf(sadik.id) >= 0){
+                            console.log(sadik.id, pref_sadiks_ids);
+                            var em = $('<em/>')
+                                .text(' - приоритетный')
                                 .appendTo(li);
-                            }
+                        }
+                    }
                 };
             }
         }
