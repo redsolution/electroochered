@@ -38,9 +38,50 @@
             var sadiksLayer;
             var prefSadikLayer;
             var sadik_location_data = {{ sadiks_location_data|safe }};
-            console.log(sadik_location_data);
+            var areas_all = [];
+            {% for area in areas_all %}
+                areas_all[{{ forloop.counter0 }}] = { id: {{ area.id }},
+                                                      name: '{{ area.name }}',
+                                                      sadiks: [],
+                                                      center: {} };
+            {% endfor %}
+
+            for (s in sadik_location_data) {
+                var sadik = sadik_location_data[s];
+                areas_all.forEach(function(area) {
+                    if (area.id == sadik.area_id) {
+                        area.sadiks.push(sadik);
+                    }
+                });
+            };
+
             var pref_sadiks_ids = {{ pref_sadiks_ids|safe }};
             var sadik_markers;
+
+            function getAverageCoords(prev, curr, ind, arr) {
+                if (arr.length == 1) {
+                    return arr[0].location;
+                }
+                if (ind < (arr.length - 1)) {
+                    return { location: [ prev.location[0] + curr.location[0],
+                             prev.location[1] + curr.location[1] ] }
+                }
+                else {
+                    return [ (prev.location[0] + curr.location[0]) / arr.length,
+                             (prev.location[1] + curr.location[1]) / arr.length ]
+                }
+            }
+
+            // условный центр списка садиков
+            function get_center(sadik_list) {
+                return sadik_list.reduce(getAverageCoords, {location: [0, 0]});
+            }
+
+            // вычисляем центр каждой ТО
+            areas_all.forEach(function(area) {
+                var center = get_center(area.sadiks);
+                area.center = center;
+            });
 
             function field_changed(element) {
                 if (!$(element).find('label span.value-changed').length){
@@ -246,6 +287,10 @@
                     this.selected = false;
                 };
             });
+            var span = $(parent).next();
+            var a = $(span).next();
+            $(span).remove();
+            $(a).remove();
             $(parent).remove();
         }
 
@@ -281,16 +326,111 @@
             });
         }
 
+        // центрируем карту по ТО
+        function center_area(id) {
+            areas_all.forEach(function(area) {
+                if (area.id == id) {
+                    try {
+                        map.setView([area.center[1], area.center[0]], 13);
+                    } catch(err) {
+                        console.log(err);
+                    }
+                    }
+            });
+        }
+
+        // центрируем карту по садику
+        function center_to_kidgdn(elem) {
+            for (sadik in sadik_location_data) {
+                var s = sadik_location_data[sadik];
+                if (s.id == elem.id) {
+                    try {
+                        map.setView([s.location[1], s.location[0]], 15);
+                        for (key in sadik_markers) {
+                            if (key == s.id) {
+                                sadik_markers[key].openPopup();
+                            }
+                        }
+                    } catch(err) {
+                        console.log(err);
+                    }
+                }
+            }
+        }
+
+        // анимация сворачивания-разворачивания детских садов
+        jQuery.fn.toggleText = function(v1, v2) {
+            return this.each(function() {
+                var element = $(this),
+                     text = element.text();
+
+                if(text.indexOf(v1) > -1) {
+                    element.text(text.replace(v1, v2));
+                    element.prev().addClass("caret-right");
+                    element.next().hide();
+                } else {
+                    element.text(text.replace(v2, v1));
+                    element.prev().removeClass("caret-right");
+                    element.next().show();
+                }
+            });
+        }
+
+        // показываем детские сады под ТО
+        function show_kidgardens(elem) {
+            $(elem).toggleText("Скрыть садики", "Показать садики");
+            var items = $(elem).next().children();
+            if (items.length <=0) {
+                for (s in sadik_location_data) {
+                    var sadik = sadik_location_data[s];
+                        if (elem.id == sadik.area_id) {
+                            var li = $('<li/>')
+                                .text(sadik.name)
+                                .appendTo($(elem).next());
+                            var icon = $('<a/>')
+                                .addClass('icon-zoom-in')
+                                .attr('onclick', 'center_to_kidgdn(this); return false')
+                                .attr('id', sadik.id)
+                                .attr('href', '#')
+                                .appendTo(li);
+                            }
+                };
+            }
+        }
+
         // добавляем выбранную ТО к areas
         $(document).on("change", ".areas_all", function() {
             var id = $(this).val();
+            // собственно само добавление
             $('#id_areas option').each(function() {
                 if (this.value==id) {
                     this.selected = true;
                 };
             });
+            // центрируем карту по ТО
+            try {
+                center_area(id);
+            } catch(err) {
+                console.log(err);
+            }
+
+            // создаем и отображаем новое поле с выбранной ТО
+            $(this).prev().prev().before(' \
+            <p class="field-value hidden-input"> \
+                <a class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
+                <label id="14" class="value">' + $(this).children(":selected").text() + '</label> \
+                <a href="#" onclick="del_field(this); return false"> \
+                <img id="area-close" src="/static/img/remove.png"></a> \
+            </p> \
+            <span class="caret caret-right caret-margins"></span> \
+            <a id="' + id + '" href="#" onclick="show_kidgardens(this); return false">Показать садики</a> \
+            <ul class="kidgs_list"></ul>');
+
+            // помечаем блок измененным
             var container_el = $(this).parents('.field');
             field_changed(container_el);
+            // удаляем поле select
+            $(this).remove();
          });
 
         $(document).ready(function(){
@@ -464,6 +604,7 @@
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
             {% for area in requestion.areas.all %}
                 <p class="field-value hidden-input">
+                    <a class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
                     <label id="{{ area.id }}" class="value">
                         {% if pref_sadiks_form.areas.value %}
                             {{ area|default:"Весь муниципалитет" }}
@@ -471,11 +612,14 @@
                             Весь муниципалитет
                         {% endif %}
                     </label>
-                     <a href="#" onclick="del_field(this); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
+                    <a href="#" onclick="del_field(this); return false"><img id="area-close" src="{{ STATIC_URL }}img/remove.png"/></a>
                 </p>
+                <span class="caret caret-right caret-margins"></span><a id="{{ area.id }}" href="#" onclick="show_kidgardens(this); return false">Показать садики</a>
+                <ul class="kidgs_list">
+                </ul>
             {% endfor %}
             {{ pref_sadiks_form.areas }}
-            <i class="icon-plus"></i><a href="#" onclick="add_area(this); return false">Добавить территориальную область</a>
+            <p></p><a href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a></p>
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>

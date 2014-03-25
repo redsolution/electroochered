@@ -233,6 +233,12 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
         })
+        '''
+        print requestion.location
+        print requestion.pref_sadiks.all()
+        for chg in requestion.pref_sadiks.all():
+            print requestion.location.distance(chg.address.coords)
+        '''
         return self.render_to_response(context)
 
     def post(self, request, requestion):

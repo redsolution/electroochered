@@ -1048,7 +1048,7 @@ tr.dynamic-form .errorlist {
     margin-top: 8px;
     font-size: 25px;
     min-height: 26px;
-    margin-bottom: 7px;
+    margin-bottom: 0px;
 }
 
 .requestion-info .field-value .value{
@@ -1430,4 +1430,20 @@ tr.dynamic-form .errorlist {
     margin-top: 0px;
     margin-left: 0px;
     margin-bottom: 2px;
+}
+
+.caret-right {
+  border-left: 4px solid #000000;
+  border-right: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.caret-margins {
+  margin-top: 5px;
+  margin-right: 5px;
+}
+
+#area-close {
+    margin-bottom: 3px;
 }
