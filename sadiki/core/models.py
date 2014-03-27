@@ -889,7 +889,7 @@ class Requestion(models.Model):
         ordering = ['-benefit_category__priority', 'registration_datetime', 'id']
 
     areas = models.ManyToManyField('Area',
-        verbose_name=u'Предпочитаемые территориальные области',
+        verbose_name=u'Предпочитаемые группы садиков',
         help_text=u"""Территориальная область в которой вы хотели бы посещать ДОУ.""")
 
     # Child data
