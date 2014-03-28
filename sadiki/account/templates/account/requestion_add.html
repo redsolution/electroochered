@@ -213,7 +213,7 @@
 {% endblock %}
 
 {% block content %}
-    <form action="." class="requestion-form requestion-add-form" method="POST">
+    <form id="mainform" action="." class="requestion-form requestion-add-form" method="POST">
         {% csrf_token %}
         {{ form.media }}
         {{ benefits_form.media }}
