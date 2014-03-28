@@ -442,6 +442,7 @@
          });
 
         $(document).ready(function(){
+            $('#id_areas').hide();
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').bind('change', function(){
                 var container_el = $(this).parents('.field');
