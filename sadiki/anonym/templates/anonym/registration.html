@@ -7,7 +7,7 @@
 {% block content %}
     <div class="row registration-content">
         <div class="span6 right-split">
-            <form class="uniForm registrationForm" action="." method="post" >
+            <form id="mainform" class="uniForm registrationForm" action="." method="post" >
                 {% if registration_form.non_field_errors %}
                     <div id="errorMsg">
                         {% load i18n %}

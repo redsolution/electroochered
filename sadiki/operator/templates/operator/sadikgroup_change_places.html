@@ -5,7 +5,7 @@
 {% block content %}
     {{ block.super }}
     <h1>Выделение мест в группы {{ sadik }}</h1>
-    <form method="post" action="." class="uniForm places_form">
+    <form id="mainform" method="post" action="." class="uniForm places_form">
         {{ formset.management_form }}
         {% if formset.non_form_errors %}
             <div id="errorMsg">

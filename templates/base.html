@@ -114,6 +114,13 @@ chromium.org/developers/how-tos/chrome-frame-getting-started -->
 <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/uni-form-validation.jquery.js"></script>
 <script defer type="text/javascript" src="{{ STATIC_URL }}js/script.js"></script>
 <script defer type="text/javascript" src="{{ STATIC_URL }}js/plugins.js"></script>
+<script type="text/javascript">
+    // отключаем кнопку после подтверждения формы
+    $('#mainform button:submit').click(function() {
+        $('button:submit').prop("disabled", true);
+        $('#mainform').submit();
+    });
+</script>
 {% endblock %}
 </body>
 </html>

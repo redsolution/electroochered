@@ -275,6 +275,7 @@
         //при отправке формы нужно убрать запрос на обновление страницы
         function form_submit(f){
             window.onbeforeunload = null;
+            $('#requestion-form button:submit').attr('disabled', true);
             f.submit();
         }
 
