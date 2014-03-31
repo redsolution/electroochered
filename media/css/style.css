@@ -1298,7 +1298,7 @@ tr.dynamic-form .errorlist {
     width: 60px !important;
 }
 
-.form-disabled .field-value a{
+.form-disabled .editor{
     display: none;
 }
 

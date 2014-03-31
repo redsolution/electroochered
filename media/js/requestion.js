@@ -7,14 +7,13 @@ $(document).ready(function() {
 // центрируем карту по ТО
 function center_area(id) {
     areas_all.forEach(function(area) {
-        console.log(area);
         if (area.id == id) {
             try {
                 map.setView([area.center[1], area.center[0]], 13);
             } catch(err) {
                 console.log(err);
             }
-            }
+        }
     });
 }
 
@@ -48,7 +47,7 @@ $(document).on("change", ".areas_all", function() {
         <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
         <a id="' + id + '" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">' + $(this).children(":selected").text() + '</a> \
         <span class="caret caret-right caret-margins"></span> \
-        <a href="#" onclick="del_field(this); return false"> \
+        <a class="editor" href="#" onclick="del_field(this); return false"> \
         <img id="area-close" src="/static/img/remove.png"></a> \
     </p> \
     <ul class="kidgs_list unstyled"></ul>');

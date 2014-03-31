@@ -385,7 +385,7 @@
             <p class="field-value hidden-input">
                 <label class="value">{{ change_requestion_form.name.value }}</label>
                 {{ change_requestion_form.name }}
-                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
         <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
@@ -393,7 +393,7 @@
             <p class="field-value hidden-input">
                 <label class="value">{{ change_requestion_form.sex|form_field_verbose }}</label>
                 {{ change_requestion_form.sex }}
-                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
         <div class="field">
@@ -419,7 +419,7 @@
             <p class="field-value hidden-input">
                 <label class="value">{{ requestion.admission_date.year }}</label>
                 {{ change_requestion_form.admission_date }}
-                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                 <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
 
             </p>
         </div>
@@ -520,13 +520,13 @@
                             Весь муниципалитет
                         {% endif %}
                     </a> <span class="caret caret-right caret-margins"></span>
-                    <a href="#" onclick="del_field(this); return false"><img id="area-close" src="{{ STATIC_URL }}img/remove.png"/></a>
+                    <a class="editor" href="#" onclick="del_field(this); return false"><img id="area-close" src="{{ STATIC_URL }}img/remove.png"/></a>
                 </p>
                 <ul class="kidgs_list unstyled">
                 </ul>
             {% endfor %}
             {{ pref_sadiks_form.areas }}
-            <a href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
+            <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>
