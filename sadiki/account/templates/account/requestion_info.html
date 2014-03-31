@@ -260,7 +260,7 @@
             $('#id_areas, #id_distribute_in_any_sadik').change(function(){
                 if ($("#id_distribute_in_any_sadik").is(':checked')){
                     if ($("#id_areas").val()){
-                        areas_ids = [parseInt($("#id_areas").val())]
+                        areas_ids = $("#id_areas").val().map(function(i) {return +i;});
                     } else {
                         areas_ids = []
                     }
@@ -282,7 +282,9 @@
         // удаление ТО пользователем по нажатию на кнопку 'X'
         function del_field(element) {
             var parent = $(element.parentElement);
+            console.log(parent);
             var id = parent.children('label').attr('id');
+            console.log(id);
             $('#id_areas option').each(function() {
                 if (this.value==id) {
                     this.selected = false;
@@ -380,29 +382,38 @@
 
         // показываем детские сады под ТО
         function show_kidgardens(elem) {
-            $(elem).toggleText("Скрыть садики", "Показать садики");
-            var items = $(elem).next().children();
+            var ul = $(elem).parent().next();
+            var items = $(elem).parent().next().children()
             if (items.length <=0) {
+                $(elem).next().removeClass("caret-right");
                 for (s in sadik_location_data) {
                     var sadik = sadik_location_data[s];
                     if (elem.id == sadik.area_id) {
                         var li = $('<li/>')
                             .text(sadik.name)
-                            .appendTo($(elem).next());
-                        var icon = $('<a/>')
-                            .addClass('icon-zoom-in')
+                            .appendTo(ul);
+                        var a = $('<a/>')
                             .attr('onclick', 'center_to_kidgdn(this); return false')
                             .attr('id', sadik.id)
                             .attr('href', '#')
-                            .appendTo(li);
+                            .prependTo(li);
+                        var img = $('<img/>')
+                            .attr('src', '{{ STATIC_URL }}img/sadik-icon-gray.png')
+                            .attr('height', '11')
+                            .attr('width', '11')
+                            .prependTo(a);
+                        if (areas_ids) {
+                            img.attr('src', '{{ STATIC_URL }}img/sadik-icon-yellow.png')
+                        }
                         if (pref_sadiks_ids.indexOf(sadik.id) >= 0){
-                            console.log(sadik.id, pref_sadiks_ids);
-                            var em = $('<em/>')
-                                .text(' - приоритетный')
-                                .appendTo(li);
+                            img.attr('src', '{{ STATIC_URL }}img/sadik-icon.png')
                         }
                     }
                 };
+            }
+            else {
+                items.remove();
+                $(elem).next().addClass("caret-right");
             }
         }
 
@@ -413,6 +424,7 @@
             $('#id_areas option').each(function() {
                 if (this.value==id) {
                     this.selected = true;
+                    areas_ids.push(parseInt(id));
                 };
             });
             // центрируем карту по ТО
@@ -425,14 +437,13 @@
             // создаем и отображаем новое поле с выбранной ТО
             $(this).prev().prev().before(' \
             <p class="field-value hidden-input"> \
-                <a class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
-                <label id="14" class="value">' + $(this).children(":selected").text() + '</label> \
+                <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
+                <a id="' + id + '" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">' + $(this).children(":selected").text() + '</a> \
+                <span class="caret caret-right caret-margins"></span> \
                 <a href="#" onclick="del_field(this); return false"> \
                 <img id="area-close" src="/static/img/remove.png"></a> \
             </p> \
-            <span class="caret caret-right caret-margins"></span> \
-            <a id="' + id + '" href="#" onclick="show_kidgardens(this); return false">Показать садики</a> \
-            <ul class="kidgs_list"></ul>');
+            <ul class="kidgs_list unstyled"></ul>');
 
             // помечаем блок измененным
             var container_el = $(this).parents('.field');
@@ -442,6 +453,7 @@
          });
 
         $(document).ready(function(){
+            // прячем родной m2m django виджет
             $('#id_areas').hide();
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').bind('change', function(){
@@ -613,18 +625,17 @@
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
             {% for area in requestion.areas.all %}
                 <p class="field-value hidden-input">
-                    <a class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
-                    <label id="{{ area.id }}" class="value">
+                    <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
+                    <a id="{{ area.id }}" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">
                         {% if pref_sadiks_form.areas.value %}
                             {{ area|default:"Весь муниципалитет" }}
                         {% else %}
                             Весь муниципалитет
                         {% endif %}
-                    </label>
+                    </a> <span class="caret caret-right caret-margins"></span>
                     <a href="#" onclick="del_field(this); return false"><img id="area-close" src="{{ STATIC_URL }}img/remove.png"/></a>
                 </p>
-                <span class="caret caret-right caret-margins"></span><a id="{{ area.id }}" href="#" onclick="show_kidgardens(this); return false">Показать садики</a>
-                <ul class="kidgs_list">
+                <ul class="kidgs_list unstyled">
                 </ul>
             {% endfor %}
             {{ pref_sadiks_form.areas }}

@@ -119,6 +119,9 @@
         }
 
         $(document).ready(function(){
+            // прячем родной m2m django виджет
+            $('#id_areas').hide();
+
             if (requestion_marker) {
                 map_center = requestion_point
             } else {

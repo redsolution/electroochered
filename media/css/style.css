@@ -1440,10 +1440,23 @@ tr.dynamic-form .errorlist {
 }
 
 .caret-margins {
-  margin-top: 5px;
+  margin-top: 6px;
   margin-right: 5px;
 }
 
 #area-close {
     margin-bottom: 3px;
+}
+
+.kidgs_list a img {
+    margin-right: 5px;
+    margin-left: 10px;
+}
+
+#area_map_anchor, .value-anchor:hover {
+    color: gray;
+}
+
+#area_map_anchor:hover, .value-anchor {
+    color: black;
 }
