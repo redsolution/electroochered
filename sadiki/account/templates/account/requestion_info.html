@@ -29,11 +29,7 @@
                 var requestion_point = null
                 var requestion_marker = null
             {% endif %}
-            {% if requestion.distribute_in_any_sadik %}
-                var areas_ids = {{ areas_ids }};
-            {% else %}
-                var areas_ids = null;
-            {% endif %}
+            var areas_ids = {{ areas_ids }};
             var map;
             var sadiksLayer;
             var prefSadikLayer;
@@ -282,18 +278,16 @@
         // удаление ТО пользователем по нажатию на кнопку 'X'
         function del_field(element) {
             var parent = $(element.parentElement);
-            console.log(parent);
-            var id = parent.children('label').attr('id');
-            console.log(id);
+            var id = parent.children('a').next().attr('id');
             $('#id_areas option').each(function() {
                 if (this.value==id) {
                     this.selected = false;
+                    var index = areas_ids.indexOf(parseInt(id));
+                    console.log(areas_ids, id);
+                    areas_ids.splice(index, 1);
+                    renderMarkers(sadik_location_data, map)
                 };
             });
-            var span = $(parent).next();
-            var a = $(span).next();
-            $(span).remove();
-            $(a).remove();
             $(parent).remove();
         }
 
@@ -425,6 +419,8 @@
                 if (this.value==id) {
                     this.selected = true;
                     areas_ids.push(parseInt(id));
+                    console.log(areas_ids, id);
+                    renderMarkers(sadik_location_data, map)
                 };
             });
             // центрируем карту по ТО
@@ -658,16 +654,6 @@
                     {% endif %}
                 {% endwith %}
             {% endif %}
-        </div>
-        <div class="field">
-            {% with pref_sadiks_form.distribute_in_any_sadik as field %}
-                {% if can_change_requestion %}
-                    {{ field }}
-                    <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {% else %}
-                    <label class="field-label distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ field.label }}</label>
-                {% endif %}
-            {% endwith %}
         </div>
         </div>
     </div>
