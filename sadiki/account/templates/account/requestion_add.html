@@ -21,7 +21,7 @@
     <script src="{{ STATIC_URL }}js/requestion.js"></script>
     <script type="text/javascript">
         {% load_settings %}
-        var areas_ids = null;
+        var areas_ids = [];
         var requestion_point = null;
         var requestion_marker = null;
         var map;
@@ -32,6 +32,33 @@
         var pref_sadiks_ids = [];
         var sadik_markers;
         var map_center = null;
+        var areas_all = [];
+        {% for area in areas_all %}
+            areas_all[{{ forloop.counter0 }}] = { id: {{ area.id }},
+                                                  name: '{{ area.name }}',
+                                                  sadiks: [],
+                                                  center: {} };
+        {% endfor %}
+
+        for (s in sadik_location_data) {
+            var sadik = sadik_location_data[s];
+            areas_all.forEach(function(area) {
+                if (area.id == sadik.area_id) {
+                    area.sadiks.push(sadik);
+                }
+            });
+        };
+
+        // dummy function, to use requestion.js
+        function field_changed(elem) {
+            return true;
+        }
+
+        // вычисляем центр каждой ТО
+        areas_all.forEach(function(area) {
+            var center = get_center(area.sadiks);
+            area.center = center;
+        });
 
         //отрисовка садиков на карте
         function renderMarkers(markers, map) {
@@ -216,6 +243,7 @@
         }
 
         // добавляем выбранную ТО к areas
+        /*
         $(document).on("change", ".areas_all", function() {
             var id = $(this).val();
             $('#id_areas option').each(function() {
@@ -224,6 +252,7 @@
                 };
             });
          });
+         */
     </script>
 
     <script type="text/javascript">
@@ -311,21 +340,20 @@
             <div class="span5">
                 <div class="requestion-info">
                 {% with form.areas as field %}
-                    <div class="small-field {% if field.errors %}error{% endif %}">
+                    <div class="field {% if field.errors %}error{% endif %}">
                         <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
-                        <p class="field-value">
-                            {{ field }}
-                            <select class="areas_all">
-                                <option value selected="selected">----------</option>
-                                {% for area in areas_all %}
-                                <option value="{{ area.id }}">{{ area }}</option>
-                                {% endfor %}
-                            </select>
-                        </p>
+                        <div></div>
                         {% if field.help_text %}
                             <p class="hint">{{ field.help_text }}</p>
                         {% endif %}
-                        <i class="icon-plus"></i><a href="#" onclick="add_area(this); return false">Добавить территориальную область</a>
+                        {{ field }}
+                        <select class="areas_all">
+                            <option value selected="selected">----------</option>
+                            {% for area in areas_all %}
+                            <option value="{{ area.id }}">{{ area }}</option>
+                            {% endfor %}
+                        </select>
+                        <a href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
                     </div>
                 {% endwith %}
                 {% with form.pref_sadiks as field %}
@@ -333,12 +361,6 @@
                         {% include "account/include/requestion-form-field.html" %}
                     </div>
                 {% endwith %}
-                <div class="field">
-                    {% with form.distribute_in_any_sadik as field %}
-                        {{ field }}
-                        <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {% endwith %}
-                </div>
                 </div>
             </div>
             <div class="span6">
