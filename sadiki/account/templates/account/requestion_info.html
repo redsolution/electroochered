@@ -251,7 +251,14 @@
                     renderMarkers(sadik_location_data, map)
                 }
 
-              });
+                });
+
+                var draw_button = $('.leaflet-draw-edit-edit');
+                var a = $('<a/>')
+                    .attr('onclick', 'map.setView(requestion_point, 13); return false')
+                    .attr('class', 'leaflet-draw-draw-marker')
+                    .attr('href', '#')
+                draw_button.after(a);
             });
             $('#id_areas, #id_distribute_in_any_sadik').change(function(){
                 if ($("#id_distribute_in_any_sadik").is(':checked')){
