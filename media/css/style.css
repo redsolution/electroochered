@@ -1460,3 +1460,17 @@ tr.dynamic-form .errorlist {
 #area_map_anchor:hover, .value-anchor {
     color: black;
 }
+
+.marker-cluster-gray {
+	background-color: rgba(131, 133, 130, 0.6);
+	}
+.marker-cluster-gray div {
+	background-color: rgba(66, 69, 63, 0.6);
+	}
+
+.marker-cluster-medium {
+	background-color: rgba(241, 211, 87, 0.6);
+	}
+.marker-cluster-medium div {
+	background-color: rgba(240, 194, 12, 0.6);
+	}

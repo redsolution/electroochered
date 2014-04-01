@@ -32,6 +32,7 @@
             var areas_ids = {{ areas_ids }};
             var map;
             var sadiksLayer;
+            var areaSadiksLayer;
             var prefSadikLayer;
             var sadik_location_data = {{ sadiks_location_data|safe }};
             var areas_all = [];
@@ -85,7 +86,19 @@
                 if (prefSadikLayer){
                     map.removeLayer(prefSadikLayer)
                 }
+                if (areaSadiksLayer){
+                    map.removeLayer(areaSadiksLayer)
+                }
                 sadiksLayer = new L.MarkerClusterGroup({
+                    iconCreateFunction: function(childCount) {
+                        return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-gray', iconSize: new L.Point(40, 40) });
+                    },
+                    maxClusterRadius: 30
+                });
+                areaSadiksLayer = new L.MarkerClusterGroup({
+                    iconCreateFunction: function(childCount) {
+                        return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-medium', iconSize: new L.Point(40, 40) });
+                    },
                     maxClusterRadius: 30
                 });
                 prefSadikLayer = new L.LayerGroup()
@@ -123,14 +136,16 @@
                     } else {
                         if ((areas_ids !== null && areas_ids.length == 0) || jQuery.inArray(markers[key].area_id, areas_ids) != -1){
                             var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
+                            areaSadiksLayer.addLayer(m);
                         } else {
                             var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
+                            sadiksLayer.addLayer(m);
                         }
                     bind_popup(m)
-                    sadiksLayer.addLayer(m);
                     }
                     sadik_markers[markers[key].id] = m;
                 }
+                map.addLayer(areaSadiksLayer, true);
                 map.addLayer(sadiksLayer, true);
                 map.addLayer(prefSadikLayer)
             }
