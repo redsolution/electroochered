@@ -251,12 +251,27 @@
 
                 });
 
+                // кнопка на карте, центрируем изображение по заявке
                 var draw_button = $('.leaflet-draw-edit-edit');
                 var a = $('<a/>')
                     .attr('onclick', 'map.setView(requestion_point, 13); return false')
                     .attr('class', 'leaflet-draw-draw-marker')
-                    .attr('href', '#')
-                draw_button.after(a);
+                    .attr('href', '#');
+                if (draw_button.length > 0) {
+                    draw_button.after(a);
+                } else {
+                    var zoom_bar = $('.leaflet-control-zoom');
+                    var div_0 = $('<div/>')
+                        .attr('class', 'leaflet-draw leaflet-control');
+                    var div_1 = $('<div/>')
+                        .attr('class', 'leaflet-draw-section')
+                        .appendTo(div_0);
+                    var div_2 = $('<div/>')
+                        .attr('class', 'leaflet-draw-toolbar leaflet-bar')
+                        .appendTo(div_1);
+                    a.appendTo(div_2);
+                    zoom_bar.after(div_0);
+                }
             });
             $('#id_areas, #id_distribute_in_any_sadik').change(function(){
                 if ($("#id_distribute_in_any_sadik").is(':checked')){
