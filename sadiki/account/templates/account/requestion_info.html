@@ -504,7 +504,6 @@
 
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
-            <div></div>
             {% for area in requestion.areas.all %}
                 <p class="field-value hidden-input">
                     <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
@@ -520,6 +519,7 @@
                 <ul class="kidgs_list unstyled">
                 </ul>
             {% endfor %}
+            <div></div>
             {{ pref_sadiks_form.areas }}
             <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
         </div>
@@ -552,8 +552,8 @@
         </div>
         </div>
         <ul class='map-legend'>
-            <li><img src="{{ STATIC_URL }}img/map_center.png"/> - центрировать карту по заявке</li>
-            <li><img src="{{ STATIC_URL }}img/map_edit.png"/> - редактировать местоположение заявки на карте</li>
+            {% if requestion.location %}<li><h3 class="icon-map-marker"></h3> - центрировать карту по заявке</li>{% endif %}
+            {% if can_change_requestion %}<li><h3 class="icon-edit"></h3> - редактировать местоположение заявки на карте</li>{% endif %}
             <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
