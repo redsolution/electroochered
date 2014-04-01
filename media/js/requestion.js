@@ -17,6 +17,27 @@ function center_area(id) {
     });
 }
 
+// центрируем карту по садику
+function center_to_kidgdn(elem) {
+    for (sadik in sadik_location_data) {
+        var s = sadik_location_data[sadik];
+        if (s.id == elem.id) {
+            try {
+                map.setView([s.location[1], s.location[0]], 15);
+                // после центрирования, показываем popup
+                for (key in sadik_markers) {
+                    if (key == s.id) {
+                        sadik_markers[key].openPopup();
+                    }
+                }
+            } catch(err) {
+                console.log(err);
+            }
+        }
+    }
+}
+
+
 // условный центр списка садиков
 function get_center(sadik_list) {
     return sadik_list.reduce(getAverageCoords, {location: [0, 0]});
