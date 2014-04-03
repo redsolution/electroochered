@@ -2,6 +2,7 @@
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.core.management.base import BaseCommand, CommandError
+from django.contrib.gis.geos import point
 from django.utils import simplejson
 from optparse import make_option
 from os.path import join
@@ -57,10 +58,10 @@ class Command(BaseCommand):
                     street=u'ул.Кирова',
                     building_number=17,)
 
-                profile = Profile.objects.create(user=user, area=area,
+                profile = Profile.objects.create(
+                    user=user,
+                    area=area,
                     first_name=random.choice(names['first']),
-                    last_name=random.choice(names['last']),
-                    patronymic=random.choice(names['patronymic']),
                     email_verified=bool(random.random()*1.6 < 1),
                     phone_number='+7351%07d' % random.randint(0,999999),
                     mobile_number='+7919%07d' % random.randint(0,999999),
@@ -72,17 +73,16 @@ class Command(BaseCommand):
                     distribute_in_any_sadik = True
                 else:
                     distribute_in_any_sadik = random.choice((True, False))
-                requestion = Requestion.objects.create(profile=profile,
-                    address=address,
-                    agent_type=random.choice([0,1,2,3]),
+                requestion = Requestion.objects.create(
+                    profile=profile,
                     birth_date=birth_date,
-                    first_name=random.choice(names['first']),
-                    last_name=random.choice(names['last']),
-                    patronymic=random.choice(names['patronymic']),
+                    name=random.choice(names['first']),
                     sex=random.choice([u'М', u'Ж']),
-                    cast=random.choice([0,1,2,3]),
-                    status=random.choice([3,4]),
+                    cast=random.choice([0, 1, 2, 3]),
+                    status=random.choice([3, 4]),
                     distribute_in_any_sadik=distribute_in_any_sadik,
+                    location_properties='челябинск',
+                    location=point.Point(random.choice([1, 2, 3, 4]), random.choice([1, 2, 3, 4]))
                 )
                 
                 requestion.areas.add(area)
