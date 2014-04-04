@@ -157,3 +157,77 @@ function del_field(element) {
     $(parent).next().remove();
     $(parent).remove();
 }
+
+
+//отрисовка садиков на карте
+function renderMarkers(markers, map) {
+    sadik_markers = {}
+    if (sadiksLayer){
+        map.removeLayer(sadiksLayer)
+    }
+    if (prefSadikLayer){
+        map.removeLayer(prefSadikLayer)
+    }
+    if (areaSadiksLayer){
+        map.removeLayer(areaSadiksLayer)
+    }
+    sadiksLayer = new L.MarkerClusterGroup({
+        iconCreateFunction: function(childCount) {
+            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-gray', iconSize: new L.Point(40, 40) });
+        },
+        maxClusterRadius: 30
+    });
+    areaSadiksLayer = new L.MarkerClusterGroup({
+        iconCreateFunction: function(childCount) {
+            return new L.DivIcon({ html: '<div><span>' + childCount + '</span></div>', className: 'marker-cluster marker-cluster-medium', iconSize: new L.Point(40, 40) });
+        },
+        maxClusterRadius: 30
+    });
+    prefSadikLayer = new L.LayerGroup()
+    var activeSadikIcon = L.icon({
+        iconUrl: activeSadikIconURL,
+
+        iconSize:     [22, 23], // size of the icon
+        iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+        shadowAnchor: [4, 62]  // the same for the shadow
+    });
+    var areaSadikIcon = L.icon({
+        iconUrl: areaSadikIconURL,
+
+        iconSize:     [22, 23], // size of the icon
+        iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+        shadowAnchor: [4, 62]  // the same for the shadow
+    });
+    var inactiveSadikIcon = L.icon({
+        iconUrl: inactiveSadikIconURL,
+
+        iconSize:     [22, 23], // size of the icon
+        iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+        shadowAnchor: [4, 62]  // the same for the shadow
+    });
+    function bind_popup(marker){
+        marker.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
+    }
+    for (var key in markers) {
+        if (jQuery.inArray(markers[key].id, pref_sadiks_ids) != -1){
+            var m = L.marker(markers[key].location.slice().reverse(),
+                    {title: markers[key].name, icon: activeSadikIcon, zIndexOffset: 1000});
+            m.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
+            prefSadikLayer.addLayer(m)
+            sadik_markers[markers[key].id] = m;
+        } else {
+            if ((areas_ids !== null && areas_ids.length == 0) || jQuery.inArray(markers[key].area_id, areas_ids) != -1){
+                var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
+                areaSadiksLayer.addLayer(m);
+            } else {
+                var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
+                sadiksLayer.addLayer(m);
+            }
+        bind_popup(m)
+        }
+        sadik_markers[markers[key].id] = m;
+    }
+    map.addLayer(areaSadiksLayer, true);
+    map.addLayer(sadiksLayer, true);
+    map.addLayer(prefSadikLayer)
+}
