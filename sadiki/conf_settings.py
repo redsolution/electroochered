@@ -101,3 +101,5 @@ REQUESTION_NUMBER_MASK = config.get('core', 'REQUESTION_NUMBER_MASK').decode('ut
 # авторизация через ВКонтакте
 VK_APP_ID = config.get('vkontakte', 'VK_APP_ID')
 VK_API_SECRET = config.get('vkontakte', 'VK_API_SECRET')
+
+USE_DISTRICTS = config.getint('core', 'USE_DISTRICTS')

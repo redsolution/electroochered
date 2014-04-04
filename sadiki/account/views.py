@@ -14,7 +14,7 @@ from sadiki.account.forms import RequestionForm, \
     PreferredSadikForm, SocialProfilePublicForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
-    STATUS_REQUESTER_NOT_CONFIRMED, Area, \
+    STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
@@ -22,6 +22,7 @@ from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQ
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
+from sadiki.conf_settings import USE_DISTRICTS
 
 
 def get_json_sadiks_location_data():
@@ -121,11 +122,14 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     logger_action = REQUESTION_ADD_BY_REQUESTER
 
     def get_context_data(self, **kwargs):
+        districts_all = District.objects.all()
         return {
             'profile': kwargs.get('profile'),
             'sadiks_location_data': get_json_sadiks_location_data(),
             'plugin_menu_items': get_plugin_menu_items(),
             'areas_all': Area.objects.all(),
+            'districts_all': districts_all,
+            'use_districts': USE_DISTRICTS,
         }
 
     def create_profile(self):
@@ -159,7 +163,16 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 
     def post(self, request, profile):
         context = self.get_context_data(profile=profile)
-        form = self.requestion_form(request.POST)
+        request_post = request.POST.copy()
+        if USE_DISTRICTS:
+            distr = int(request.POST['district'])
+            areas = Area.objects.filter(district=distr)
+            areas_list = []
+            for area in areas:
+                areas_list.append(unicode(area.id))
+            request_post['areas'] = areas_list[0]
+        form = self.requestion_form(request_post)
+
         benefits_form = self.benefits_form(data=request.POST)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:

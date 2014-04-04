@@ -1439,11 +1439,15 @@ class UserFunctions:
 
 
 class District(models.Model):
-    title = models.CharField(u'Название района', max_length=255)
 
     class Meta:
         verbose_name = u'Район'
         verbose_name_plural = u'Районы'
+
+    title = models.CharField(u'Название района', max_length=255)
+
+    def __unicode__(self):
+        return self.title
 
 
 def update_benefit_category(action, instance, **kwargs):

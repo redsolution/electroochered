@@ -339,23 +339,31 @@
 
             <div class="span5">
                 <div class="requestion-info">
-                {% with form.areas as field %}
-                    <div class="field {% if field.errors %}error{% endif %}">
-                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
-                        <div></div>
-                        {% if field.help_text %}
-                            <p class="hint">{{ field.help_text }}</p>
-                        {% endif %}
-                        {{ field }}
-                        <select class="areas_all">
-                            <option value selected="selected">----------</option>
-                            {% for area in areas_all %}
-                            <option value="{{ area.id }}">{{ area }}</option>
-                            {% endfor %}
-                        </select>
-                        <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
-                    </div>
-                {% endwith %}
+                {% if use_districts %}
+                    {% with form.district as field %}
+                        <div class="field {% if field.errors %}error{% endif %}">
+                            {% include "account/include/requestion-form-field.html" %}
+                        </div>
+                    {% endwith %}
+                {% else %}
+                    {% with form.areas as field %}
+                        <div class="field {% if field.errors %}error{% endif %}">
+                            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                            <div></div>
+                            {% if field.help_text %}
+                                <p class="hint">{{ field.help_text }}</p>
+                            {% endif %}
+                            {{ field }}
+                            <select class="areas_all">
+                                <option value selected="selected">----------</option>
+                                {% for area in areas_all %}
+                                <option value="{{ area.id }}">{{ area }}</option>
+                                {% endfor %}
+                            </select>
+                            <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
+                        </div>
+                    {% endwith %}
+                {% endif %}
                 {% with form.pref_sadiks as field %}
                     <div class="small-field">
                         {% include "account/include/requestion-form-field.html" %}
