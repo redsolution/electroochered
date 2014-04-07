@@ -163,15 +163,13 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 
     def post(self, request, profile):
         context = self.get_context_data(profile=profile)
-        request_post = request.POST.copy()
         if USE_DISTRICTS:
-            distr = int(request.POST['district'])
-            areas = Area.objects.filter(district=distr)
-            areas_list = []
-            for area in areas:
-                areas_list.append(unicode(area.id))
-            request_post['areas'] = areas_list[0]
-        form = self.requestion_form(request_post)
+            # нужно будет вручную добавить поле 'areas'
+            # поэтому передаем изменяемую копию (request.POST - неизменяемый объект)
+            request_post = request.POST.copy()
+            form = self.requestion_form(request_post)
+        else:
+            form = self.requestion_form(request.POST)
 
         benefits_form = self.benefits_form(data=request.POST)
         DocumentFormset = self.get_documents_formset()
