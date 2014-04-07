@@ -16,18 +16,7 @@ from sadiki.core.settings import BENEFIT_SYSTEM_MIN
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
 
-class RequestionPrefSadiksMixin(object):
-    u"""проверяем, что выбранные ДОУ из той области, куда хочет быть зачислен пользователь"""
-
-    def clean(self, *args, **kwargs):
-        pref_sadiks = self.cleaned_data.get("pref_sadiks")
-        distribute_in_any_sadik = self.cleaned_data.get('distribute_in_any_sadik')
-        if not distribute_in_any_sadik and not pref_sadiks:
-            raise forms.ValidationError(u'Необходимо указать приоритетные ДОУ или возможность зачисления в любой ДОУ')
-        return super(RequestionPrefSadiksMixin, self).clean(*args, **kwargs)
-
-
-class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
+class RequestionForm(FormWithDocument):
     name = forms.CharField(label=u"Имя ребёнка", max_length=20,
                            help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
@@ -97,14 +86,14 @@ class BenefitsForm(forms.ModelForm):
         fields = ('benefits',)
 
 
-class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
+class PreferredSadikForm(forms.ModelForm):
     pref_sadiks = SadikWithAreasNameField(
         label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS())
 
     class Meta:
         model = Requestion
-        fields = ('areas', 'pref_sadiks', 'distribute_in_any_sadik',)
+        fields = ('areas', 'pref_sadiks')
 
 
 class SocialProfilePublicForm(ModelForm):
