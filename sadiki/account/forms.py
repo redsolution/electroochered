@@ -49,6 +49,7 @@ class RequestionForm(FormWithDocument):
 
     def clean(self, *args, **kwargs):
         self.cleaned_data['distribute_in_any_sadik'] = True
+        """
         if sadiki.conf_settings.USE_DISTRICTS:
             if self.errors['areas']:
                 del self.errors['areas']
@@ -57,6 +58,7 @@ class RequestionForm(FormWithDocument):
                 self._errors['district'] = [u'Это поле обязательно для заполнения']
             areas = Area.objects.filter(district=distr)
             self.cleaned_data['areas'] = areas
+        """
         return super(RequestionForm, self).clean(*args, **kwargs)
 
     def save(self, profile, commit=True):

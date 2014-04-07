@@ -1,4 +1,4 @@
-$(document).ready(function() {
+$(document).ready(function () {
     // прячем select со всем ТО, в дальнейшем модифицируем его средствами
     // jQuery, не показывая пользователю, и отправляем при подтверждении формы
     $('#id_areas').hide();
@@ -6,11 +6,11 @@ $(document).ready(function() {
 
 // центрируем карту по ТО
 function center_area(id) {
-    areas_all.forEach(function(area) {
+    areas_all.forEach(function (area) {
         if (area.id == id) {
             try {
                 map.setView([area.center[1], area.center[0]], 13);
-            } catch(err) {
+            } catch (err) {
                 console.log(err);
             }
         }
@@ -30,7 +30,7 @@ function center_to_kidgdn(elem) {
                         sadik_markers[key].openPopup();
                     }
                 }
-            } catch(err) {
+            } catch (err) {
                 console.log(err);
             }
         }
@@ -44,34 +44,26 @@ function get_center(sadik_list) {
 }
 
 // добавляем выбранную ТО к areas
-$(document).on("change", ".areas_all", function() {
+$(document).on("change", ".areas_all", function () {
     var id = $(this).val();
     // собственно само добавление
-    $('#id_areas option').each(function() {
-        if (this.value==id) {
+    $('#id_areas option').each(function () {
+        if (this.value == id) {
             this.selected = true;
             areas_ids.push(parseInt(id));
-            console.log(areas_ids, id);
-            renderMarkers(sadik_location_data, map)
-        };
+            renderMarkers(sadik_location_data, map);
+        }
     });
     // центрируем карту по ТО
     try {
         center_area(id);
-    } catch(err) {
+    } catch (err) {
         console.log(err);
     }
 
     // создаем и отображаем новое поле с выбранной ТО
-    $(this).prev().prev().before(' \
-    <p class="field-value hidden-input"> \
-        <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
-        <a id="' + id + '" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">' + $(this).children(":selected").text() + '</a> \
-        <span class="caret caret-right caret-margins"></span> \
-        <a class="editor" href="#" onclick="del_field(this); return false"> \
-        <img id="area-close" src="/static/img/remove.png"></a> \
-    </p> \
-    <ul class="kidgs_list unstyled"></ul>');
+    var text = $(this).children(":selected").text();
+    add_area_field($(this), id, text);
 
     // помечаем блок измененным
     var container_el = $(this).parents('.field');
@@ -79,6 +71,18 @@ $(document).on("change", ".areas_all", function() {
     // удаляем поле select
     $(this).remove();
 });
+
+function add_area_field(element, id, text) {
+    $(element).before(' \
+    <p class="field-value hidden-input"> \
+        <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
+        <a id="' + id + '" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">' + text + '</a> \
+        <span class="caret caret-right caret-margins"></span> \
+        <a class="editor" href="#" onclick="del_field(this); return false"> \
+        <img id="area-close" src="/static/img/remove.png"></a> \
+    </p> \
+    <ul class="kidgs_list unstyled"></ul>');
+}
 
 // По клику на ссылку выводим еще один select с ТО
 function add_area(element) {

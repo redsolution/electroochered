@@ -35,6 +35,7 @@
         var areas_all = [];
         {% for area in areas_all %}
             areas_all[{{ forloop.counter0 }}] = { id: {{ area.id }},
+                                                  district_id: {{ area.district.id }},
                                                   name: '{{ area.name }}',
                                                   sadiks: [],
                                                   center: {} };
@@ -149,22 +150,45 @@
             });
 
             renderMarkers(sadik_location_data, map)
-        // изменение приоритетных ДОУ
-        $("#id_pref_sadiks").change(function(e, data) {
-            var value = parseInt(data.value);
-            if (data.type == 'add'){
-                pref_sadiks_ids.push(value);
-                renderMarkers(sadik_location_data, map)
-                map.panTo(sadik_location_data[value].location.slice().reverse())
-                sadik_markers[value].openPopup()
-            } else {
-                var index = pref_sadiks_ids.indexOf(value);
-                pref_sadiks_ids.splice(index, 1);
-                renderMarkers(sadik_location_data, map)
-            }
-
-          });
-        })
+            // изменение приоритетных ДОУ
+            $("#id_pref_sadiks").change(function(e, data) {
+                var value = parseInt(data.value);
+                if (data.type == 'add'){
+                    pref_sadiks_ids.push(value);
+                    renderMarkers(sadik_location_data, map)
+                    map.panTo(sadik_location_data[value].location.slice().reverse())
+                    sadik_markers[value].openPopup()
+                } else {
+                    var index = pref_sadiks_ids.indexOf(value);
+                    pref_sadiks_ids.splice(index, 1);
+                    renderMarkers(sadik_location_data, map)
+                }
+            });
+        }) // конец $(document).ready()
+        
+        // при выборе района прячем поле с районом, показываем ТО
+        $(document).on("change", "#id_district", function () {
+            var elem = $(this)
+            var id = $(this).val();
+            var parent = $(this).parent();
+            $(parent).prev('label').text("Группы садиков");
+            $(parent).prev().after('<div></div>')
+            areas_all.forEach(function (area) {
+                $('#id_areas option').each(function () {
+                if (this.value == id) {
+                    this.selected = true;                    
+                    }
+                });
+                if (area.district_id == id) {
+                    add_area_field(parent, area.id, area.name);
+                    areas_ids.push(area.id);
+                    $('#id_areas [value='+area.id+']').attr("selected", "selected");
+                }
+            });
+            parent.after('<a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу садиков</a>');
+            parent.remove();
+            renderMarkers(sadik_location_data, map);
+        });
 
         $('#id_areas, #id_distribute_in_any_sadik').change(function(){
             if ($("#id_distribute_in_any_sadik").is(':checked')){
@@ -291,6 +315,8 @@
                 {% if use_districts %}
                     {% with form.district as field %}
                         {% include "account/include/requestion-form-field.html" %}
+                                        {{ form.areas }}
+
                     {% endwith %}
                 {% else %}
                     {% with form.areas as field %}

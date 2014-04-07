@@ -1259,6 +1259,7 @@ class Area(models.Model):
     class Meta:
         verbose_name = u'группа садиков'
         verbose_name_plural = u'группы садиков'
+        ordering = ['name']
 
     name = models.CharField(verbose_name=u"Название", max_length=100, unique=True)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
