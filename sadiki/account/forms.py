@@ -7,11 +7,12 @@ from django.contrib.gis.forms.fields import GeometryField
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet, ModelForm
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
+import sadiki.conf_settings
 from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
-    BenefitCategory, Address, EvidienceDocument
+    BenefitCategory, Address, EvidienceDocument, Area
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
@@ -30,7 +31,7 @@ class RequestionForm(FormWithDocument):
         model = Requestion
         _base_fields = ['areas', 'name',
                         'birth_date', 'sex', 'template',
-                        'document_number',
+                        'document_number', 'district',
                         'pref_sadiks', 'location', 'admission_date']
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
             _base_fields = _base_fields + ['distribute_in_any_sadik',]
@@ -45,6 +46,10 @@ class RequestionForm(FormWithDocument):
             ребёнка"
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
         super(RequestionForm, self).__init__(*args, **kwds)
+
+    def clean(self, *args, **kwargs):
+        self.cleaned_data['distribute_in_any_sadik'] = True
+        return super(RequestionForm, self).clean(*args, **kwargs)
 
     def save(self, profile, commit=True):
         requestion = super(RequestionForm, self).save(commit=False)

@@ -892,6 +892,9 @@ class Requestion(models.Model):
         verbose_name=u'Предпочитаемые группы садиков',
         help_text=u"""Территориальная область в которой вы хотели бы посещать ДОУ.""")
 
+    district = models.ForeignKey('District', blank=True, null=True,
+         verbose_name=u'Район заявки',)
+
     # Child data
     admission_date = YearChoiceField(u'Желаемый год поступления',
         blank=True, null=True,
@@ -1256,11 +1259,14 @@ class Area(models.Model):
     class Meta:
         verbose_name = u'группа садиков'
         verbose_name_plural = u'группы садиков'
+        ordering = ['name']
 
     name = models.CharField(verbose_name=u"Название", max_length=100, unique=True)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
     # Cache
     bounds = PolygonField(verbose_name=u'Границы области', blank=True, null=True)
+    district = models.ForeignKey('District', blank=True, null=True,
+                                 verbose_name=u'Район',)
 
     def __unicode__(self):
         return self.name
@@ -1431,6 +1437,18 @@ class UserFunctions:
         while User.objects.filter(username=new_username).exists():
             new_username = "%s_%s" % (username, random.randrange(1,999))
         self.username = new_username
+
+
+class District(models.Model):
+
+    class Meta:
+        verbose_name = u'Район'
+        verbose_name_plural = u'Районы'
+
+    title = models.CharField(u'Название района', max_length=255)
+
+    def __unicode__(self):
+        return self.title
 
 
 def update_benefit_category(action, instance, **kwargs):
