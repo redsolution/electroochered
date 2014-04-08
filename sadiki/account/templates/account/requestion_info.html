@@ -447,7 +447,11 @@
 <div class="row sadiks-block">
     <div class="span6">
         <div class="requestion-info">
-
+            {% if use_districts and requestion.district %}
+            <div id="district_div">
+                <label class="field-label">Район: {{ requestion.district }}</label>
+            </div>
+            {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
             {% for area in requestion.areas.all %}
