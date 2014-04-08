@@ -98,6 +98,10 @@
         $(document).ready(function(){
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+            
+            {% if use_districts %}
+                $('#areas_field').hide();
+            {% endif %}
 
             if (requestion_marker) {
                 map_center = requestion_point
@@ -168,25 +172,21 @@
         
         // при выборе района прячем поле с районом, показываем ТО
         $(document).on("change", "#id_district", function () {
-            var elem = $(this)
             var id = $(this).val();
-            var parent = $(this).parent();
-            $(parent).prev('label').text("Группы садиков");
-            $(parent).prev().after('<div></div>')
+            $("#areas_field").show();
+            $("#areas_field .field-value").remove();
+            $(".kidgs_list").remove();
+            areas_ids = [];
+            $('#id_areas option:selected').each(function (){
+                this.selected=false;
+            });
             areas_all.forEach(function (area) {
-                $('#id_areas option').each(function () {
-                if (this.value == id) {
-                    this.selected = true;                    
-                    }
-                });
                 if (area.district_id == id) {
-                    add_area_field(parent, area.id, area.name);
+                    add_area_field($("#add_sg"), area.id, area.name);
                     areas_ids.push(area.id);
                     $('#id_areas [value='+area.id+']').attr("selected", "selected");
                 }
             });
-            parent.after('<a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу садиков</a>');
-            parent.remove();
             renderMarkers(sadik_location_data, map);
         });
 
@@ -315,9 +315,13 @@
                 {% if use_districts %}
                     {% with form.district as field %}
                         {% include "account/include/requestion-form-field.html" %}
-                                        {{ form.areas }}
-
                     {% endwith %}
+                    <div id="areas_field" class="field">
+                        <label id="sg_label" class="field-label">Предпочитаемые группы садиков</label>
+                        <div></div>
+                        {{ form.areas }}
+                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу садиков</a>
+                    </div>
                 {% else %}
                     {% with form.areas as field %}
                         <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
