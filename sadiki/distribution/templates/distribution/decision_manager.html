@@ -95,6 +95,7 @@
              function addDrawControl(map, control){
                 map.addControl(control);
                 $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+                    polyline.setLatLngs([]);
                     if (requestion_point) {
                             map.panTo(requestion_point);
                     } else {
@@ -348,15 +349,29 @@
                 {% if current_requestion.location_properties %}
                     <strong>Адрес:</strong> {{ current_requestion.location_properties }}<br>
                 {% endif %}
+
+                {% if pref_sadiks %}
+                    <strong>Приоритетные МДОУ:</strong><br>
+                    <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon.png" height="11" width="11"> 
+                    {% for sadik in pref_sadiks %}
+                        {{ sadik.short_name }}{% if forloop.revcounter > 1 %}, {% endif %}
+                    {% endfor %}
+                    <br>
+                {% endif %}
+
                 {% if areas_all.count > 1 %} 
-                    <strong>Группы садиков:</strong>
+                    <strong>Группы садиков:</strong><br>
                     {% for area in areas_all %}
-                        {{ area.name }}<br>
+                    <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> 
+                        {{ area.name }}{% if forloop.revcounter > 1 %}<br>{% endif %}
                     {% endfor %}
                 {% else %}
-                    <strong>Группа садиков:</strong> {{ areas_all.0.name }}
+                    <strong>Группа садиков:</strong><br>
+                    <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> 
+                     {{ areas_all.0.name }}
                 {% endif %}
                 </p>
+
                 <form action="." method="POST" id="select_sadik_form">
                     {% csrf_token %}
                     {{ select_sadik_form.as_p }}

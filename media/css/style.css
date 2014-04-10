@@ -1499,3 +1499,7 @@ dl {
 #select_sadik_form input {
     margin-top: 5px;
 }
+
+.indent_10{
+    margin-left: 10px;
+}
