@@ -5,7 +5,8 @@ from django.contrib.gis.admin.options import OSMGeoAdmin
 from django.contrib.gis.gdal import CoordTransform, SpatialReference
 from django.contrib.gis.geos import Point
 from sadiki.core.models import Profile, Requestion, Sadik, Address, \
-    EvidienceDocument, EvidienceDocumentTemplate, Distribution, Area
+    EvidienceDocument, EvidienceDocumentTemplate, Distribution, Area, \
+    District
 
 
 # Преобразование координат в x/y
@@ -44,6 +45,7 @@ class ProfileAdmin(admin.ModelAdmin):
     search_fields = ('user__username',)
     raw_id_fields = ('user',)
 
+
 class AddressAdmin(CustomGeoAdmin):
     search_fields = ('street', 'postindex')
     list_display = ('__unicode__', 'has_coords')
@@ -53,6 +55,11 @@ class AddressAdmin(CustomGeoAdmin):
     has_coords.short_description = u'Коодинаты'
     has_coords.boolean = True
 
+
+class DistrictAdmin(admin.ModelAdmin):
+    search_fields = ('title', )
+
+
 admin.site.register(Distribution, admin.ModelAdmin)
 admin.site.register(EvidienceDocument, admin.ModelAdmin)
 admin.site.register(EvidienceDocumentTemplate, admin.ModelAdmin)
@@ -61,3 +68,4 @@ admin.site.register(Requestion, RequestionAdmin)
 admin.site.register(Sadik, SadikAdmin)
 admin.site.register(Area, AreaAdmin)
 admin.site.register(Profile, ProfileAdmin)
+admin.site.register(District, DistrictAdmin)

@@ -5,7 +5,7 @@
     <tr>
         <th>№</th>
         <th id="requestion-number-head">Номер заявки <span class="icon-question-sign"></span></th>
-        <th>Территориальная область</th>
+        <th>Группы садиков</th>
         <th>Дата рождения</th>
         <th>Дата регистрации</th>
         <th id="benefit-categories-row">Категория льгот <span class="icon-question-sign"></span></th>
@@ -33,7 +33,12 @@
                 </div>
                 {% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
             </td>
-            <td>{{ requestion.areas.all.0 }}</td>
+            <td>{{ requestion.areas.all.0 }}
+                {% if requestion.areas.all|length > 1 %}<a href="#" rel="popover"
+                                                           data-content="{% for area in requestion.areas.all %}
+                                                                         {{ area.name }}<br>{% endfor %}"
+                                                           data-original-title="Выбранные группы садиков">
+                                                        ...</a>{% endif %}</td>
             <td>{{ requestion.birth_date }}</td>
             <td>{{ requestion.registration_datetime }}</td>
             <td>{{ requestion.benefit_category }}</td>
@@ -92,5 +97,12 @@
             title: "Категории льгот",
             content: "{{ tooltips.benefit_categories_tooltip }}",
             placement: "top", html:true})
+
+        // commom popover for areas
+        $("a[rel=popover]")
+            .popover()
+            .click(function(e) {
+            e.preventDefault();
+         });
     })
 </script>

@@ -1048,7 +1048,7 @@ tr.dynamic-form .errorlist {
     margin-top: 8px;
     font-size: 25px;
     min-height: 26px;
-    margin-bottom: 7px;
+    margin-bottom: 0px;
 }
 
 .requestion-info .field-value .value{
@@ -1298,7 +1298,7 @@ tr.dynamic-form .errorlist {
     width: 60px !important;
 }
 
-.form-disabled .field-value a{
+.form-disabled .editor{
     display: none;
 }
 
@@ -1425,6 +1425,60 @@ tr.dynamic-form .errorlist {
     margin-bottom: 0px;
 }
 
+/* added in 1.5.3b version */
+.requestion-form .areas_all {
+    margin-top: 0px;
+    margin-left: 0px;
+    margin-bottom: 2px;
+}
+
+.caret-right {
+  border-left: 4px solid #000000;
+  border-right: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+
+.caret-margins {
+  margin-top: 6px;
+  margin-right: 5px;
+}
+
+#area-close {
+    margin-bottom: 3px;
+}
+
+.kidgs_list a img {
+    margin-right: 5px;
+    margin-left: 10px;
+}
+
+#area_map_anchor, .value-anchor:hover {
+    color: gray;
+}
+
+#area_map_anchor:hover, .value-anchor {
+    color: black;
+}
+
+.marker-cluster-gray {
+	background-color: rgba(131, 133, 130, 0.6);
+	}
+.marker-cluster-gray div {
+	background-color: rgba(66, 69, 63, 0.6);
+	}
+
+.marker-cluster-medium {
+	background-color: rgba(241, 211, 87, 0.6);
+	}
+.marker-cluster-medium div {
+	background-color: rgba(240, 194, 12, 0.6);
+	}
+
+h3.icon-map-marker, h3.icon-edit {
+    margin-top: -3px;
+}
+
 /* added in 1.5.6 */
 #id_sadik {
     font-family: "Lucida Console", Monaco, monospace;
@@ -1445,4 +1499,3 @@ dl {
 #select_sadik_form input {
     margin-top: 5px;
 }
-
