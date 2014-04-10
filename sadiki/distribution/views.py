@@ -21,6 +21,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin
 import datetime
+import json
 
 
 class DistributionInfo(RequirePermissionsMixin, TemplateView):
@@ -183,7 +184,7 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
 class DecisionManager(OperatorPermissionMixin, View):
     u"""Обертка для распределения заявок"""
     required_permissions = ['is_distributor']
-    
+
     def queue_info(self):
         u"""Собирается информация о очереди"""
         info_dict = {}
@@ -257,11 +258,11 @@ class DecisionManager(OperatorPermissionMixin, View):
             'last_distributed_requestion': last_distributed_requestion,
             'distributed_requestions_number': distributed_requestions_number})
         return info_dict
-                
+
     def sadiks_for_requestion(self, requestion):
         u"""ДОУ в которые можно зачислить заявку"""
         # Все садики, где есть места для ребенка с учётом его возраста
-        
+
         available_sadik_groups = SadikGroup.objects.appropriate_for_birth_date(
             requestion.birth_date).filter(active=True, free_places__gt=0)
 #        должны быть включены только приоритетные ДОУ
@@ -279,17 +280,17 @@ class DecisionManager(OperatorPermissionMixin, View):
         any_sadiks = Sadik.objects.exclude(
             id__in=pref_sadiks).filter(id__in=available_sadiks).select_related("address__coords")
         return {'pref_sadiks': pref_sadiks, 'any_sadiks': any_sadiks}
-    
+
     def decision_manager(self, request):
         from sadiki.core.workflow import DECISION, PERMANENT_DECISION
-        
+
         queue_info_dict = self.queue_info()
-        
+
         if not queue_info_dict['queue']:
     #        если очереди нет, то оператор не может работать с заявками
             return render_to_response('distribution/decision_manager.html',
                 queue_info_dict, context_instance=RequestContext(request),)
-    
+
         # Сортировка "остальных" садиков, если у ребенка задан location
     #    if current_requestion.location:
     #        from sadiki.templatetags.sadiki_tags import distance_tag
@@ -310,7 +311,7 @@ class DecisionManager(OperatorPermissionMixin, View):
                 current_requestion, data=request.POST,
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query
             )
-    
+
             if form.is_valid():
                 sadik_id = form.cleaned_data.get('sadik', None)
                 sadik = Sadik.objects.get(id=sadik_id)
@@ -323,11 +324,11 @@ class DecisionManager(OperatorPermissionMixin, View):
                     Logger.objects.create_for_action(
                         DECISION, extra={'user': request.user, 'obj': current_requestion},
                         context_dict={"sadik": current_requestion.distributed_in_vacancy.sadik_group.sadik})
-    
+
                 if current_requestion.status == STATUS_ON_TEMP_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_tempdistr(sadik)
                     Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': request.user, 'obj': current_requestion})
-    
+
                 messages.info(request, u'''
                      Для заявки %s был назначен %s
                      ''' % (current_requestion.requestion_number, sadik))
@@ -337,17 +338,21 @@ class DecisionManager(OperatorPermissionMixin, View):
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query)
         queue_info_dict.update({'sadik_list': sadiks_query,
             'select_sadik_form': form,
-            "sadiks_coords": dict([(sadik.id, {"x": sadik.address.coords.x, "y": sadik.address.coords.y})
+            "sadiks_coords": json.dumps({sadik.id: {"x": sadik.address.coords.x,
+                                                    "y": sadik.address.coords.y,
+                                                    "s_name": sadik.short_name, }
                                    if sadik.address and sadik.address.coords else (sadik.id, {})
-                                   for sadik in sadiks_query]),
+                                   for sadik in sadiks_query}),
+            'areas_all': current_requestion.areas.all(),
+            'pref_sadiks': current_requestion.pref_sadiks.all(),
         })
         return render_to_response('distribution/decision_manager.html',
             queue_info_dict, context_instance=RequestContext(request),
         )
-    
+
     def get(self, *args, **kwargs):
         return self.decision_manager(*args, **kwargs)
-    
+
     def post(self, *args, **kwargs):
         return self.decision_manager(*args, **kwargs)
 
@@ -356,7 +361,7 @@ class DistributionEnd(OperatorPermissionMixin, TemplateView):
     u"""старт процесса распределения мест"""
     required_permissions = ['is_distributor']
     template_name = 'distribution/distribution_end.html'
-    
+
     def dispatch(self, request):
         try:
             start_distribution = Distribution.objects.get(

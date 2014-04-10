@@ -1424,3 +1424,25 @@ tr.dynamic-form .errorlist {
 #alert_msg {
     margin-bottom: 0px;
 }
+
+/* added in 1.5.6 */
+#id_sadik {
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+dl {
+    margin-top: 5px;
+}
+
+#select_sadik_form p {
+    margin-bottom: 2px;
+}
+
+#select_sadik_form input#id_accept_location {
+    margin-top: 0px;
+}
+
+#select_sadik_form input {
+    margin-top: 5px;
+}
+
