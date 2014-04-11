@@ -18,11 +18,24 @@
     <script>
         var layers = null;
         var sadiks_coords = {{ sadiks_coords|safe }};
+        var pref_sadiks = [
+            {% for sadik in pref_sadiks %}
+                {{ sadik.id }},
+            {% endfor %}
+        ]
+
         $(document).ready(function(){
             // hide unused empty space
             $(".location_save_actions").hide();
 
             var activeSadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon-green.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62],  // the same for the shadow
+            });
+            var prefSadikIcon = L.icon({
                 iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
 
                 iconSize:     [22, 23], // size of the icon
@@ -30,7 +43,7 @@
                 shadowAnchor: [4, 62],  // the same for the shadow
             });
             var inactiveSadikIcon = L.icon({
-                iconUrl: '{{ STATIC_URL }}img/sadik-icon-gray.png',
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon-yellow.png',
 
                 iconSize:     [22, 23], // size of the icon
                 iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
@@ -49,7 +62,6 @@
                 }
                 sorted_sadiks = kidgdns_arr.sort(sort_by_distance);
                 kidgdns_arr.forEach(function(kidgdn) {
-                    console.log(kidgdn.s_name.length);
                     var symbols_length = kidgdn.s_name.length + kidgdn.distance.toString().length + 1;
                     var total_length = 33;
                     var s = '&#160'.repeat(total_length - symbols_length) + ' ';
@@ -68,7 +80,7 @@
                 {% endif %}
             {% endwith %}
             {% load_settings %}
-{#            при редактировании карта будет центрироваться на этой точке#}
+            {#            при редактировании карта будет центрироваться на этой точке#}
             if (requestion_marker) {
                 var map_center = requestion_point
             } else {
@@ -90,8 +102,7 @@
             }
 
             {% if location_not_verified %}
-            // !!!В библиотеке Leaflet.draw не нашел возможности заменить некоторые надписи, поэтому поправил js файл, также изменил стили
-{#             добавляем элементы управления для изменения местополжение и при их активации центрирование карты#}
+            {# добавляем элементы управления для изменения местополжение и при их активации центрирование карты#}
              function addDrawControl(map, control){
                 map.addControl(control);
                 $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
@@ -119,8 +130,8 @@
                 }
             };
 
-{#            если у заявки указаны координаты, то отключаем возможность добавлнеия точки, иначе возможность изменения.#}
-{#                т.к. при изменении моментально происходит сохранение#}
+            {# если у заявки указаны координаты, то отключаем возможность добавлнеия точки, иначе возможность изменения.#}
+            {# т.к. при изменении моментально происходит сохранение#}
             if (requestion_marker){
                 drawControlOptions['draw']['marker'] = false;
             } else {
@@ -130,7 +141,7 @@
             addDrawControl(map, drawControl);
 
 
-{#            через ajax запрос сохраняем местположение заявки#}
+            {# через ajax запрос сохраняем местположение заявки#}
             function ajaxChangeLocation(layer){
                 $('#location_saved').hide();
                 $('#location_not_saved').hide();
@@ -151,7 +162,7 @@
                             $('#location_saving').hide();
                             $('#location_saved').show();
                             redraw_select();
-                            // draw line between active sadik and requestion marer
+                            // draw line connecting active sadik and requestion marer
                             var sadik_id = $("#id_sadik").find('option:selected').val();
                             var sadik_coords = sadiks_coords[sadik_id];
                             var sadik_point = [sadik_coords["y"], sadik_coords["x"]];
@@ -189,7 +200,7 @@
                 $("#location_not_set").hide()
                 $("#id_accept_location").attr("disabled", false)
             });
-{#            пока оператор не поставит галку нельзя выделить место#}
+            {# пока оператор не поставит галку нельзя выделить место#}
             $('#select_sadik_form #id_accept_location').change(function(){
                 if ($(this).is(':checked')) {
                     $('#select_sadik_form input:submit').attr('disabled', false);
@@ -199,7 +210,7 @@
             })
             {% endif %}
 
-{#            при выборе ДОУ происходит изменение отображаемой информации и карты#}
+            {# при выборе ДОУ происходит изменение отображаемой информации и карты#}
             $('#select_sadik_form #id_sadik').change(function(){
                 points.clearLayers();
                 var sadik_id = $(this).find('option:selected').val();
@@ -209,7 +220,11 @@
                 for (var key in sadiks_coords){
                     var coords = sadiks_coords[key];
                     var point = [coords["y"], coords["x"]];
-                    var marker = L.marker(point, {icon: inactiveSadikIcon});
+                    if (pref_sadiks.indexOf(parseInt(key)) > -1) {
+                        var marker = L.marker(point, {icon: prefSadikIcon});
+                    } else {
+                        var marker = L.marker(point, {icon: inactiveSadikIcon});
+                    }
                     sadiks_markers.push(marker);
                 }
                 //и выбранный ДОУ
@@ -234,7 +249,7 @@
                 }
             });
             $('#select_sadik_form #id_sadik').trigger('change');
-
+            $(".leaflet-draw-edit-edit").prop("title", "Изменить местополжение заявки");
         });
     </script>
 {% endblock %}
@@ -387,7 +402,7 @@
                     {% csrf_token %}
                     {{ location_form.as_p }}
                 </form>
-
+       
                 <h3 id="sadik_info_list">Информация о МДОУ</h3>
                 <div class="location_save_actions">
                     {% if not current_requestion.location %}
@@ -398,6 +413,11 @@
                     <span id="location_saving" style="display: none"><img src="{{ STATIC_URL }}img/small-ajax-loader.gif"/><span class="label label-info">Сохранение местоположения</span></span>
                 </div>
                 <div id="requestion_map"></div>
+                        <ul class="unstyled">
+                            <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon.png" height="11" width="11"> - приоритетные ДОУ</li>
+                            <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
+                            <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon-green.png" height="11" width="11"> - выбранный (активный) ДОУ</li>
+                        </ul>
                 {% for sadik in sadik_list %}
                     <dl id="sadik_{{ sadik.id }}_description" style="display: none;">
                         <p><strong>Название:</strong> {{ sadik|verbose_value }}<br>
