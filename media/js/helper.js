@@ -25,7 +25,13 @@ function sort_by_distance (a, b) {
 	return 0
 }
 
+// method for repeating same string num times
 String.prototype.repeat = function( num )
 {
     return new Array( num + 1 ).join( this );
+}
+
+// add popup to marker
+function add_popup(marker, coords) {
+    marker.bindPopup('<b>'+coords["s_name"]+'</b><div>Адрес: '+coords["address"]+'</div><div>Телефон: '+coords["phone"]+'</div><a href="'+coords["url"]+'">Перейти к ДОУ</a>');
 }

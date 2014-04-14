@@ -340,7 +340,10 @@ class DecisionManager(OperatorPermissionMixin, View):
             'select_sadik_form': form,
             "sadiks_coords": json.dumps({sadik.id: {"x": sadik.address.coords.x,
                                                     "y": sadik.address.coords.y,
-                                                    "s_name": sadik.short_name, }
+                                                    "s_name": sadik.short_name,
+                                                    "address": sadik.address.text,
+                                                    "phone": sadik.phone,
+                                                    "url": sadik.site, }
                                    if sadik.address and sadik.address.coords else (sadik.id, {})
                                    for sadik in sadiks_query}),
             'areas_all': current_requestion.areas.all(),

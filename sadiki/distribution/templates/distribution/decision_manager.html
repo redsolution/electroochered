@@ -222,29 +222,34 @@
                     var point = [coords["y"], coords["x"]];
                     if (pref_sadiks.indexOf(parseInt(key)) > -1) {
                         var marker = L.marker(point, {icon: prefSadikIcon});
+                        add_popup(marker, coords);
                     } else {
                         var marker = L.marker(point, {icon: inactiveSadikIcon});
+                        add_popup(marker, coords);
                     }
                     sadiks_markers.push(marker);
                 }
                 //и выбранный ДОУ
-                var sadik_coords = sadiks_coords[sadik_id];
-                if ($.isEmptyObject(sadik_coords)) {
+                var coords = sadiks_coords[sadik_id];
+                if ($.isEmptyObject(coords)) {
                     $("#requestion_map").hide()
                 } else {
                     $("#requestion_map").show();
-                    var sadik_point = [sadik_coords["y"], sadik_coords["x"]];
-                    var sadik_marker = L.marker(sadik_point, {icon: activeSadikIcon, zIndexOffset: 1000});
-                    sadiks_markers.push(sadik_marker);
+                    var point = [coords["y"], coords["x"]];
+                    var marker = L.marker(point, {icon: activeSadikIcon, zIndexOffset: 1000});
+                    add_popup(marker, coords);
+                    sadiks_markers.push(marker);
                     points = L.layerGroup(sadiks_markers).addTo(map);
                     if (requestion_marker) {
-                        map.fitBounds([requestion_point, sadik_point]);
+                        map.fitBounds([requestion_point, point]);
+                        // marker.openPopup();
                     } else {
                         map.setView(sadik_point, 14);
+                        // marker.openPopup();
                     }
                     // draw line between active sadik and requestion
                     if (requestion_point) {
-                        polyline.setLatLngs([requestion_point, sadik_point]);
+                        polyline.setLatLngs([requestion_point, point]);
                     }
                 }
             });
