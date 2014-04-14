@@ -183,7 +183,7 @@ def load_urlpatterns(context):
     for pattern in all_patterns:
         try:
             extra_context[pattern.name] = reverse(pattern.name)
-        except NoReverseMatch:
+        except (NoReverseMatch, AttributeError):
             pass
 
     context.update(extra_context)
