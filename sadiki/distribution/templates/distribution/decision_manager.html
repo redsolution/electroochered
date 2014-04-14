@@ -231,9 +231,17 @@
                 }
                 //и выбранный ДОУ
                 var coords = sadiks_coords[sadik_id];
+                if (sadik_id == "0") {
+                    console.log("zero");
+                }
                 if ($.isEmptyObject(coords)) {
-                    $("#requestion_map").hide()
+                    $("#requestion_map").hide();
+                    $(".hide_if_empty").hide();
+                    $("dl").hide();
                 } else {
+                    $("#kidgdn_address").text(coords["address"]).show();
+                    $("#kidgdn_phone").text(coords["phone"]).show();
+                    $(".hide_if_empty").show();
                     $("#requestion_map").show();
                     var point = [coords["y"], coords["x"]];
                     var marker = L.marker(point, {icon: activeSadikIcon, zIndexOffset: 1000});
@@ -252,7 +260,9 @@
                         polyline.setLatLngs([requestion_point, point]);
                     }
                 }
+                // $("#kidgdn_name").text(coords["s_name"]);
             });
+            $("#id_sadik").prepend($('<option value="0" selected="selected">----------------------------------</option>'));
             $('#select_sadik_form #id_sadik').trigger('change');
             $(".leaflet-draw-edit-edit").prop("title", "Изменить местополжение заявки");
         });
@@ -395,10 +405,14 @@
                 <form action="." method="POST" id="select_sadik_form">
                     {% csrf_token %}
                     {{ select_sadik_form.as_p }}
+                    <div id="kidgdn_info">
+                        <strong>Адрес:</strong> <span id="kidgdn_address" class="hide_if_empty"></span><br>
+                        <strong>Телефон:</strong> <span id="kidgdn_phone" class="hide_if_empty"></span></p>
+                    </div>
                     {% if location_vot_verified %}
-                        <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()" disabled="disabled"/>
+                        <input type="submit" class="hide_if_empty" value="Выделить место" onclick="this.disabled=true; this.form.submit()" disabled="disabled"/>
                     {% else %}
-                        <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
+                        <input type="submit" class="hide_if_empty" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
                     {% endif %}
 
                 </form>
@@ -408,7 +422,7 @@
                     {{ location_form.as_p }}
                 </form>
        
-                <h3 id="sadik_info_list">Информация о МДОУ</h3>
+                <h3 id="sadik_info_list" class="hide_if_empty">Информация о МДОУ</h3>
                 <div class="location_save_actions">
                     {% if not current_requestion.location %}
                         <span id="location_not_set" class="label label-important"></i>Необходимо задать местоположение заявки</span>
@@ -418,16 +432,13 @@
                     <span id="location_saving" style="display: none"><img src="{{ STATIC_URL }}img/small-ajax-loader.gif"/><span class="label label-info">Сохранение местоположения</span></span>
                 </div>
                 <div id="requestion_map"></div>
-                        <ul class="unstyled">
+                        <ul class="unstyled hide_if_empty">
                             <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon.png" height="11" width="11"> - приоритетные ДОУ</li>
                             <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
                             <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon-green.png" height="11" width="11"> - выбранный (активный) ДОУ</li>
                         </ul>
                 {% for sadik in sadik_list %}
                     <dl id="sadik_{{ sadik.id }}_description" style="display: none;">
-                        <p><strong>Название:</strong> {{ sadik|verbose_value }}<br>
-                        <strong>Адрес:</strong> {{ sadik.address.text|verbose_value }}<br>
-                        <strong>Телефон:</strong> {{ sadik.phone|verbose_value }}</p>
                         Возрастные группы:
                         <table class="table table-striped table-bordered table-condensed">
                             <tr>
