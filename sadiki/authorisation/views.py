@@ -100,3 +100,13 @@ def password_set(request):
         return Http404
     return password_change(request, template_name=u'authorisation/passwd_set.html',
                            password_change_form=SetPasswordForm)
+
+
+def send_confirm_letter(request):
+    if request.method == 'POST':
+        user = request.user
+        key = VerificationKey.objects.create_key(user)
+        print key.key
+        # key.send_email_verification()
+    else:
+        return HttpResponseRedirect(request.path)
