@@ -66,22 +66,16 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
         from personal_data.logging import PERSONAL_DATA_ACTION_FLAGS
         logs = Logger.objects.filter(user=profile.user,
                                      action_flag__in=PERSONAL_DATA_ACTION_FLAGS)
-        for log in logs:
-            logs_with_messages = []
-            messages = log.loggermessage_set.filter_for_user(self.request.user)
-            print messages
-            if messages:
-                logs_with_messages.append([log, messages])
         return logs
 
     def get(self, request):
         profile = request.user.get_profile()
+        data = {'requestions_with_logs': self.get_logs_for_profile(profile),
+                'plugin_menu_items': get_plugin_menu_items()}
         if 'personal_data' in settings.INSTALLED_APPS:
-            pass
-            # print self.get_pdata_logs(profile)
-        return self.render_to_response(
-            {'requestions_with_logs': self.get_logs_for_profile(profile),
-             'plugin_menu_items': get_plugin_menu_items()})
+            pdata_logs = self.get_pdata_logs(profile)
+            data.update({'pdata_logs': pdata_logs})
+        return self.render_to_response(data)
 
 
 class OperatorLogs(OperatorPermissionMixin, AccountLogs):
@@ -89,10 +83,13 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
 
     def get(self, request, profile_id):
         profile = get_object_or_404(Profile, id=profile_id)
-        return self.render_to_response(
-            {'requestions_with_logs': self.get_logs_for_profile(profile),
-             'profile': profile,
-             'plugin_menu_items': get_operator_plugin_menu_items(profile_id)})
+        data = {'requestions_with_logs': self.get_logs_for_profile(profile),
+                'profile': profile,
+                'plugin_menu_items': get_operator_plugin_menu_items(profile.id)}
+        if 'personal_data' in settings.INSTALLED_APPS:
+            pdata_logs = self.get_pdata_logs(profile)
+            data.update({'pdata_logs': pdata_logs})
+        return self.render_to_response(data)
 
 
 
