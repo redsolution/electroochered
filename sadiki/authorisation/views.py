@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+import datetime
 from django.contrib import messages
 from django.contrib.auth import get_backends, login
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
 from django.contrib.auth.views import password_change
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from sadiki.authorisation.forms import EmailResetForm
@@ -102,11 +103,31 @@ def password_set(request):
                            password_change_form=SetPasswordForm)
 
 
+def is_allowed_send_confirm(user):
+    u"""
+    Проверяем, соответствие пользователя условиям для отправки письма
+    со ссылкой для подтверждения почтового ящика:
+    - авторизирован
+    - в профиле указан email
+    - email еще не подтвержден
+    - не запрашивал подтверждения последние 5 минут (от спама)
+    """
+    if user.is_anonymous():
+        return False
+    profile = user.get_profile()
+    last_key = VerificationKey.objects.filter(user=user).latest('created')
+    if last_key:
+        t_delta = (datetime.datetime.now() - last_key.created).seconds
+        print t_delta
+        return t_delta > 300
+    return all((user.email, not profile.email_verified))
+
+
 def send_confirm_letter(request):
-    if request.method == 'POST':
+    if is_allowed_send_confirm(request.user):
         user = request.user
         key = VerificationKey.objects.create_key(user)
         print key.key
         # key.send_email_verification()
-    else:
-        return HttpResponseRedirect(request.path)
+        return HttpResponse()
+    raise Http404
