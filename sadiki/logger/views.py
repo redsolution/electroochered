@@ -64,7 +64,7 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
 
     def get_pdata_logs(self, profile):
         from personal_data.logging import PERSONAL_DATA_ACTION_FLAGS
-        logs = Logger.objects.filter(user=profile.user,
+        logs = Logger.objects.filter(object_id=profile.id,
                                      action_flag__in=PERSONAL_DATA_ACTION_FLAGS)
         return logs
 
