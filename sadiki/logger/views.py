@@ -4,6 +4,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
+from django.conf import settings
 from sadiki.account.utils import get_plugin_menu_items
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Requestion, Profile
@@ -61,8 +62,23 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
             requestions_with_logs.append([requestion, logs_with_messages])
         return requestions_with_logs
 
+    def get_pdata_logs(self, profile):
+        from personal_data.logging import PERSONAL_DATA_ACTION_FLAGS
+        logs = Logger.objects.filter(user=profile.user,
+                                     action_flag__in=PERSONAL_DATA_ACTION_FLAGS)
+        for log in logs:
+            logs_with_messages = []
+            messages = log.loggermessage_set.filter_for_user(self.request.user)
+            print messages
+            if messages:
+                logs_with_messages.append([log, messages])
+        return logs
+
     def get(self, request):
         profile = request.user.get_profile()
+        if 'personal_data' in settings.INSTALLED_APPS:
+            pass
+            # print self.get_pdata_logs(profile)
         return self.render_to_response(
             {'requestions_with_logs': self.get_logs_for_profile(profile),
              'plugin_menu_items': get_plugin_menu_items()})
