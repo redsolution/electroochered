@@ -8,7 +8,7 @@
     <p>Начало нового учебного года закрывает возрастные группы на текущий год.</p>
     {% if not_distributed_requestions_number %}
         <p><span class="error">Внимание! В системе находится {{ not_distributed_requestions_number }} заяв{{ not_distributed_requestions_number|choose_plural:"ка, ки, ок" }} с незавершенной
-            процедурой комплектования. Пока эти заявки не будут обработаны нельзя будет начать учебный год.</span></p>
+            процедурой комплектования. Эти заявки будут обработаны автоматически.</span></p>
     {% endif %}
     <p><span class="error">Внимание! Переход на новый учебный год нельзя будет отменить.</span></p>
     {% url start_distribution_year as start_distribution_year_url %}
