@@ -432,7 +432,7 @@ requestion_account_template = u"""
     """
 
 requestion_anonym_template = u"""
-    Территориальные области:
+    Группы ДОУ:
     {% for area in areas %}
         {{ area }};
     {% empty %}
@@ -469,7 +469,7 @@ change_requestion_anonym_template = u"""
             Основная категория льгот: {{ requestion.benefit_category }};
         {% endif %}
         {% if "areas" in changed_data %}
-            Территориальные области:
+            Группы ДОУ:
             {% for area in cleaned_data.areas %}
                 {{ area }};
             {% empty %}
@@ -508,7 +508,7 @@ change_requestion_account_template = u"""
 
 change_preferred_sadiks_anonym_template = u'''
     {% if "areas" in changed_data %}
-        Территориальные области:
+        Группы ДОУ:
         {% for area in cleaned_data.areas %}
             {{ area }};
         {% empty %}
