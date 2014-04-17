@@ -46,7 +46,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
-    workflow, DISTRIBUTION_BY_RESOLUTION
+    workflow, DISTRIBUTION_BY_RESOLUTION, NOT_APPEAR_EXPIRE
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
@@ -219,6 +219,26 @@ def after_decision_to_distributed(sender, **kwargs):
         'distribution_type': requestion.distribution_type}
     Logger.objects.create_for_action(transition.index,
         context_dict=context_dict, extra=log_extra,
+        reason=form.cleaned_data.get('reason'))
+
+
+@receiver(post_status_change, sender=Requestion)
+@listen_transitions(
+    NOT_APPEAR_EXPIRE,
+)
+def after_not_appear_expire(sender, **kwargs):
+    u"""Обработчик перевода №50 - Истечение срока ожидания явки"""
+    transition = kwargs['transition']
+    request = kwargs['request']
+    requestion = kwargs['requestion']
+    form = kwargs['form']
+
+    messages.success(request, u'Для заявки %s была отмечена неявка в ДОУ' % requestion.requestion_number)
+    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
+    Logger.objects.create_for_action(transition.index,
+        context_dict=context_dict,
+        extra={'user': request.user, 'obj': requestion,
+            'distribution_type': requestion.distribution_type},
         reason=form.cleaned_data.get('reason'))
 
 

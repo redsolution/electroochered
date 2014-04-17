@@ -195,7 +195,7 @@ class Queue(RequirePermissionsMixin, ListView):
             'target_requestion': self.requestion,
             'offset': (page.number - 1) * page_size,
             'STATUS_DECISION': STATUS_DECISION,
-            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
+            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, ],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'import_finished': Preference.objects.filter(
                 key=PREFERENCE_IMPORT_FINISHED).exists()
