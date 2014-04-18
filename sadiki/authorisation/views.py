@@ -121,19 +121,19 @@ def is_allowed_send_confirm(user):
         last_key = None
     if last_key:
         t_delta = (datetime.datetime.now() - last_key.created).seconds
-        print t_delta
-        allowed = t_delta > 300
+        return t_delta > 300
     else:
-        allowed = True
-    return allowed
+        return True
 
 
 def send_confirm_letter(request):
+    u""""
+    Если пользователь проходит проверку - отправляем письмо с кодом подтверждения
+    """
     if is_allowed_send_confirm(request.user):
         user = request.user
         key = VerificationKey.objects.create_key(user)
         print key.key
         # key.send_email_verification()
-        return HttpResponse()
-    # raise Http404
-    return HttpResponse('Not allowed')
+        return HttpResponse('ok')
+    return HttpResponse('not allowed')

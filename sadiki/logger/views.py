@@ -66,7 +66,13 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
         from personal_data.logging import PERSONAL_DATA_ACTION_FLAGS
         logs = Logger.objects.filter(object_id=profile.id,
                                      action_flag__in=PERSONAL_DATA_ACTION_FLAGS)
-        return logs
+        logs_with_messages = []
+        for log in logs:
+            messages = log.loggermessage_set.filter(
+                logger__object_id=profile.id,
+                logger__content_type=ContentType.objects.get_for_model(Profile))
+            logs_with_messages.append([log, messages])
+        return logs_with_messages
 
     def get(self, request):
         profile = request.user.get_profile()
