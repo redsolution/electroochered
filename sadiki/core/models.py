@@ -328,7 +328,7 @@ class Sadik(models.Model):
         verbose_name_plural = u'ДОУ'
         ordering = ['number']
 
-    area = models.ForeignKey("Area", verbose_name=u"Территориальная область")
+    area = models.ForeignKey("Area", verbose_name=u"Группа садиков")
     name = models.CharField(u'полное название', max_length=255)
     short_name = models.CharField(u'короткое название', max_length=255)
     number = models.IntegerField(u'номер', null=True)
@@ -888,32 +888,35 @@ class Requestion(models.Model):
         verbose_name_plural = u'Заявки в очереди'
         ordering = ['-benefit_category__priority', 'registration_datetime', 'id']
 
-    areas = AreaChoiceField('Area',
-        verbose_name=u'Предпочитаемые территориальные области',
-        help_text=u"""Территориальная область в которой вы хотели бы посещать ДОУ.""")
+    areas = models.ManyToManyField('Area',
+        verbose_name=u'Предпочитаемые группы ДОУ',
+        help_text=u"""Группа в которой вы хотели бы посещать ДОУ.""")
+
+    district = models.ForeignKey('District', blank=True, null=True,
+         verbose_name=u'Район заявки',)
 
     # Child data
     admission_date = YearChoiceField(u'Желаемый год поступления',
         blank=True, null=True,
         help_text=u"Год, начиная с которого заявка может быть зачислена")
-#    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
-#        choices=ADMISSION_DATE_TYPE_CHOICES)
+    #    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
+    #        choices=ADMISSION_DATE_TYPE_CHOICES)
     requestion_number = models.CharField(verbose_name=u'Номер заявки',
         max_length=23, blank=True, null=True)
     distribution_type = models.IntegerField(
         verbose_name=u'тип распределения', choices=DISTRIBUTION_TYPE_CHOICES,
         default=DEFAULT_DISTRIBUTION_TYPE)
-#    используется для хранения путевки, которая выдана ребенку
-#    (например при переводе или постоянном зачислении), чтобы можно было вернуть
+    # используется для хранения путевки, которая выдана ребенку
+    # (например при переводе или постоянном зачислении), чтобы можно было вернуть
     previous_distributed_in_vacancy = models.ForeignKey(
         'Vacancies', blank=True, null=True,
         related_name=u"previous_requestions")
     distributed_in_vacancy = models.ForeignKey(
         'Vacancies', blank=True, null=True)
 
-#    Child info
+    # Child info
     birth_date = models.DateField(u'Дата рождения ребёнка', validators=[birth_date_validator])
-    #сейчас в формах имя пользователя ограничено 20 символами
+    # сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(u'имя ребёнка', max_length=255, null=True,
                             validators=[validate_no_spaces, ],
                             help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
@@ -949,7 +952,7 @@ class Requestion(models.Model):
     # Flags
     distribute_in_any_sadik = models.BooleanField(
         verbose_name=u'Пользователь согласен на зачисление в ДОУ, отличные от приоритетных, в выбранных территориальных областях',
-        default=False, help_text=u"""Установите этот флаг, если готовы получить место в любом детском саду в выбранных
+        default=True, help_text=u"""Установите этот флаг, если готовы получить место в любом детском саду в выбранных
             территориальных областях, в случае, когда в приоритетных ДОУ не окажется места""")
 
     objects = query_set_factory(RequestionQuerySet)
@@ -1254,13 +1257,16 @@ class Requestion(models.Model):
 class Area(models.Model):
 
     class Meta:
-        verbose_name = u'территориальная область'
-        verbose_name_plural = u'территориальная область'
+        verbose_name = u'группа садиков'
+        verbose_name_plural = u'группы садиков'
+        ordering = ['name']
 
     name = models.CharField(verbose_name=u"Название", max_length=100, unique=True)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
     # Cache
     bounds = PolygonField(verbose_name=u'Границы области', blank=True, null=True)
+    district = models.ForeignKey('District', blank=True, null=True,
+                                 verbose_name=u'Район',)
 
     def __unicode__(self):
         return self.name
@@ -1431,6 +1437,18 @@ class UserFunctions:
         while User.objects.filter(username=new_username).exists():
             new_username = "%s_%s" % (username, random.randrange(1,999))
         self.username = new_username
+
+
+class District(models.Model):
+
+    class Meta:
+        verbose_name = u'Район'
+        verbose_name_plural = u'Районы'
+
+    title = models.CharField(u'Название района', max_length=255)
+
+    def __unicode__(self):
+        return self.title
 
 
 def update_benefit_category(action, instance, **kwargs):

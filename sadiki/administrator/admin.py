@@ -27,7 +27,7 @@ from sadiki.core.admin import CustomGeoAdmin
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import BENEFIT_DOCUMENT, AgeGroup, Sadik, Address, \
     EvidienceDocumentTemplate, Profile, Benefit, BenefitCategory, Area, Distribution, \
-    Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, \
+    Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCES_MAP, District, \
     ChunkCustom
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME, \
@@ -356,7 +356,7 @@ class AreaAdminForm(forms.ModelForm):
 class AreaAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = Area
     form = AreaAdminForm
-    fields = ['name', 'ocato']
+    fields = ['name', 'ocato', 'district']
 
     def clean_name(self):
         return clean_str(self.cleaned_data.get('name'))
@@ -544,6 +544,10 @@ class AttachmentImageFormCustom(AttachmentImageForm):
         fields = ('image',)
 
 
+class DistrictAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
+    search_fields = ('title', )
+
+
 class AttachmentImageInlinesCustom(AttachmentImageInlines):
     form = AttachmentImageFormCustom
 
@@ -601,3 +605,4 @@ site.register(BenefitCategory, BenefitCategoryAdmin)
 site.register(Benefit, BenefitAdmin)
 site.register(ChunkCustom, ChunkAdmin)
 site.register(Preference, PreferenceAdmin)
+site.register(District, DistrictAdmin)
