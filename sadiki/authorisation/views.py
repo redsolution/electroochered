@@ -5,6 +5,7 @@ from django.contrib.auth import get_backends, login
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
 from django.contrib.auth.views import password_change
 from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
@@ -112,15 +113,19 @@ def is_allowed_send_confirm(user):
     - email еще не подтвержден
     - не запрашивал подтверждения последние 5 минут (от спама)
     """
-    if user.is_anonymous():
+    if any((user.is_anonymous(), not user.email, user.get_profile().email_verified)):
         return False
-    profile = user.get_profile()
-    last_key = VerificationKey.objects.filter(user=user).latest('created')
+    try:
+        last_key = VerificationKey.objects.filter(user=user).latest('created')
+    except ObjectDoesNotExist:
+        last_key = None
     if last_key:
         t_delta = (datetime.datetime.now() - last_key.created).seconds
         print t_delta
-        return t_delta > 300
-    return all((user.email, not profile.email_verified))
+        allowed = t_delta > 300
+    else:
+        allowed = True
+    return allowed
 
 
 def send_confirm_letter(request):
@@ -130,4 +135,5 @@ def send_confirm_letter(request):
         print key.key
         # key.send_email_verification()
         return HttpResponse()
-    raise Http404
+    # raise Http404
+    return HttpResponse('Not allowed')
