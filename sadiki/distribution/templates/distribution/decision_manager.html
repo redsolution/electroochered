@@ -14,11 +14,28 @@
     <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
     <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/helper.js"></script>
     <script>
         var layers = null;
         var sadiks_coords = {{ sadiks_coords|safe }};
+        var pref_sadiks = [
+            {% for sadik in pref_sadiks %}
+                {{ sadik.id }},
+            {% endfor %}
+        ]
+
         $(document).ready(function(){
+            // hide unused empty space
+            $(".location_save_actions").hide();
+
             var activeSadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon-green.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62],  // the same for the shadow
+            });
+            var prefSadikIcon = L.icon({
                 iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
 
                 iconSize:     [22, 23], // size of the icon
@@ -26,29 +43,51 @@
                 shadowAnchor: [4, 62],  // the same for the shadow
             });
             var inactiveSadikIcon = L.icon({
-                iconUrl: '{{ STATIC_URL }}img/sadik-icon-gray.png',
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon-yellow.png',
 
                 iconSize:     [22, 23], // size of the icon
                 iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
                 shadowAnchor: [4, 62],  // the same for the shadow
             });
+
+            function redraw_select() {
+                $("#id_sadik").empty();
+                var kidgdns_arr = [];
+                for (key in sadiks_coords) {
+                    var distance = get_distance(requestion_point[0], requestion_point[1],
+                                                sadiks_coords[key].y, sadiks_coords[key].x);
+                    sadiks_coords[key].distance = distance;
+                    sadiks_coords[key].id = key;
+                    kidgdns_arr.push(sadiks_coords[key]);
+                }
+                sorted_sadiks = kidgdns_arr.sort(sort_by_distance);
+                kidgdns_arr.forEach(function(kidgdn) {
+                    var symbols_length = kidgdn.s_name.length + kidgdn.distance.toString().length + 1;
+                    var total_length = 33;
+                    var s = '&#160'.repeat(total_length - symbols_length) + ' ';
+                    $("#id_sadik").append($('<option value=' + kidgdn.id + '>' + kidgdn.s_name + s + kidgdn.distance + 'м</option>'));
+                });
+            }
+
             {% with current_requestion.location as point %}
                 {% if point %}
                     var requestion_point = [{{ point.y }}, {{ point.x }}];
                     var requestion_marker = L.marker(requestion_point);
+                    redraw_select();
                 {% else %}
                     var requestion_point = null;
                     var requestion_marker = null;
                 {% endif %}
             {% endwith %}
             {% load_settings %}
-{#            при редактировании карта будет центрироваться на этой точке#}
+            {#            при редактировании карта будет центрироваться на этой точке#}
             if (requestion_marker) {
                 var map_center = requestion_point
             } else {
                 var map_center = [{{ settings.MAP_CENTER }}].reverse();
             }
             var map = new L.Map("requestion_map", {});
+            var polyline = L.polyline([], {color: 'red'}).addTo(map)
             var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
                 subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
             });
@@ -63,11 +102,11 @@
             }
 
             {% if location_not_verified %}
-            // !!!В библиотеке Leaflet.draw не нашел возможности заменить некоторые надписи, поэтому поправил js файл, также изменил стили
-{#             добавляем элементы управления для изменения местополжение и при их активации центрирование карты#}
+            {# добавляем элементы управления для изменения местополжение и при их активации центрирование карты#}
              function addDrawControl(map, control){
                 map.addControl(control);
                 $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+                    polyline.setLatLngs([]);
                     if (requestion_point) {
                             map.panTo(requestion_point);
                     } else {
@@ -91,8 +130,8 @@
                 }
             };
 
-{#            если у заявки указаны координаты, то отключаем возможность добавлнеия точки, иначе возможность изменения.#}
-{#                т.к. при изменении моментально происходит сохранение#}
+            {# если у заявки указаны координаты, то отключаем возможность добавлнеия точки, иначе возможность изменения.#}
+            {# т.к. при изменении моментально происходит сохранение#}
             if (requestion_marker){
                 drawControlOptions['draw']['marker'] = false;
             } else {
@@ -102,14 +141,16 @@
             addDrawControl(map, drawControl);
 
 
-{#            через ajax запрос сохраняем местположение заявки#}
+            {# через ajax запрос сохраняем местположение заявки#}
             function ajaxChangeLocation(layer){
                 $('#location_saved').hide();
                 $('#location_not_saved').hide();
+                $(".location_save_actions").show();
                 $('#location_saving').show();
                 var latLng = layer.getLatLng();
                 requestion_point = [latLng.lat, latLng.lng];
                 requestion_marker = L.marker(requestion_point);
+
                 $('#change_location_form #id_location').val("POINT ("+ latLng.lng + " " + latLng.lat + ")");
                 // запрос на изменение координат
                 $.ajax($('#change_location_form').attr('action'), {
@@ -120,9 +161,15 @@
                         if (data.ok) {
                             $('#location_saving').hide();
                             $('#location_saved').show();
+                            redraw_select();
+                            // draw line connecting active sadik and requestion marer
+                            var sadik_id = $("#id_sadik").find('option:selected').val();
+                            var sadik_coords = sadiks_coords[sadik_id];
+                            var sadik_point = [sadik_coords["y"], sadik_coords["x"]];
+                            polyline.setLatLngs([requestion_point, sadik_point]);
                         } else {
-                           $('#location_saving').hide();
-                           $('#location_not_saved').show();
+                            $('#location_saving').hide();
+                            $('#location_not_saved').show();
                         }
                     },
                     error: function(){
@@ -153,7 +200,7 @@
                 $("#location_not_set").hide()
                 $("#id_accept_location").attr("disabled", false)
             });
-{#            пока оператор не поставит галку нельзя выделить место#}
+            {# пока оператор не поставит галку нельзя выделить место#}
             $('#select_sadik_form #id_accept_location').change(function(){
                 if ($(this).is(':checked')) {
                     $('#select_sadik_form input:submit').attr('disabled', false);
@@ -163,7 +210,7 @@
             })
             {% endif %}
 
-{#            при выборе ДОУ происходит изменение отображаемой информации и карты#}
+            {# при выборе ДОУ происходит изменение отображаемой информации и карты#}
             $('#select_sadik_form #id_sadik').change(function(){
                 points.clearLayers();
                 var sadik_id = $(this).find('option:selected').val();
@@ -173,28 +220,48 @@
                 for (var key in sadiks_coords){
                     var coords = sadiks_coords[key];
                     var point = [coords["y"], coords["x"]];
-                    var marker = L.marker(point, {icon: inactiveSadikIcon});
+                    if (pref_sadiks.indexOf(parseInt(key)) > -1) {
+                        var marker = L.marker(point, {icon: prefSadikIcon});
+                        add_popup(marker, coords);
+                    } else {
+                        var marker = L.marker(point, {icon: inactiveSadikIcon});
+                        add_popup(marker, coords);
+                    }
                     sadiks_markers.push(marker);
                 }
                 //и выбранный ДОУ
-                var sadik_coords = sadiks_coords[sadik_id];
-                if ($.isEmptyObject(sadik_coords)) {
-                    $("#requestion_map").hide()
+                var coords = sadiks_coords[sadik_id];
+                if ($.isEmptyObject(coords)) {
+                    $("#requestion_map").hide();
+                    $(".hide_if_empty").hide();
+                    $("dl").hide();
                 } else {
+                    $("#kidgdn_address").text(coords["address"]).show();
+                    $("#kidgdn_phone").text(coords["phone"]).show();
+                    $(".hide_if_empty").show();
                     $("#requestion_map").show();
-                    var sadik_point = [sadik_coords["y"], sadik_coords["x"]];
-                    var sadik_marker = L.marker(sadik_point, {icon: activeSadikIcon, zIndexOffset: 1000});
-                    sadiks_markers.push(sadik_marker);
+                    var point = [coords["y"], coords["x"]];
+                    var marker = L.marker(point, {icon: activeSadikIcon, zIndexOffset: 1000});
+                    add_popup(marker, coords);
+                    sadiks_markers.push(marker);
                     points = L.layerGroup(sadiks_markers).addTo(map);
                     if (requestion_marker) {
-                        map.fitBounds([requestion_point, sadik_point]);
+                        map.fitBounds([requestion_point, point]);
+                        // marker.openPopup();
                     } else {
                         map.setView(sadik_point, 14);
+                        // marker.openPopup();
+                    }
+                    // draw line between active sadik and requestion
+                    if (requestion_point) {
+                        polyline.setLatLngs([requestion_point, point]);
                     }
                 }
+                // $("#kidgdn_name").text(coords["s_name"]);
             });
+            $("#id_sadik").prepend($('<option value="0" selected="selected">----------------------------------</option>'));
             $('#select_sadik_form #id_sadik').trigger('change');
-
+            $(".leaflet-draw-edit-edit").prop("title", "Изменить местополжение заявки");
         });
     </script>
 {% endblock %}
@@ -298,24 +365,51 @@
             {% endif %}
             {% if current_requestion %}
                 <h3>Заявка</h3>
+                <p>
                 {% with current_requestion.evidience_documents.requestion_identity_documents.0 as document %}
                     {% if document %}
-                        <p>Документ: {{ document.document_number }} ({{ document.template }})</p>
+                        <strong>Документ:</strong> {{ document.document_number }} ({{ document.template }})<br>
                     {% endif %}
                 {% endwith %}
-                <p>Дата рождения: {{ current_requestion.birth_date }}</p>
-                <p>Возрастная группа: {{ current_requestion_age_groups.0 }}</p>
+                <strong>Дата рождения:</strong> {{ current_requestion.birth_date }}<br>
+                <strong>Возрастная группа:</strong> {{ current_requestion_age_groups.0 }}<br>
                 {% if current_requestion.location_properties %}
-                    <p>Адрес: {{ current_requestion.location_properties }}</p>
+                    <strong>Адрес:</strong> {{ current_requestion.location_properties }}<br>
                 {% endif %}
+
+                {% if pref_sadiks %}
+                    <strong>Приоритетные МДОУ:</strong><br>
+                    <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon.png" height="11" width="11"> 
+                    {% for sadik in pref_sadiks %}
+                        {{ sadik.short_name }}{% if forloop.revcounter > 1 %}, {% endif %}
+                    {% endfor %}
+                    <br>
+                {% endif %}
+
+                {% if areas_all.count > 1 %} 
+                    <strong>Группы садиков:</strong><br>
+                    {% for area in areas_all %}
+                    <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> 
+                        {{ area.name }}{% if forloop.revcounter > 1 %}<br>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <strong>Группа садиков:</strong><br>
+                    <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> 
+                     {{ areas_all.0.name }}
+                {% endif %}
+                </p>
 
                 <form action="." method="POST" id="select_sadik_form">
                     {% csrf_token %}
                     {{ select_sadik_form.as_p }}
+                    <div id="kidgdn_info">
+                        <strong>Адрес:</strong> <span id="kidgdn_address" class="hide_if_empty"></span><br>
+                        <strong>Телефон:</strong> <span id="kidgdn_phone" class="hide_if_empty"></span></p>
+                    </div>
                     {% if location_vot_verified %}
-                        <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()" disabled="disabled"/>
+                        <input type="submit" class="hide_if_empty" value="Выделить место" onclick="this.disabled=true; this.form.submit()" disabled="disabled"/>
                     {% else %}
-                        <input type="submit" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
+                        <input type="submit" class="hide_if_empty" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
                     {% endif %}
 
                 </form>
@@ -324,8 +418,8 @@
                     {% csrf_token %}
                     {{ location_form.as_p }}
                 </form>
-
-                <h3 id="sadik_info_list">Информация о МДОУ</h3>
+       
+                <h3 id="sadik_info_list" class="hide_if_empty">Информация о МДОУ</h3>
                 <div class="location_save_actions">
                     {% if not current_requestion.location %}
                         <span id="location_not_set" class="label label-important"></i>Необходимо задать местоположение заявки</span>
@@ -335,11 +429,13 @@
                     <span id="location_saving" style="display: none"><img src="{{ STATIC_URL }}img/small-ajax-loader.gif"/><span class="label label-info">Сохранение местоположения</span></span>
                 </div>
                 <div id="requestion_map"></div>
+                        <ul class="unstyled hide_if_empty">
+                            <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon.png" height="11" width="11"> - приоритетные ДОУ</li>
+                            <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
+                            <li class="indent_10"><img src="{{ STATIC_URL }}img/sadik-icon-green.png" height="11" width="11"> - выбранный (активный) ДОУ</li>
+                        </ul>
                 {% for sadik in sadik_list %}
                     <dl id="sadik_{{ sadik.id }}_description" style="display: none;">
-                        <p>Название: {{ sadik|verbose_value }}</p>
-                        <p>Адрес: {{ sadik.address.text|verbose_value }}</p>
-                        <p>Телефон: {{ sadik.phone|verbose_value }}</p>
                         Возрастные группы:
                         <table class="table table-striped table-bordered table-condensed">
                             <tr>

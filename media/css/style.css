@@ -918,7 +918,6 @@ ul.documents {
 }
 
 #requestion_map{
-    width: 400px;
     height: 300px;
 }
 
@@ -1477,4 +1476,29 @@ tr.dynamic-form .errorlist {
 
 h3.icon-map-marker, h3.icon-edit {
     margin-top: -3px;
+}
+
+/* added in 1.5.6 */
+#id_sadik {
+    font-family: "Lucida Console", Monaco, monospace;
+}
+
+dl {
+    margin-top: 5px;
+}
+
+#select_sadik_form p {
+    margin-bottom: 2px;
+}
+
+#select_sadik_form input#id_accept_location {
+    margin-top: 0px;
+}
+
+#select_sadik_form input {
+    margin-top: 5px;
+}
+
+.indent_10{
+    margin-left: 10px;
 }
