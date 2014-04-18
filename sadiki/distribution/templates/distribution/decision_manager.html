@@ -387,13 +387,13 @@
                 {% endif %}
 
                 {% if areas_all.count > 1 %} 
-                    <strong>Группы садиков:</strong><br>
+                    <strong>Группы ДОУ:</strong><br>
                     {% for area in areas_all %}
                     <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> 
                         {{ area.name }}{% if forloop.revcounter > 1 %}<br>{% endif %}
                     {% endfor %}
                 {% else %}
-                    <strong>Группа садиков:</strong><br>
+                    <strong>Группа ДОУ:</strong><br>
                     <img class="indent_10" src="{{ STATIC_URL }}img/sadik-icon-yellow.png" height="11" width="11"> 
                      {{ areas_all.0.name }}
                 {% endif %}
@@ -406,7 +406,7 @@
                         <strong>Адрес:</strong> <span id="kidgdn_address" class="hide_if_empty"></span><br>
                         <strong>Телефон:</strong> <span id="kidgdn_phone" class="hide_if_empty"></span></p>
                     </div>
-                    {% if location_vot_verified %}
+                    {% if location_not_verified %}
                         <input type="submit" class="hide_if_empty" value="Выделить место" onclick="this.disabled=true; this.form.submit()" disabled="disabled"/>
                     {% else %}
                         <input type="submit" class="hide_if_empty" value="Выделить место" onclick="this.disabled=true; this.form.submit()"/>
