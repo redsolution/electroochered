@@ -77,7 +77,6 @@ class LoggerManager(models.Manager):
                 message = re.sub(r"\s+", u" ", message)
                 # если текстового сообщения нет(например не изменялись публичные поля)
                 # то не сохраняем
-                print message
                 if message:
                     main_message = u"%s %s" % (main_message, message)
                     LoggerMessage.objects.create(
