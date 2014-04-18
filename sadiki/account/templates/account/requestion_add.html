@@ -319,10 +319,10 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div id="areas_field" class="field">
-                        <label id="sg_label" class="field-label">Предпочитаемые группы садиков</label>
+                        <label id="sg_label" class="field-label">Предпочитаемые группы ДОУ</label>
                         <div></div>
                         {{ form.areas }}
-                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу садиков</a>
+                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                     </div>
                 {% else %}
                     {% with form.areas as field %}
