@@ -523,12 +523,12 @@
         <div class="split-line"></div>
         <div class="block-head">Очередь заявок</div>
         <div class="queue-info">
-            <p>Заявок перед Вами: <span class="number">{{ requestions_before }}</span>
-                (Из них льготников: <span class="number">{{ benefits_before }}.</span>
-                Документально подтвержденных: <span class="number">{{ confirmed_before }}</span>)</p>
-            <p>Заявок после Вас: <span class="number">{{ requestions_after }}</span> (
-                Из них льготников: <span class="number">{{ benefits_after }}.</span>
-                Документально подтвержденных: <span class="number">{{ confirmed_after }}</span>)</p>
+            <p>Заявок перед Вами: <span class="black-number">{{ requestions_before }}</span>
+                (Из них льготников: <span class="black-number">{{ benefits_before }}.</span>
+                Документально подтвержденных: <span class="black-number">{{ confirmed_before }}</span>)</p>
+            <p>Заявок после Вас: <span class="black-number">{{ requestions_after }}</span> (
+                Из них льготников: <span class="black-number">{{ benefits_after }}.</span>
+                Документально подтвержденных: <span class="black-number">{{ confirmed_after }}</span>)</p>
         </div>
         {% with queue as object_list %}
         {% with requestion as target_requestion %}

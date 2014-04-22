@@ -1502,3 +1502,7 @@ dl {
 .indent_10{
     margin-left: 10px;
 }
+
+.black-number {
+    color: black;
+}
