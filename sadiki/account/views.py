@@ -15,7 +15,8 @@ from sadiki.account.forms import RequestionForm, \
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
-    STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
+    STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
+    STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
@@ -304,7 +305,13 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         return self.render_to_response(context)
 
     def get_queue_data(self, requestion):
-        before = Requestion.objects.queue().requestions_before(requestion)
+        active_statuses = (
+            STATUS_REQUESTER,
+            STATUS_DECISION, 
+            STATUS_ON_DISTRIBUTION,
+            STATUS_ON_TEMP_DISTRIBUTION,
+        )
+        before = Requestion.objects.queue().filter(status__in=active_statuses).requestions_before(requestion)
         benefits_before = before.benefits().count()
         confirmed_before = before.confirmed().count()
         requestions_before = before.count()
