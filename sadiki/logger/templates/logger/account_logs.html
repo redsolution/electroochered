@@ -9,10 +9,10 @@
         <h2>Заявка {{ requestion }}</h2>
         {% include "logger/include/include_logs.html" %}
     {% endfor %}
-    {% if pdata_logs %}
-        {% with pdata_logs as logs_with_messages %}
-            <h2>Изменения персональных данных</h2>
+    {% for log_dict in plugin_logs %}
+        {% for log_header, logs_with_messages in log_dict.items %}
+            <h2>{{ log_header }}</h2>
             {% include "logger/include/include_logs.html" %}
-        {% endwith %}
-    {% endif %}
+        {% endfor %}
+    {% endfor %}
 {% endblock %}

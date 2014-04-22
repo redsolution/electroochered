@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from django.conf import settings
-from sadiki.account.utils import get_plugin_menu_items
+from sadiki.account.utils import get_plugin_menu_items, get_plugin_logs
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Requestion, Profile
 from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
@@ -14,7 +14,7 @@ from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
     DECISION_DISTRIBUTION, PASS_DISTRIBUTED, \
     DISTRIBUTED_ARCHIVE, STATUS_CHANGE_TRANSITIONS
 from sadiki.logger.models import Logger
-from sadiki.operator.plugins import get_operator_plugin_menu_items
+from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_plugin_logs
 from sadiki.operator.views.base import OperatorPermissionMixin
 
 DECISION_TRANSFERS = (DECISION, IMMEDIATELY_DECISION, PERMANENT_DECISION,
@@ -62,25 +62,11 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
             requestions_with_logs.append([requestion, logs_with_messages])
         return requestions_with_logs
 
-    def get_pdata_logs(self, profile):
-        from personal_data.logging import PERSONAL_DATA_ACTION_FLAGS
-        logs = Logger.objects.filter(object_id=profile.id,
-                                     action_flag__in=PERSONAL_DATA_ACTION_FLAGS)
-        logs_with_messages = []
-        for log in logs:
-            messages = log.loggermessage_set.filter(
-                logger__object_id=profile.id,
-                logger__content_type=ContentType.objects.get_for_model(Profile))
-            logs_with_messages.append([log, messages])
-        return logs_with_messages
-
     def get(self, request):
         profile = request.user.get_profile()
         data = {'requestions_with_logs': self.get_logs_for_profile(profile),
-                'plugin_menu_items': get_plugin_menu_items()}
-        if 'personal_data' in settings.INSTALLED_APPS:
-            pdata_logs = self.get_pdata_logs(profile)
-            data.update({'pdata_logs': pdata_logs})
+                'plugin_menu_items': get_plugin_menu_items(),
+                'plugin_logs': get_plugin_logs(profile)}
         return self.render_to_response(data)
 
 
@@ -91,10 +77,8 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
         profile = get_object_or_404(Profile, id=profile_id)
         data = {'requestions_with_logs': self.get_logs_for_profile(profile),
                 'profile': profile,
-                'plugin_menu_items': get_operator_plugin_menu_items(profile.id)}
-        if 'personal_data' in settings.INSTALLED_APPS:
-            pdata_logs = self.get_pdata_logs(profile)
-            data.update({'pdata_logs': pdata_logs})
+                'plugin_menu_items': get_operator_plugin_menu_items(profile.id),
+                'plugin_logs': get_operator_plugin_logs(profile)}
         return self.render_to_response(data)
 
 
