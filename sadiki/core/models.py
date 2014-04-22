@@ -1164,6 +1164,15 @@ class Requestion(models.Model):
     def position_in_queue(self):
         return Requestion.objects.queue().requestions_before(self).count() + 1
 
+    def active_position_in_queue(self):
+        active_statuses = (
+            STATUS_REQUESTER,
+            STATUS_DECISION, 
+            STATUS_ON_DISTRIBUTION,
+            STATUS_ON_TEMP_DISTRIBUTION,
+        )
+        return Requestion.objects.queue().filter(status__in=active_statuses).requestions_before(self).count() + 1
+
     def save(self, *args, **kwargs):
         u"""
         Осуществляется проверка возможности изменения статуса.
