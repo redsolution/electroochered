@@ -306,6 +306,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def get_queue_data(self, requestion):
         active_statuses = (
+            STATUS_REQUESTER_NOT_CONFIRMED,
             STATUS_REQUESTER,
             STATUS_DECISION, 
             STATUS_ON_DISTRIBUTION,
