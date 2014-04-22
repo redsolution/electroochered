@@ -12,6 +12,8 @@ from django.views.generic.base import TemplateView
 from sadiki.authorisation.forms import EmailResetForm
 from sadiki.authorisation.models import VerificationKey
 from sadiki.core.utils import get_user_by_email
+from sadiki.core.workflow import EMAIL_VERIFICATION
+from sadiki.logger.models import Logger
 
 
 class EmailVerification(TemplateView):
@@ -35,6 +37,16 @@ class EmailVerification(TemplateView):
             profile.save()
             message = u'Адрес электронной почты %s подтвержден!' % user.email
             messages.info(request, message)
+
+            action_flag = EMAIL_VERIFICATION
+            context_dict = {'email': user.email}
+            extra = {
+                'user': user,
+                'obj': profile,
+            }
+            Logger.objects.create_for_action(action_flag,
+                                             context_dict=context_dict,
+                                             extra=extra)
 
             if user.is_active:
                 backend = get_backends()[1]

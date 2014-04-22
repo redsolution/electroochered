@@ -174,6 +174,9 @@ CHANGE_BENEFITS = 81
 CHANGE_BENEFITS_BY_OPERATOR = 82
 CHANGE_DOCUMENTS = 83
 
+# изменение персональных данных
+EMAIL_VERIFICATION = 204
+
 workflow = Workflow()
 
 # 1) Подача заявления
@@ -369,6 +372,8 @@ ACTION_CHOICES.extend(
      (START_NEW_YEAR, u'Начало нового учебного года'),
      #    Путевки
      (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
+     # персональные данные
+     (EMAIL_VERIFICATION, u'Подтверждение почтового ящика')
     ]
 )
 
@@ -544,6 +549,8 @@ decision_distribution_anonym = u"""Было завершено зачислен�
 decision_not_appear_anonym = u"""Заявитель не явился в назначенный срок для зачисления в {{ sadik }}"""
 decision_requster_anonym = u"""Заявитель отказался от выделенного места в {{ sadik }}. Заявка была возвращена в очередь"""
 
+email_verification_template = u"Почтовый адрес {{ email }} успешно подтвержден."
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -653,9 +660,10 @@ ACTION_TEMPLATES.update({
             u"""Зачислен в {{ sadik }}. Должность резолюционера: {{ resolutioner_post }}.
             ФИО резолюционера: {{ resolutioner_fio }}. Номер документа: {{ resolution_number }}.
             """)
+    },
+    EMAIL_VERIFICATION: {
+        ACCOUNT_LOG: Template(email_verification_template)
     }
-
-
 })
 
 
