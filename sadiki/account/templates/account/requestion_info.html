@@ -181,6 +181,7 @@
 
                 });
 
+            {% if requestion.location %}
                 // кнопка на карте, центрируем изображение по заявке
                 var draw_button = $('.leaflet-draw-edit-edit');
                 var a = $('<a/>')
@@ -204,6 +205,8 @@
                     zoom_bar.after(div_0);
                 }
             });
+            {% endif %}
+
             $('#id_areas, #id_distribute_in_any_sadik').change(function(){
                 if ($("#id_distribute_in_any_sadik").is(':checked')){
                     if ($("#id_areas").val()){
