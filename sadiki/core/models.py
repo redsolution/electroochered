@@ -10,7 +10,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction
 from django.db.models.query_utils import Q
@@ -1429,16 +1429,31 @@ class UserFunctions:
         return bool(get_user_by_email(self.email))
 
     def get_verbose_name(self):
-        u"""возвращает имя отчество пользователя с учетом типа учетки"""
-        try:
-            profile = self.get_profile()
-        except Profile.DoesNotExist:
-            pass
-#        если не смогли получить имя отчество у профиля, то берем их у пользователя
-        if self.first_name or self.last_name:
-            return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+        u"""возвращает имя отчество пользователя с учетом типа учетки
+        Этот метод переопределяется в personal_data/__init__.py:
+        если приложение personal_data используется, то пробуем взять
+        оттуда ФИО для отображения.
+        """
+
+        # базовый вариант отображения имени пользователя
+        if self.is_operator():
+            verbose_name = 'Оператор'
+        elif self.is_requester():
+            verbose_name = 'Пользователь'
         else:
-            return self.username
+            verbose_name = 'Администратор'
+
+        # если есть почта - показываем почту
+        if self.email:
+            verbose_name = self.email
+        if 'requester' in self.username:
+            verbose_name = self.username
+
+        # если персонал, то берем данные у пользователя
+        if self.is_administrative_person() and (self.first_name or self.last_name):
+            return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+
+        return verbose_name
 
     def set_username_by_id(self):
         username = "%s_%d" % (REQUESTER_USERNAME_PREFIX, self.id)
