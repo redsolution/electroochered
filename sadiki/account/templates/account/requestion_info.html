@@ -291,6 +291,13 @@
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
+
+            $("#queue_explain").popover({
+                title: "Положние заявки в очереди",
+                content: '<p>В число "Заявок перед вами" входят заявки со статусами Очередник-не подтвержден, Очередник, Выделено место, На комплектовании.</p><br>' +
+                         '<p>В число "Из них льготников" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p><br>' +
+                         '<p>В число "Документально подтвержденных" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p>',
+                placement: "top"})
         });
         </script>
 {% endblock %}
@@ -525,7 +532,8 @@
         <div class="queue-info">
             <p>Заявок перед Вами: <span class="black-number">{{ requestions_before }}</span>
                 (Из них льготников: <span class="black-number">{{ benefits_before }}.</span>
-                Документально подтвержденных: <span class="black-number">{{ confirmed_before }}</span>)</p>
+                Документально подтвержденных: <span class="black-number">{{ confirmed_before }}</span>)
+                <span id="queue_explain" class="icon-question-sign black-number"></span></p>
             <p>Заявок после Вас: <span class="black-number">{{ requestions_after }}</span> (
                 Из них льготников: <span class="black-number">{{ benefits_after }}.</span>
                 Документально подтвержденных: <span class="black-number">{{ confirmed_after }}</span>)</p>
