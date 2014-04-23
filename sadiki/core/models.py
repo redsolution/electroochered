@@ -327,7 +327,7 @@ class Sadik(models.Model):
         verbose_name_plural = u'ДОУ'
         ordering = ['number']
 
-    area = models.ForeignKey("Area", verbose_name=u"Группа садиков")
+    area = models.ForeignKey("Area", verbose_name=u"Группа ДОУ")
     name = models.CharField(u'полное название', max_length=255)
     short_name = models.CharField(u'короткое название', max_length=255)
     number = models.IntegerField(u'номер', null=True)
