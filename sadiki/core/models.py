@@ -10,7 +10,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
-from django.core.exceptions import ValidationError, ObjectDoesNotExist
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction
 from django.db.models.query_utils import Q
@@ -764,6 +763,13 @@ class RequestionQuerySet(models.query.QuerySet):
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
                         ))
 
+    def active_queue(self):
+        u"""возвращает активные заявки, отображаемые в очереди"""
+        return self.filter(
+            status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
+                        STATUS_DECISION, STATUS_ON_DISTRIBUTION,
+                        STATUS_ON_TEMP_DISTRIBUTION))
+
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
@@ -1163,15 +1169,6 @@ class Requestion(models.Model):
 
     def position_in_queue(self):
         return Requestion.objects.queue().requestions_before(self).count() + 1
-
-    def active_position_in_queue(self):
-        active_statuses = (
-            STATUS_REQUESTER,
-            STATUS_DECISION, 
-            STATUS_ON_DISTRIBUTION,
-            STATUS_ON_TEMP_DISTRIBUTION,
-        )
-        return Requestion.objects.queue().filter(status__in=active_statuses).requestions_before(self).count() + 1
 
     def save(self, *args, **kwargs):
         u"""

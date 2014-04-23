@@ -305,20 +305,13 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         return self.render_to_response(context)
 
     def get_queue_data(self, requestion):
-        active_statuses = (
-            STATUS_REQUESTER_NOT_CONFIRMED,
-            STATUS_REQUESTER,
-            STATUS_DECISION, 
-            STATUS_ON_DISTRIBUTION,
-            STATUS_ON_TEMP_DISTRIBUTION,
-        )
-        before = Requestion.objects.queue().filter(status__in=active_statuses).requestions_before(requestion)
+        before = Requestion.objects.queue().active_queue().requestions_before(requestion)
         benefits_before = before.benefits().count()
         confirmed_before = before.confirmed().count()
         requestions_before = before.count()
-        benefits_after = Requestion.objects.queue().benefits().count() - benefits_before
-        confirmed_after = Requestion.objects.queue().confirmed().count() - confirmed_before
-        requestions_after = Requestion.objects.queue().count() - requestions_before
+        benefits_after = Requestion.objects.active_queue().benefits().count() - benefits_before
+        confirmed_after = Requestion.objects.active_queue().confirmed().count() - confirmed_before
+        requestions_after = Requestion.objects.active_queue().count() - requestions_before
         offset = max(0, requestions_before - 20)
         queue_chunk = Requestion.objects.queue().hide_distributed().add_distributed_sadiks()[offset:requestions_before + 20]
         queue_chunk = add_special_transitions_to_requestions(queue_chunk)
