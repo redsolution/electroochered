@@ -320,7 +320,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         confirmed_after = Requestion.objects.queue().confirmed().count() - confirmed_before
         requestions_after = Requestion.objects.queue().count() - requestions_before
         offset = max(0, requestions_before - 20)
-        queue_chunk = Requestion.objects.queue().add_distributed_sadiks()[offset:requestions_before + 20]
+        queue_chunk = Requestion.objects.queue().hide_distributed().add_distributed_sadiks()[offset:requestions_before + 20]
         queue_chunk = add_special_transitions_to_requestions(queue_chunk)
 
         # Вычесть свою заявку
