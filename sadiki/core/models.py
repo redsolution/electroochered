@@ -763,6 +763,13 @@ class RequestionQuerySet(models.query.QuerySet):
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
                         ))
 
+    # TODO: remove if unused
+    def distribution_queue(self):
+        return self.filter(status__in=(
+            STATUS_ON_DISTRIBUTION,
+            STATUS_ON_TEMP_DISTRIBUTION
+        ))
+
     def active_queue(self):
         u"""возвращает активные заявки, отображаемые в очереди"""
         return self.filter(

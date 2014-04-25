@@ -189,6 +189,7 @@ class DecisionManager(OperatorPermissionMixin, View):
         u"""Собирается информация о очереди"""
         info_dict = {}
         distribution = Distribution.objects.filter(status=DISTRIBUTION_STATUS_INITIAL)
+        full_queue_experimental = Requestion.objects.distribution_queue().select_related('benefit_category')
         full_queue = Requestion.objects.queue().confirmed().filter(Q(
             status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION),
         ) | Q(
@@ -219,22 +220,23 @@ class DecisionManager(OperatorPermissionMixin, View):
                         current_distribution_year=current_distribution_year))
         #        должны быть места в приоритетных ДОУ
                 query_for_pref_sadiks = Q(pref_sadiks__groups__free_places__gt=0,
-                                        pref_sadiks__groups__age_group=age_group,
-                                        pref_sadiks__groups__active=True)
+                                          pref_sadiks__groups__age_group=age_group)
         #        либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
         #        или не указана область
-                query_for_any_sadiks = Q(distribute_in_any_sadik=True) & (
-                    Q(areas__isnull=True) | Q(areas__sadik__groups__free_places__gt=0,
-                                            areas__sadik__groups__age_group=age_group,
-                                            areas__sadik__groups__active=True))
+                query_for_any_sadiks = Q(areas__sadik__groups__free_places__gt=0,
+                                         areas__sadik__groups__age_group=age_group)
         #        собираем все в один запрос
                 requestions_with_places_query |= query_for_group & (query_for_pref_sadiks | query_for_any_sadiks)
         #    список заявок, которые могут быть зачислены
-            requestions_with_places = full_queue.exclude(status=STATUS_DECISION
-                ).exclude(admission_date__gt=datetime.date.today(),
+            print 'before_req'
+            requestions_with_places = full_queue_experimental.exclude(admission_date__gt=datetime.date.today(),
                 ).filter(requestions_with_places_query)
+            print 'after_query', datetime.datetime.now()
+            print len(full_queue_experimental)
             if requestions_with_places.exists():
+                print 'insdide if', datetime.datetime.now()
                 current_requestion = requestions_with_places[0]
+                print current_requestion, datetime.datetime.now()
                 info_dict.update({'current_requestion': current_requestion,
                     'location_not_verified': current_requestion.location_not_verified,
                     'location_form': ChangeLocationForm(instance=current_requestion),
@@ -242,6 +244,7 @@ class DecisionManager(OperatorPermissionMixin, View):
                         current_distribution_year=current_distribution_year)})
                 current_requestion_index = full_queue.requestions_before(
                     current_requestion).count()
+                print current_requestion_index, datetime.datetime.now()
                 if last_distributed_requestion:
                     last_distributed_index = full_queue.requestions_before(
                         last_distributed_requestion).count()
@@ -251,12 +254,18 @@ class DecisionManager(OperatorPermissionMixin, View):
                     inactive_queue = full_queue[:current_requestion_index]
                     queue = full_queue[current_requestion_index:current_requestion_index + 10]
             else:
+                print 'inside else'
                 inactive_queue = []
+            print 'before first update'
+            # inactive_queue = []
+            print inactive_queue
             info_dict.update({'inactive_queue': inactive_queue})
+            print 'after first update'
         info_dict.update({'distribution': distribution, 'queue': queue,
             'free_places': free_places, 'decision_status': STATUS_DECISION,
             'last_distributed_requestion': last_distributed_requestion,
             'distributed_requestions_number': distributed_requestions_number})
+        print 'returning'
         return info_dict
 
     def sadiks_for_requestion(self, requestion):
