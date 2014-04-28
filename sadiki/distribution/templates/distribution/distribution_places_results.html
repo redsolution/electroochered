@@ -5,27 +5,29 @@
 
 {% block content %}
     {% if sadiks_with_groups %}
-    {% for sadik, groups_with_places in sadiks_with_groups.iteritems %}
-        <h3>{{ sadik.short_name }}</h3>
-        <table class="table table-striped table-bordered table-condensed places-table">
-            <thead>
-                <tr>
-                    <th>Возрастная категория</th>
-                    <th class="capacity">Выделено мест</th>
-                    <th class="free-places">Свободных мест</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for group, places in groups_with_places.iteritems %}
-                <tr>
-                    <td>{{ group.age_group }} за {{ group.year.year }} год (с {{ group.min_birth_date }} по {{ group.max_birth_date }})</td>
-                    <td>{{ places.capacity }}</td>
-                    <td>{{ places.free_places }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endfor %}
+        {% for sadik, groups_with_places in sadiks_with_groups.iteritems %}
+            <h3>{{ sadik.short_name }}</h3>
+            <table class="table table-striped table-bordered table-condensed places-table">
+                <thead>
+                    <tr>
+                        <th>Возрастная категория</th>
+                        <th class="capacity">Выделено мест</th>
+                        <th class="free-places">Свободных мест</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group, places in groups_with_places.iteritems %}
+                    <tr>
+                        <td>{{ group.age_group }} за {{ group.year.year }} год (с {{ group.min_birth_date }} по {{ group.max_birth_date }})</td>
+                        <td>{{ places.capacity }}</td>
+                        <td>{{ places.free_places }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% elif related_groups_error %}
+        <h2>Информация о данном распределении недоступна</h2>
     {% else %}
         <h2>В данном распределении не были выделены свободные места</h2>
     {% endif %}

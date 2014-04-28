@@ -137,8 +137,12 @@ class DistributionPlacesResults(OperatorPermissionMixin, TemplateView):
         sadiks_with_groups = OrderedDict()
         for sadik in sadiks:
             sadik_groups_with_places = OrderedDict()
-            for sadik_group in sadik.related_groups:
-                sadik_groups_with_places[sadik_group] = {'free_places': 0, 'capacity': 0}
+            try:
+                for sadik_group in sadik.related_groups:
+                    sadik_groups_with_places[sadik_group] = {'free_places': 0, 'capacity': 0}
+            except AttributeError:
+                context.update({'related_groups_error': True})
+                return self.render_to_response(context)
             sadiks_with_groups[sadik] = sadik_groups_with_places
         vacancies = Vacancies.objects.filter(distribution=distribution).select_related('sadik_group', 'sadik_group__sadik')
         for vacancy in vacancies:
