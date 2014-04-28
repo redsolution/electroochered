@@ -224,7 +224,8 @@ class DecisionManager(OperatorPermissionMixin, View):
                 # либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
                 # или не указана область
                 query_for_any_sadiks = Q(areas__sadik__groups__free_places__gt=0,
-                                         areas__sadik__groups__age_group=age_group)
+                                         areas__sadik__groups__age_group=age_group,
+                                         areas__sadik__groups__active=True)
                 # собираем все в один запрос
                 requestions_with_places_query |= query_for_group & query_for_any_sadiks
             # список заявок, которые могут быть зачислены

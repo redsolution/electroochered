@@ -69,10 +69,6 @@ class Command(BaseCommand):
                 
                 birth_date = datetime.date.today()-datetime.timedelta(
                     days=random.randint(0, settings.MAX_CHILD_AGE*12*30))
-                if options['distribute_in_any_sadik']:
-                    distribute_in_any_sadik = True
-                else:
-                    distribute_in_any_sadik = random.choice((True, False))
                 requestion = Requestion.objects.create(
                     profile=profile,
                     birth_date=birth_date,
@@ -80,7 +76,7 @@ class Command(BaseCommand):
                     sex=random.choice([u'М', u'Ж']),
                     cast=random.choice([0, 1, 2, 3]),
                     status=random.choice([3, 4]),
-                    distribute_in_any_sadik=distribute_in_any_sadik,
+                    distribute_in_any_sadik=True,
                     location_properties='челябинск',
                     location=point.Point(random.choice([1, 2, 3, 4]), random.choice([1, 2, 3, 4]))
                 )
@@ -91,7 +87,7 @@ class Command(BaseCommand):
                 else:
                     min_sadiks = 1
 
-                for sadik in Sadik.objects.order_by('?')[:random.randint(min_sadiks, max_sadiks)]:
+                for sadik in Sadik.objects.filter(area=requestion.areas.all()[0]).order_by('?')[:random.randint(min_sadiks, max_sadiks)]:
                     requestion.pref_sadiks.add(sadik)
 
                 profile_document = EvidienceDocument.objects.create(

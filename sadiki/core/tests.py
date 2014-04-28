@@ -30,7 +30,7 @@ class TestAll(TestCase):
         management.call_command('update_initial_data')
         address = Address.objects.create(postindex=123456, street=u'ул.Кирова',
                                          building_number=17, )
-        Area.objects.create(name='test', ocato='123456')  # , address=address)
+        # Area.objects.create(name='test', ocato='123456')  # , address=address)
         #        Requestion.objects.all().update(status=STATUS_REQUESTER)
         self.operator = User(username='operator')
         self.operator.set_password("password")
@@ -181,7 +181,7 @@ class TestAll(TestCase):
         for requestion in Requestion.objects.filter(
                 id__in=requestions_pref_sadiks_ids):
             requestion.pref_sadiks = new_sadiks
-            requestion.distribute_in_any_sadik = False
+            requestion.distribute_in_any_sadik = True
             requestion.save()
         requestions_area_distribution_ids = list(Requestion.objects.exclude(
             id__in=requestions_admission_date_ids + requestions_pref_sadiks_ids
@@ -202,7 +202,6 @@ class TestAll(TestCase):
         total = 0
         while queue_info['free_places'] and queue_info['queue']:
             requestion = queue_info['current_requestion']
-            print 'distributing requestion', requestion.id
             if last_distributed_requestion:
                 self.assertEqual(last_distributed_requestion,
                                  queue_info['last_distributed_requestion'], )
