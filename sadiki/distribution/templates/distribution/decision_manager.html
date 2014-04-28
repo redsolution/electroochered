@@ -64,6 +64,9 @@
                 kidgdns_arr.forEach(function(kidgdn) {
                     var symbols_length = kidgdn.s_name.length + kidgdn.distance.toString().length + 1;
                     var total_length = 33;
+                    if (symbols_length > total_length) {
+                        total_length = symbols_length;
+                    }
                     var s = '&#160'.repeat(total_length - symbols_length) + ' ';
                     $("#id_sadik").append($('<option value=' + kidgdn.id + '>' + kidgdn.s_name + s + kidgdn.distance + 'м</option>'));
                 });

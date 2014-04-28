@@ -207,80 +207,55 @@ class DecisionManager(OperatorPermissionMixin, View):
         distributed_requestions_number = distributed_requestions.count()
         current_distribution_year = get_current_distribution_year()
         if free_places:
-            #    ищем первую заявку, которая может быть распределена
+            # ищем первую заявку, которая может быть распределена
             age_groups = AgeGroup.objects.filter(sadikgroup__free_places__gt=0
                 ).distinct()
             requestions_with_places_query = Q()
-            #    проходимся по всем группам в которых есть места и формируем запрос
+            # проходимся по всем группам в которых есть места и формируем запрос
             for age_group in age_groups:
-                #        фильтруем по возрастной группе
+                # фильтруем по возрастной группе
                 query_for_group = Q(birth_date__lte=age_group.max_birth_date(
                     current_distribution_year=current_distribution_year)) & \
                     Q(birth_date__gt=age_group.min_birth_date(
                         current_distribution_year=current_distribution_year))
-                #        должны быть места в приоритетных ДОУ
+                # должны быть места в приоритетных ДОУ
                 query_for_pref_sadiks = Q(pref_sadiks__groups__free_places__gt=0,
                                           pref_sadiks__groups__age_group=age_group)
-                #        либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
-                #        или не указана область
+                # либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
+                # или не указана область
                 query_for_any_sadiks = Q(areas__sadik__groups__free_places__gt=0,
-                                         areas__sadik__groups__age_group=age_group)
-                #        собираем все в один запрос
-                requestions_with_places_query |= query_for_group & (query_for_pref_sadiks | query_for_any_sadiks)
-            #    список заявок, которые могут быть зачислены
-            print 'before_req'
-            QUEUE_CHUNK = 500
-            chunks_num = len(full_queue_experimental) / QUEUE_CHUNK
-            counter = 0
-            while counter <= chunks_num:
-                queue_chunk = full_queue[counter * QUEUE_CHUNK: (counter + 1) * QUEUE_CHUNK]
-                requestions_with_places = full_queue.exclude(admission_date__gt=datetime.date.today(),
-                    ).filter(requestions_with_places_query)
-                print 'after_query', datetime.datetime.now()
-                print len(full_queue_experimental)
-                if requestions_with_places.exists():
-                    print 'insdide if', datetime.datetime.now()
-                    current_requestion = requestions_with_places[0]
-                    print current_requestion, datetime.datetime.now()
-                    info_dict.update({'current_requestion': current_requestion,
-                        'location_not_verified': current_requestion.location_not_verified,
-                        'location_form': ChangeLocationForm(instance=current_requestion),
-                        'current_requestion_age_groups': current_requestion.age_groups(
-                            current_distribution_year=current_distribution_year)})
-                    current_requestion_index = full_queue.requestions_before(
-                        current_requestion).count()
-                    print current_requestion_index, datetime.datetime.now()
-                    if last_distributed_requestion:
-                        last_distributed_index = full_queue.requestions_before(
-                            last_distributed_requestion).count()
-                        inactive_queue = full_queue[last_distributed_index:current_requestion_index]
-                        queue = full_queue[current_requestion_index:current_requestion_index + 10]
-                    else:
-                        inactive_queue = full_queue[:current_requestion_index]
-                        queue = full_queue[current_requestion_index:current_requestion_index + 10]
-                    info_dict.update({'inactive_queue': inactive_queue})
-                    print 'after first update'
-                    info_dict.update({'distribution': distribution, 'queue': queue,
-                    'free_places': free_places, 'decision_status': STATUS_DECISION,
-                    'last_distributed_requestion': last_distributed_requestion,
-                    'distributed_requestions_number': distributed_requestions_number})
-                    return info_dict
+                                         areas__sadik__groups__age_group=age_group,
+                                         areas__sadik__groups__active=True)
+                # собираем все в один запрос
+                requestions_with_places_query |= query_for_group & query_for_any_sadiks
+            # список заявок, которые могут быть зачислены
+            requestions_with_places = full_queue.exclude(status=STATUS_DECISION
+                    ).exclude(admission_date__gt=datetime.date.today(),
+                ).filter(requestions_with_places_query)
+            if requestions_with_places.exists():
+                current_requestion = requestions_with_places[0]
+                info_dict.update({'current_requestion': current_requestion,
+                    'location_not_verified': current_requestion.location_not_verified,
+                    'location_form': ChangeLocationForm(instance=current_requestion),
+                    'current_requestion_age_groups': current_requestion.age_groups(
+                        current_distribution_year=current_distribution_year)})
+                current_requestion_index = full_queue.requestions_before(
+                    current_requestion).count()
+                if last_distributed_requestion:
+                    last_distributed_index = full_queue.requestions_before(
+                        last_distributed_requestion).count()
+                    inactive_queue = full_queue[last_distributed_index:current_requestion_index]
+                    queue = full_queue[current_requestion_index:current_requestion_index + 10]
                 else:
-                    counter += 1
-                    print 'inside else', counter
-            inactive_queue = []
-            print 'before first update'
-            # inactive_queue = []
-            print inactive_queue
-        else:
-            inactive_queue = []
+                    inactive_queue = full_queue[:current_requestion_index]
+                    queue = full_queue[current_requestion_index:current_requestion_index + 10]
+            else:
+                inactive_queue = []
             info_dict.update({'inactive_queue': inactive_queue})
-            print 'after first update'
         info_dict.update({'distribution': distribution, 'queue': queue,
             'free_places': free_places, 'decision_status': STATUS_DECISION,
             'last_distributed_requestion': last_distributed_requestion,
             'distributed_requestions_number': distributed_requestions_number})
-        print 'returning'
         return info_dict
 
     def sadiks_for_requestion(self, requestion):
