@@ -218,17 +218,18 @@ class DecisionManager(OperatorPermissionMixin, View):
                     current_distribution_year=current_distribution_year)) & \
                     Q(birth_date__gt=age_group.min_birth_date(
                         current_distribution_year=current_distribution_year))
-        #        должны быть места в приоритетных ДОУ
+                # должны быть места в приоритетных ДОУ
                 query_for_pref_sadiks = Q(pref_sadiks__groups__free_places__gt=0,
                                           pref_sadiks__groups__age_group=age_group)
-        #        либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
-        #        или не указана область
+                # либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
+                # или не указана область
                 query_for_any_sadiks = Q(areas__sadik__groups__free_places__gt=0,
                                          areas__sadik__groups__age_group=age_group)
-        #        собираем все в один запрос
+                # собираем все в один запрос
                 requestions_with_places_query |= query_for_group & query_for_any_sadiks
-        #    список заявок, которые могут быть зачислены
-            requestions_with_places = full_queue_experimental.exclude(admission_date__gt=datetime.date.today(),
+            # список заявок, которые могут быть зачислены
+            requestions_with_places = full_queue.exclude(status=STATUS_DECISION
+                    ).exclude(admission_date__gt=datetime.date.today(),
                 ).filter(requestions_with_places_query)
             if requestions_with_places.exists():
                 current_requestion = requestions_with_places[0]
