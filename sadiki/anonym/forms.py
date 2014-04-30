@@ -11,6 +11,7 @@ from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area
 from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
+from django.core.exceptions import MultipleObjectsReturned
 import re
 
 
@@ -97,6 +98,10 @@ class FormWithDocument(forms.ModelForm):
                     confirmed=True, template=template)
             except EvidienceDocument.DoesNotExist:
                 pass
+            except MultipleObjectsReturned:
+                self._errors["document_number"] = self.error_class(
+                    [u'Документ с таким номером уже занят'])
+                del cleaned_data['document_number']
             else:
                 self._errors["document_number"] = self.error_class(
                     [u'Документ с таким номером уже занят'])
