@@ -320,6 +320,7 @@
             <div class="span5">
                 <div class="requestion-info">
                 {% if use_districts %}
+                    {% if form.areas.errors %} <span class="error">Пожалуйста, выберите район и соответствующие группы ДОУ для зачисления.</span>{% endif %}
                     {% with form.district as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
@@ -332,7 +333,7 @@
                     </div>
                 {% else %}
                     {% with form.areas as field %}
-                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                         <div></div>
                         {% if field.help_text %}
                             <p class="hint">{{ field.help_text }}</p>
