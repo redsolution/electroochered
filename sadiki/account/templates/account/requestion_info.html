@@ -301,6 +301,11 @@
                          '<p>В число "Из них льготников" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p><br>' +
                          '<p>В число "Документально подтвержденных" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p>',
                 placement: "top"});
+            $("#pref_dou_groups").popover({
+                title: "Группы ДОУ",
+                content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
+                "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
+            });
         });
         </script>
 {% endblock %}
@@ -463,7 +468,7 @@
             </div>
             {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
-            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
+            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label> <span id="pref_dou_groups" class="icon-question-sign"></span>
             {% for area in requestion.areas.all %}
                 <p class="field-value hidden-input">
                     <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>

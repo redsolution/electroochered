@@ -1508,3 +1508,8 @@ dl {
 .black-number {
     color: black;
 }
+
+.requestion-info .field .icon-question-sign {
+    font-size: 16px;
+    margin-top: -2px;
+}
