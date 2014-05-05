@@ -78,7 +78,7 @@ function add_area_field(element, id, text) {
         <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area(' + id + '); return false"></a> \
         <a id="' + id + '" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">' + text + '</a> \
         <span class="caret caret-right caret-margins"></span> \
-        <a class="editor" href="#" onclick="del_field(this); return false"> \
+        <a class="editor" href="#" onclick="del_field(this); return false" data-toggle="tooltip" title="Удалить группу ДОУ"> \
         <i id="area-close" class="icon-remove"></i></a> \
     </p> \
     <ul class="kidgs_list unstyled"></ul>');
