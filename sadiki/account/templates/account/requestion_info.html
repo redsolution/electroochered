@@ -470,20 +470,17 @@
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label> <span id="pref_dou_groups" class="icon-question-sign"></span>
             {% for area in requestion.areas.all %}
+                {% if pref_sadiks_form.areas.value %}
                 <p class="field-value hidden-input">
                     <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
                     <a id="{{ area.id }}" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">
-                        {% if pref_sadiks_form.areas.value %}
-                            {{ area|default:"Весь муниципалитет" }}
-                        {% else %}
-                            Весь муниципалитет
-                        {% endif %}
                     </a> <span class="caret caret-right caret-margins"></span>
                     <a class="editor" href="#" onclick="del_field(this); return false"
                         data-toggle="tooltip" title="Удалить группу ДОУ">
                         <i id="area-close" class="icon-remove"></i>
                     </a>
                 </p>
+                {% endif %}
                 <ul class="kidgs_list unstyled">
                 </ul>
             {% endfor %}
