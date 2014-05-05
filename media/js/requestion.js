@@ -79,7 +79,7 @@ function add_area_field(element, id, text) {
         <a id="' + id + '" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">' + text + '</a> \
         <span class="caret caret-right caret-margins"></span> \
         <a class="editor" href="#" onclick="del_field(this); return false"> \
-        <img id="area-close" src="/static/img/remove.png"></a> \
+        <i id="area-close" class="icon-remove"></i></a> \
     </p> \
     <ul class="kidgs_list unstyled"></ul>');
 }

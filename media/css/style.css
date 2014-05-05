@@ -1444,7 +1444,9 @@ tr.dynamic-form .errorlist {
 }
 
 #area-close {
-    margin-bottom: 3px;
+    margin-top: 2px;
+    font-size: 18px;
+    color: gray;
 }
 
 .kidgs_list a img {
