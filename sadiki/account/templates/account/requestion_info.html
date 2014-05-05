@@ -474,6 +474,7 @@
                 <p class="field-value hidden-input">
                     <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
                     <a id="{{ area.id }}" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">
+                            {{ area|default:"Весь муниципалитет" }}
                     </a> <span class="caret caret-right caret-margins"></span>
                     <a class="editor" href="#" onclick="del_field(this); return false"
                         data-toggle="tooltip" title="Удалить группу ДОУ">
