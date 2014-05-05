@@ -1513,3 +1513,7 @@ dl {
     font-size: 16px;
     margin-top: -2px;
 }
+
+#filter-age {
+    margin-top: 2px;
+}
