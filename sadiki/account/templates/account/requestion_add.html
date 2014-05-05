@@ -96,6 +96,8 @@
         $(document).ready(function(){
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+
+            delete_special_benefits();
             
             {% if use_districts %}
                 $('#areas_field').hide();

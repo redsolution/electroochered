@@ -38,6 +38,15 @@ function center_to_kidgdn(elem) {
 }
 
 
+function delete_special_benefits() {
+    slct = $('#bsmSelectbsmContainer0 option');
+    slct.each(function() {
+        if (this.text.indexOf('Электроочереди') > -1) {
+            this.remove();
+        }
+    });
+}
+
 // условный центр списка садиков
 function get_center(sadik_list) {
     return sadik_list.reduce(getAverageCoords, {location: [0, 0]});
