@@ -18,7 +18,8 @@ from sadiki.core.models import Requestion, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year, \
+    get_coords_from_address
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
@@ -122,7 +123,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     requestion_form = RequestionForm
     benefits_form = BenefitsForm
     logger_action = REQUESTION_ADD_BY_REQUESTER
-    get_coords_form = sadiki.operator.forms.GetCoordsForm
 
     def get_context_data(self, **kwargs):
         districts_all = District.objects.all()
@@ -153,7 +153,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         context = self.get_context_data(profile=profile)
         form = self.requestion_form()
         benefits_form = self.benefits_form()
-        get_coords_form = self.get_coords_form()
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = DocumentFormset(
@@ -163,8 +162,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             formset = None
         context.update({
             'form': form, 'benefits_form': benefits_form,
-            'formset': formset, 'openlayers_js': get_openlayers_js(),
-            'get_coords_form': get_coords_form})
+            'formset': formset, 'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
 
     def post(self, request, profile):

@@ -28,8 +28,8 @@ from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
-    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm, \
-    GetCoordsForm
+    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, \
+    OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm
 from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_profile_additions
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
@@ -506,21 +506,3 @@ class SocialProfilePublic(OperatorPermissionMixin, AccountSocialProfilePublic):
     def dispatch(self, request, profile_id):
         profile = get_object_or_404(Profile, id=profile_id)
         return super(AccountSocialProfilePublic, self).dispatch(request, profile)
-
-
-class GetCoordsFromAddress(OperatorPermissionMixin, View):
-
-    def post(self, request):
-        if request.is_ajax():
-            print request.POST
-            address_form = GetCoordsForm(data=request.POST)
-            if address_form.is_valid():
-                coords = get_coords_from_address(request.POST['address'])
-                return HttpResponse(content=json.dumps({'ok': True, 'coords': coords}),
-                        mimetype='text/javascript')
-            return HttpResponse(content=json.dumps({'ok': False}),
-                        mimetype='text/javascript')
-
-        else:
-            print 'passed'
-            return HttpResponseBadRequest()

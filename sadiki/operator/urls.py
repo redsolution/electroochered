@@ -7,8 +7,7 @@ from sadiki.operator.plugins import plugins
 from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
     RequestionAdd, \
     RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
-    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic, \
-    GetCoordsFromAddress
+    EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
     RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
 
@@ -16,8 +15,6 @@ from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePla
 urlpatterns = patterns('',
     # Общие функции
     url(r'^$', FrontPage.as_view(), name='operator_frontpage'),
-    url(r'^get_coords/$',
-        GetCoordsFromAddress.as_view(), name='get_coords_from_address'),
 
     #профиль
     url(r'^profile/(?P<profile_id>\d{1,7})/$',

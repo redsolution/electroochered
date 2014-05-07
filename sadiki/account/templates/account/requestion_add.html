@@ -244,6 +244,25 @@
                 }
             });
         });
+
+        $("#get_coords_by_get").click(function() {
+            $.ajax($('#get_coords_form').attr('action'), {
+                type: 'GET',
+                data: {'address': $('#text_by_get').val()},
+                dataType:'json',
+                success: function(data, textStatus, jqXHR){
+                    if (data.ok) {
+                        map.setView([data.coords[1], data.coords[0]], 17);
+                    } else {
+                        console.log(data);
+                    }
+                },
+                error: function(){
+                    $('#location_saving').hide();
+                    $('#location_not_saved').show();
+                }
+            });
+        });
     </script>
 
     <script type="text/javascript">
@@ -374,6 +393,12 @@
                     </div>
                     <div class="hidden">
                         {{ form.location }}
+                    </div>
+                    <div>
+                    <p>
+                        <input type="text" id="text_by_get" placeholder="Введите адрес заявки">
+                        <a class="btn" id="get_coords_by_get">Центрировать карту по адресу</a>
+                        </p>
                     </div>
                     <div id="account-requestion-map"></div>
                     <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>

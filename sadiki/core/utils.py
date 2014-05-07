@@ -269,5 +269,4 @@ class Yandex(Geocoder):
 def get_coords_from_address(address):
     geocoder = Yandex()
     coords = geocoder.geocode(address)
-    print coords
     return coords
