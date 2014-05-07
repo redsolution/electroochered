@@ -14,6 +14,7 @@
 
 {% block bottomjs %}
     {{ block.super }}
+    {% load_settings %}
     <script src="{{ STATIC_URL }}leaflet/leaflet.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
@@ -224,17 +225,25 @@
             </select>');
         }
 
-        // добавляем выбранную ТО к areas
-        /*
-        $(document).on("change", ".areas_all", function() {
-            var id = $(this).val();
-            $('#id_areas option').each(function() {
-                if (this.value==id) {
-                    this.selected = true;
-                };
+        // получаем примерные координаты исходя из адресаc
+        $("#get_coords").click(function() {
+            $.ajax($('#get_coords_form').attr('action'), {
+                type: 'POST',
+                data: $('#get_coords_form').serialize(),
+                dataType:'json',
+                success: function(data, textStatus, jqXHR){
+                    if (data.ok) {
+                        console.log(data.coords);
+                    } else {
+                        console.log(data);
+                    }
+                },
+                error: function(){
+                    $('#location_saving').hide();
+                    $('#location_not_saved').show();
+                }
             });
-         });
-         */
+        });
     </script>
 
     <script type="text/javascript">
@@ -388,5 +397,12 @@
                 </div>
             </div>
         </div>
+
     </form>
+    <div id="coords">
+        <form method="POST" action="{% url get_coords_from_address %}" id="get_coords_form">{% csrf_token %}
+            {{ get_coords_form.as_table }}
+            <a class="btn" id="get_coords">get coords</a>
+        </form>
+    </div>
 {% endblock %}

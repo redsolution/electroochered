@@ -353,3 +353,7 @@ class DocumentForm(forms.ModelForm):
             self._errors["document_number"] = self.error_class(
                 [u'Неверный формат'])
         return cleaned_data
+
+
+class GetCoordsForm(forms.Form):
+    address = forms.CharField()
