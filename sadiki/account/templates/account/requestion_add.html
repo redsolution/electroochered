@@ -97,6 +97,7 @@
         $(document).ready(function(){
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+            $('#coords_alert').hide();
 
             delete_special_benefits();
             
@@ -225,41 +226,27 @@
             </select>');
         }
 
-        // получаем примерные координаты исходя из адресаc
+        // получаем примерные координаты исходя из адреса
         $("#get_coords").click(function() {
-            $.ajax($('#get_coords_form').attr('action'), {
-                type: 'POST',
-                data: $('#get_coords_form').serialize(),
-                dataType:'json',
-                success: function(data, textStatus, jqXHR){
-                    if (data.ok) {
-                        console.log(data.coords);
-                    } else {
-                        console.log(data);
-                    }
-                },
-                error: function(){
-                    $('#location_saving').hide();
-                    $('#location_not_saved').show();
-                }
-            });
-        });
-
-        $("#get_coords_by_get").click(function() {
-            $.ajax($('#get_coords_form').attr('action'), {
+            $.ajax('{% url get_coords_from_address %}', {
                 type: 'GET',
-                data: {'address': $('#text_by_get').val()},
+                data: {'address': $('#address_text').val()},
                 dataType:'json',
                 success: function(data, textStatus, jqXHR){
                     if (data.ok) {
+                        $('#coords_alert').hide();
                         map.setView([data.coords[1], data.coords[0]], 17);
                     } else {
-                        console.log(data);
+                        $('#coords_alert').text('Координаты по вашему запросу не найдены. ' +
+                                                'Попробуйте изменить адрес.');
+                        $('#coords_alert').show();
                     }
                 },
                 error: function(){
-                    $('#location_saving').hide();
-                    $('#location_not_saved').show();
+                    $('#coords_alert').addClass('alert-error');
+                    $('#coords_alert').text('Ошибка обработки запроса. Попробуйте еще раз или ' +
+                                            'установите маркер на карте самостоятельно.');
+                    $('#coords_alert').show();
                 }
             });
         });
@@ -395,9 +382,12 @@
                         {{ form.location }}
                     </div>
                     <div>
+                        <div id="coords_alert" class="alert">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
                     <p>
-                        <input type="text" id="text_by_get" placeholder="Введите адрес заявки">
-                        <a class="btn" id="get_coords_by_get">Центрировать карту по адресу</a>
+                        <input type="text" id="address_text" placeholder="Введите адрес заявки">
+                        <a class="btn" id="get_coords">Центрировать карту по адресу</a>
                         </p>
                     </div>
                     <div id="account-requestion-map"></div>
@@ -424,10 +414,4 @@
         </div>
 
     </form>
-    <div id="coords">
-        <form method="POST" action="{% url get_coords_from_address %}" id="get_coords_form">{% csrf_token %}
-            {{ get_coords_form.as_table }}
-            <a class="btn" id="get_coords">get coords</a>
-        </form>
-    </div>
 {% endblock %}
