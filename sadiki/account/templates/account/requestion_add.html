@@ -99,6 +99,13 @@
             $('#id_areas').hide();
             $('#coords_alert').hide();
 
+            // поиск адреса при клике ентера и активном поле с адресом
+            $('#address_text').keypress(function(e) {
+                if(e.keyCode==13) {
+                    $('#get_coords').click();
+                }
+            });
+
             delete_special_benefits();
             
             {% if use_districts %}
@@ -250,6 +257,11 @@
                 }
             });
         });
+
+        $("#mainform_submit").click(function() {
+            $(this).prop("disabled", true);
+            $("#mainform").submit();
+        })
     </script>
 
     <script type="text/javascript">
@@ -385,9 +397,9 @@
                         <div id="coords_alert" class="alert">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                         </div>
-                    <p>
-                        <input type="text" id="address_text" placeholder="Введите адрес заявки">
-                        <a class="btn" id="get_coords">Центрировать карту по адресу</a>
+                        <p>
+                            <input type="text" id="address_text" placeholder="Введите адрес заявки: Город, улица, дом">
+                            <a class="btn" id="get_coords">Найти адрес на карте</a>
                         </p>
                     </div>
                     <div id="account-requestion-map"></div>
@@ -407,7 +419,7 @@
             <div class="span11">
                 <div class="uniForm">
                 <div class="buttonHolder">
-                    <button class="primaryAction" type="submit">Добавить</button>
+                    <button id="mainform_submit" class="primaryAction" type="button">Добавить</button>
                 </div>
                 </div>
             </div>
