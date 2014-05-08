@@ -389,11 +389,6 @@
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
                         <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
-                    </div>
-                    <div class="hidden">
-                        {{ form.location }}
-                    </div>
-                    <div>
                         <div id="coords_alert" class="alert">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                         </div>
@@ -401,6 +396,9 @@
                             <input type="text" id="address_text" placeholder="Введите адрес заявки: Город, улица, дом">
                             <a class="btn" id="get_coords">Найти адрес на карте</a>
                         </p>
+                    </div>
+                    <div class="hidden">
+                        {{ form.location }}
                     </div>
                     <div id="account-requestion-map"></div>
                     <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>

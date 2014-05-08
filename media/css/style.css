@@ -1514,3 +1514,14 @@ dl {
 #filter-age {
     margin-top: 2px;
 }
+
+#coords_alert {
+    margin-bottom: 8px;
+}
+
+#address_text {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    height: 31px;
+    font-size: 16px;
+}
