@@ -128,7 +128,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             'profile': kwargs.get('profile'),
             'sadiks_location_data': get_json_sadiks_location_data(),
             'plugin_menu_items': get_plugin_menu_items(),
-            'areas_all': Area.objects.all(),
+            'areas_all': Area.objects.all().select_related('district'),
             'districts_all': districts_all,
             'use_districts': USE_DISTRICTS,
         }
