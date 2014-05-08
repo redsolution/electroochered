@@ -9,6 +9,9 @@ from django.contrib.sites.models import Site
 import datetime
 import re
 import uuid
+import urllib
+import urllib2
+from BeautifulSoup import BeautifulStoneSoup
 
 from django.db.models.aggregates import Min
 from django.utils.safestring import mark_safe
@@ -186,3 +189,84 @@ def get_openlayers_js():
     media.add_js([CustomGeoAdmin.openlayers_url])
     media.add_js(CustomGeoAdmin.extra_js)
     return mark_safe(media)
+
+# геокодер яндекса
+class Geocoder(object):
+    base_url = ''
+    defaults = None
+
+    def __init__(self, **kwargs):
+        if self.defaults:
+            self.params = self.defaults
+        else:
+            self.params = {}
+
+        self.params.update(**kwargs)
+        self.params['encoded_params'] = self.encode_params(self.params.copy())
+        object.__init__(self)
+
+    def encode_params(self, kwargs):
+        if 'encoded_params' in kwargs:
+            kwargs.pop('encoded_params')
+        if 'query' in kwargs:
+            kwargs.pop('query')
+        return urllib.urlencode(kwargs)
+
+    def geocode(self, query):
+        attempts = 0
+        while attempts < 3:
+            try:
+                self.params['query'] = urllib.quote_plus(query.encode('utf-8'))
+
+                url = self.base_url % self.params
+                data = urllib2.urlopen(url)
+                response = data.read()
+
+                return self.parse_response(response)
+            except Exception:
+                attempts += 1
+
+    def parse_response(self, data):
+        return data
+
+
+class Yandex(Geocoder):
+    u"""
+    Реализация Яндекс - геокодера
+    http://api.yandex.ru/maps/doc/geocoder/desc/concepts/input_params.xml
+
+    В конструктор класса передаются параметры,
+    в функцию geocode - строка запроса.
+
+    ``geocode`` возвращает кортеж из координат, либо None
+
+    Аргумент ``bounds`` используется для ограничения области поиска.
+    Формат аргмуента: кортеж из четырёх значений коодинат, например, (lat1, lng1, lat2, lng2)
+    """
+    base_url = 'http://geocode-maps.yandex.ru/1.x/?geocode=%(query)s&%(encoded_params)s'
+    defaults = {
+        'format': 'xml',
+    }
+
+    def encode_params(self, kwargs):
+        if 'bounds' in kwargs:
+            x1, y1, x2, y2 = kwargs.pop('bounds')
+            ll = ((x1+x2)/2, (y1+y2)/2)  # координаты центра области
+            spn = (abs(ll[0] - x1), abs(ll[1] - y1))  # протяженность области в градусах
+
+            kwargs['ll'] = '%f,%f' % ll
+            kwargs['spn'] = '%f,%f' % spn
+
+        return super(Yandex, self).encode_params(kwargs)
+
+    def parse_response(self, data):
+        soup = BeautifulStoneSoup(data)
+        found = soup.ymaps.geoobjectcollection.metadataproperty.geocoderresponsemetadata.found.string
+        if found != '0':
+            return tuple(soup.ymaps.geoobjectcollection.featuremember.geoobject.point.pos.string.split(' '))
+
+
+def get_coords_from_address(address):
+    geocoder = Yandex()
+    coords = geocoder.geocode(address)
+    return coords

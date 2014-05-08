@@ -18,12 +18,14 @@ from sadiki.core.models import Requestion, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year, \
+    get_coords_from_address
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
 from sadiki.conf_settings import USE_DISTRICTS
+import sadiki.operator.forms
 
 
 def get_json_sadiks_location_data():
@@ -158,7 +160,8 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 template__destination=BENEFIT_DOCUMENT))
         else:
             formset = None
-        context.update({'form': form, 'benefits_form': benefits_form,
+        context.update({
+            'form': form, 'benefits_form': benefits_form,
             'formset': formset, 'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
 

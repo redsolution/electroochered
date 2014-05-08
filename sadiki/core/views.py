@@ -2,14 +2,15 @@
 import json
 from django.conf import settings
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
 from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import TemplateView
+from django.views.generic.base import TemplateView, View
 from sadiki.conf_settings import DEFAULT_IMPORT_DOCUMENT_NAME
 from sadiki.core.models import Sadik, Preference, PREFERENCE_IMPORT_FINISHED, Area, Benefit, AGENT_TYPE_CHOICES, EvidienceDocumentTemplate, REQUESTION_IDENTITY, AgeGroup
 from sadiki.anonym.views import Queue as AnonymQueue, RequestionSearch as AnonymRequestionSearch, \
     Registration as AnonymRegistration
+import sadiki.core.utils
 from sadiki.operator.views.requestion import Queue as OperatorQueue, Registration as OperatorRegistration,\
     RequestionSearch as OperatorRequestionSearch
 from sadiki.supervisor.views import RequestionSearch as SupervisorRequestionSearch
@@ -102,3 +103,17 @@ def import_params(request):
     data['AGE_GROUPS'] = list(AgeGroup.objects.all().values_list('name', flat=True))
     data["REGION_NAME"] = settings.REGION_NAME
     return HttpResponse(json.dumps(data), mimetype='text/json')
+
+
+class GetCoordsFromAddress(View):
+
+    def get(self, request):
+        if request.user.is_authenticated() and request.is_ajax():
+            coords = sadiki.core.utils.get_coords_from_address(request.GET['address'])
+            if coords:
+                return HttpResponse(content=json.dumps({'ok': True, 'coords': coords}),
+                                    mimetype='text/javascript')
+            return HttpResponse(content=json.dumps({'ok': False}),
+                                mimetype='text/javascript')
+        else:
+            return HttpResponseBadRequest()

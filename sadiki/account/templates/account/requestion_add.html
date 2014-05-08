@@ -14,6 +14,7 @@
 
 {% block bottomjs %}
     {{ block.super }}
+    {% load_settings %}
     <script src="{{ STATIC_URL }}leaflet/leaflet.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
@@ -96,6 +97,14 @@
         $(document).ready(function(){
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+            $('#coords_alert').hide();
+
+            // поиск адреса при клике ентера и активном поле с адресом
+            $('#address_text').keypress(function(e) {
+                if(e.keyCode==13) {
+                    $('#get_coords').click();
+                }
+            });
 
             delete_special_benefits();
             
@@ -224,17 +233,35 @@
             </select>');
         }
 
-        // добавляем выбранную ТО к areas
-        /*
-        $(document).on("change", ".areas_all", function() {
-            var id = $(this).val();
-            $('#id_areas option').each(function() {
-                if (this.value==id) {
-                    this.selected = true;
-                };
+        // получаем примерные координаты исходя из адреса
+        $("#get_coords").click(function() {
+            $.ajax('{% url get_coords_from_address %}', {
+                type: 'GET',
+                data: {'address': $('#address_text').val()},
+                dataType:'json',
+                success: function(data, textStatus, jqXHR){
+                    if (data.ok) {
+                        $('#coords_alert').hide();
+                        map.setView([data.coords[1], data.coords[0]], 17);
+                    } else {
+                        $('#coords_alert').text('Координаты по вашему запросу не найдены. ' +
+                                                'Попробуйте изменить адрес.');
+                        $('#coords_alert').show();
+                    }
+                },
+                error: function(){
+                    $('#coords_alert').addClass('alert-error');
+                    $('#coords_alert').text('Ошибка обработки запроса. Попробуйте еще раз или ' +
+                                            'установите маркер на карте самостоятельно.');
+                    $('#coords_alert').show();
+                }
             });
-         });
-         */
+        });
+
+        $("#mainform_submit").click(function() {
+            $(this).prop("disabled", true);
+            $("#mainform").submit();
+        })
     </script>
 
     <script type="text/javascript">
@@ -362,6 +389,13 @@
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
                         <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
+                        <div id="coords_alert" class="alert">
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
+                        <p>
+                            <input type="text" id="address_text" placeholder="Введите адрес заявки: Город, улица, дом">
+                            <a class="btn" id="get_coords">Найти адрес на карте</a>
+                        </p>
                     </div>
                     <div class="hidden">
                         {{ form.location }}
@@ -383,10 +417,11 @@
             <div class="span11">
                 <div class="uniForm">
                 <div class="buttonHolder">
-                    <button class="primaryAction" type="submit">Добавить</button>
+                    <button id="mainform_submit" class="primaryAction" type="button">Добавить</button>
                 </div>
                 </div>
             </div>
         </div>
+
     </form>
 {% endblock %}

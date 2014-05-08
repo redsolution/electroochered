@@ -607,7 +607,6 @@ table.table.table-bordered tr.highlight td {
 }
 
 .requestion-add-form #account-requestion-map{
-    width: 550px;
 }
 
 .requestion-info .small-field .field-value{
@@ -890,7 +889,6 @@ html, body {
 }
 
 #sadik_map{
-    width: 570px;
     height: 300px;
     float: right;
 }
@@ -1168,7 +1166,6 @@ tr.dynamic-form .errorlist {
 }
 
 #account-requestion-map{
-    width: 470px;
     height: 300px;
     margin-bottom: 10px;
 }
@@ -1516,4 +1513,15 @@ dl {
 
 #filter-age {
     margin-top: 2px;
+}
+
+#coords_alert {
+    margin-bottom: 8px;
+}
+
+#address_text {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    height: 31px;
+    font-size: 16px;
 }
