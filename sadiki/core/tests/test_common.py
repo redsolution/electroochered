@@ -175,6 +175,7 @@ class TestAll(TestCase):
             'id', flat=True))
         management.call_command('generate_sadiks', 5)
         new_sadiks = list(Sadik.objects.exclude(id__in=existing_sadiks_ids))
+        # TODO: Исправить тест, с учетом distribute_in_any_sadik = True!!!
         requestions_pref_sadiks_ids = list(Requestion.objects.exclude(
             id__in=requestions_admission_date_ids).order_by('?')[:30].values_list(
             'id', flat=True))
@@ -225,12 +226,12 @@ class TestAll(TestCase):
                 last_distributed_requestion = requestion
                 total += 1
             queue_info = decision_manager.queue_info()
-        print total
 
         # проверяем,что заявки с ЖДП, превышающим текущую дату и желающие зачислиться
         # в ДОУ без мест не распределены
-        requestions_not_decision_ids = list(requestions_pref_sadiks_ids) + \
-                                       list(requestions_admission_date_ids)
+        # закомментировал с учетом distribute_in_any_sadik = True
+        requestions_not_decision_ids = list(requestions_admission_date_ids)  # + list(requestions_pref_sadiks_ids)
+
         self.assertEqual(
             Requestion.objects.filter(id__in=requestions_not_decision_ids).filter(
                 status=STATUS_DECISION).count(), 0)
