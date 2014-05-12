@@ -10,7 +10,7 @@ from django.core import management
 from django.core.exceptions import ValidationError
 
 from sadiki.core.models import Requestion, Area, BenefitCategory, \
-    Profile, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
+    Profile, Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
     REQUESTION_TYPE_NORMAL, STATUS_REJECTED
 
 
@@ -20,6 +20,12 @@ def get_random_string(length, only_letters=False, only_digits=False):
     if only_letters:
         return ''.join([random.choice(string.ascii_letters) for _ in xrange(length)])
     return ''.join([random.choice(string.ascii_letters + string.digits) for _ in xrange(length)])
+
+
+def create_objects(f, number, **kwargs):
+    for i in range(number):
+        obj = f(**kwargs)
+    return obj
 
 
 def create_area(**kwargs):
@@ -88,7 +94,9 @@ class RequestionTestCase(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        create_objects(create_area, 5)
         management.call_command('update_initial_data')
+        management.call_command('generate_sadiks', 10)
 
     def setUp(self):
         self.requestion = create_requestion(name='Ann')
