@@ -132,7 +132,7 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
-                    queryset = queryset.filter(areas=area).distinct()
+                    queryset = queryset.queue().filter(areas=area).distinct()
                 else:
                     queryset = queryset.queue()
                 if form.cleaned_data.get('without_facilities'):
