@@ -11,7 +11,7 @@ from django.core.exceptions import ValidationError
 
 from sadiki.core.models import Requestion, Area, BenefitCategory, \
     Profile, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
-    REQUESTION_TYPE_NORMAL
+    REQUESTION_TYPE_NORMAL, STATUS_REJECTED
 
 
 def get_random_string(length, only_letters=False, only_digits=False):
@@ -93,6 +93,11 @@ class RequestionTestCase(unittest.TestCase):
     def setUp(self):
         self.requestion = create_requestion(name='Ann')
 
+    def tearDown(self):
+        requestions = Requestion.objects.all()
+        for r in requestions:
+            r.delete()
+
     def test_requestion_creation(self):
         self.assertEqual(self.requestion.name, 'Ann')
         self.assertFalse(self.requestion.all_fields_filled())
@@ -121,3 +126,16 @@ class RequestionTestCase(unittest.TestCase):
     def test_clean(self):
         self.requestion.birth_date = datetime.date.today() + datetime.timedelta(days=1)
         self.assertRaises(ValidationError, self.requestion.clean)
+
+    def test_position_in_queue(self):
+        self.assertEqual(self.requestion.position_in_queue(), 1)
+
+        benefit_category_high = create_benefit_category(priority=1)
+        high_priority = create_requestion(benefit_category=benefit_category_high)
+        self.assertEqual(self.requestion.position_in_queue(), 2)
+
+        last_req = create_requestion()
+        self.assertEqual(last_req.position_in_queue(), 3)
+        high_priority.status = STATUS_REJECTED
+        high_priority.save()
+        self.assertEqual(last_req.position_in_queue(), 2)
