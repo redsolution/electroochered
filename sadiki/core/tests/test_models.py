@@ -11,7 +11,8 @@ from django.core.exceptions import ValidationError
 
 from sadiki.core.models import Requestion, Area, BenefitCategory, \
     Profile, Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
-    REQUESTION_TYPE_NORMAL, STATUS_REJECTED
+    REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup, AgeGroup
+import sadiki.core.utils
 
 
 def get_random_string(length, only_letters=False, only_digits=False):
@@ -147,3 +148,18 @@ class RequestionTestCase(unittest.TestCase):
         high_priority.status = STATUS_REJECTED
         high_priority.save()
         self.assertEqual(last_req.position_in_queue(), 2)
+
+    def test_sadik_groups(self):
+        current_distribution_year = sadiki.core.utils.get_current_distribution_year()
+        print len(AgeGroup.objects.all())
+        for age_group in AgeGroup.objects.all():
+            group_min_birth_date = age_group.min_birth_date()
+            group_max_birth_date = age_group.max_birth_date()
+            for sadik in Sadik.objects.all():
+                SadikGroup.objects.create(free_places=2,
+                                          capacity=2, age_group=age_group, sadik=sadik,
+                                          year=current_distribution_year,
+                                          min_birth_date=group_min_birth_date,
+                                          max_birth_date=group_max_birth_date)
+
+        print self.requestion.get_sadiks_groups()
