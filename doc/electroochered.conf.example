@@ -17,7 +17,7 @@ SECRET_KEY:
 ; Адреса электронной почты, используемые приложением
 DEFAULT_FROM_EMAIL: no-reply@mestovsadik.ru
 SERVER_EMAIL: no-reply@mestovsadik.ru
-WEBMASTER: no-reply@mestovsadik.ru
+WEBMASTER: support@mestovsadik.ru
 STUFF: no-reply@mestovsadik.ru
 
 ; map

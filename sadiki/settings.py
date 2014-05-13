@@ -8,7 +8,6 @@ TIME_ZONE = None
 LANGUAGE_CODE = 'ru'
 
 SITE_ID = 1
-EMAIL_SUBJECT_PREFIX = '[sadiki]'
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 SERVER_EMAIL = 'sadiki3'
 
