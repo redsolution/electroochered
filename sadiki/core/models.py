@@ -1075,14 +1075,15 @@ class Requestion(models.Model):
         u"""
         возвращается кол-во дней, оставшихся до окончания обжалования
         округление производится в больщую сторону(если осталось меньше дня,
-        возвращаетсяs 1 день)
+        возвращается 1 день)
         """
         status_change_delta = datetime.datetime.now() - self.status_change_datetime
-        delta_for_appeal = datetime.timedelta(days=settings.APPEAL_DAYS) - status_change_delta
-        if delta_for_appeal.days >= -1:
-            return delta_for_appeal.days + 1
-        else:
+        appeal_days = datetime.timedelta(days=settings.APPEAL_DAYS)
+        if status_change_delta > appeal_days:
             return 0
+        else:
+            delta_for_appeal = appeal_days - status_change_delta
+            return delta_for_appeal.days + 1
 
     @property
     def location_not_verified(self):

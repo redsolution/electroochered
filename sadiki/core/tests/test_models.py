@@ -3,6 +3,7 @@ import datetime
 from django.test import TestCase
 from django.core import management
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 from sadiki.core.models import Requestion, BenefitCategory, \
     Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
@@ -99,6 +100,7 @@ class RequestionTestCase(TestCase):
         self.assertEqual(age_groups[0].id, 2)
         self.assertEqual(groups[0].age_group, age_groups[0])
 
+        # слишком маленький ребенок, никуда не распределяем
         small_requestion = test_utils.create_requestion(
             admission_date=datetime.date(datetime.date.today().year, 1, 1),
             birth_date=datetime.date.today()-datetime.timedelta(days=1)
@@ -106,3 +108,14 @@ class RequestionTestCase(TestCase):
         small_requestion.areas.add(kidgdn.area)
         groups_small = small_requestion.get_sadiks_groups()
         self.assertEqual(len(groups_small), 0)
+
+    def test_days_for_appeal(self):
+        self.requestion.status_change_datetime = datetime.datetime.now() - (
+            datetime.timedelta(days=settings.APPEAL_DAYS + 1))
+        self.requestion.save()
+        self.assertEqual(self.requestion.days_for_appeal(), 0)
+
+        self.requestion.status_change_datetime = datetime.datetime.now() - (
+            datetime.timedelta(days=settings.APPEAL_DAYS - 1))
+        self.requestion.save()
+        self.assertEqual(self.requestion.days_for_appeal(), 1)
