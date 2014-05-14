@@ -3,7 +3,7 @@ import random
 import string
 import datetime
 from django.contrib.gis.geos import point
-from django.utils import unittest
+from django.test import TestCase
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.core import management
@@ -73,24 +73,29 @@ def get_admission_date():
 
 
 def create_requestion(**kwargs):
-    birth_date = datetime.date.today()-datetime.timedelta(
+    default_birth_date = datetime.date.today()-datetime.timedelta(
         days=random.randint(0, settings.MAX_CHILD_AGE*12*30))
 
     defaults = {
         'admission_date': get_admission_date(),
         'distribute_in_any_sadik': True,
-        'birth_date': birth_date,
+        'birth_date': default_birth_date,
         'profile': create_profile(),
         'location_properties': 'челябинск',
         'location': point.Point(random.choice([1, 2, 3, 4]), random.choice([1, 2, 3, 4])),
     }
     defaults.update(kwargs)
+
     requestion = Requestion.objects.create(**defaults)
-    requestion.areas.add(create_area())
+    if Area.objects.exists():
+        requestion.areas.add(Area.objects.all().order_by('?')[0])
+    else:
+        requestion.areas.add(create_area())
+
     return requestion
 
 
-class RequestionTestCase(unittest.TestCase):
+class RequestionTestCase(TestCase):
     fixtures = ['sadiki/core/fixtures/test_initial.json', ]
 
     @classmethod
@@ -103,9 +108,8 @@ class RequestionTestCase(unittest.TestCase):
         self.requestion = create_requestion(name='Ann')
 
     def tearDown(self):
-        requestions = Requestion.objects.all()
-        for r in requestions:
-            r.delete()
+        Requestion.objects.all().delete()
+        SadikGroup.objects.all().delete()
 
     def test_requestion_creation(self):
         self.assertEqual(self.requestion.name, 'Ann')
@@ -132,34 +136,56 @@ class RequestionTestCase(unittest.TestCase):
         self.assertEqual(self.requestion.location[0], 1.5)
         self.assertEqual(self.requestion.location[1], 4.8)
 
-    def test_clean(self):
+    def test_clean_no_birth_greater_today(self):
         self.requestion.birth_date = datetime.date.today() + datetime.timedelta(days=1)
         self.assertRaises(ValidationError, self.requestion.clean)
 
     def test_position_in_queue(self):
+        # одна заявка, должна быть первой
         self.assertEqual(self.requestion.position_in_queue(), 1)
 
-        benefit_category_high = create_benefit_category(priority=1)
+        # делаем заявку с более высоким приоритетом, смещаем первую на второе место
+        benefit_category_high = BenefitCategory.objects.get(priority=1)
         high_priority = create_requestion(benefit_category=benefit_category_high)
         self.assertEqual(self.requestion.position_in_queue(), 2)
 
+        # добавим еще одну заявку, без привелегий
         last_req = create_requestion()
         self.assertEqual(last_req.position_in_queue(), 3)
+        # убираем из очереди приоритетную
         high_priority.status = STATUS_REJECTED
         high_priority.save()
         self.assertEqual(last_req.position_in_queue(), 2)
 
-    def test_sadik_groups(self):
+    def test_all_group_methods(self):
         current_distribution_year = sadiki.core.utils.get_current_distribution_year()
-        print len(AgeGroup.objects.all())
+        kidgdn = Sadik.objects.get(pk=1)
+        test_requestion = create_requestion(
+            admission_date=datetime.date(datetime.date.today().year + 1, 1, 1),
+            birth_date=datetime.date.today()-datetime.timedelta(days=365)
+        )
+        test_requestion.areas.add(kidgdn.area)
+        test_requestion.save()
         for age_group in AgeGroup.objects.all():
             group_min_birth_date = age_group.min_birth_date()
             group_max_birth_date = age_group.max_birth_date()
-            for sadik in Sadik.objects.all():
-                SadikGroup.objects.create(free_places=2,
-                                          capacity=2, age_group=age_group, sadik=sadik,
-                                          year=current_distribution_year,
-                                          min_birth_date=group_min_birth_date,
-                                          max_birth_date=group_max_birth_date)
+            SadikGroup.objects.create(free_places=2,
+                                      capacity=2, age_group=age_group, sadik=kidgdn,
+                                      year=current_distribution_year,
+                                      min_birth_date=group_min_birth_date,
+                                      max_birth_date=group_max_birth_date)
 
-        print self.requestion.get_sadiks_groups()
+        groups = test_requestion.get_sadiks_groups()
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(groups[0].sadik, kidgdn)
+        self.assertEqual(groups[0].age_group.id, 2)
+        # self.assertEqual(groups[0],)
+
+        groups_for_kidgdn = test_requestion.get_sadik_groups(kidgdn)
+        self.assertEqual(len(groups_for_kidgdn), 1)
+        self.assertEqual(groups_for_kidgdn[0], groups[0])
+
+        age_groups = test_requestion.age_groups()
+        self.assertEqual(len(age_groups), 1)
+        self.assertEqual(age_groups[0].id, 2)
+        self.assertEqual(groups[0].age_group, age_groups[0])

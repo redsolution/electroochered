@@ -1056,9 +1056,8 @@ class Requestion(models.Model):
         groups = SadikGroup.objects.appropriate_for_birth_date(self.birth_date
             ).filter(free_places__gt=0)
         if self.areas.count():
-            groups.filter(sadik__area__id__in=self.areas.all().values_list('id', flat=True))
-        else:
-            return groups
+            groups = groups.filter(sadik__area__in=self.areas.all())
+        return groups
 
     def get_sadik_groups(self, sadik):
         return SadikGroup.objects.appropriate_for_birth_date(
