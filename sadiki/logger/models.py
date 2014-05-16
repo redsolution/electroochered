@@ -85,8 +85,6 @@ class LoggerManager(models.Manager):
                     LoggerMessage.objects.create(
                         level=log_level, message=message, logger=log,)
         # а теперь отсылаем сообщение(если работаем с заявкой) и это действие не находится в исключениях
-        # TODO: включить и проверить работу почты
-        '''
         if isinstance(obj, Requestion) and action_flag not in DISABLE_EMAIL_ACTIONS:
             profile = obj.profile
             if profile.user.email and profile.email_verified:
@@ -99,7 +97,6 @@ class LoggerManager(models.Manager):
                 send_mail(subject=u"Изменение заявки %s" % extra['obj'],
                     message=message,
                     from_email=None, recipient_list=[obj.profile.user.email, ])
-        '''
 
     def filter_for_object(self, obj):
         content_type = ContentType.objects.get_for_model(obj)
