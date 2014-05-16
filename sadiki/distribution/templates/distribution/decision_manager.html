@@ -368,7 +368,7 @@
             {% endif %}
             {% if current_requestion %}
                 <h3>Заявка</h3>
-                <p>
+                <p id="requestion-info-block">
                 {% with current_requestion.evidience_documents.requestion_identity_documents.0 as document %}
                     {% if document %}
                         <strong>Документ:</strong> {{ document.document_number }} ({{ document.template }})<br>

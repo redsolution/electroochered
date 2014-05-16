@@ -917,6 +917,7 @@ ul.documents {
 }
 
 #requestion_map{
+    width: 
     height: 300px;
 }
 
@@ -1525,4 +1526,8 @@ dl {
     margin-bottom: 5px;
     height: 31px;
     font-size: 16px;
+}
+
+#requestion-info-block {
+    width: 500px;
 }
