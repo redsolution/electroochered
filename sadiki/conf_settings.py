@@ -61,14 +61,6 @@ DATABASES = {
 # [secrets]
 SECRET_KEY = config.get('core', 'SECRET_KEY')
 
-# [email]
-EO_USER = DATABASE_USER.split('.')[0].capitalize()
-SERVER_EMAIL = 'Mestovsadik {} <{}>'.format(EO_USER, config.get('core', 'SERVER_EMAIL'))
-EMAIL_SUBJECT_PREFIX = '{}: '.format(DATABASE_USER)
-DEFAULT_FROM_EMAIL = 'Mestovsadik {} <{}>'.format(EO_USER, config.get('core', 'DEFAULT_FROM_EMAIL'))
-ADMINS = ((DATABASE_USER, config.get('core', 'WEBMASTER')), )
-MANAGERS = (config.get('core', 'STUFF'), )
-
 # [maps]
 MAP_CENTER = config.get('core', 'MAP_CENTER')
 MAP_ZOOM = config.getint('core', 'MAP_ZOOM')
@@ -105,3 +97,13 @@ VK_APP_ID = config.get('vkontakte', 'VK_APP_ID')
 VK_API_SECRET = config.get('vkontakte', 'VK_API_SECRET')
 
 USE_DISTRICTS = config.getint('core', 'USE_DISTRICTS')
+
+# [email]
+EO_USER = REGION_NAME.split(',')[-1].strip()
+SERVER_EMAIL = u'Место в садик ({}) <{}>'.format(
+    EO_USER, config.get('core', 'SERVER_EMAIL'))
+EMAIL_SUBJECT_PREFIX = '{}: '.format(DATABASE_USER)
+DEFAULT_FROM_EMAIL = u'Место в садик ({}) <{}>'.format(
+    EO_USER, config.get('core', 'DEFAULT_FROM_EMAIL'))
+ADMINS = ((DATABASE_USER, config.get('core', 'WEBMASTER')), )
+MANAGERS = (config.get('core', 'STUFF'), )
