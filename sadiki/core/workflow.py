@@ -274,7 +274,7 @@ workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
              ABSENT_REMOVE_REGISTRATION,
              u'Снятие с учёта по истечению срока на установление контакта', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, NOT_APPEAR_EXPIRE,
-             u'Истечение сроков на обжалование неявки')
+             u'Истечение сроков на обжалование неявки', permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION,
              NOT_APPEAR_REMOVE_REGISTRATION, u'Снятие с учёта по истечению срока явки',
              permissions=[OPERATOR_PERMISSION[0]])
@@ -437,7 +437,7 @@ requestion_account_template = u"""
     """
 
 requestion_anonym_template = u"""
-    Территориальные области:
+    Группы ДОУ:
     {% for area in areas %}
         {{ area }};
     {% empty %}
@@ -474,7 +474,7 @@ change_requestion_anonym_template = u"""
             Основная категория льгот: {{ requestion.benefit_category }};
         {% endif %}
         {% if "areas" in changed_data %}
-            Территориальные области:
+            Группы ДОУ:
             {% for area in cleaned_data.areas %}
                 {{ area }};
             {% empty %}
@@ -513,7 +513,7 @@ change_requestion_account_template = u"""
 
 change_preferred_sadiks_anonym_template = u'''
     {% if "areas" in changed_data %}
-        Территориальные области:
+        Группы ДОУ:
         {% for area in cleaned_data.areas %}
             {{ area }};
         {% empty %}
@@ -648,6 +648,12 @@ ACTION_TEMPLATES.update({
     },
     NOT_APPEAR_REQUESTER: {
         ANONYM_LOG: Template(decision_requster_anonym)
+    },
+    NOT_APPEAR_REMOVE_REGISTRATION: {
+        ANONYM_LOG: Template(u"""Снята с учета в связи с неявкой в 30-ти дневный срок""")
+    },
+    NOT_APPEAR_EXPIRE: {
+        ANONYM_LOG: Template(u"""Истек срок обжалования неявки.""")
     },
     DECISION_NOT_APPEAR: {
         ANONYM_LOG: Template(decision_not_appear_anonym)

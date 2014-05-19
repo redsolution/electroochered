@@ -62,9 +62,11 @@ DATABASES = {
 SECRET_KEY = config.get('core', 'SECRET_KEY')
 
 # [email]
-SERVER_EMAIL = config.get('core', 'SERVER_EMAIL')
-DEFAULT_FROM_EMAIL = config.get('core', 'DEFAULT_FROM_EMAIL')
-ADMINS = (config.get('core', 'WEBMASTER'), )
+EO_USER = DATABASE_USER.split('.')[0].capitalize()
+SERVER_EMAIL = 'Mestovsadik {} <{}>'.format(EO_USER, config.get('core', 'SERVER_EMAIL'))
+EMAIL_SUBJECT_PREFIX = '{}: '.format(DATABASE_USER)
+DEFAULT_FROM_EMAIL = 'Mestovsadik {} <{}>'.format(EO_USER, config.get('core', 'DEFAULT_FROM_EMAIL'))
+ADMINS = ((DATABASE_USER, config.get('core', 'WEBMASTER')), )
 MANAGERS = (config.get('core', 'STUFF'), )
 
 # [maps]
@@ -101,3 +103,5 @@ REQUESTION_NUMBER_MASK = config.get('core', 'REQUESTION_NUMBER_MASK').decode('ut
 # авторизация через ВКонтакте
 VK_APP_ID = config.get('vkontakte', 'VK_APP_ID')
 VK_API_SECRET = config.get('vkontakte', 'VK_API_SECRET')
+
+USE_DISTRICTS = config.getint('core', 'USE_DISTRICTS')

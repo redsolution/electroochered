@@ -19,6 +19,15 @@
                 $.scrollTo(0,300);
             });
         });
+
+    $(document).ready(function(){
+       $('label[for="id_age_group"]').append(' <span id="filter-age" class="icon-question-sign"></span>'); 
+        {% queue_tooltips as tooltips %}
+       $("label[for='id_age_group'] .icon-question-sign").popover({
+            title: "Возрастные группы в системе",
+            content: "{{ tooltips.age_groups_tooltip }}",
+            placement: "top", html:true});
+    });
     </script>
 {% endblock %}
 

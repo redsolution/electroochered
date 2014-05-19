@@ -147,7 +147,9 @@ class StartDistributionYear(SupervisorBases):
         return (super(StartDistributionYear, self).check_permissions(
             request, *args, **kwargs) and
             get_current_distribution_year() != get_distribution_year() and
-            not Distribution.objects.active() and not Requestion.objects.enrollment_in_progress().exists())
+            not Distribution.objects.active())
+            # раскомментировать, чтобы новый год не начинался с активными заявками
+            # and not Requestion.objects.enrollment_in_progress().exists())
 
     def dispatch(self, request):
         redirect_to = request.REQUEST.get('next', '')
@@ -157,32 +159,47 @@ class StartDistributionYear(SupervisorBases):
 
     @transaction.commit_manually
     def post(self, request, redirect_to=None):
-        distribution_year = get_distribution_year()
         if request.POST.get('confirmation') == 'yes':
 #            необходимо вернуть в очередь или снять с учета все заявки, которые
 #            не были зачислены
             transitions_actions = (
-                {'from':(STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE),
-                    'to':STATUS_REMOVE_REGISTRATION,
+                {'from': (STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE),
+                    'to': STATUS_REMOVE_REGISTRATION,
                     'transition': NOT_APPEAR_REMOVE_REGISTRATION,
-                    'requestions_list':[]},
-                {'from':(STATUS_ABSENT, STATUS_ABSENT_EXPIRE),
-                    'to':STATUS_REMOVE_REGISTRATION,
+                    'requestions_list': []},
+                {'from': (STATUS_ABSENT, STATUS_ABSENT_EXPIRE),
+                    'to': STATUS_REMOVE_REGISTRATION,
                     'transition': ABSENT_REMOVE_REGISTRATION,
-                    'requestions_list':[]},
-                {'from':(STATUS_DECISION,), 'to':STATUS_REQUESTER,
+                    'requestions_list': []},
+                {'from': (STATUS_DECISION,), 'to': STATUS_REQUESTER,
                     'transition': DECISION_REQUESTER,
-                    'requestions_list':[]},
+                    'requestions_list': []},
                 )
             for action in transitions_actions:
                 requestions = Requestion.objects.filter(
                     status__in=action['from'])
                 action['requestions_list'] = list(requestions)
+                for requestion in requestions:
+                    log_extra = {'user': request.user, 'obj': requestion}
+                    # Если заявитель не явился за путевой, освободить его место в группе
+                    if action['transition'] in (ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION):
+                        # запишем в логи какой тип распределения производился
+                        log_extra.update({'distribution_type': requestion.distribution_type})
+
+                    context_dict = {'status': requestion.get_status_display()}
+                    if STATUS_DECISION in action['from']:
+                        context_dict.update({'sadik': requestion.distributed_in_vacancy.sadik_group.sadik})
+                    Logger.objects.create_for_action(
+                        action['transition'], context_dict=context_dict, extra=log_extra,
+                        reason=u'Начало нового учебного года')
+
                 requestions.update(status=action['to'])
-#             закрываем все возрастные группы на текущий год
+
+            # закрываем все возрастные группы на текущий год
             SadikGroup.objects.active().update(active=False)
             transaction.commit()
-            Logger.objects.create_for_action(START_NEW_YEAR,
+            Logger.objects.create_for_action(
+                START_NEW_YEAR,
                 context_dict={},
                 extra={'user': request.user, 'obj': None})
             transaction.commit()

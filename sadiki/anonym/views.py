@@ -122,22 +122,20 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = self.fullqueryset
                 if form.cleaned_data.get('confirmed', None):
                     queryset = queryset.confirmed()
-                if form.cleaned_data.get('not_appeared', None):
-                    queryset = queryset.not_appeared()
+                if form.cleaned_data.get('status', None):
+                    status = form.cleaned_data['status']
+                    queryset = self.fullqueryset.filter(status=status)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
-                    queryset = queryset.filter_for_age(min_birth_date=age_group.min_birth_date(),
-                                                       max_birth_date=age_group.max_birth_date())
+                    queryset = queryset.filter_for_age(
+                        min_birth_date=age_group.min_birth_date(),
+                        max_birth_date=age_group.max_birth_date())
                 if form.cleaned_data.get('benefit_category', None):
-                    queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
+                    queryset = queryset.filter(
+                        benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
-                    queryset = queryset.filter(
-                        (Q(areas=area) |
-                        Q(areas__isnull=True) | Q(pref_sadiks__area=area)) & Q(status__in=(STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED)) |(
-                        Q(distributed_in_vacancy__sadik_group__sadik__area=area)
-                        & Q(status__in=DISTRIBUTION_PROCESS_STATUSES+(STATUS_DISTRIBUTED,)))
-                    ).distinct()
+                    queryset = queryset.queue().filter(areas=area).distinct()
                 else:
                     queryset = queryset.queue()
                 if form.cleaned_data.get('without_facilities'):
@@ -195,7 +193,7 @@ class Queue(RequirePermissionsMixin, ListView):
             'target_requestion': self.requestion,
             'offset': (page.number - 1) * page_size,
             'STATUS_DECISION': STATUS_DECISION,
-            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
+            'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, ],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,
             'import_finished': Preference.objects.filter(
                 key=PREFERENCE_IMPORT_FINISHED).exists()

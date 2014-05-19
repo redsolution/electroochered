@@ -10,7 +10,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction
 from django.db.models.query_utils import Q
@@ -328,7 +327,7 @@ class Sadik(models.Model):
         verbose_name_plural = u'ДОУ'
         ordering = ['number']
 
-    area = models.ForeignKey("Area", verbose_name=u"Территориальная область")
+    area = models.ForeignKey("Area", verbose_name=u"Группа ДОУ")
     name = models.CharField(u'полное название', max_length=255)
     short_name = models.CharField(u'короткое название', max_length=255)
     number = models.IntegerField(u'номер', null=True)
@@ -764,6 +763,20 @@ class RequestionQuerySet(models.query.QuerySet):
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
                         ))
 
+    # TODO: remove if unused
+    def distribution_queue(self):
+        return self.filter(status__in=(
+            STATUS_ON_DISTRIBUTION,
+            STATUS_ON_TEMP_DISTRIBUTION
+        ))
+
+    def active_queue(self):
+        u"""возвращает активные заявки, отображаемые в очереди"""
+        return self.filter(
+            status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
+                        STATUS_DECISION, STATUS_ON_DISTRIBUTION,
+                        STATUS_ON_TEMP_DISTRIBUTION))
+
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
@@ -795,10 +808,6 @@ class RequestionQuerySet(models.query.QuerySet):
     def hide_distributed(self):
         u"""Исключаем зачисленные заявки"""
         return self.exclude(status__in=(STATUS_DISTRIBUTED,))
-
-    def not_appeared(self):
-        u"""Отображаем просроченные заявки"""
-        return self.filter(status=STATUS_NOT_APPEAR)
 
     def _sorting_to_kwds(self, instance, sort_param):
         u"""Берет у объекта ``instance`` параметр ``sort_param``
@@ -888,32 +897,35 @@ class Requestion(models.Model):
         verbose_name_plural = u'Заявки в очереди'
         ordering = ['-benefit_category__priority', 'registration_datetime', 'id']
 
-    areas = AreaChoiceField('Area',
-        verbose_name=u'Предпочитаемые территориальные области',
-        help_text=u"""Территориальная область в которой вы хотели бы посещать ДОУ.""")
+    areas = models.ManyToManyField('Area',
+        verbose_name=u'Предпочитаемые группы ДОУ',
+        help_text=u"""Группа в которой вы хотели бы посещать ДОУ.""")
+
+    district = models.ForeignKey('District', blank=True, null=True,
+         verbose_name=u'Район заявки',)
 
     # Child data
     admission_date = YearChoiceField(u'Желаемый год поступления',
         blank=True, null=True,
         help_text=u"Год, начиная с которого заявка может быть зачислена")
-#    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
-#        choices=ADMISSION_DATE_TYPE_CHOICES)
+    #    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
+    #        choices=ADMISSION_DATE_TYPE_CHOICES)
     requestion_number = models.CharField(verbose_name=u'Номер заявки',
         max_length=23, blank=True, null=True)
     distribution_type = models.IntegerField(
         verbose_name=u'тип распределения', choices=DISTRIBUTION_TYPE_CHOICES,
         default=DEFAULT_DISTRIBUTION_TYPE)
-#    используется для хранения путевки, которая выдана ребенку
-#    (например при переводе или постоянном зачислении), чтобы можно было вернуть
+    # используется для хранения путевки, которая выдана ребенку
+    # (например при переводе или постоянном зачислении), чтобы можно было вернуть
     previous_distributed_in_vacancy = models.ForeignKey(
         'Vacancies', blank=True, null=True,
         related_name=u"previous_requestions")
     distributed_in_vacancy = models.ForeignKey(
         'Vacancies', blank=True, null=True)
 
-#    Child info
+    # Child info
     birth_date = models.DateField(u'Дата рождения ребёнка', validators=[birth_date_validator])
-    #сейчас в формах имя пользователя ограничено 20 символами
+    # сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(u'имя ребёнка', max_length=255, null=True,
                             validators=[validate_no_spaces, ],
                             help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
@@ -949,7 +961,7 @@ class Requestion(models.Model):
     # Flags
     distribute_in_any_sadik = models.BooleanField(
         verbose_name=u'Пользователь согласен на зачисление в ДОУ, отличные от приоритетных, в выбранных территориальных областях',
-        default=False, help_text=u"""Установите этот флаг, если готовы получить место в любом детском саду в выбранных
+        default=True, help_text=u"""Установите этот флаг, если готовы получить место в любом детском саду в выбранных
             территориальных областях, в случае, когда в приоритетных ДОУ не окажется места""")
 
     objects = query_set_factory(RequestionQuerySet)
@@ -1040,9 +1052,8 @@ class Requestion(models.Model):
         groups = SadikGroup.objects.appropriate_for_birth_date(self.birth_date
             ).filter(free_places__gt=0)
         if self.areas.count():
-            groups.filter(sadik__area__id__in=self.areas.all().values_list('id', flat=True))
-        else:
-            return groups
+            groups = groups.filter(sadik__area__in=self.areas.all())
+        return groups
 
     def get_sadik_groups(self, sadik):
         return SadikGroup.objects.appropriate_for_birth_date(
@@ -1060,14 +1071,15 @@ class Requestion(models.Model):
         u"""
         возвращается кол-во дней, оставшихся до окончания обжалования
         округление производится в больщую сторону(если осталось меньше дня,
-        возвращаетсяs 1 день)
+        возвращается 1 день)
         """
         status_change_delta = datetime.datetime.now() - self.status_change_datetime
-        delta_for_appeal = datetime.timedelta(days=settings.APPEAL_DAYS) - status_change_delta
-        if delta_for_appeal.days >= -1:
-            return delta_for_appeal.days + 1
-        else:
+        appeal_days = datetime.timedelta(days=settings.APPEAL_DAYS)
+        if status_change_delta > appeal_days:
             return 0
+        else:
+            delta_for_appeal = appeal_days - status_change_delta
+            return delta_for_appeal.days + 1
 
     @property
     def location_not_verified(self):
@@ -1254,13 +1266,16 @@ class Requestion(models.Model):
 class Area(models.Model):
 
     class Meta:
-        verbose_name = u'территориальная область'
-        verbose_name_plural = u'территориальная область'
+        verbose_name = u'группа садиков'
+        verbose_name_plural = u'группы садиков'
+        ordering = ['name']
 
     name = models.CharField(verbose_name=u"Название", max_length=100, unique=True)
     ocato = models.CharField(verbose_name=u'ОКАТО', max_length=11,)
     # Cache
     bounds = PolygonField(verbose_name=u'Границы области', blank=True, null=True)
+    district = models.ForeignKey('District', blank=True, null=True,
+                                 verbose_name=u'Район',)
 
     def __unicode__(self):
         return self.name
@@ -1414,16 +1429,31 @@ class UserFunctions:
         return bool(get_user_by_email(self.email))
 
     def get_verbose_name(self):
-        u"""возвращает имя отчество пользователя с учетом типа учетки"""
-        try:
-            profile = self.get_profile()
-        except Profile.DoesNotExist:
-            pass
-#        если не смогли получить имя отчество у профиля, то берем их у пользователя
-        if self.first_name or self.last_name:
-            return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+        u"""возвращает имя отчество пользователя с учетом типа учетки
+        Этот метод переопределяется в personal_data/__init__.py:
+        если приложение personal_data используется, то пробуем взять
+        оттуда ФИО для отображения.
+        """
+
+        # базовый вариант отображения имени пользователя
+        if self.is_operator():
+            verbose_name = 'Оператор'
+        elif self.is_requester():
+            verbose_name = 'Пользователь'
         else:
-            return self.username
+            verbose_name = 'Администратор'
+
+        # если есть почта - показываем почту
+        if self.email:
+            verbose_name = self.email
+        if 'requester' in self.username:
+            verbose_name = self.username
+
+        # если персонал, то берем данные у пользователя
+        if self.is_administrative_person() and (self.first_name or self.last_name):
+            return u'%s %s' % (self.first_name or u'', self.last_name or u'')
+
+        return verbose_name
 
     def set_username_by_id(self):
         username = "%s_%d" % (REQUESTER_USERNAME_PREFIX, self.id)
@@ -1431,6 +1461,18 @@ class UserFunctions:
         while User.objects.filter(username=new_username).exists():
             new_username = "%s_%s" % (username, random.randrange(1,999))
         self.username = new_username
+
+
+class District(models.Model):
+
+    class Meta:
+        verbose_name = u'Район'
+        verbose_name_plural = u'Районы'
+
+    title = models.CharField(u'Название района', max_length=255)
+
+    def __unicode__(self):
+        return self.title
 
 
 def update_benefit_category(action, instance, **kwargs):

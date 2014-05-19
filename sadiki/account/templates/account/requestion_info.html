@@ -18,6 +18,7 @@
         <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
         <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
         <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
+        <script src="{{ STATIC_URL }}js/requestion.js"></script>
 
         <script>
             {% with requestion.location as point %}
@@ -28,17 +29,41 @@
                 var requestion_point = null
                 var requestion_marker = null
             {% endif %}
-            {% if requestion.distribute_in_any_sadik %}
-                var areas_ids = {{ areas_ids }};
-            {% else %}
-                var areas_ids = null;
-            {% endif %}
+            var areas_ids = {{ areas_ids }};
             var map;
             var sadiksLayer;
+            var areaSadiksLayer;
             var prefSadikLayer;
             var sadik_location_data = {{ sadiks_location_data|safe }};
+            var areas_all = [];
+            {% for area in areas_all %}
+                areas_all[{{ forloop.counter0 }}] = { id: {{ area.id }},
+                                                      name: '{{ area.name }}',
+                                                      sadiks: [],
+                                                      center: {} };
+            {% endfor %}
+
+            var activeSadikIconURL = '{{ STATIC_URL }}img/sadik-icon.png';
+            var areaSadikIconURL = '{{ STATIC_URL }}img/sadik-icon-yellow.png';
+            var inactiveSadikIconURL = '{{ STATIC_URL }}img/sadik-icon-gray.png';
+
+            for (s in sadik_location_data) {
+                var sadik = sadik_location_data[s];
+                areas_all.forEach(function(area) {
+                    if (area.id == sadik.area_id) {
+                        area.sadiks.push(sadik);
+                    }
+                });
+            };
+
             var pref_sadiks_ids = {{ pref_sadiks_ids|safe }};
             var sadik_markers;
+
+            // вычисляем центр каждой ТО
+            areas_all.forEach(function(area) {
+                var center = get_center(area.sadiks);
+                area.center = center;
+            });
 
             function field_changed(element) {
                 if (!$(element).find('label span.value-changed').length){
@@ -54,64 +79,6 @@
                 window.onbeforeunload = confirmmsg;
             }
 
-            //отрисовка садиков на карте
-            function renderMarkers(markers, map) {
-                sadik_markers = {}
-                if (sadiksLayer){
-                    map.removeLayer(sadiksLayer)
-                }
-                if (prefSadikLayer){
-                    map.removeLayer(prefSadikLayer)
-                }
-                sadiksLayer = new L.MarkerClusterGroup({
-                    maxClusterRadius: 30
-                });
-                prefSadikLayer = new L.LayerGroup()
-                var activeSadikIcon = L.icon({
-                    iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
-
-                    iconSize:     [22, 23], // size of the icon
-                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
-                    shadowAnchor: [4, 62]  // the same for the shadow
-                });
-                var areaSadikIcon = L.icon({
-                    iconUrl: '{{ STATIC_URL }}img/sadik-icon-yellow.png',
-
-                    iconSize:     [22, 23], // size of the icon
-                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
-                    shadowAnchor: [4, 62]  // the same for the shadow
-                });
-                var inactiveSadikIcon = L.icon({
-                    iconUrl: '{{ STATIC_URL }}img/sadik-icon-gray.png',
-
-                    iconSize:     [22, 23], // size of the icon
-                    iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
-                    shadowAnchor: [4, 62]  // the same for the shadow
-                });
-                function bind_popup(marker){
-                    marker.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
-                }
-                for (var key in markers) {
-                    if (jQuery.inArray(markers[key].id, pref_sadiks_ids) != -1){
-                        var m = L.marker(markers[key].location.slice().reverse(),
-                                {title: markers[key].name, icon: activeSadikIcon, zIndexOffset: 1000});
-                        m.bindPopup('<b>'+markers[key].name+'</b><div>Адрес: '+markers[key].address+'</div><div>Телефон: '+ markers[key].phone +'</div><a href="'+ markers[key].url +'">Перейти к ДОУ</a>');
-                        prefSadikLayer.addLayer(m)
-                        sadik_markers[markers[key].id] = m;
-                    } else {
-                        if ((areas_ids !== null && areas_ids.length == 0) || jQuery.inArray(markers[key].area_id, areas_ids) != -1){
-                            var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: areaSadikIcon});
-                        } else {
-                            var m = L.marker(markers[key].location.slice().reverse(), {title: markers[key].name, icon: inactiveSadikIcon});
-                        }
-                    bind_popup(m)
-                    sadiksLayer.addLayer(m);
-                    }
-                    sadik_markers[markers[key].id] = m;
-                }
-                map.addLayer(sadiksLayer, true);
-                map.addLayer(prefSadikLayer)
-            }
             $(document).ready(function(){
                 if (requestion_marker) {
                     var map_center = requestion_point
@@ -212,12 +179,38 @@
                     renderMarkers(sadik_location_data, map)
                 }
 
-              });
+                });
+
+            {% if requestion.location %}
+                // кнопка на карте, центрируем изображение по заявке
+                var draw_button = $('.leaflet-draw-edit-edit');
+                var a = $('<a/>')
+                    .attr('onclick', 'map.setView(requestion_point, 13); return false')
+                    .attr('class', 'leaflet-draw-draw-marker')
+                    .attr('title', 'Центрировать по заявке')
+                    .attr('href', '#');
+                if (draw_button.length > 0) {
+                    draw_button.after(a);
+                } else {
+                    var zoom_bar = $('.leaflet-control-zoom');
+                    var div_0 = $('<div/>')
+                        .attr('class', 'leaflet-draw leaflet-control');
+                    var div_1 = $('<div/>')
+                        .attr('class', 'leaflet-draw-section')
+                        .appendTo(div_0);
+                    var div_2 = $('<div/>')
+                        .attr('class', 'leaflet-draw-toolbar leaflet-bar')
+                        .appendTo(div_1);
+                    a.appendTo(div_2);
+                    zoom_bar.after(div_0);
+                }
+            {% endif %}
             });
+
             $('#id_areas, #id_distribute_in_any_sadik').change(function(){
                 if ($("#id_distribute_in_any_sadik").is(':checked')){
                     if ($("#id_areas").val()){
-                        areas_ids = [parseInt($("#id_areas").val())]
+                        areas_ids = $("#id_areas").val().map(function(i) {return +i;});
                     } else {
                         areas_ids = []
                     }
@@ -234,6 +227,18 @@
             window.onbeforeunload = null;
             $('#requestion-form button:submit').attr('disabled', true);
             f.submit();
+        }
+
+
+        // По клику на ссылку выводим еще один select с ТО
+        function add_area(element) {
+            $(element).before(' \
+            <select class="areas_all"> \
+                <option value selected="selected">----------</option> \
+                {% for area in areas_all %} \
+                    <option value="{{ area.id }}">{{ area }}</option> \
+                {% endfor %} \
+            </select>');
         }
 
         //обработка нажатия на кнопку редактирвания поля
@@ -257,12 +262,53 @@
             });
         }
 
+
+       // анимация сворачивания-разворачивания детских садов
+        jQuery.fn.toggleText = function(v1, v2) {
+            return this.each(function() {
+                var element = $(this),
+                     text = element.text();
+
+                if(text.indexOf(v1) > -1) {
+                    element.text(text.replace(v1, v2));
+                    element.prev().addClass("caret-right");
+                    element.next().hide();
+                } else {
+                    element.text(text.replace(v2, v1));
+                    element.prev().removeClass("caret-right");
+                    element.next().show();
+                }
+            });
+        }
+
+
         $(document).ready(function(){
+            // прячем родной m2m django виджет
+            $('#id_areas').hide();
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').bind('change', function(){
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
+            $('p').bind('remove', function(){
+                var container_el = $(this).parents('.field');
+                field_changed(container_el);
+            })
+
+            // удаляем льготы, появившиеся при переносе Челябинской ЭО
+            delete_special_benefits();
+
+            $("#queue_explain").popover({
+                title: "Положние заявки в очереди",
+                content: '<p>В число "Заявок перед вами" входят заявки со статусами Очередник-не подтвержден, Очередник, Выделено место, На комплектовании.</p><br>' +
+                         '<p>В число "Из них льготников" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p><br>' +
+                         '<p>В число "Документально подтвержденных" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p>',
+                placement: "top"});
+            $("#pref_dou_groups").popover({
+                title: "Группы ДОУ",
+                content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
+                "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
+            });
         });
         </script>
 {% endblock %}
@@ -298,7 +344,7 @@
             <p class="field-value hidden-input">
                 <label class="value">{{ change_requestion_form.name.value }}</label>
                 {{ change_requestion_form.name }}
-                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
         <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
@@ -306,7 +352,7 @@
             <p class="field-value hidden-input">
                 <label class="value">{{ change_requestion_form.sex|form_field_verbose }}</label>
                 {{ change_requestion_form.sex }}
-                <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
         <div class="field">
@@ -332,7 +378,7 @@
             <p class="field-value hidden-input">
                 <label class="value">{{ requestion.admission_date.year }}</label>
                 {{ change_requestion_form.admission_date }}
-                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                 <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
 
             </p>
         </div>
@@ -419,20 +465,32 @@
 <div class="row sadiks-block">
     <div class="span6">
         <div class="requestion-info">
-
+            {% if use_districts and requestion.district %}
+            <div id="district_div">
+                <label class="field-label">Район: {{ requestion.district }}</label>
+            </div>
+            {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
-            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
-            <p class="field-value hidden-input">
-                <label class="value">
-                    {% if pref_sadiks_form.areas.value %}
-                        {{ requestion.areas.all.0|default:"Весь муниципалитет" }}
-                    {% else %}
-                        Весь муниципалитет
-                    {% endif %}
-                </label>
-                {{ pref_sadiks_form.areas }}
-                 <a href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-            </p>
+            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label> <span id="pref_dou_groups" class="icon-question-sign"></span>
+            {% for area in requestion.areas.all %}
+                {% if pref_sadiks_form.areas.value %}
+                <p class="field-value hidden-input">
+                    <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
+                    <a id="{{ area.id }}" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">
+                            {{ area|default:"Весь муниципалитет" }}
+                    </a> <span class="caret caret-right caret-margins"></span>
+                    <a class="editor" href="#" onclick="del_field(this); return false"
+                        data-toggle="tooltip" title="Удалить группу ДОУ">
+                        <i id="area-close" class="icon-remove"></i>
+                    </a>
+                </p>
+                {% endif %}
+                <ul class="kidgs_list unstyled">
+                </ul>
+            {% endfor %}
+            <div></div>
+            {{ pref_sadiks_form.areas }}
+            <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
         </div>
         <div class="field">
             <label class="field-label">Приоритетные ДОУ</label>
@@ -452,27 +510,19 @@
                 {% endwith %}
             {% endif %}
         </div>
-        <div class="field">
-            {% with pref_sadiks_form.distribute_in_any_sadik as field %}
-                {% if can_change_requestion %}
-                    {{ field }}
-                    <label class="field-label distribute_in_any_sadik" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                {% else %}
-                    <label class="field-label distribute_in_any_sadik"><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>{{ field.label }}</label>
-                {% endif %}
-            {% endwith %}
-        </div>
         </div>
     </div>
     <div class="span5">
         <div class="requestion-info">
         <div id="location-header" class="{% if change_requestion_form.location.errors %}error {% endif %}field">
-            <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
+            <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
             <div id="account-requestion-map"></div>
             <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
         </div>
         </div>
         <ul class='map-legend'>
+            {% if requestion.location %}<li><h3 class="icon-map-marker"></h3> - центрировать карту по заявке</li>{% endif %}
+            {% if can_change_requestion %}<li><h3 class="icon-edit"></h3> - редактировать местоположение заявки на карте</li>{% endif %}
             <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
@@ -492,12 +542,13 @@
         <div class="split-line"></div>
         <div class="block-head">Очередь заявок</div>
         <div class="queue-info">
-            <p>Заявок перед Вами: <span class="number">{{ requestions_before }}</span>
-                (Из них льготников: <span class="number">{{ benefits_before }}.</span>
-                Документально подтвержденных: <span class="number">{{ confirmed_before }}</span>)</p>
-            <p>Заявок после Вас: <span class="number">{{ requestions_after }}</span> (
-                Из них льготников: <span class="number">{{ benefits_after }}.</span>
-                Документально подтвержденных: <span class="number">{{ confirmed_after }}</span>)</p>
+            <p>Заявок перед Вами: <span class="black-number">{{ requestions_before }}</span>
+                (Из них льготников: <span class="black-number">{{ benefits_before }}.</span>
+                Документально подтвержденных: <span class="black-number">{{ confirmed_before }}</span>)
+                <span id="queue_explain" class="icon-question-sign black-number"></span></p>
+            <p>Заявок после Вас: <span class="black-number">{{ requestions_after }}</span> (
+                Из них льготников: <span class="black-number">{{ benefits_after }}.</span>
+                Документально подтвержденных: <span class="black-number">{{ confirmed_after }}</span>)</p>
         </div>
         {% with queue as object_list %}
         {% with requestion as target_requestion %}

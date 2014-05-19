@@ -7,27 +7,17 @@ from django.contrib.gis.forms.fields import GeometryField
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet, ModelForm
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
+import sadiki.conf_settings
 from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
-    BenefitCategory, Address, EvidienceDocument
+    BenefitCategory, Address, EvidienceDocument, Area
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
 
-class RequestionPrefSadiksMixin(object):
-    u"""проверяем, что выбранные ДОУ из той области, куда хочет быть зачислен пользователь"""
-
-    def clean(self, *args, **kwargs):
-        pref_sadiks = self.cleaned_data.get("pref_sadiks")
-        distribute_in_any_sadik = self.cleaned_data.get('distribute_in_any_sadik')
-        if not distribute_in_any_sadik and not pref_sadiks:
-            raise forms.ValidationError(u'Необходимо указать приоритетные ДОУ или возможность зачисления в любой ДОУ')
-        return super(RequestionPrefSadiksMixin, self).clean(*args, **kwargs)
-
-
-class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
+class RequestionForm(FormWithDocument):
     name = forms.CharField(label=u"Имя ребёнка", max_length=20,
                            help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
@@ -41,7 +31,7 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
         model = Requestion
         _base_fields = ['areas', 'name',
                         'birth_date', 'sex', 'template',
-                        'document_number',
+                        'document_number', 'district',
                         'pref_sadiks', 'location', 'admission_date']
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
             _base_fields = _base_fields + ['distribute_in_any_sadik',]
@@ -56,6 +46,10 @@ class RequestionForm(RequestionPrefSadiksMixin, FormWithDocument):
             ребёнка"
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
         super(RequestionForm, self).__init__(*args, **kwds)
+
+    def clean(self, *args, **kwargs):
+        self.cleaned_data['distribute_in_any_sadik'] = True
+        return super(RequestionForm, self).clean(*args, **kwargs)
 
     def save(self, profile, commit=True):
         requestion = super(RequestionForm, self).save(commit=False)
@@ -97,14 +91,14 @@ class BenefitsForm(forms.ModelForm):
         fields = ('benefits',)
 
 
-class PreferredSadikForm(RequestionPrefSadiksMixin, forms.ModelForm):
+class PreferredSadikForm(forms.ModelForm):
     pref_sadiks = SadikWithAreasNameField(
         label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS())
 
     class Meta:
         model = Requestion
-        fields = ('areas', 'pref_sadiks', 'distribute_in_any_sadik',)
+        fields = ('areas', 'pref_sadiks')
 
 
 class SocialProfilePublicForm(ModelForm):

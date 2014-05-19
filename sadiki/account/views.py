@@ -14,14 +14,18 @@ from sadiki.account.forms import RequestionForm, \
     PreferredSadikForm, SocialProfilePublicForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
-    STATUS_REQUESTER_NOT_CONFIRMED, \
-    STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT
+    STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
+    STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
+    STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js, get_current_distribution_year
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year, \
+    get_coords_from_address
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
+from sadiki.conf_settings import USE_DISTRICTS
+import sadiki.operator.forms
 
 
 def get_json_sadiks_location_data():
@@ -121,10 +125,14 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     logger_action = REQUESTION_ADD_BY_REQUESTER
 
     def get_context_data(self, **kwargs):
+        districts_all = District.objects.all()
         return {
             'profile': kwargs.get('profile'),
             'sadiks_location_data': get_json_sadiks_location_data(),
             'plugin_menu_items': get_plugin_menu_items(),
+            'areas_all': Area.objects.all().select_related('district'),
+            'districts_all': districts_all,
+            'use_districts': USE_DISTRICTS,
         }
 
     def create_profile(self):
@@ -152,7 +160,8 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 template__destination=BENEFIT_DOCUMENT))
         else:
             formset = None
-        context.update({'form': form, 'benefits_form': benefits_form,
+        context.update({
+            'form': form, 'benefits_form': benefits_form,
             'formset': formset, 'openlayers_js': get_openlayers_js()})
         return self.render_to_response(context)
 
@@ -231,6 +240,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
+            'use_districts': USE_DISTRICTS,
         })
         return self.render_to_response(context)
 
@@ -298,15 +308,15 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         return self.render_to_response(context)
 
     def get_queue_data(self, requestion):
-        before = Requestion.objects.queue().requestions_before(requestion)
+        before = Requestion.objects.queue().active_queue().requestions_before(requestion)
         benefits_before = before.benefits().count()
         confirmed_before = before.confirmed().count()
         requestions_before = before.count()
-        benefits_after = Requestion.objects.queue().benefits().count() - benefits_before
-        confirmed_after = Requestion.objects.queue().confirmed().count() - confirmed_before
-        requestions_after = Requestion.objects.queue().count() - requestions_before
+        benefits_after = Requestion.objects.active_queue().benefits().count() - benefits_before
+        confirmed_after = Requestion.objects.active_queue().confirmed().count() - confirmed_before
+        requestions_after = Requestion.objects.active_queue().count() - requestions_before
         offset = max(0, requestions_before - 20)
-        queue_chunk = Requestion.objects.queue().add_distributed_sadiks()[offset:requestions_before + 20]
+        queue_chunk = Requestion.objects.queue().hide_distributed().add_distributed_sadiks()[offset:requestions_before + 20]
         queue_chunk = add_special_transitions_to_requestions(queue_chunk)
 
         # Вычесть свою заявку
@@ -340,6 +350,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
         context = {
             'requestion': requestion,
+            'areas_all': Area.objects.all(),
             'profile': requestion.profile,
             'NOT_APPEAR_STATUSES': [STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE],
             'STATUS_DISTIRIBUTED': STATUS_DISTRIBUTED,

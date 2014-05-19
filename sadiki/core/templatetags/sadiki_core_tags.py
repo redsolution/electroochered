@@ -269,6 +269,8 @@ class QueueTooltips(Tag):
         tooltips.update({"benefit_categories_tooltip": get_tooltip(
             "core/tooltips/benefit_categories_tooltip.html",
             {'benefit_categories': BenefitCategory.objects.all().order_by('-priority')})})
+        tooltips.update({"dou_groups_tooltip": get_tooltip(
+            "core/tooltips/dou_groups_tooltip.html")})
         context[varname] = tooltips
         return ''
 

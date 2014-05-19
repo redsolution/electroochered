@@ -21,6 +21,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import ChangeLocationForm
 from sadiki.operator.views.base import OperatorPermissionMixin
 import datetime
+import json
 
 
 class DistributionInfo(RequirePermissionsMixin, TemplateView):
@@ -136,8 +137,12 @@ class DistributionPlacesResults(OperatorPermissionMixin, TemplateView):
         sadiks_with_groups = OrderedDict()
         for sadik in sadiks:
             sadik_groups_with_places = OrderedDict()
-            for sadik_group in sadik.related_groups:
-                sadik_groups_with_places[sadik_group] = {'free_places': 0, 'capacity': 0}
+            try:
+                for sadik_group in sadik.related_groups:
+                    sadik_groups_with_places[sadik_group] = {'free_places': 0, 'capacity': 0}
+            except AttributeError:
+                context.update({'related_groups_error': True})
+                return self.render_to_response(context)
             sadiks_with_groups[sadik] = sadik_groups_with_places
         vacancies = Vacancies.objects.filter(distribution=distribution).select_related('sadik_group', 'sadik_group__sadik')
         for vacancy in vacancies:
@@ -183,11 +188,12 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
 class DecisionManager(OperatorPermissionMixin, View):
     u"""Обертка для распределения заявок"""
     required_permissions = ['is_distributor']
-    
+
     def queue_info(self):
         u"""Собирается информация о очереди"""
         info_dict = {}
         distribution = Distribution.objects.filter(status=DISTRIBUTION_STATUS_INITIAL)
+        full_queue_experimental = Requestion.objects.distribution_queue().select_related('benefit_category')
         full_queue = Requestion.objects.queue().confirmed().filter(Q(
             status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION),
         ) | Q(
@@ -205,32 +211,30 @@ class DecisionManager(OperatorPermissionMixin, View):
         distributed_requestions_number = distributed_requestions.count()
         current_distribution_year = get_current_distribution_year()
         if free_places:
-            #    ищем первую заявку, которая может быть распределена
+            # ищем первую заявку, которая может быть распределена
             age_groups = AgeGroup.objects.filter(sadikgroup__free_places__gt=0
                 ).distinct()
             requestions_with_places_query = Q()
-        #    проходимся по всем группам в которых есть места и формируем запрос
+            # проходимся по всем группам в которых есть места и формируем запрос
             for age_group in age_groups:
-        #        фильтруем по возрастной группе
+                # фильтруем по возрастной группе
                 query_for_group = Q(birth_date__lte=age_group.max_birth_date(
                     current_distribution_year=current_distribution_year)) & \
                     Q(birth_date__gt=age_group.min_birth_date(
                         current_distribution_year=current_distribution_year))
-        #        должны быть места в приоритетных ДОУ
+                # должны быть места в приоритетных ДОУ
                 query_for_pref_sadiks = Q(pref_sadiks__groups__free_places__gt=0,
-                                        pref_sadiks__groups__age_group=age_group,
-                                        pref_sadiks__groups__active=True)
-        #        либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
-        #        или не указана область
-                query_for_any_sadiks = Q(distribute_in_any_sadik=True) & (
-                    Q(areas__isnull=True) | Q(areas__sadik__groups__free_places__gt=0,
-                                            areas__sadik__groups__age_group=age_group,
-                                            areas__sadik__groups__active=True))
-        #        собираем все в один запрос
-                requestions_with_places_query |= query_for_group & (query_for_pref_sadiks | query_for_any_sadiks)
-        #    список заявок, которые могут быть зачислены
+                                          pref_sadiks__groups__age_group=age_group)
+                # либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
+                # или не указана область
+                query_for_any_sadiks = Q(areas__sadik__groups__free_places__gt=0,
+                                         areas__sadik__groups__age_group=age_group,
+                                         areas__sadik__groups__active=True)
+                # собираем все в один запрос
+                requestions_with_places_query |= query_for_group & query_for_any_sadiks
+            # список заявок, которые могут быть зачислены
             requestions_with_places = full_queue.exclude(status=STATUS_DECISION
-                ).exclude(admission_date__gt=datetime.date.today(),
+                    ).exclude(admission_date__gt=datetime.date.today(),
                 ).filter(requestions_with_places_query)
             if requestions_with_places.exists():
                 current_requestion = requestions_with_places[0]
@@ -257,11 +261,11 @@ class DecisionManager(OperatorPermissionMixin, View):
             'last_distributed_requestion': last_distributed_requestion,
             'distributed_requestions_number': distributed_requestions_number})
         return info_dict
-                
+
     def sadiks_for_requestion(self, requestion):
         u"""ДОУ в которые можно зачислить заявку"""
         # Все садики, где есть места для ребенка с учётом его возраста
-        
+
         available_sadik_groups = SadikGroup.objects.appropriate_for_birth_date(
             requestion.birth_date).filter(active=True, free_places__gt=0)
 #        должны быть включены только приоритетные ДОУ
@@ -279,17 +283,17 @@ class DecisionManager(OperatorPermissionMixin, View):
         any_sadiks = Sadik.objects.exclude(
             id__in=pref_sadiks).filter(id__in=available_sadiks).select_related("address__coords")
         return {'pref_sadiks': pref_sadiks, 'any_sadiks': any_sadiks}
-    
+
     def decision_manager(self, request):
         from sadiki.core.workflow import DECISION, PERMANENT_DECISION
-        
+
         queue_info_dict = self.queue_info()
-        
+
         if not queue_info_dict['queue']:
     #        если очереди нет, то оператор не может работать с заявками
             return render_to_response('distribution/decision_manager.html',
                 queue_info_dict, context_instance=RequestContext(request),)
-    
+
         # Сортировка "остальных" садиков, если у ребенка задан location
     #    if current_requestion.location:
     #        from sadiki.templatetags.sadiki_tags import distance_tag
@@ -310,7 +314,7 @@ class DecisionManager(OperatorPermissionMixin, View):
                 current_requestion, data=request.POST,
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query
             )
-    
+
             if form.is_valid():
                 sadik_id = form.cleaned_data.get('sadik', None)
                 sadik = Sadik.objects.get(id=sadik_id)
@@ -323,11 +327,11 @@ class DecisionManager(OperatorPermissionMixin, View):
                     Logger.objects.create_for_action(
                         DECISION, extra={'user': request.user, 'obj': current_requestion},
                         context_dict={"sadik": current_requestion.distributed_in_vacancy.sadik_group.sadik})
-    
+
                 if current_requestion.status == STATUS_ON_TEMP_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_tempdistr(sadik)
                     Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': request.user, 'obj': current_requestion})
-    
+
                 messages.info(request, u'''
                      Для заявки %s был назначен %s
                      ''' % (current_requestion.requestion_number, sadik))
@@ -337,17 +341,24 @@ class DecisionManager(OperatorPermissionMixin, View):
                 is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query)
         queue_info_dict.update({'sadik_list': sadiks_query,
             'select_sadik_form': form,
-            "sadiks_coords": dict([(sadik.id, {"x": sadik.address.coords.x, "y": sadik.address.coords.y})
+            "sadiks_coords": json.dumps({sadik.id: {"x": sadik.address.coords.x,
+                                                    "y": sadik.address.coords.y,
+                                                    "s_name": sadik.short_name,
+                                                    "address": sadik.address.text,
+                                                    "phone": sadik.phone,
+                                                    "url": sadik.site, }
                                    if sadik.address and sadik.address.coords else (sadik.id, {})
-                                   for sadik in sadiks_query]),
+                                   for sadik in sadiks_query}),
+            'areas_all': current_requestion.areas.all(),
+            'pref_sadiks': current_requestion.pref_sadiks.all(),
         })
         return render_to_response('distribution/decision_manager.html',
             queue_info_dict, context_instance=RequestContext(request),
         )
-    
+
     def get(self, *args, **kwargs):
         return self.decision_manager(*args, **kwargs)
-    
+
     def post(self, *args, **kwargs):
         return self.decision_manager(*args, **kwargs)
 
@@ -356,7 +367,7 @@ class DistributionEnd(OperatorPermissionMixin, TemplateView):
     u"""старт процесса распределения мест"""
     required_permissions = ['is_distributor']
     template_name = 'distribution/distribution_end.html'
-    
+
     def dispatch(self, request):
         try:
             start_distribution = Distribution.objects.get(

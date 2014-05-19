@@ -21,14 +21,15 @@ from sadiki.core.models import Requestion, \
 from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
-from sadiki.core.utils import check_url, get_openlayers_js, get_unique_username
+from sadiki.core.utils import check_url, get_unique_username, get_coords_from_address
 from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
     CHANGE_REQUESTION_BY_OPERATOR, Transition, workflow, CREATE_PROFILE,\
     CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
-    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm
+    ProfileSearchForm, BaseConfirmationForm, HiddenConfirmation, ChangeLocationForm, \
+    OperatorChangeRequestionForm, CustomGenericInlineFormSet, DocumentForm
 from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_profile_additions
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \

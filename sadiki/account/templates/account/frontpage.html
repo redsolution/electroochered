@@ -197,8 +197,6 @@
                         <span class="status-not-approved">Статус не подтвержден оператором</span>
                     </p>
                 {% endif %}
-                <label class="field-label">Ваш порядковый номер в очереди:</label>
-                <p class="field-value">{{ requestion.position_in_queue }}</p>
                 </div>
             {% endfor %}
             {% if request.user.is_operator %}

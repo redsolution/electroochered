@@ -32,6 +32,7 @@ class SelectSadikForm(forms.Form):
         # изменяем порядок полей
         if requestion.needs_location_confirmation:
             self.fields['accept_location'] = forms.BooleanField(label=u'Координаты на карте совпадают с адресом',)
+            self.fields['accept_location'].error_messages['required'] = u'Подтвердите местоположение заявки'
             if not requestion.location:
                 self.fields['accept_location'].widget.attrs['disabled'] = 'disabled'
                 self.fields['accept_location'].error_messages['required'] = u'Необходимо указать местоположение заявки'
