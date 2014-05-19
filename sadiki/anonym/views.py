@@ -122,14 +122,17 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = self.fullqueryset
                 if form.cleaned_data.get('confirmed', None):
                     queryset = queryset.confirmed()
-                if form.cleaned_data.get('not_appeared', None):
-                    queryset = queryset.not_appeared()
+                if form.cleaned_data.get('status', None):
+                    status = form.cleaned_data['status']
+                    queryset = self.fullqueryset.filter(status=status)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
-                    queryset = queryset.filter_for_age(min_birth_date=age_group.min_birth_date(),
-                                                       max_birth_date=age_group.max_birth_date())
+                    queryset = queryset.filter_for_age(
+                        min_birth_date=age_group.min_birth_date(),
+                        max_birth_date=age_group.max_birth_date())
                 if form.cleaned_data.get('benefit_category', None):
-                    queryset = queryset.filter(benefit_category=form.cleaned_data['benefit_category'])
+                    queryset = queryset.filter(
+                        benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
                     queryset = queryset.queue().filter(areas=area).distinct()

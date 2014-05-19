@@ -8,11 +8,15 @@ from django.utils.translation import ugettext_lazy as _
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
-    EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area
+    EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area, \
+    STATUS_CHOICES
 from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
 from django.core.exceptions import MultipleObjectsReturned
 import re
+
+
+STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
 
 
 class RegistrationForm(forms.ModelForm):
@@ -165,38 +169,54 @@ class QueueFilterForm(forms.Form):
             'requestion_number',
             'confirmed',
             'show_distributed',
-            'not_appeared',
+            'status',
             'benefit_category',
             'age_group',
             'area',
             'without_facilities',
         ]
 
-    requestion_number = forms.CharField(label=u'Номер заявки в системе', required=False,
+    requestion_number = forms.CharField(
+        label=u'Номер заявки в системе', required=False,
         widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
-    confirmed = forms.BooleanField(label=u'Документально подтвержденные',
-        required=False, help_text=u"Отметьте для исключения всех неподтверждённых заявок из очереди")
-    show_distributed = forms.BooleanField(label=u'Показать зачисленные заявки',
-        required=False, help_text=u"Отметьте для отображения всех зачисленных заявок из очереди")
-    not_appeared = forms.BooleanField(label=u'Показать только неявившиеся заявки',
-        required=False, help_text=u"Отметьте для отображения неявившихся заявок из очереди")
-    benefit_category = forms.ModelChoiceField(label=u'Категория льгот', required=False,
+    confirmed = forms.BooleanField(
+        label=u'Документально подтвержденные', required=False,
+        help_text=u"Отметьте для исключения всех неподтверждённых "
+                  u"заявок из очереди")
+    show_distributed = forms.BooleanField(
+        label=u'Показать зачисленные заявки', required=False,
+        help_text=u"Отметьте для отображения всех зачисленных заявок из очереди")
+    not_appeared = forms.BooleanField(
+        label=u'Показать только неявившиеся заявки', required=False,
+        help_text=u"Отметьте для отображения неявившихся заявок из очереди")
+    status = forms.ChoiceField(
+        label=u'Статус заявки', required=False, choices=STATUS_CHOICES_EMPTY,
+        help_text=u"При выборе в очереди будут отображаться заявки "
+                  u"только с выбранным статусом")
+    benefit_category = forms.ModelChoiceField(
+        label=u'Категория льгот', required=False,
         queryset=BenefitCategory.objects.exclude_system_categories(),
-        help_text=u"При выборе в очереди будут отображаться заявки только этой категории льгот")
-    age_group = forms.ModelChoiceField(label=u'Возрастная категория',
+        help_text=u"При выборе в очереди будут отображаться заявки "
+                  u"только этой категории льгот")
+    age_group = forms.ModelChoiceField(
+        label=u'Возрастная категория',
         queryset=AgeGroup.objects.all(), required=False,
-        help_text=u"При выборе в очереди будут отображаться заявки только этой возрастной категории")
+        help_text=u"При выборе в очереди будут отображаться заявки "
+                  u"только этой возрастной категории")
     area = forms.ModelChoiceField(
-        label=u'Группа ДОУ для зачисления',
-        queryset=Area.objects.all(), empty_label=u"Весь муниципалитет",
-        required=False, help_text=u"При выборе в очереди будут отображаться заявки, \
-            для которых указана возможность зачисления в эту группу ДОУ"
+        label=u'Группа ДОУ для зачисления', queryset=Area.objects.all(),
+        empty_label=u"Весь муниципалитет", required=False,
+        help_text=u"При выборе в очереди будут отображаться заявки, "
+                  u"для которых указана возможность зачисления в эту группу ДОУ"
     )
     without_facilities = forms.BooleanField(
         label=u"Сортировать очередь", required=False,
         widget=forms.Select(choices=((False, u'в порядке очерёдности'),
                                      (True, u'в порядке подачи заявлений'))),
-        help_text=mark_safe(u"""В порядке очередности заявки отображаются исходя из приоритета категории льгот:
+        help_text=mark_safe(
+            u"""В порядке очередности заявки отображаются исходя из приоритета
+            категории льгот:
             внеочередная, первоочередная, заявки без льгот.<br>
-            В порядке подачи заявлений заявки отображаются только хронологически."""))
+            В порядке подачи заявлений заявки отображаются только
+            хронологически."""))
