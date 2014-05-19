@@ -167,12 +167,12 @@ class Queue(RequirePermissionsMixin, ListView):
         # Обработать фильтры, если они есть
         self.queryset, form = self.process_filter_form(queryset, self.request.GET)
         if self.request.user.is_anonymous() or not self.request.user.is_operator():
-            del form.fields['not_appeared']
+            del form.fields['status']
         # Разбить на страницы
         page_size = self.paginate_by
         paginator, page, queryset, is_paginated = self.paginate_queryset(
             self.queryset, page_size, page_number)
-#        для всех заявок получаем возрастные группы, которые подходят для них
+        # для всех заявок получаем возрастные группы, которые подходят для них
         age_groups = AgeGroup.objects.all()
         current_distribution_year = get_current_distribution_year()
         requestions = queryset
@@ -180,9 +180,11 @@ class Queue(RequirePermissionsMixin, ListView):
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
-#        для анонимного и авторизованного пользователя нужно отобразить какие особые действия совершались с заявкой
+        # для анонимного и авторизованного пользователя нужно отобразить
+        # какие особые действия совершались с заявкой
         if requestions:
-#            если получать логи при пустом queryset, то все упадет, паджинатор возвращает queryset[0:0] с пустым query
+        # если получать логи при пустом queryset, то все упадет,
+        # паджинатор возвращает queryset[0:0] с пустым query
             requestions = add_special_transitions_to_requestions(requestions)
         context = {
             'paginator': paginator,
