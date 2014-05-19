@@ -1530,3 +1530,7 @@ dl {
 #requestion-info-block {
     width: 500px;
 }
+
+.ms-parent .ms-drop ul {
+    width: 97.5%;
+}

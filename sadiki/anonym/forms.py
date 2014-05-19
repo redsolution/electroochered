@@ -16,7 +16,7 @@ from django.core.exceptions import MultipleObjectsReturned
 import re
 
 
-STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
+# STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
 
 
 class RegistrationForm(forms.ModelForm):
@@ -190,8 +190,8 @@ class QueueFilterForm(forms.Form):
     not_appeared = forms.BooleanField(
         label=u'Показать только неявившиеся заявки', required=False,
         help_text=u"Отметьте для отображения неявившихся заявок из очереди")
-    status = forms.ChoiceField(
-        label=u'Статус заявки', required=False, choices=STATUS_CHOICES_EMPTY,
+    status = forms.MultipleChoiceField(
+        label=u'Статус заявки', required=False, choices=STATUS_CHOICES,
         help_text=u"При выборе в очереди будут отображаться заявки "
                   u"только с выбранным статусом")
     benefit_category = forms.ModelChoiceField(
