@@ -167,8 +167,6 @@ class QueueFilterForm(forms.Form):
         super(QueueFilterForm, self).__init__(*args, **kwargs)
         self.fields.keyOrder = [
             'requestion_number',
-            'confirmed',
-            'show_distributed',
             'status',
             'benefit_category',
             'age_group',
@@ -180,13 +178,6 @@ class QueueFilterForm(forms.Form):
         label=u'Номер заявки в системе', required=False,
         widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
-    confirmed = forms.BooleanField(
-        label=u'Документально подтвержденные', required=False,
-        help_text=u"Отметьте для исключения всех неподтверждённых "
-                  u"заявок из очереди")
-    show_distributed = forms.BooleanField(
-        label=u'Показать зачисленные заявки', required=False,
-        help_text=u"Отметьте для отображения всех зачисленных заявок из очереди")
     not_appeared = forms.BooleanField(
         label=u'Показать только неявившиеся заявки', required=False,
         help_text=u"Отметьте для отображения неявившихся заявок из очереди")
