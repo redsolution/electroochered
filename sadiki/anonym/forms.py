@@ -9,7 +9,7 @@ from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area, \
-    STATUS_CHOICES
+    STATUS_CHOICES_FILTER
 from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
 from django.core.exceptions import MultipleObjectsReturned
@@ -191,7 +191,7 @@ class QueueFilterForm(forms.Form):
         label=u'Показать только неявившиеся заявки', required=False,
         help_text=u"Отметьте для отображения неявившихся заявок из очереди")
     status = forms.MultipleChoiceField(
-        label=u'Статус заявки', required=False, choices=STATUS_CHOICES,
+        label=u'Статус заявки', required=False, choices=STATUS_CHOICES_FILTER,
         help_text=u"При выборе в очереди будут отображаться заявки "
                   u"только с выбранным статусом")
     benefit_category = forms.ModelChoiceField(

@@ -78,7 +78,8 @@ class Queue(RequirePermissionsMixin, ListView):
         """
         Paginate the queryset, if needed.
         """
-        paginator = self.get_paginator(queryset, page_size, allow_empty_first_page=self.get_allow_empty())
+        paginator = self.get_paginator(
+            queryset, page_size, allow_empty_first_page=self.get_allow_empty())
 
         if page is None:
             if self.requestion:
@@ -94,7 +95,6 @@ class Queue(RequirePermissionsMixin, ListView):
                 page_number = paginator.num_pages
             else:
                 raise Http404(_(u"Page is not 'last', nor can it be converted to an int."))
-
 
         try:
             page = paginator.page(page_number)
@@ -120,11 +120,11 @@ class Queue(RequirePermissionsMixin, ListView):
                 # Обработка формы вручную
                 if form.cleaned_data.get('show_distributed', None):
                     queryset = self.fullqueryset
-                if form.cleaned_data.get('confirmed', None):
-                    queryset = queryset.confirmed()
                 if form.cleaned_data.get('status', None):
                     status = form.cleaned_data['status']
                     queryset = self.fullqueryset.filter(status__in=status)
+                if form.cleaned_data.get('confirmed', None):
+                    queryset = queryset.confirmed()
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(

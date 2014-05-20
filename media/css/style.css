@@ -1534,3 +1534,7 @@ dl {
 .ms-parent .ms-drop ul {
     width: 97.5%;
 }
+
+#id_status + div + p {
+    margin-top: -20px;
+}
