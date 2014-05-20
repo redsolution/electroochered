@@ -132,8 +132,6 @@ class Queue(RequirePermissionsMixin, ListView):
                 area = form.cleaned_data.get('area')
                 if area:
                     queryset = queryset.queue().filter(areas=area).distinct()
-                else:
-                    queryset = queryset.queue()
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
