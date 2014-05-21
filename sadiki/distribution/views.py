@@ -93,6 +93,7 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
                 u'Номер в списке',
                 u'Дата рождения',
                 u'Адрес',
+                u'Район',
                 u'Группа',
                 u'Документ',
             ]
@@ -110,6 +111,7 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
                                requestion.number_in_old_list,
                                requestion.birth_date,
                                requestion.location_properties.encode('utf-8'),
+                               requestion.district.title.encode('utf-8'),
                                unicode(requestion.distributed_in_vacancy.sadik_group)]
                         if requestion.related_documents:
                             document = requestion.related_documents[0]
@@ -118,9 +120,10 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
                             ws.write(row_number, column_number, element, style)
                         row_number += 1
             ws.col(0).width = 256 * 20
-            ws.col(3).width = 256 * 35
-            ws.col(4).width = 256 * 35
-            ws.col(5).width = 256 * 45
+            ws.col(3).width = 256 * 30
+            ws.col(4).width = 256 * 30
+            ws.col(5).width = 256 * 35
+            ws.col(6).width = 256 * 45
             wb.save(response)
             return response
         return self.render_to_response({'current_distribution': distribution,
