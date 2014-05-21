@@ -86,25 +86,30 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
             import xlwt
             style = xlwt.XFStyle()
             style.num_format_str = 'DD-MM-YYYY'
-            wb = xlwt.Workbook()
+            wb = xlwt.Workbook(encoding='utf-8')
             ws = wb.add_sheet(u'Результаты распределения')
             header = [
                 u'Номер заявки',
                 u'Номер в списке',
                 u'Дата рождения',
+                u'Адрес',
                 u'Группа',
                 u'Документ',
             ]
             row_number = 0
             for requestions_by_sadik in requestions_by_sadiks:
                 if requestions_by_sadik[1]:
-                    ws.write_merge(row_number, row_number, 0, 4, requestions_by_sadik[0].name)
+                    ws.write_merge(row_number, row_number, 0, 4,
+                                   requestions_by_sadik[0].name)
                     row_number += 1
                     for column_number, element in enumerate(header):
                         ws.write(row_number, column_number, element, style)
                     row_number += 1
                     for requestion in requestions_by_sadik[1]:
-                        row = [requestion.requestion_number, requestion.number_in_old_list, requestion.birth_date,
+                        row = [requestion.requestion_number,
+                               requestion.number_in_old_list,
+                               requestion.birth_date,
+                               requestion.location_properties.encode('utf-8'),
                                unicode(requestion.distributed_in_vacancy.sadik_group)]
                         if requestion.related_documents:
                             document = requestion.related_documents[0]
