@@ -117,6 +117,10 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
                         for column_number, element in enumerate(row):
                             ws.write(row_number, column_number, element, style)
                         row_number += 1
+            ws.col(0).width = 256 * 20
+            ws.col(3).width = 256 * 35
+            ws.col(4).width = 256 * 35
+            ws.col(5).width = 256 * 45
             wb.save(response)
             return response
         return self.render_to_response({'current_distribution': distribution,
