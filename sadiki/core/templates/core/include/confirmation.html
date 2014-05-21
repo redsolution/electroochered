@@ -1,14 +1,26 @@
-<form action="." method="post">
+<form id="_mainform" action="." method="post">
     {% csrf_token %}
     <div class="row">
       <div class="span2 offset5">
-          <button name="confirmation" value="yes" class="btn">
+          <button data-value="yes" class="btn">
               <div class="icon yes"></div>Да
           </button>
-          <button name="confirmation" value="no" class="btn">
+          <button data-value="no" class="btn">
               <div class="icon no"></div>Нет
           </button>
       </div>
     </div>
     <input type="hidden" name="next" value="{{ params.redirect_to }}" />
+    <input type="hidden" name="confirmation" value="no" />
 </form>
+
+<script type="text/javascript">
+    // отключаем кнопку после подтверждения формы
+    $('#_mainform .btn').click(function(event) {
+        event.preventDefault();
+        $('#_mainform .btn').prop("disabled", true);
+        $('#_mainform [name="confirmation"]').val($(this).data('value'));
+        $('#_mainform').submit();
+    });
+</script>
+
