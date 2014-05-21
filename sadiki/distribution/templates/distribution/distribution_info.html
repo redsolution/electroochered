@@ -34,6 +34,7 @@
                     // отключаем кнопку после нажатия
                     $('.btn').click(function() {
                         $('.btn').prop("href", "#");
+                        $('.btn').addClass("disabled");
                         window.location.href='/distribution/new/';
                         return false;
                     });
