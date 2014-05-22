@@ -291,7 +291,7 @@
                 // отключаем кнопку после нажатия
                 $('#end_distribution').click(function() {
                     $('#end_distribution').addClass("disabled");
-                    window.location.href='/distribution/finish/';
+                    window.location.href='{% url distribution_end %}';
                     return false;
                 });
             </script>
