@@ -15,6 +15,7 @@ from BeautifulSoup import BeautifulStoneSoup
 
 from django.db.models.aggregates import Min
 from django.utils.safestring import mark_safe
+import sadiki.core.models
 
 
 def crc2(value):
@@ -145,7 +146,8 @@ def get_current_distribution_year():
     Т.е. ``get_current_distribution_year`` может возвратить прошлый учебный год,
     если группы прошлого года ещё не закрыты.
 
-    В случае если групп нет, возвращается текущий учебный год согласно настройкам.
+    В случае если групп нет, возвращается текущий учебный год согласно
+    настройкам.
     """
     from sadiki.core.models import SadikGroup
     if SadikGroup.objects.active().exists():
@@ -170,7 +172,8 @@ def run_command(command_name, *args):
     #    management.call_command(command_name, *args)
     #else:
     manage_file = join(settings.PROJECT_DIR, 'manage.py')
-    lockname = join(settings.LOCK_DIR, command_name.replace(' ', '-').replace('/', '-'))
+    lockname = join(settings.LOCK_DIR,
+                    command_name.replace(' ', '-').replace('/', '-'))
     if not exists(settings.LOCK_DIR):
         makedirs(settings.LOCK_DIR)
     cmd_line = 'flock -n %(lockname)s -c "python %(manage_file)s %(command)s %(args)s"' % {
@@ -241,7 +244,8 @@ class Yandex(Geocoder):
     ``geocode`` возвращает кортеж из координат, либо None
 
     Аргумент ``bounds`` используется для ограничения области поиска.
-    Формат аргмуента: кортеж из четырёх значений коодинат, например, (lat1, lng1, lat2, lng2)
+    Формат аргмуента: кортеж из четырёх значений коодинат, например,
+    (lat1, lng1, lat2, lng2)
     """
     base_url = 'http://geocode-maps.yandex.ru/1.x/?geocode=%(query)s&%(encoded_params)s'
     defaults = {
@@ -270,3 +274,62 @@ def get_coords_from_address(address):
     geocoder = Yandex()
     coords = geocoder.geocode(address)
     return coords
+
+
+def create_xls_report(response, requestions_by_sadiks ,distribution):
+    file_name = u'Raspredelenie_%s' % (distribution.end_datetime.strftime('%d-%m-%Y_%H-%M'))
+    response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
+    import xlwt
+    style = xlwt.XFStyle()
+    style.num_format_str = 'DD-MM-YYYY'
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet(u'Результаты распределения')
+    header = [
+        u'Номер заявки',
+        u'Номер в списке',
+        u'Дата рождения',
+        u'Адрес',
+        u'Группа',
+        u'Документ',
+    ]
+    if settings.USE_DISTRICTS:
+        header.insert(4, u'Район')
+    else:
+        header.insert(4, u'Группа ДОУ')
+    row_number = 0
+    for requestions_by_sadik in requestions_by_sadiks:
+        if requestions_by_sadik[1]:
+            ws.write_merge(row_number, row_number, 0, 4,
+                           requestions_by_sadik[0].name)
+            row_number += 1
+            for column_number, element in enumerate(header):
+                ws.write(row_number, column_number, element, style)
+            row_number += 1
+            for requestion in requestions_by_sadik[1]:
+                row = [requestion.requestion_number,
+                       requestion.number_in_old_list,
+                       requestion.birth_date,
+                       requestion.location_properties.encode('utf-8'),
+                       unicode(requestion.distributed_in_vacancy.sadik_group)]
+                if settings.USE_DISTRICTS:
+                    row.insert(4, requestion.district.title.encode('utf-8'))
+                else:
+                    row.insert(4, requestions_by_sadik[0].area.name)
+                if requestion.related_documents:
+                    document = requestion.related_documents[0]
+                    row.append("%s (%s)" % (document.document_number,
+                                            document.template.name))
+                for column_number, element in enumerate(row):
+                    ws.write(row_number, column_number, element, style)
+                row_number += 1
+    ws.col(0).width = 256 * 20
+    ws.col(3).width = 256 * 30
+    ws.col(4).width = 256 * 30
+    ws.col(5).width = 256 * 35
+    ws.col(6).width = 256 * 45
+
+    if settings.USE_DISTRICTS:
+        districts = sadiki.core.models.District.objects.all()
+        for district in districts:
+            wb.add_sheet(district.title)
+    wb.save(response)
