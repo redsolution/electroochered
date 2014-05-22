@@ -30,6 +30,15 @@
             {% url distribution_init as distribution_init_url %}
             {% if distribution_init_url|check_url_availability:request.user %}
                 <a class="btn" href="{% url distribution_init %}">Открыть новое зачисление</a>
+                <script type="text/javascript">
+                    // отключаем кнопку после нажатия
+                    $('.btn').click(function() {
+                        $('.btn').prop("href", "#");
+                        $('.btn').addClass("disabled");
+                        window.location.href='/distribution/new/';
+                        return false;
+                    });
+                </script>
             {% endif %}
         {% endif %}
     {% endif %}
