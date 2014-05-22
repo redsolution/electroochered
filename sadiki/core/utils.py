@@ -103,7 +103,7 @@ def scheme_and_domain():
     return {
         'scheme': getattr(settings, "DEFAULT_HTTP_PROTOCOL", "http"),
         'domain': Site.objects.get_current(),
-        }
+    }
 
 
 def check_url(url, default=None):
@@ -167,7 +167,7 @@ def get_qs_attr(instance, attr, default=None):
 
 def run_command(command_name, *args):
     u"""Запускает в фоне management-команду"""
-#    если тестируем, то запуск должен отличаться
+    # если тестируем, то запуск должен отличаться
     #if sys.argv[1] == 'test':
     #    management.call_command(command_name, *args)
     #else:
@@ -192,6 +192,7 @@ def get_openlayers_js():
     media.add_js([CustomGeoAdmin.openlayers_url])
     media.add_js(CustomGeoAdmin.extra_js)
     return mark_safe(media)
+
 
 # геокодер яндекса
 class Geocoder(object):
@@ -256,7 +257,8 @@ class Yandex(Geocoder):
         if 'bounds' in kwargs:
             x1, y1, x2, y2 = kwargs.pop('bounds')
             ll = ((x1+x2)/2, (y1+y2)/2)  # координаты центра области
-            spn = (abs(ll[0] - x1), abs(ll[1] - y1))  # протяженность области в градусах
+            # протяженность области в градусах
+            spn = (abs(ll[0] - x1), abs(ll[1] - y1))
 
             kwargs['ll'] = '%f,%f' % ll
             kwargs['spn'] = '%f,%f' % spn
@@ -282,6 +284,7 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
     import xlwt
     style = xlwt.XFStyle()
     style.num_format_str = 'DD-MM-YYYY'
+    header_style = xlwt.easyxf('font: bold 1')
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet(u'Результаты распределения')
     header = [
@@ -300,19 +303,19 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
     for requestions_by_sadik in requestions_by_sadiks:
         if requestions_by_sadik[1]:
             ws.write_merge(row_number, row_number, 0, 4,
-                           requestions_by_sadik[0].name)
+                           requestions_by_sadik[0].name, header_style)
             row_number += 1
             for column_number, element in enumerate(header):
-                ws.write(row_number, column_number, element, style)
+                ws.write(row_number, column_number, element, header_style)
             row_number += 1
             for requestion in requestions_by_sadik[1]:
                 row = [requestion.requestion_number,
                        requestion.number_in_old_list,
                        requestion.birth_date,
-                       requestion.location_properties.encode('utf-8'),
+                       requestion.location_properties,
                        unicode(requestion.distributed_in_vacancy.sadik_group)]
                 if settings.USE_DISTRICTS:
-                    row.insert(4, requestion.district.title.encode('utf-8'))
+                    row.insert(4, requestion.district.title)
                 else:
                     row.insert(4, requestions_by_sadik[0].area.name)
                 if requestion.related_documents:
@@ -331,5 +334,33 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
     if settings.USE_DISTRICTS:
         districts = sadiki.core.models.District.objects.all()
         for district in districts:
-            wb.add_sheet(district.title)
+            row_number = 0
+            ws = wb.add_sheet(district.title)
+            header[4] = u'ДОУ'
+            for column_number, element in enumerate(header):
+                ws.write(row_number, column_number, element, header_style)
+            row_number += 1
+            for requestions_by_sadik in requestions_by_sadiks:
+                if requestions_by_sadik[1]:
+                    for requestion in requestions_by_sadik[1]:
+                        if requestion.district == district:
+                            row = [requestion.requestion_number,
+                                   requestion.number_in_old_list,
+                                   requestion.birth_date,
+                                   requestion.location_properties,
+                                   requestions_by_sadik[0].short_name,
+                                   unicode(requestion.distributed_in_vacancy.sadik_group)]
+                            if requestion.related_documents:
+                                document = requestion.related_documents[0]
+                                row.append("%s (%s)" % (document.document_number,
+                                                        document.template.name))
+                            for column_number, element in enumerate(row):
+                                ws.write(row_number, column_number,
+                                         element, style)
+                            row_number += 1
+            ws.col(0).width = 256 * 20
+            ws.col(3).width = 256 * 30
+            ws.col(4).width = 256 * 30
+            ws.col(5).width = 256 * 35
+            ws.col(6).width = 256 * 45
     wb.save(response)
