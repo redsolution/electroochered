@@ -14,7 +14,8 @@ from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion
     SadikGroup, AgeGroup, STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION, \
     Area, VACANCY_STATUS_NOT_PROVIDED
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_current_distribution_year, run_command
+from sadiki.core.utils import get_current_distribution_year, run_command, \
+    create_xls_report
 from sadiki.core.workflow import DISTRIBUTION_INIT
 from sadiki.distribution.forms import SelectSadikForm
 from sadiki.logger.models import Logger
@@ -81,38 +82,7 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
                 requestions_by_sadiks.append([sadik, requestions])
         if request.GET.get('type') == 'xls':
             response = HttpResponse(mimetype='application/vnd.ms-excel')
-            file_name = u'Raspredelenie_%s' % (distribution.end_datetime.strftime('%d-%m-%Y_%H-%M'))
-            response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
-            import xlwt
-            style = xlwt.XFStyle()
-            style.num_format_str = 'DD-MM-YYYY'
-            wb = xlwt.Workbook()
-            ws = wb.add_sheet(u'Результаты распределения')
-            header = [
-                u'Номер заявки',
-                u'Номер в списке',
-                u'Дата рождения',
-                u'Группа',
-                u'Документ',
-            ]
-            row_number = 0
-            for requestions_by_sadik in requestions_by_sadiks:
-                if requestions_by_sadik[1]:
-                    ws.write_merge(row_number, row_number, 0, 4, requestions_by_sadik[0].name)
-                    row_number += 1
-                    for column_number, element in enumerate(header):
-                        ws.write(row_number, column_number, element, style)
-                    row_number += 1
-                    for requestion in requestions_by_sadik[1]:
-                        row = [requestion.requestion_number, requestion.number_in_old_list, requestion.birth_date,
-                               unicode(requestion.distributed_in_vacancy.sadik_group)]
-                        if requestion.related_documents:
-                            document = requestion.related_documents[0]
-                            row.append("%s (%s)" % (document.document_number, document.template.name))
-                        for column_number, element in enumerate(row):
-                            ws.write(row_number, column_number, element, style)
-                        row_number += 1
-            wb.save(response)
+            create_xls_report(response, requestions_by_sadiks, distribution)
             return response
         return self.render_to_response({'current_distribution': distribution,
             'requestions_by_sadiks': requestions_by_sadiks})

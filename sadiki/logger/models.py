@@ -11,6 +11,7 @@ from sadiki.core.models import query_set_factory, Requestion, \
 from sadiki.core.utils import scheme_and_domain
 import logging
 import re
+from smtplib import SMTPException
 
 
 class LoggerManager(models.Manager):
@@ -92,10 +93,12 @@ class LoggerManager(models.Manager):
                                 'change_type': log.get_action_flag_display(),
                                 'changes_message': main_message})
                 message = render_to_string("logger/emails/base.html", context)
-                send_mail(subject=u"Изменение заявки %s" % extra['obj'],
-                          message=message,
-                          from_email=None,
-                          recipient_list=[obj.profile.user.email, ])
+                try:
+                    send_mail(subject=u"Изменение заявки %s" % extra['obj'],
+                              message=message, from_email=None,
+                              recipient_list=[obj.profile.user.email, ])
+                except SMTPException:
+                    pass
 
     def filter_for_object(self, obj):
         content_type = ContentType.objects.get_for_model(obj)

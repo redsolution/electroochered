@@ -9,14 +9,14 @@ from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area, \
-    STATUS_CHOICES
+    STATUS_CHOICES_FILTER
 from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
 from django.core.exceptions import MultipleObjectsReturned
 import re
 
 
-STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
+# STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
 
 
 class RegistrationForm(forms.ModelForm):
@@ -167,8 +167,6 @@ class QueueFilterForm(forms.Form):
         super(QueueFilterForm, self).__init__(*args, **kwargs)
         self.fields.keyOrder = [
             'requestion_number',
-            'confirmed',
-            'show_distributed',
             'status',
             'benefit_category',
             'age_group',
@@ -180,18 +178,11 @@ class QueueFilterForm(forms.Form):
         label=u'Номер заявки в системе', required=False,
         widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),
         help_text=u"Укажите номер заявки, к которой вы хотите перейти")
-    confirmed = forms.BooleanField(
-        label=u'Документально подтвержденные', required=False,
-        help_text=u"Отметьте для исключения всех неподтверждённых "
-                  u"заявок из очереди")
-    show_distributed = forms.BooleanField(
-        label=u'Показать зачисленные заявки', required=False,
-        help_text=u"Отметьте для отображения всех зачисленных заявок из очереди")
     not_appeared = forms.BooleanField(
         label=u'Показать только неявившиеся заявки', required=False,
         help_text=u"Отметьте для отображения неявившихся заявок из очереди")
-    status = forms.ChoiceField(
-        label=u'Статус заявки', required=False, choices=STATUS_CHOICES_EMPTY,
+    status = forms.MultipleChoiceField(
+        label=u'Статус заявки', required=False, choices=STATUS_CHOICES_FILTER,
         help_text=u"При выборе в очереди будут отображаться заявки "
                   u"только с выбранным статусом")
     benefit_category = forms.ModelChoiceField(

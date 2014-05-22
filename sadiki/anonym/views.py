@@ -78,7 +78,8 @@ class Queue(RequirePermissionsMixin, ListView):
         """
         Paginate the queryset, if needed.
         """
-        paginator = self.get_paginator(queryset, page_size, allow_empty_first_page=self.get_allow_empty())
+        paginator = self.get_paginator(
+            queryset, page_size, allow_empty_first_page=self.get_allow_empty())
 
         if page is None:
             if self.requestion:
@@ -94,7 +95,6 @@ class Queue(RequirePermissionsMixin, ListView):
                 page_number = paginator.num_pages
             else:
                 raise Http404(_(u"Page is not 'last', nor can it be converted to an int."))
-
 
         try:
             page = paginator.page(page_number)
@@ -118,13 +118,9 @@ class Queue(RequirePermissionsMixin, ListView):
                 initial_queryset = queryset
 
                 # Обработка формы вручную
-                if form.cleaned_data.get('show_distributed', None):
-                    queryset = self.fullqueryset
-                if form.cleaned_data.get('confirmed', None):
-                    queryset = queryset.confirmed()
                 if form.cleaned_data.get('status', None):
                     status = form.cleaned_data['status']
-                    queryset = self.fullqueryset.filter(status=status)
+                    queryset = self.fullqueryset.filter(status__in=status)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(
@@ -136,8 +132,6 @@ class Queue(RequirePermissionsMixin, ListView):
                 area = form.cleaned_data.get('area')
                 if area:
                     queryset = queryset.queue().filter(areas=area).distinct()
-                else:
-                    queryset = queryset.queue()
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
@@ -166,13 +160,11 @@ class Queue(RequirePermissionsMixin, ListView):
 
         # Обработать фильтры, если они есть
         self.queryset, form = self.process_filter_form(queryset, self.request.GET)
-        if self.request.user.is_anonymous() or not self.request.user.is_operator():
-            del form.fields['not_appeared']
         # Разбить на страницы
         page_size = self.paginate_by
         paginator, page, queryset, is_paginated = self.paginate_queryset(
             self.queryset, page_size, page_number)
-#        для всех заявок получаем возрастные группы, которые подходят для них
+        # для всех заявок получаем возрастные группы, которые подходят для них
         age_groups = AgeGroup.objects.all()
         current_distribution_year = get_current_distribution_year()
         requestions = queryset
@@ -180,9 +172,11 @@ class Queue(RequirePermissionsMixin, ListView):
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
-#        для анонимного и авторизованного пользователя нужно отобразить какие особые действия совершались с заявкой
+        # для анонимного и авторизованного пользователя нужно отобразить
+        # какие особые действия совершались с заявкой
         if requestions:
-#            если получать логи при пустом queryset, то все упадет, паджинатор возвращает queryset[0:0] с пустым query
+        # если получать логи при пустом queryset, то все упадет,
+        # паджинатор возвращает queryset[0:0] с пустым query
             requestions = add_special_transitions_to_requestions(requestions)
         context = {
             'paginator': paginator,
