@@ -332,7 +332,7 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
     ws.col(6).width = 256 * 45
 
     if settings.USE_DISTRICTS:
-        districts = sadiki.core.models.District.objects.all()
+        districts = sadiki.core.models.District.objects.all().order_by('title')
         for district in districts:
             row_number = 0
             ws = wb.add_sheet(district.title)
