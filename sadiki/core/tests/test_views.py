@@ -42,12 +42,20 @@ class CoreViewsTest(TestCase):
         supervisor_group = Group.objects.get(name=SUPERVISOR_GROUP_NAME)
         self.supervisor.groups = (supervisor_group,)
 
+        self.requester = User(username='requester')
+        self.requester.set_password('1234')
+        self.requester.save()
+        permission = Permission.objects.get(codename=u'is_requester')
+        self.requester.user_permissions.add(permission)
+        Profile.objects.create(user=self.requester)
+        self.requester.save()
+
     def tearDown(self):
         Requestion.objects.all().delete()
         SadikGroup.objects.all().delete()
         Sadik.objects.all().delete()
 
-    def test_queue(self):
+    def test_queue_response_code(self):
         client = Client()
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 403)
@@ -58,3 +66,14 @@ class CoreViewsTest(TestCase):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 200)
+
+        client.login(username=self.operator.username,
+                     password=self.operator.password)
+        operator_response = client.get(reverse('anonym_queue'))
+        self.assertEqual(operator_response.status_code, 200)
+        client.logout()
+
+        client.login(username=self.requester.username,
+                     password=self.requester.password)
+        requester_response = client.get(reverse('anonym_queue'))
+        self.assertEqual(requester_response.status_code, 200)
