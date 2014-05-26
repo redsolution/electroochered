@@ -11,7 +11,7 @@ from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 from sadiki.account.forms import RequestionForm, \
     BenefitsForm, ChangeRequestionForm,\
-    PreferredSadikForm, SocialProfilePublicForm
+    PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 from sadiki.core.models import Requestion, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
@@ -82,12 +82,18 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         profile = request.user.get_profile()
         return super(AccountFrontPage, self).dispatch(request, profile=profile)
 
+    def post(self, request, profile):
+        print request.POST
+        pass
+
     def get_context_data(self, **kwargs):
         profile = kwargs.get('profile')
+        form = EmailAddForm()
         profile_change_form = SocialProfilePublicForm(instance=profile)
         context = {
             'params': kwargs,
             'profile': profile,
+            'form': form,
             'profile_change_form': profile_change_form,
             'plugin_menu_items': get_plugin_menu_items(),
             'profile_additions': get_profile_additions(),
@@ -96,6 +102,27 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         if vkontakte_associations:
             context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
+
+
+class EmailChange(AccountPermissionMixin, View):
+
+    @method_decorator(login_required)
+    def dispatch(self, request):
+        profile = request.user.get_profile()
+        return super(EmailChange, self).dispatch(request, profile)
+
+    def post(self, request, profile):
+        if not request.is_ajax():
+            return HttpResponseBadRequest()
+        form = EmailAddForm(data=request.POST)
+        print request.POST
+        if form.is_valid():
+            return HttpResponse(content=json.dumps({'ok': True}),
+                                mimetype='text/javascript')
+        print(form.errors)
+        return HttpResponse(content=json.dumps({'ok': False,
+                                                'errors': form.errors}),
+                            mimetype='text/javascript')
 
 
 class SocialProfilePublic(AccountPermissionMixin, View):

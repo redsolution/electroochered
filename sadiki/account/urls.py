@@ -3,7 +3,8 @@ from django.conf import settings
 from django.conf.urls.defaults import patterns, url
 from sadiki.account.plugins import plugins
 from sadiki.account.views import RequestionAdd, \
-    AccountFrontPage, RequestionInfo, GenerateBlank, SocialProfilePublic
+    AccountFrontPage, RequestionInfo, GenerateBlank, SocialProfilePublic, \
+    EmailChange
 
 urlpatterns = patterns('',
     url(r'^$', AccountFrontPage.as_view(), name='account_frontpage'),
@@ -15,6 +16,8 @@ urlpatterns = patterns('',
         GenerateBlank.as_view(), name='account_generate_blank'),
     url(r'^social_profile_public/$',
         SocialProfilePublic.as_view(), name='social_profile_public'),
+    url(r'^email_change/$',
+        EmailChange.as_view(), name='email_change'),
 )
 
 for plugin in plugins:
