@@ -843,7 +843,7 @@ html, body {
     list-style: none;
     display: inline;
     height: 14px;
-    padding: 7px 10px 5px 10px;
+    padding: 7px 10px 6px 10px;
     border: 1px #bfd0bf solid;
 }
 
@@ -1542,4 +1542,8 @@ dl {
 
 #id_status + div + p {
     margin-top: -20px;
+}
+
+.text-success {
+    color: #468847;
 }
