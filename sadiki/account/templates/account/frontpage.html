@@ -7,6 +7,7 @@
     <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
     <script>
         var el;
+        var email_string;
         // csrf
         var csrftoken = $.cookie('csrftoken');
         function csrfSafeMethod(method) {
@@ -52,6 +53,10 @@
 
         function emailSubmit(element, url) {
             var element = $(element);
+            if ($('#id_email').val() === email_string) {
+                mailEditToLabel(element);
+                return false;
+            }
             $.ajax(url, {
                     type: 'POST',
                     data: {'email': $('#id_email').val()},
@@ -60,15 +65,15 @@
                         if (data.ok) {
                             $('#email_form div').removeClass('error');
                             $('#email_err_span').remove();
+                            mailEditToLabel(element);
+                            $('#mail_change_success').show();
                         }
                         else {
-                            console.log(data.errors.email[0]);
                             $('#email_form div').addClass('error');
                             var span = $('<span/>')
                                 .attr('class', 'error')
                                 .attr('id', 'email_err_span')
                                 .text(' (' + data.errors.email[0] + ')');
-                            console.log(span);
                             $('#email_form label').append(span);
                         }
                     },
@@ -77,6 +82,23 @@
                     complete: function(jqXHR, textStatus){
                     }
             })
+        }
+
+        function mailLabelToEdit(element) {
+            $('#mail_change_success').hide();
+            email_string = $('#id_email').val();
+            var element = $(element);
+            var save_button = element.parent().prev();
+            save_button.show();
+            save_button.prev().children('p').show();
+            element.parent().hide();
+        }
+
+        function mailEditToLabel(element){
+            element.prev().children('p').hide();
+            element.hide();
+            element.next().children('label').text($('#id_email').val());
+            element.next().show();
         }
 
         $(document).ready(function(){
@@ -109,10 +131,32 @@
             <p class="field-value">{{ profile.user.username }}</p>
             <form method="POST" id="email_form">
                 {% csrf_token %}
-                {% with form.email as field %}
-                    {% include "account/include/requestion-form-field.html" %}
-                {% endwith %}
-                <a href="#" class="btn" id="email" onclick="emailSubmit(this, '{% url email_change %}'); return false">Сохранить</a>
+                {% if not request.user.email %}
+                    {% with form.email as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    <a href="#" class="btn" id="email_btn" onclick="emailSubmit(this, '{% url email_change %}'); return false">Сохранить</a>
+                    <p id="filled_email_label" hidden="" class="field-value">
+                        <label>{{ request.user.email }}</label>
+                        <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% else %}
+                    <div class="field">
+                        <label class="field-label">{{ form.email.label }}</label>
+                        <p class="field-value" hidden="">
+                            <input type="text" name="email" id="id_email" value="{{ profile.user.email }}">
+                        </p>
+                    </div>
+                    <a href="#" class="btn" id="email_btn" style="display: none" onclick="emailSubmit(this, '/account/email_change/'); return false">Сохранить</a>
+                    <p id="filled_email_label" class="field-value">
+                        <label id="filled_email_label" class="value">{{ profile.user.email }}</label>
+                        <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% endif %}
+                <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен. На него оправлено письмо с инструкциями по подтверждению почтового ящика.</p>
+                {% if request.user.is_requester %}
+                    <p>Указанный электронный почтовый ящик можно использовать для входа на сайт. Также на него будут приходить уведомления о смене статуса ваших заявок, зачислении и т.д.</p>
+                {% endif %}
             </form>
         <div class="vkontakte-info clearfix">
             {% block vkontakte_info %}

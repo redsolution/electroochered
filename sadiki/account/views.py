@@ -3,7 +3,9 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
@@ -13,6 +15,7 @@ from sadiki.account.forms import RequestionForm, \
     BenefitsForm, ChangeRequestionForm,\
     PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
+import sadiki.authorisation.views
 from sadiki.core.models import Requestion, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
@@ -115,14 +118,28 @@ class EmailChange(AccountPermissionMixin, View):
         if not request.is_ajax():
             return HttpResponseBadRequest()
         form = EmailAddForm(data=request.POST)
-        print request.POST
         if form.is_valid():
+            if request.POST['email'] != profile.user.email:
+                if User.objects.filter(email=request.POST['email']).exclude(username=request.user).exists():
+                    form._errors['email'] = ErrorList([u'Данный почтовый адрес уже занят'])
+                    return HttpResponse(content=json.dumps(
+                        {'ok': False, 'errors': form.errors}),
+                        mimetype='text/javascript')
+                profile.user.email = request.POST['email']
+                profile.user.save()
+                if request.user.is_operator():
+                    profile.email_verified = True
+                    profile.save()
+                if request.user.is_requester():
+                    profile.email_verified = False
+                    profile.save()
+                    sadiki.authorisation.views.send_confirm_letter(request)
             return HttpResponse(content=json.dumps({'ok': True}),
                                 mimetype='text/javascript')
-        print(form.errors)
-        return HttpResponse(content=json.dumps({'ok': False,
-                                                'errors': form.errors}),
-                            mimetype='text/javascript')
+
+        return HttpResponse(content=json.dumps(
+            {'ok': False, 'errors': form.errors}),
+            mimetype='text/javascript')
 
 
 class SocialProfilePublic(AccountPermissionMixin, View):
