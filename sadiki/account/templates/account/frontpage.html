@@ -51,10 +51,10 @@
             })
         }
 
-        function emailSubmit(element, url) {
-            var element = $(element);
+        function emailSubmit() {
+            var url = '{% url email_change %}';
             if ($('#id_email').val() === email_string) {
-                mailEditToLabel(element);
+                mailEditToLabel();
                 return false;
             }
             $.ajax(url, {
@@ -65,7 +65,7 @@
                         if (data.ok) {
                             $('#email_form div').removeClass('error');
                             $('#email_err_span').remove();
-                            mailEditToLabel(element);
+                            mailEditToLabel();
                             $('#mail_change_success').show();
                         }
                         else {
@@ -78,23 +78,25 @@
                         }
                     },
                     error: function(){
+                        console.log('error')
                     },
                     complete: function(jqXHR, textStatus){
                     }
             })
         }
 
-        function mailLabelToEdit(element) {
+        function mailLabelToEdit() {
             $('#mail_change_success').hide();
             email_string = $('#id_email').val();
-            var element = $(element);
+            var element = $('#change_mail_btn');
             var save_button = element.parent().prev();
             save_button.show();
             save_button.prev().children('p').show();
             element.parent().hide();
         }
 
-        function mailEditToLabel(element){
+        function mailEditToLabel(){
+            var element = $('#email_btn');
             element.prev().children('p').hide();
             element.hide();
             element.next().children('label').text($('#id_email').val());
@@ -102,6 +104,20 @@
         }
 
         $(document).ready(function(){
+            {% if not request.user.email %}
+            mailLabelToEdit();
+            {% else %}
+            mailEditToLabel();
+            {% endif %}
+
+            // делаем по ентеру отправку ajax а не post-формы
+            $('#id_email').keypress(function(e) {
+                if(e.keyCode==13) {
+                    $('#email_btn').click();
+                    return false;
+                }
+            });
+
             $('#profile-form select').change(function(){
                 form_data = $('#profile-form').serialize();
                 $('#profile-form select').attr('disabled', 'disabled');
@@ -114,7 +130,11 @@
                         $('#profile-form .loading').hide();
                     }
                 })
-            })
+            });
+            $("#email_explain").popover({
+                title: "Электронный почтовый ящик",
+                content: '<p>Указанный электронный почтовый ящик можно использовать для входа на сайт. Также на него будут приходить уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
+                placement: "top"});
         })
     </script>
 {% endblock bottomjs %}
@@ -131,32 +151,25 @@
             <p class="field-value">{{ profile.user.username }}</p>
             <form method="POST" id="email_form">
                 {% csrf_token %}
-                {% if not request.user.email %}
-                    {% with form.email as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
-                    <a href="#" class="btn" id="email_btn" onclick="emailSubmit(this, '{% url email_change %}'); return false">Сохранить</a>
-                    <p id="filled_email_label" hidden="" class="field-value">
-                        <label>{{ request.user.email }}</label>
-                        <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                <div class="field">
+                    <label class="field-label">{{ form.email.label }} </label>
+                    <span id="email_explain" class="icon-question-sign" data-original-title=""></span>
+                    <p class="field-value">
+                        <input type="text" name="email" id="id_email" value="{{ profile.user.email }}">
                     </p>
-                {% else %}
-                    <div class="field">
-                        <label class="field-label">{{ form.email.label }}</label>
-                        <p class="field-value" hidden="">
-                            <input type="text" name="email" id="id_email" value="{{ profile.user.email }}">
-                        </p>
-                    </div>
-                    <a href="#" class="btn" id="email_btn" style="display: none" onclick="emailSubmit(this, '/account/email_change/'); return false">Сохранить</a>
-                    <p id="filled_email_label" class="field-value">
-                        <label id="filled_email_label" class="value">{{ profile.user.email }}</label>
-                        <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-                    </p>
-                {% endif %}
+                </div>
+                <a href="#" class="btn" id="email_btn" onclick="emailSubmit(); return false">Сохранить</a>
+                <p id="filled_email_label" class="field-value">
+                    {% if not profile.email_verified %}
+                        <img src="/static/img/icon_not_approved.fw.png">
+                    {% endif %}
+                    <label class="value">{{ profile.user.email }}</label>
+                    <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    {% if not profile.email_verified %}
+                        <span class="status-not-approved">Почтовый ящик не подтвержден</span>
+                    {% endif %}
+                </p>
                 <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен. На него оправлено письмо с инструкциями по подтверждению почтового ящика.</p>
-                {% if request.user.is_requester %}
-                    <p>Указанный электронный почтовый ящик можно использовать для входа на сайт. Также на него будут приходить уведомления о смене статуса ваших заявок, зачислении и т.д.</p>
-                {% endif %}
             </form>
         <div class="vkontakte-info clearfix">
             {% block vkontakte_info %}
