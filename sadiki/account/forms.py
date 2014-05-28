@@ -108,4 +108,4 @@ class SocialProfilePublicForm(ModelForm):
 
 
 class EmailAddForm(forms.Form):
-    email = forms.EmailField(label='Электронный почтовый ящик:')
+    email = forms.EmailField(label='Электронный почтовый адрес:')

@@ -93,6 +93,13 @@
             save_button.show();
             save_button.prev().children('p').show();
             element.parent().hide();
+            $('#id_email').focus();
+            $('#id_email').blur(function() {
+                if ($('#id_email').val() === email_string) {
+                    mailEditToLabel();
+                    return false;
+                }
+            })
         }
 
         function mailEditToLabel(){
@@ -103,6 +110,10 @@
             element.next().show();
         }
 
+        function send_confirmation_letter() {
+            $.get('{% url send_confirm_letter %}');
+        }
+        
         $(document).ready(function(){
             {% if not request.user.email %}
             mailLabelToEdit();
@@ -169,7 +180,11 @@
                         <span class="status-not-approved">Почтовый ящик не подтвержден</span>
                     {% endif %}
                 </p>
-                <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен. На него оправлено письмо с инструкциями по подтверждению почтового ящика.</p>
+                <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен. На него оправлено письмо с инструкциями по подтверждению почтового ящика. Письмо действительно в течение трех дней.</p>
+                {% if user == profile.user and user.email and not profile.email_verified %}
+                    <button  id="confirm_mail_button" class="btn btn-small btn-success" type="button" onclick="send_confirmation_letter(); return false">
+                    Подтвердить почтовый адрес</button>
+                {% endif %}
             </form>
         <div class="vkontakte-info clearfix">
             {% block vkontakte_info %}
