@@ -13,6 +13,14 @@
     {{ block.super }}
     {# диалоговое окно сброса пароля #}
     <script type="text/javascript">
+        function confirm_mail_by_op() {
+            $.get('{% url confirm_profile_email profile.id %}');
+            $('#mail_confirm_sent').show();
+            $('#confirm_mail_button').hide();
+            $('#filled_email_label').children('span').hide();
+            $('#filled_email_label img').first().hide();
+        }
+
         $(document).ready(function(){
             $("#reset_password_btn").each(function(){
                 $(this).click(function() {
@@ -66,6 +74,35 @@
             <div id="dialog-confirm" class="confirmation-dialog" title="Сбросить пароль?">
               <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Внимание! Вход будет возможен только по новому паролю.</p>
             </div>
+
+            <form method="POST" id="email_form">
+                {% csrf_token %}
+                <div class="field">
+                    <label class="field-label">{{ form.email.label }} </label>
+                    <p class="field-value">
+                        <input type="text" name="email" id="id_email" value="{{ profile.user.email }}">
+                    </p>
+                </div>
+                <a href="#" class="btn" id="email_btn" onclick="emailSubmit(); return false">Сохранить</a>
+                <p id="filled_email_label" class="field-value">
+                    {% if not profile.email_verified %}
+                        <img src="/static/img/icon_not_approved.fw.png">
+                    {% else %}
+                        <img title="Почтовый адрес подтвержден" src="/static/img/icon_approved.fw.png">
+                    {% endif %}
+                    <label class="value">{{ profile.user.email }}</label>
+                    <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    {% if not profile.email_verified %}
+                        <span class="status-not-approved">Почтовый ящик не подтвержден</span>
+                    {% endif %}
+                </p>
+                <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен.</p>
+                {% if not profile.email_verified %}
+                    <button  id="confirm_mail_button" class="btn btn-small btn-success" type="button" onclick="confirm_mail_by_op(); return false">
+                    Подтвердить почтовый адрес</button>
+                    <p class="text-success" id="mail_confirm_sent" hidden="">Почтовый адрес успешно подтвержден</p>
+                {% endif %}
+            </form>
 
         <div class="vkontakte-info">
             <div class="block-head">Профиль ВКонтакте:</div>
