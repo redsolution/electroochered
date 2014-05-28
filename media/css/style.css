@@ -1549,3 +1549,7 @@ dl {
 .text-success {
     color: #468847;
 }
+
+#filled_email_label {
+    margin-top: 4px;
+}

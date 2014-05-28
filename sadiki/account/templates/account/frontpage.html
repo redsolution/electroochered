@@ -112,8 +112,9 @@
 
         function send_confirmation_letter() {
             $.get('{% url send_confirm_letter %}');
+            $('#mail_confirm_sent').show();
         }
-        
+
         $(document).ready(function(){
             {% if not request.user.email %}
             mailLabelToEdit();
@@ -143,8 +144,8 @@
                 })
             });
             $("#email_explain").popover({
-                title: "Электронный почтовый ящик",
-                content: '<p>Указанный электронный почтовый ящик можно использовать для входа на сайт. Также на него будут приходить уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
+                title: "Электронный почтовый адрес",
+                content: '<p>Указанный электронный почтовый адрес можно использовать для входа на сайт. Также на него будут отправляться уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
                 placement: "top"});
         })
     </script>
@@ -184,6 +185,7 @@
                 {% if user == profile.user and user.email and not profile.email_verified %}
                     <button  id="confirm_mail_button" class="btn btn-small btn-success" type="button" onclick="send_confirmation_letter(); return false">
                     Подтвердить почтовый адрес</button>
+                    <p id="mail_confirm_sent" hidden="">На указанный почтовый адрес отправлено письмо с инструкциями по подтверждению. Письмо действительно в течении трех дней.</p>
                 {% endif %}
             </form>
         <div class="vkontakte-info clearfix">
