@@ -85,10 +85,6 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         profile = request.user.get_profile()
         return super(AccountFrontPage, self).dispatch(request, profile=profile)
 
-    def post(self, request, profile):
-        print request.POST
-        pass
-
     def get_context_data(self, **kwargs):
         profile = kwargs.get('profile')
         form = EmailAddForm()
