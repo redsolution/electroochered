@@ -93,6 +93,7 @@
             save_button.show();
             save_button.prev().children('p').show();
             element.parent().hide();
+            {% if profile.user.email %}
             $('#id_email').focus();
             $('#id_email').blur(function() {
                 if ($('#id_email').val() === email_string) {
@@ -100,6 +101,7 @@
                     return false;
                 }
             })
+            {% endif %}
         }
 
         function mailEditToLabel(){
