@@ -1552,4 +1552,14 @@ dl {
 
 #filled_email_label {
     margin-top: 4px;
+} 
+
+#get_coords {
+    float: right;
+    margin-top: 2px;
+}
+
+#coords_success {
+    margin-top: 5px;
+    margin-bottom: 10px;
 }

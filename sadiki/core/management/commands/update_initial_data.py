@@ -28,6 +28,8 @@ class Command(BaseCommand):
                     new_group.permissions.add(perm)
                 print u'Создана новая группа: %s, ключи доступа: %s' % (group_name, ', '.join(group_permissions))
         #создаем категорию Без льгот
+        '''
         benefit_category, created = BenefitCategory.objects.get_or_create(priority=WITHOUT_BENEFIT_PRIORITY, defaults={'name': u"Без льгот"})
         if created:
             print u"Создана категория льгот 'Без льгот'"
+        '''
