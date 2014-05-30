@@ -201,3 +201,16 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('errors', response.content)
         self.assertIn('"ok": false', response.content)
+        self.client.logout()
+
+        # check wrong (forbidden) requests
+        self.client.login(username=self.operator.username, password="password")
+        op_confirm = self.client.post(reverse('confirm_profile_email',
+                                              args=[profile.id]))
+        self.assertEqual(op_confirm.status_code, 405)
+
+        op_change = self.client.get(
+            reverse('change_profile_email', args=[profile.id]),
+            {'email': 'somemail@example.com'},
+            **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+        self.assertEqual(op_change.status_code, 405)
