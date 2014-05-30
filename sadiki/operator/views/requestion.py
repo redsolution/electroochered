@@ -480,26 +480,10 @@ class GenerateProfilePassword(OperatorPermissionMixin, View):
 class ConfirmEmail(OperatorPermissionMixin, View):
 
     def get(self, request, profile_id):
-        print profile_id
         profile = Profile.objects.get(pk=profile_id)
-        print profile
         profile.email_verified = True
         profile.save()
         return HttpResponse()
-
-    def post(self, request, profile_id):
-        profile = get_object_or_404(Profile, id=profile_id)
-        user = profile.user
-        form = HiddenConfirmation(request.POST)
-        if form.is_valid() and form.cleaned_data.get('action') == 'reset_password':
-            password = User.objects.make_random_password()
-            user.set_password(password)
-            user.save()
-            result = generate_pdf(template_name='operator/blanks/reset_password.html',
-                                  context_dict={'password': password, 'media_root': settings.MEDIA_ROOT,
-                                                'profile': profile})
-            response = HttpResponse(result.getvalue(), mimetype='application/pdf')
-            return response
 
 
 class ChangeRequestionLocation(OperatorPermissionMixin, View):
