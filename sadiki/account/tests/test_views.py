@@ -148,3 +148,56 @@ class CoreViewsTest(TestCase):
         profile = u.get_profile()
         self.assertTrue(profile.email_verified)
         self.assertEqual(u.email, changed_email)
+        self.client.logout()
+
+        # login with email
+        login = self.client.login(username=changed_email, password='123456q')
+        self.assertTrue(login)
+
+    def test_email_errors(self):
+        """
+        Проверка "неправильных" вариантов операций с почтой
+        """
+        email = 'testmail@example.com'
+        self.requester.email = email
+        self.requester.save()
+
+        self.assertTrue(self.client.login(username=self.requester.username,
+                                          password='123456q'))
+        self.client.logout()
+
+        # impossible login with unverified email
+        u = User.objects.get(pk=self.requester.id)
+        profile = u.get_profile()
+        self.assertFalse(profile.email_verified)
+        self.assertFalse(self.client.login(username=email,
+                                           password='123456q'))
+
+        # unable to post incorrect email
+        self.client.login(username=self.requester.username, password='123456q')
+        response = self.client.post(
+            reverse('email_change'),
+            {'email': 'wrong@email'},
+            **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('errors', response.content)
+        self.assertIn('"ok": false', response.content)
+        self.client.logout()
+
+        # unable to register same email twice
+        self.requester1 = User.objects.create_user(username='requester1',
+                                                   password='123456q')
+        permission = Permission.objects.get(codename=u'is_requester')
+        self.requester1.user_permissions.add(permission)
+        Profile.objects.create(user=self.requester1)
+        self.requester1.save()
+        login = self.client.login(username=self.requester1.username,
+                                  password='123456q')
+        self.assertTrue(login)
+        response = self.client.post(
+            reverse('email_change'),
+            {'email': email},
+            **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('errors', response.content)
+        self.assertIn('"ok": false', response.content)
