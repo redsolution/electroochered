@@ -74,6 +74,7 @@ class CoreViewsTest(TestCase):
 
         login = self.client.login(username=self.requester.username,
                                   password='123456q')
+        # add new email
         self.assertTrue(login)
         email = 'testmail@gmail.com'
         response = self.client.post(
@@ -86,3 +87,13 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.content, '{"ok": true}')
         self.assertFalse(profile.email_verified)
         self.client.logout()
+
+        # TODO: confim mail by operator
+        self.client.login(username=self.operator.username, password="password")
+        op_resp = self.client.get(reverse('operator_profile_info',
+                                          args=[profile.id]))
+        self.assertEqual(op_resp.status_code, 200)
+        self.assertIn(email, op_resp.content)
+        # change by operator
+        # change by user
+        # confirm by user
