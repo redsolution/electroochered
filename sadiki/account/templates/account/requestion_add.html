@@ -36,7 +36,9 @@
         var areas_all = [];
         {% for area in areas_all %}
             areas_all[{{ forloop.counter0 }}] = { id: {{ area.id }},
+                                                {% if use_districts %}
                                                   district_id: {{ area.district.id }},
+                                                {% endif %}
                                                   name: '{{ area.name }}',
                                                   sadiks: [],
                                                   center: {} };
