@@ -145,7 +145,7 @@ def send_confirm_letter(request):
     if is_allowed_send_confirm(request.user):
         user = request.user
         key = VerificationKey.objects.create_key(user)
-        print key.key
-        # key.send_email_verification()
+        # print key.key
+        key.send_email_verification()
         return HttpResponse('ok')
     return HttpResponse('not allowed')
