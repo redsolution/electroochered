@@ -119,14 +119,14 @@
                 </div>
                 <a href="#" class="btn" id="email_btn" onclick="operatorEmailSubmit(); return false">Сохранить</a>
                 <p id="filled_email_label" class="field-value">
-                    {% if not profile.email_verified %}
+                    {% if profile.user.email and not profile.email_verified %}
                         <img src="/static/img/icon_not_approved.fw.png">
                     {% else %}
                         <img title="Почтовый адрес подтвержден" src="/static/img/icon_approved.fw.png">
                     {% endif %}
                     <label class="value">{{ profile.user.email }}</label>
                     <a class="editor" id="change_mail_btn" href="#" onclick="mailLabelToEdit(); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-                    {% if not profile.email_verified %}
+                    {% if profile.user.email and not profile.email_verified %}
                         <span class="status-not-approved">Почтовый ящик не подтвержден</span>
                     {% endif %}
                 </p>
