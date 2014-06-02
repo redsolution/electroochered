@@ -163,7 +163,6 @@ class DecisionManager(OperatorPermissionMixin, View):
         u"""Собирается информация о очереди"""
         info_dict = {}
         distribution = Distribution.objects.filter(status=DISTRIBUTION_STATUS_INITIAL)
-        full_queue_experimental = Requestion.objects.distribution_queue().select_related('benefit_category')
         full_queue = Requestion.objects.queue().confirmed().filter(Q(
             status__in=(STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION),
         ) | Q(
@@ -182,10 +181,12 @@ class DecisionManager(OperatorPermissionMixin, View):
         current_distribution_year = get_current_distribution_year()
         if free_places:
             # ищем первую заявку, которая может быть распределена
-            age_groups = AgeGroup.objects.filter(sadikgroup__free_places__gt=0
-                ).distinct()
-            requestions_with_places_query = Q()
-            # проходимся по всем группам в которых есть места и формируем запрос
+            age_groups = AgeGroup.objects.filter(
+                sadikgroup__free_places__gt=0).distinct()
+            # первая, распределяемая заявка
+            # выставляем в None для дальнейшего сравнения
+            current_requestion_exp = None
+            # проходимся по всем группам в которых есть места
             for age_group in age_groups:
                 # фильтруем по возрастной группе
                 query_for_group = Q(birth_date__lte=age_group.max_birth_date(
@@ -193,21 +194,51 @@ class DecisionManager(OperatorPermissionMixin, View):
                     Q(birth_date__gt=age_group.min_birth_date(
                         current_distribution_year=current_distribution_year))
                 # должны быть места в приоритетных ДОУ
-                query_for_pref_sadiks = Q(pref_sadiks__groups__free_places__gt=0,
-                                          pref_sadiks__groups__age_group=age_group)
-                # либо указана возможность зачисления в любой ДОУ и в выбранной области есть ДОУ с местами
-                # или не указана область
-                query_for_any_sadiks = Q(areas__sadik__groups__free_places__gt=0,
-                                         areas__sadik__groups__age_group=age_group,
-                                         areas__sadik__groups__active=True)
-                # собираем все в один запрос
-                requestions_with_places_query |= query_for_group & query_for_any_sadiks
+                query_for_pref_sadiks = Q(
+                    pref_sadiks__groups__free_places__gt=0,
+                    pref_sadiks__groups__age_group=age_group)
+                # либо указана возможность зачисления в любой ДОУ и в выбранной
+                # области есть ДОУ с местами или не указана область
+                query_for_any_sadiks = Q(
+                    areas__sadik__groups__free_places__gt=0,
+                    areas__sadik__groups__age_group=age_group,
+                    areas__sadik__groups__active=True)
+
+                # ищем заявку по приоритетным садикам, сравниваем с первой
+                requestions_pref_sadiks = full_queue.exclude(
+                    status=STATUS_DECISION).exclude(
+                        admission_date__gt=datetime.date.today(),).filter(
+                            Q(query_for_group & query_for_pref_sadiks))
+                try:
+                    requestion_pref_sadiks = requestions_pref_sadiks[0]
+                    if current_requestion_exp and (
+                            requestion_pref_sadiks.position_in_queue() <
+                            current_requestion_exp.position_in_queue()):
+                        current_requestion_exp = requestion_pref_sadiks
+                    elif current_requestion_exp is None:
+                        current_requestion_exp = requestion_pref_sadiks
+                except IndexError:
+                    pass
+
+                # ищем заявку по группам ДОУ, сравниваем с первой
+                requestions_any_sadiks = full_queue.exclude(
+                    status=STATUS_DECISION).exclude(
+                        admission_date__gt=datetime.date.today(),).filter(
+                            Q(query_for_group & query_for_any_sadiks))
+                try:
+                    requestion_any_sadiks = requestions_any_sadiks[0]
+                    if current_requestion_exp and (
+                            requestion_any_sadiks.position_in_queue() <
+                            current_requestion_exp.position_in_queue()):
+                        current_requestion_exp = requestion_any_sadiks
+                    elif current_requestion_exp is None:
+                        current_requestion_exp = requestion_any_sadiks
+                except IndexError:
+                    pass
+
             # список заявок, которые могут быть зачислены
-            requestions_with_places = full_queue.exclude(status=STATUS_DECISION
-                    ).exclude(admission_date__gt=datetime.date.today(),
-                ).filter(requestions_with_places_query)
-            if requestions_with_places.exists():
-                current_requestion = requestions_with_places[0]
+            if current_requestion_exp:
+                current_requestion = current_requestion_exp
                 info_dict.update({'current_requestion': current_requestion,
                     'location_not_verified': current_requestion.location_not_verified,
                     'location_form': ChangeLocationForm(instance=current_requestion),
@@ -238,9 +269,9 @@ class DecisionManager(OperatorPermissionMixin, View):
 
         available_sadik_groups = SadikGroup.objects.appropriate_for_birth_date(
             requestion.birth_date).filter(active=True, free_places__gt=0)
-#        должны быть включены только приоритетные ДОУ
+        # должны быть включены только приоритетные ДОУ
         query_available_sadiks = Q(sadik__in=requestion.pref_sadiks.all())
-#        и ДОУ из выбранных территориальных областей
+        # и ДОУ из выбранных территориальных областей
         if requestion.distribute_in_any_sadik:
             if requestion.areas.exists():
                 query_available_sadiks |= Q(sadik__area__in=requestion.areas.all())
