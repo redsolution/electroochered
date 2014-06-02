@@ -59,12 +59,15 @@ class CoreViewsTest(TestCase):
 
     def test_account_frontpage(self):
         self.assertTrue(self.requester.is_requester())
+        self.requester.email = 'testmail@example.com'
+        self.requester.save()
         login = self.client.login(username=self.requester.username,
                                   password='123456q')
         self.assertTrue(login)
         frontpage_response = self.client.get(reverse('account_frontpage'))
         self.assertEqual(frontpage_response.status_code, 200)
         self.assertTrue(self.requester.username in frontpage_response.content)
+        self.assertIn(self.requester.email, frontpage_response.content)
         self.client.logout()
 
     def test_email_add(self):
@@ -182,6 +185,11 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('errors', response.content)
         self.assertIn('"ok": false', response.content)
+
+        # 404 error on wrong verification key
+        response_wrong_vkey = self.client.get(reverse('email_verification',
+                                              args=['1a2b'*10]))
+        self.assertEqual(response_wrong_vkey.status_code, 404)
         self.client.logout()
 
         # unable to register same email twice
