@@ -5,7 +5,7 @@ from django.contrib.auth.models import Permission
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
 from django.db.models import Q
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
@@ -18,7 +18,8 @@ from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
     BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_current_distribution_year
+from sadiki.core.utils import get_current_distribution_year, \
+    create_xls_from_queue
 from sadiki.core.workflow import CREATE_PROFILE
 from sadiki.logger.models import Logger
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -172,6 +173,16 @@ class Queue(RequirePermissionsMixin, ListView):
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
+
+        if self.request.GET.get('type') == 'xls':
+            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            num = self.queryset.count()
+            print(num)
+            if num < 2000:
+                create_xls_from_queue(self.queryset)
+            else:
+                create_xls_from_queue(queryset)
+
         # для анонимного и авторизованного пользователя нужно отобразить
         # какие особые действия совершались с заявкой
         if requestions:
@@ -202,6 +213,12 @@ class Queue(RequirePermissionsMixin, ListView):
         из-за того, что выставлены параметры фильтра, которые её скрывают,
         автоматически перенаправлять на страницу безо всяких фильтров
         """
+        request = args[0]
+        print('inside get {}'.format(request.GET))
+        if request.GET.get('type') == 'xls':
+            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            print 'xls'
+
         try:
             response = super(Queue, self).get(*args, **kwds)
         except RequestionHidden:

@@ -364,3 +364,7 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
             ws.col(5).width = 256 * 35
             ws.col(6).width = 256 * 45
     wb.save(response)
+
+
+def create_xls_from_queue(queue):
+    print 'exporting to xlx {} reqs'.format(len(queue))
