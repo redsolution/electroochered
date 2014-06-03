@@ -1563,3 +1563,11 @@ dl {
     margin-top: 5px;
     margin-bottom: 10px;
 }
+
+.gray {
+    color: gray;
+}
+
+.blue {
+    color: #0088cc;
+}
