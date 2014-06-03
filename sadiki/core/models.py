@@ -76,6 +76,18 @@ STATUS_CHOICES = (
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
 )
 
+STATUS_CHOICES_FILTER = (
+    (STATUS_REQUESTER_NOT_CONFIRMED, u'Очередник - не подтвержден'),
+    (STATUS_REQUESTER, u'Очередник'),
+    (STATUS_DECISION, u'Выделено место'),
+    (STATUS_DISTRIBUTED, u'Зачислен'),
+    (STATUS_NOT_APPEAR, u'Не явился'),
+    (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
+    (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
+    (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
+    (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
+)
+
 REQUESTION_MUTABLE_STATUSES = (
     STATUS_WAIT_REVIEW,
     STATUS_REQUESTER_NOT_CONFIRMED,
@@ -707,7 +719,7 @@ class Profile(models.Model):
     def sadik_available(self, sadik):
         u"""проверка есть ли у пользователя права на ДОУ"""
         return (self.area == sadik.area if self.area else True
-            and self.sadiks.filter(id=sadik.id).exists()
+                and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
 
     def social_auth_clean_data(self):
@@ -719,8 +731,6 @@ class Profile(models.Model):
         self.first_name = data.get('first_name')
         self.phone_number = data.get('home_phone')
         self.skype = data.get('skype')
-
-
 
     def __unicode__(self):
         return self.user.username
@@ -749,6 +759,7 @@ DISTRIBUTION_TYPE_CHOICES = (
     (DEFAULT_DISTRIBUTION_TYPE, u'Обычное зачисление'),
     (PERMANENT_DISTRIBUTION_TYPE, u'Зачисление на постоянной основе'),
     )
+
 
 class RequestionQuerySet(models.query.QuerySet):
 
@@ -809,10 +820,6 @@ class RequestionQuerySet(models.query.QuerySet):
         u"""Исключаем зачисленные заявки"""
         return self.exclude(status__in=(STATUS_DISTRIBUTED,))
 
-    def not_appeared(self):
-        u"""Отображаем просроченные заявки"""
-        return self.filter(status=STATUS_NOT_APPEAR)
-
     def _sorting_to_kwds(self, instance, sort_param):
         u"""Берет у объекта ``instance`` параметр ``sort_param``
          и возвращает словарь для построения фильтра объектов,
@@ -859,7 +866,8 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(benefit_category__priority__gt=0)
 
     def filter_for_age(self, min_birth_date, max_birth_date):
-        return self.filter(Q(birth_date__gt=min_birth_date), Q(birth_date__lte=max_birth_date))
+        return self.filter(Q(birth_date__gt=min_birth_date),
+                           Q(birth_date__lte=max_birth_date))
 
     def add_distributed_sadiks(self):
         return self.extra(select={
@@ -875,8 +883,9 @@ class RequestionQuerySet(models.query.QuerySet):
             })
 
     def enrollment_in_progress(self):
-        return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT, STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
-            STATUS_NOT_APPEAR_EXPIRE))
+        return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT,
+                                       STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
+                                       STATUS_NOT_APPEAR_EXPIRE))
 
     def add_related_documents(self):
 #        а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
@@ -905,8 +914,8 @@ class Requestion(models.Model):
         verbose_name=u'Предпочитаемые группы ДОУ',
         help_text=u"""Группа в которой вы хотели бы посещать ДОУ.""")
 
-    district = models.ForeignKey('District', blank=True, null=True,
-         verbose_name=u'Район заявки',)
+    district = models.ForeignKey(
+        'District', blank=True, null=True, verbose_name=u'Район заявки')
 
     # Child data
     admission_date = YearChoiceField(u'Желаемый год поступления',
@@ -1415,6 +1424,11 @@ class UserFunctions:
         u"""
         является ли пользователь администратором, оператором или супервайзером
         """
+
+        # в системе ЭО мы управляем только административными пользователями
+        # поэтому, если пользователь неактивен - значит он 'administrative'
+        if not self.is_active:
+            return True
         return any((self.is_operator(), self.is_sadik_operator(), self.is_administrator(),
             self.is_supervisor()))
 

@@ -4,10 +4,11 @@ from django.test import TestCase
 from django.core import management
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.contrib.auth.models import Permission, Group
 
 from sadiki.core.models import Requestion, BenefitCategory, \
     Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
-    REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup
+    REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup, Address
 from sadiki.core.tests import utils as test_utils
 
 
@@ -19,6 +20,13 @@ class RequestionTestCase(TestCase):
         test_utils.create_objects(test_utils.create_area, 5)
         management.call_command('update_initial_data')
         management.call_command('generate_sadiks', 10)
+
+    @classmethod
+    def tearDownClass(cls):
+        Permission.objects.all().delete()
+        Group.objects.all().delete()
+        BenefitCategory.objects.all().delete()
+        Address.objects.all().delete()
 
     def setUp(self):
         self.requestion = test_utils.create_requestion(name='Ann')
@@ -77,7 +85,7 @@ class RequestionTestCase(TestCase):
         self.assertEqual(last_req.position_in_queue(), 2)
 
     def test_all_group_methods(self):
-        kidgdn = Sadik.objects.get(pk=1)
+        kidgdn = Sadik.objects.all()[0]
         test_requestion = test_utils.create_requestion(
             admission_date=datetime.date(datetime.date.today().year + 1, 1, 1),
             birth_date=datetime.date.today()-datetime.timedelta(days=365)

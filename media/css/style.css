@@ -836,15 +836,19 @@ html, body {
 
 .content-menu{
     padding-left: 16px;
-    margin:2px 0px 4px 0px;
+    margin:2px 0px 0px 0px;
+    font-size: 0;
 }
 
 .content-menu li{
     list-style: none;
-    display: inline;
-    height: 14px;
+    display: inline-block;
     padding: 7px 10px 5px 10px;
     border: 1px #bfd0bf solid;
+    border-bottom: 0;
+    font-size: 13px;
+    position: relative;
+    top: 1px;
 }
 
 .content-menu li:not(:first-child){
@@ -857,7 +861,6 @@ html, body {
 
 .content-menu li.active{
     background-color: #FFFFFF;
-    border-bottom: 1px #FFFFFF solid;
 }
 
 .content-main {
@@ -1422,6 +1425,10 @@ tr.dynamic-form .errorlist {
     margin-bottom: 0px;
 }
 
+#confirm_mail_button {
+    margin-bottom: 10px;
+}
+
 /* added in 1.5.3b version */
 .requestion-form .areas_all {
     margin-top: 0px;
@@ -1525,4 +1532,42 @@ dl {
     margin-bottom: 5px;
     height: 31px;
     font-size: 16px;
+}
+
+#requestion-info-block {
+    width: 500px;
+}
+
+.ms-parent .ms-drop ul {
+    width: 97.5%;
+}
+
+#id_status + div + p {
+    margin-top: -20px;
+}
+
+.text-success {
+    color: #468847;
+}
+
+#filled_email_label {
+    margin-top: 4px;
+} 
+
+#get_coords {
+    float: right;
+    margin-top: 2px;
+}
+
+#coords_success {
+    margin-top: 5px;
+    margin-bottom: 10px;
+}
+
+.gray {
+    color: gray;
+}
+
+.blue {
+    color: #0088cc;
 }

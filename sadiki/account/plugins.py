@@ -16,6 +16,13 @@ class AccountPlugin:
     def get_profile_addition(self):
         raise NotImplementedError
 
+    def get_logs(self, profile):
+        """
+        Для корректного отображения на странице "история изменений" данный метод
+        должен возвращать словарь вида: {'заголовок': [[лог:сообщение], ... ]}
+        """
+        raise NotImplementedError
+
 
 def add_plugin(plugin):
     if not isinstance(plugin, AccountPlugin):

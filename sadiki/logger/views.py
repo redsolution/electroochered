@@ -4,7 +4,8 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
-from sadiki.account.utils import get_plugin_menu_items
+from django.conf import settings
+from sadiki.account.utils import get_plugin_menu_items, get_plugin_logs
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Requestion, Profile
 from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
@@ -13,7 +14,7 @@ from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
     DECISION_DISTRIBUTION, PASS_DISTRIBUTED, \
     DISTRIBUTED_ARCHIVE, STATUS_CHANGE_TRANSITIONS
 from sadiki.logger.models import Logger
-from sadiki.operator.plugins import get_operator_plugin_menu_items
+from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_plugin_logs
 from sadiki.operator.views.base import OperatorPermissionMixin
 
 DECISION_TRANSFERS = (DECISION, IMMEDIATELY_DECISION, PERMANENT_DECISION,
@@ -63,9 +64,10 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
 
     def get(self, request):
         profile = request.user.get_profile()
-        return self.render_to_response(
-            {'requestions_with_logs': self.get_logs_for_profile(profile),
-             'plugin_menu_items': get_plugin_menu_items()})
+        data = {'requestions_with_logs': self.get_logs_for_profile(profile),
+                'plugin_menu_items': get_plugin_menu_items(),
+                'plugin_logs': get_plugin_logs(profile)}
+        return self.render_to_response(data)
 
 
 class OperatorLogs(OperatorPermissionMixin, AccountLogs):
@@ -73,10 +75,11 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
 
     def get(self, request, profile_id):
         profile = get_object_or_404(Profile, id=profile_id)
-        return self.render_to_response(
-            {'requestions_with_logs': self.get_logs_for_profile(profile),
-             'profile': profile,
-             'plugin_menu_items': get_operator_plugin_menu_items(profile_id)})
+        data = {'requestions_with_logs': self.get_logs_for_profile(profile),
+                'profile': profile,
+                'plugin_menu_items': get_operator_plugin_menu_items(profile.id),
+                'plugin_logs': get_operator_plugin_logs(profile)}
+        return self.render_to_response(data)
 
 
 

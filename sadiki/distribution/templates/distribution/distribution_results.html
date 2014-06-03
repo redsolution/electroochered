@@ -14,7 +14,10 @@
                 var counterEl = document.getElementById('countdown');
                 counterEl.textContent = delay;
                 delay--;
-                if (delay <0 ){window.location.reload()}
+                if (delay <0 ){
+                    window.location.reload();
+                    return false;
+                }
                 setTimeout(countdown, 1000);
             }
             countdown();

@@ -12,7 +12,7 @@ from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
 from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
-    RequestionAdd as AccountRequestionAdd, \
+    RequestionAdd as AccountRequestionAdd, EmailChange as AccountEmailChange, \
     RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage
 from sadiki.anonym.views import Queue as AnonymQueue, \
     RequestionSearch as AnonymRequestionSearch
@@ -477,6 +477,15 @@ class GenerateProfilePassword(OperatorPermissionMixin, View):
             return response
 
 
+class ConfirmEmail(OperatorPermissionMixin, View):
+
+    def get(self, request, profile_id):
+        profile = Profile.objects.get(pk=profile_id)
+        profile.email_verified = True
+        profile.save()
+        return HttpResponse()
+
+
 class ChangeRequestionLocation(OperatorPermissionMixin, View):
 
     def post(self, request, requestion_id):
@@ -506,3 +515,10 @@ class SocialProfilePublic(OperatorPermissionMixin, AccountSocialProfilePublic):
     def dispatch(self, request, profile_id):
         profile = get_object_or_404(Profile, id=profile_id)
         return super(AccountSocialProfilePublic, self).dispatch(request, profile)
+
+
+class EmailChange(OperatorPermissionMixin, AccountEmailChange):
+
+    def dispatch(self, request, profile_id):
+        profile = get_object_or_404(Profile, id=profile_id)
+        return super(AccountEmailChange, self).dispatch(request, profile)

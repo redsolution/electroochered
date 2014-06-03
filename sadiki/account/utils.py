@@ -37,3 +37,18 @@ def get_profile_additions():
             continue
 
     return result
+
+
+def get_plugin_logs(profile):
+    result = []
+    for plugin in plugins:
+        try:
+            if not isinstance(plugin, AccountPlugin):
+                raise AttributeError('Plugin object must be instance of AccountPlugin class')
+
+            log_dict = plugin.get_logs(profile)
+            result.append(log_dict)
+        except NotImplementedError:
+            continue
+
+    return result

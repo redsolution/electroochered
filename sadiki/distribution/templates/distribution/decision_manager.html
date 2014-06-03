@@ -286,7 +286,15 @@
             {% else %}
                 В МДОУ не осталось ни одного свободного места
             {% endif %}
-            <a class="btn" href="{% url distribution_end %}">Завершить распределение</a>
+            <a id="end_distribution" class="btn" href="{% url distribution_end %}">Завершить распределение</a>
+            <script type="text/javascript">
+                // отключаем кнопку после нажатия
+                $('#end_distribution').click(function() {
+                    $('#end_distribution').addClass("disabled");
+                    window.location.href='{% url distribution_end %}';
+                    return false;
+                });
+            </script>
         {% endif %}
             <table class="table table-striped table-bordered table-condensed">
                 <tr>
@@ -342,19 +350,19 @@
             <div class="span_3 omega legend">
                 <h3>Обозначения</h3>
                 <div class="decision_requestion">
-                    <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
+                    <span class="text-success">75401364-Б-134457884</span><br />
                     Распределенная заявка
                 </div><br />
-                <div class="">
-                    <a href="#" class="red" onclick="return false;">75401364-Б-134457884</a><br />
+                <div>
+                    <span class="red">75401364-Б-134457884</span><br />
                     Текущая заявка
                 </div><br />
-                <div class="inactive_requestion">
-                    <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
+                <div>
+                    <span class="gray">75401364-Б-134457884</span><br />
                     Заявка не подходит по возрасту
                 </div><br />
-                <div class="">
-                    <a href="#" onclick="return false;">75401364-Б-134457884</a><br />
+                <div>
+                    <span class="blue">75401364-Б-134457884</span><br />
                     Следующая заявка
                 </div>
 
@@ -368,7 +376,7 @@
             {% endif %}
             {% if current_requestion %}
                 <h3>Заявка</h3>
-                <p>
+                <p id="requestion-info-block">
                 {% with current_requestion.evidience_documents.requestion_identity_documents.0 as document %}
                     {% if document %}
                         <strong>Документ:</strong> {{ document.document_number }} ({{ document.template }})<br>

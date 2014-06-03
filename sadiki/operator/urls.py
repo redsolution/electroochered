@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from sadiki.operator.plugins import plugins
 
 from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
-    RequestionAdd, \
+    RequestionAdd, ConfirmEmail, EmailChange ,\
     RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
     EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
@@ -25,6 +25,10 @@ urlpatterns = patterns('',
         GenerateProfilePassword.as_view(), name=u'generate_profile_password'),
     url(r'^social_profile_public/(?P<profile_id>\d{1,7})/$',
         SocialProfilePublic.as_view(), name='operator_social_profile_public'),
+    url(r'^profile/(?P<profile_id>\d{1,7})/save_email/$',
+        EmailChange.as_view(), name=u'change_profile_email'),
+    url(r'^profile/(?P<profile_id>\d{1,7})/confirm_email/$',
+        ConfirmEmail.as_view(), name=u'confirm_profile_email'),
 
     # Работа с конкретной заявкой
     url(r'^request/(?P<requestion_id>\d{1,7})/$',

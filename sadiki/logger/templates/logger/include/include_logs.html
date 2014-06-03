@@ -16,7 +16,7 @@
                 <td>{{ log.get_action_flag_display }}</td>
                 <td>
                     {% for log_message in log_messages %}
-                        {{ log_message.message }}
+                        {{ log_message.message|safe }}
                     {% endfor %}
                 </td>
                 <td>

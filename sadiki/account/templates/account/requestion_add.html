@@ -36,7 +36,9 @@
         var areas_all = [];
         {% for area in areas_all %}
             areas_all[{{ forloop.counter0 }}] = { id: {{ area.id }},
+                                                {% if use_districts %}
                                                   district_id: {{ area.district.id }},
+                                                {% endif %}
                                                   name: '{{ area.name }}',
                                                   sadiks: [],
                                                   center: {} };
@@ -98,6 +100,7 @@
             // прячем родной m2m django виджет
             $('#id_areas').hide();
             $('#coords_alert').hide();
+            $('#coords_success').hide();
 
             // поиск адреса при клике ентера и активном поле с адресом
             $('#address_text').keypress(function(e) {
@@ -240,8 +243,10 @@
                 data: {'address': $('#address_text').val()},
                 dataType:'json',
                 success: function(data, textStatus, jqXHR){
+                    $('#coords_alert').hide();
+                    $('#coords_success').hide();
                     if (data.ok) {
-                        $('#coords_alert').hide();
+                        $('#coords_success').show();
                         map.setView([data.coords[1], data.coords[0]], 17);
                     } else {
                         $('#coords_alert').text('Координаты по вашему запросу не найдены. ' +
@@ -392,10 +397,14 @@
                         <div id="coords_alert" class="alert">
                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                         </div>
-                        <p>
-                            <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом">
-                            <a class="btn" id="get_coords">Найти адрес на карте</a>
-                        </p>
+                        <a class="btn" id="get_coords">Найти адрес на карте</a>
+                        <div style="overflow: hidden; padding-right: .5em;">
+                        <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
+                        <div id="coords_success" class="alert alert-success">
+                            Теперь при помощи маркера <i class="icon-map-marker"></i>укажите 
+                            местоположение на карте
+                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        </div>
                     </div>
                     <div class="hidden">
                         {{ form.location }}

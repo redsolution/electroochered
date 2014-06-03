@@ -1,15 +1,19 @@
-# -*- coding: utf-8 -*- 
+# -*- coding: utf-8 -*-
+import datetime
 from django.contrib import messages
 from django.contrib.auth import get_backends, login
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
 from django.contrib.auth.views import password_change
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404
+from django.core.exceptions import ObjectDoesNotExist
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
 from sadiki.authorisation.forms import EmailResetForm
 from sadiki.authorisation.models import VerificationKey
 from sadiki.core.utils import get_user_by_email
+from sadiki.core.workflow import EMAIL_VERIFICATION
+from sadiki.logger.models import Logger
 
 
 class EmailVerification(TemplateView):
@@ -33,6 +37,16 @@ class EmailVerification(TemplateView):
             profile.save()
             message = u'Адрес электронной почты %s подтвержден!' % user.email
             messages.info(request, message)
+
+            action_flag = EMAIL_VERIFICATION
+            context_dict = {'email': user.email}
+            extra = {
+                'user': user,
+                'obj': profile,
+            }
+            Logger.objects.create_for_action(action_flag,
+                                             context_dict=context_dict,
+                                             extra=extra)
 
             if user.is_active:
                 backend = get_backends()[1]
@@ -100,3 +114,38 @@ def password_set(request):
         return Http404
     return password_change(request, template_name=u'authorisation/passwd_set.html',
                            password_change_form=SetPasswordForm)
+
+
+def is_allowed_send_confirm(user):
+    u"""
+    Проверяем, соответствие пользователя условиям для отправки письма
+    со ссылкой для подтверждения почтового ящика:
+    - авторизирован
+    - в профиле указан email
+    - email еще не подтвержден
+    - не запрашивал подтверждения последние 5 минут (от спама)
+    """
+    if any((user.is_anonymous(), not user.email, user.get_profile().email_verified)):
+        return False
+    try:
+        last_key = VerificationKey.objects.filter(user=user).latest('created')
+    except ObjectDoesNotExist:
+        last_key = None
+    if last_key:
+        t_delta = (datetime.datetime.now() - last_key.created).seconds
+        return t_delta > 300
+    else:
+        return True
+
+
+def send_confirm_letter(request):
+    u""""
+    Если пользователь проходит проверку - отправляем письмо с кодом подтверждения
+    """
+    if is_allowed_send_confirm(request.user):
+        user = request.user
+        key = VerificationKey.objects.create_key(user)
+        # print key.key
+        key.send_email_verification()
+        return HttpResponse('ok')
+    return HttpResponse('not allowed')

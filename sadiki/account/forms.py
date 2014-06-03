@@ -105,3 +105,7 @@ class SocialProfilePublicForm(ModelForm):
     class Meta:
         model = Profile
         fields = ('social_auth_public',)
+
+
+class EmailAddForm(forms.Form):
+    email = forms.EmailField(label='Электронный почтовый адрес:')
