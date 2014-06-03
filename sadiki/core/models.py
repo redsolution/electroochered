@@ -1424,6 +1424,11 @@ class UserFunctions:
         u"""
         является ли пользователь администратором, оператором или супервайзером
         """
+
+        # в системе ЭО мы управляем только административными пользователями
+        # поэтому, если пользователь неактивен - значит он 'administrative'
+        if not self.is_active:
+            return True
         return any((self.is_operator(), self.is_sadik_operator(), self.is_administrator(),
             self.is_supervisor()))
 
