@@ -204,7 +204,8 @@ class Queue(RequirePermissionsMixin, ListView):
         автоматически перенаправлять на страницу безо всяких фильтров
         """
         request = args[0]
-        if request.GET.get('type') == 'xls':
+        if (request.GET.get('type') == 'xls' and
+                request.user.is_administrative_person):
             response = HttpResponse(mimetype='application/vnd.ms-excel')
             queryset, form = self.process_filter_form(self.queryset, request.GET)
             num = queryset.count()
@@ -217,7 +218,8 @@ class Queue(RequirePermissionsMixin, ListView):
                 messages.error(
                     request,
                     u"""Фильтр вернул {} заявок, экспорт невозможен.
-                    Уменьшите количество заявок до 5000 или менее.
+                    Для корректной работы экспорта количество отфильтрованных
+                    заявок не должно превышать 5000.
                     """.format(num))
                 return HttpResponseRedirect(path)
 
