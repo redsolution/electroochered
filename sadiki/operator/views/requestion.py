@@ -63,7 +63,6 @@ class Queue(OperatorPermissionMixin, AnonymQueue):
             response = HttpResponse(mimetype='application/vnd.ms-excel')
             queryset, form = self.process_filter_form(self.queryset, request.GET)
             num = queryset.count()
-            print(num)
             if num < 5000:
                 create_xls_from_queue(response, queryset)
                 return response
@@ -78,6 +77,7 @@ class Queue(OperatorPermissionMixin, AnonymQueue):
                 return HttpResponseRedirect(path)
 
         return super(Queue, self).get(*args, **kwds)
+
 
 class Registration(OperatorPermissionMixin, AccountRequestionAdd):
     u"""

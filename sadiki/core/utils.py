@@ -376,7 +376,6 @@ def create_xls_from_queue(response, queue):
     header_style = xlwt.easyxf('font: bold 1')
     wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet(u'Результаты фильтра')
-    print 'exporting to xlx {} reqs'.format(len(queue))
     header = [
         u'Номер заявки',
         u'Дата рождения',
