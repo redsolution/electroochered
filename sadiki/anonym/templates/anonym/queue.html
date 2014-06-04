@@ -29,6 +29,15 @@
             placement: "top", html:true});
     });
     </script>
+
+    <script type="text/javascript">
+        // отключаем кнопку после нажатия
+        $('#export_to_excel').click(function() {
+            $(this).addClass("disabled");
+            window.location.href=$(this).prop('href');
+            return false;
+        });
+    </script>
 {% endblock %}
 
 {% block content_title %}
@@ -48,6 +57,7 @@
             {% izenform form options notag=1 nocsrf=1 %}
             <div class="buttonHolder">
                 <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
+                <a id="export_to_excel" class="btn" href="{{ request.get_full_path }}&type=xls">Экспорт в Excel</a>
             </div>
             </form>
         </div>

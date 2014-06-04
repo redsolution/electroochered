@@ -1571,3 +1571,8 @@ dl {
 .blue {
     color: #0088cc;
 }
+
+#export_to_excel {
+    margin-left: 10px;
+    padding: 8px;
+}

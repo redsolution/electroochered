@@ -173,16 +173,6 @@ class Queue(RequirePermissionsMixin, ListView):
             requestion.age_groups_calculated = requestion.age_groups(
                 age_groups=age_groups,
                 current_distribution_year=current_distribution_year)
-
-        if self.request.GET.get('type') == 'xls':
-            response = HttpResponse(mimetype='application/vnd.ms-excel')
-            num = self.queryset.count()
-            print(num)
-            if num < 2000:
-                create_xls_from_queue(self.queryset)
-            else:
-                create_xls_from_queue(queryset)
-
         # для анонимного и авторизованного пользователя нужно отобразить
         # какие особые действия совершались с заявкой
         if requestions:
@@ -214,10 +204,22 @@ class Queue(RequirePermissionsMixin, ListView):
         автоматически перенаправлять на страницу безо всяких фильтров
         """
         request = args[0]
-        print('inside get {}'.format(request.GET))
         if request.GET.get('type') == 'xls':
             response = HttpResponse(mimetype='application/vnd.ms-excel')
-            print 'xls'
+            queryset, form = self.process_filter_form(self.queryset, request.GET)
+            num = queryset.count()
+            print(num)
+            if num < 5000:
+                create_xls_from_queue(response, queryset)
+                return response
+            else:
+                path = request.get_full_path().replace('&type=xls', '')
+                messages.error(
+                    request,
+                    u"""Фильтр вернул {} заявок, экспорт невозможен.
+                    Уменьшите количество заявок до 5000 или менее.
+                    """.format(num))
+                return HttpResponseRedirect(path)
 
         try:
             response = super(Queue, self).get(*args, **kwds)
