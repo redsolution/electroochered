@@ -4,7 +4,6 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote, urlencode
@@ -18,8 +17,7 @@ from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
     BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_current_distribution_year, \
-    create_xls_from_queue
+from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
 from sadiki.logger.models import Logger
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -203,26 +201,6 @@ class Queue(RequirePermissionsMixin, ListView):
         из-за того, что выставлены параметры фильтра, которые её скрывают,
         автоматически перенаправлять на страницу безо всяких фильтров
         """
-        request = args[0]
-        if (request.GET.get('type') == 'xls' and
-                request.user.is_administrative_person):
-            response = HttpResponse(mimetype='application/vnd.ms-excel')
-            queryset, form = self.process_filter_form(self.queryset, request.GET)
-            num = queryset.count()
-            print(num)
-            if num < 5000:
-                create_xls_from_queue(response, queryset)
-                return response
-            else:
-                path = request.get_full_path().replace('&type=xls', '')
-                messages.error(
-                    request,
-                    u"""Фильтр вернул {} заявок, экспорт невозможен.
-                    Для корректной работы экспорта количество отфильтрованных
-                    заявок не должно превышать 5000.
-                    """.format(num))
-                return HttpResponseRedirect(path)
-
         try:
             response = super(Queue, self).get(*args, **kwds)
         except RequestionHidden:
