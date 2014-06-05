@@ -1104,6 +1104,18 @@ class Requestion(models.Model):
     def editable(self):
         return self.status in REQUESTION_MUTABLE_STATUSES
 
+    @property
+    def is_available_for_actions(self):
+        u""" Если есть незавершенное распрелеление и заявке выделено место,
+        то делать с ней ничего нельзя
+        """
+        try:
+            active_distribution = Distribution.objects.get(
+                ~Q(status=DISTRIBUTION_STATUS_END))
+        except Distribution.DoesNotExists:
+            active_distribution = None
+        return not (self.status == 6 and active_distribution)
+
     def available_temp_vacancies(self):
         return Vacancies.objects.filter(
             status=VACANCY_STATUS_TEMP_ABSENT, sadik_group__active=True,
