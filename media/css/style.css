@@ -1532,6 +1532,7 @@ dl {
     margin-bottom: 5px;
     height: 31px;
     font-size: 16px;
+    width: 100%;
 }
 
 #requestion-info-block {
@@ -1570,4 +1571,12 @@ dl {
 
 .blue {
     color: #0088cc;
+}
+
+.alert-close {
+    padding: 0;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    -webkit-appearance: none; 
 }

@@ -19,7 +19,7 @@
     <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
     <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
     <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
-    <script src="{{ STATIC_URL }}js/requestion.js"></script>
+    <script src="{{ STATIC_URL }}js/requestion.js?05062014"></script>
     <script type="text/javascript">
         {% load_settings %}
         var areas_ids = [];
@@ -236,33 +236,6 @@
             </select>');
         }
 
-        // получаем примерные координаты исходя из адреса
-        $("#get_coords").click(function() {
-            $.ajax('{% url get_coords_from_address %}', {
-                type: 'GET',
-                data: {'address': $('#address_text').val()},
-                dataType:'json',
-                success: function(data, textStatus, jqXHR){
-                    $('#coords_alert').hide();
-                    $('#coords_success').hide();
-                    if (data.ok) {
-                        $('#coords_success').show();
-                        map.setView([data.coords[1], data.coords[0]], 17);
-                    } else {
-                        $('#coords_alert').text('Координаты по вашему запросу не найдены. ' +
-                                                'Попробуйте изменить адрес.');
-                        $('#coords_alert').show();
-                    }
-                },
-                error: function(){
-                    $('#coords_alert').addClass('alert-error');
-                    $('#coords_alert').text('Ошибка обработки запроса. Попробуйте еще раз или ' +
-                                            'установите маркер на карте самостоятельно.');
-                    $('#coords_alert').show();
-                }
-            });
-        });
-
         $("#mainform_submit").click(function() {
             $(this).prop("disabled", true);
             $("#mainform").submit();
@@ -395,22 +368,22 @@
                     <div id="location-header">
                         <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
                         <div id="coords_alert" class="alert">
-                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
                         </div>
-                        <a class="btn" id="get_coords">Найти адрес на карте</a>
+                        <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
                         <div style="overflow: hidden; padding-right: .5em;">
                         <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
                         <div id="coords_success" class="alert alert-success">
                             Теперь при помощи маркера <i class="icon-map-marker"></i>укажите 
                             местоположение на карте
-                            <button type="button" class="close" data-dismiss="alert">&times;</button>
+                            <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
                         </div>
-                    </div>
                     <div class="hidden">
                         {{ form.location }}
                     </div>
                     <div id="account-requestion-map"></div>
                     <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
+                    </div>
                 </div>
                 <ul class='map-legend'>
                     <li><h3 class="icon-map-marker"></h3> - указать местоположение заявки на карте</li>

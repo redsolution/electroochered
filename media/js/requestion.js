@@ -244,3 +244,39 @@ function renderMarkers(markers, map) {
     map.addLayer(sadiksLayer, true);
     map.addLayer(prefSadikLayer)
 }
+
+
+
+var requestion = (function() {
+    var funcs = {};
+
+    // получаем примерные координаты исходя из адреса
+    function get_coords(url) {
+        $.ajax(url, {
+            type: 'GET',
+            data: {'address': $('#address_text').val()},
+            dataType:'json',
+            success: function(data, textStatus, jqXHR){
+                $('#coords_alert').hide();
+                $('#coords_success').hide();
+                if (data.ok) {
+                    $('#coords_success').show();
+                    map.setView([data.coords[1], data.coords[0]], 17);
+                } else {
+                    $('#coords_alert').text('Координаты по вашему запросу не найдены. ' +
+                                            'Попробуйте изменить адрес.');
+                    $('#coords_alert').show();
+                }
+            },
+            error: function(){
+                $('#coords_alert').addClass('alert-error');
+                $('#coords_alert').text('Ошибка обработки запроса. Попробуйте еще раз или ' +
+                                        'установите маркер на карте самостоятельно.');
+                $('#coords_alert').show();
+            }
+        });
+    }
+    funcs.get_coords = get_coords;
+
+    return funcs;
+}());

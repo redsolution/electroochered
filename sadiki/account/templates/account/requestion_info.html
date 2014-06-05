@@ -18,7 +18,7 @@
         <script src="{{ STATIC_URL }}leaflet/plugins/draw/leaflet.draw.js"></script>
         <script src="{{ STATIC_URL }}leaflet/plugins/markercluster/leaflet.markercluster.js"></script>
         <script src="{{ STATIC_URL }}leaflet/tile.stamen.js"></script>
-        <script src="{{ STATIC_URL }}js/requestion.js"></script>
+        <script src="{{ STATIC_URL }}js/requestion.js?05062014"></script>
 
         <script>
             {% with requestion.location as point %}
@@ -285,8 +285,10 @@
         $(document).ready(function(){
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+            $('#coords_alert').hide();
+            $('#coords_success').hide();
             // сообщение о том, что поле было изменено + запрос при закрытии окна
-            $('input, select').bind('change', function(){
+            $('input, select').not('#address_text').bind('change', function(){
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
@@ -310,6 +312,8 @@
                 "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
             });
         });
+
+
         </script>
 {% endblock %}
 
@@ -336,7 +340,7 @@
     {{ pref_sadiks_form.non_field_errors }}
     {{ change_requestion_form.non_field_errors }}
     {{ change_benefits_form.non_field_errors }}
-    <div class="span6">
+    <div class="span5">
     <div class="requestion-info">
         <div class="block-head">Информация о заявке:</div>
         <div class="{% if change_requestion_form.name.errors %}error {% endif %}field">
@@ -388,7 +392,7 @@
         </div>
     </div>
     </div>
-    <div class="span5">
+    <div class="span6">
         {% block top_right %}
         <div class="requestion-info">
         <div class="field">
@@ -463,7 +467,7 @@
     </div>
 </div>
 <div class="row sadiks-block">
-    <div class="span6">
+    <div class="span5">
         <div class="requestion-info">
             {% if use_districts and requestion.district %}
             <div id="district_div">
@@ -512,10 +516,21 @@
         </div>
         </div>
     </div>
-    <div class="span5">
+    <div class="span6">
         <div class="requestion-info">
         <div id="location-header" class="{% if change_requestion_form.location.errors %}error {% endif %}field">
             <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+            <div id="coords_alert" class="alert">
+                <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
+            </div>
+            <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+            <div style="overflow: hidden; padding-right: .5em;">
+            <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
+            <div id="coords_success" class="alert alert-success">
+                Теперь при помощи маркера <i class="icon-edit"></i>укажите 
+                местоположение на карте
+                <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
+            </div>
             <div id="account-requestion-map"></div>
             <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
         </div>
