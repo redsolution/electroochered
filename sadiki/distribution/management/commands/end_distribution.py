@@ -49,5 +49,8 @@ class Command(BaseCommand):
                     status=VACANCY_STATUS_NOT_PROVIDED)
             except Exception as e:
                 ex_type, ex, tb = sys.exc_info()
-                message = u"{}, {}, {}".format(ex_type, ex, tb)
+                message = u""
+                for item in traceback.format_exception(ex_type, ex, tb):
+                    message += item
+                message += u"/nОператор: {}".format(user)
                 mail_admins('Distribution error', message)
