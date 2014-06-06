@@ -123,8 +123,16 @@ class AdmPersonsList(TemplateView):
 
     def get(self, request):
         op_perms = Permission.objects.get(codename='is_operator')
-        adm_persons = User.objects.filter(groups__permissions=op_perms)
+        adm_perms = Permission.objects.get(codename='is_administrator')
+        sup_perms = Permission.objects.get(codename='is_supervisor')
+        adm_persons = User.objects.filter(
+            groups__permissions=adm_perms).exclude(username='administrator')
+        sup_persons = User.objects.filter(groups__permissions=sup_perms)
+        op_persons = User.objects.filter(groups__permissions=op_perms)
         data = {
-            'adm_persons': adm_persons}
+            'adm_persons': adm_persons,
+            'op_persons': op_persons,
+            'sup_persons': sup_persons,
+        }
         return self.render_to_response(data)
 

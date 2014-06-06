@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load sadiki_core_tags zenforms paginate %}
 
-{% block content_title %}<h1>{% block title %}Электронная очередь в ДОУ{% endblock %}</h1>{% endblock %}
+{% block content_title %}<h1>{% block title %}Список действий сотрудника {{ person.get_verbose_name }}{% endblock %}</h1>{% endblock %}
+
 
 {% block content %}
-<h1>{{ person.get_verbose_name }}</h1>
 
 <div class="pagination-page">
     {% digg_paginator %}
@@ -31,7 +31,7 @@
             <td>
             	{% for logmessage in log.1 %}{{ logmessage.message }}<br>{% endfor %}
             </td>
-            <td>{{ log.0.reason }}</td>
+            <td>{{ log.0.reason|default:"Не задано" }}</td>
         </tr>
 	{% endfor %}
 	</tbody>
