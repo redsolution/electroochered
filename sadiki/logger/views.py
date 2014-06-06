@@ -128,7 +128,8 @@ class AdmPersonsList(TemplateView):
         adm_persons = User.objects.filter(
             groups__permissions=adm_perms).exclude(username='administrator')
         sup_persons = User.objects.filter(groups__permissions=sup_perms)
-        op_persons = User.objects.filter(groups__permissions=op_perms)
+        op_persons = User.objects.filter(
+            groups__permissions=op_perms).exclude(username='operator')
         data = {
             'adm_persons': adm_persons,
             'op_persons': op_persons,
