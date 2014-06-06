@@ -41,10 +41,8 @@
                 <a href="{{ queue_howto_pages.0.url }}">{{ queue_howto_pages.0.title }}</a>
             </li>
         {% endif %}
-        {% if not request.user.is_administrative_person %}
             <li {% if request.path == adm_persons_url %}class="active"{% endif %}>
                 <a href="{{ adm_persons_url }}">Список сотрудников</a>
             </li>
-        {% endif %}
     </ul>
 {% endblock %}
