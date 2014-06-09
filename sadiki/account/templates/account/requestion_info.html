@@ -27,6 +27,7 @@
                 {% if can_change_requestion %}
                     var requestion_marker = L.marker(requestion_point, {
                         draggable: true,
+                        title: 'Маркер положения заявки',
                         zIndexOffset: 1001,
                     });
                     requestion_marker.on('dragend', function() {
@@ -518,8 +519,7 @@
             <div style="overflow: hidden; padding-right: .5em;">
             <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
             <div id="coords_success" class="alert alert-success">
-                Теперь при помощи кнопки <i class="icon-edit"></i>укажите новое
-                местоположение на карте
+                Теперь при помощи мышки перетащите маркер заявки на новое местоположение на карте
                 <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
             </div>
             <div id="account-requestion-map"></div>
@@ -529,7 +529,6 @@
         </div>
         <ul class='map-legend'>
             {% if requestion.location %}<li><h3 class="icon-map-marker"></h3> - центрировать карту по заявке</li>{% endif %}
-            {% if can_change_requestion %}<li><h3 class="icon-edit"></h3> - редактировать местоположение заявки на карте</li>{% endif %}
             <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
