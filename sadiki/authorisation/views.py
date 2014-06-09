@@ -125,7 +125,9 @@ def is_allowed_send_confirm(user):
     - email еще не подтвержден
     - не запрашивал подтверждения последние 5 минут (от спама)
     """
-    if any((user.is_anonymous(), not user.email, user.get_profile().email_verified)):
+    if user.is_anonymous():
+        raise Http404
+    if any((not user.email, user.get_profile().email_verified)):
         return False
     try:
         last_key = VerificationKey.objects.filter(user=user).latest('created')
