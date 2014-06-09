@@ -367,7 +367,7 @@
                     </div>
                 {% else %}
                     {% with form.areas as field %}
-                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label> </label> <span id="pref_dou_groups" class="icon-question-sign"></span>
                         <div></div>
                         {% if field.help_text %}
                             <p class="hint">{{ field.help_text }}</p>
@@ -379,7 +379,7 @@
                             <option value="{{ area.id }}">{{ area }}</option>
                             {% endfor %}
                         </select>
-                        <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить территориальную область</a>
+                        <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                     {% endwith %}
                 {% endif %}
                 {% with form.pref_sadiks as field %}
