@@ -23,8 +23,22 @@
         <script>
             {% with requestion.location as point %}
             {% if point %}
-                var requestion_point = [{{ point.y }}, {{ point.x }}]
-                var requestion_marker = L.marker(requestion_point)
+                var requestion_point = [{{ point.y }}, {{ point.x }}];
+                {% if can_change_requestion %}
+                    var requestion_marker = L.marker(requestion_point, {
+                        draggable: true,
+                        zIndexOffset: 1001,
+                    });
+                    requestion_marker.on('dragend', function() {
+                        lat_lng = this.getLatLng();
+                        requestion_point = [lat_lng.lat, lat_lng.lng];
+                        $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                        field_changed($("#location-header"));
+                        console.log('end dragging');
+                    });
+                {% else %}
+                    var requestion_marker = L.marker(requestion_point)
+                {% endif %}
             {% else %}
                 var requestion_point = null
                 var requestion_marker = null
@@ -101,29 +115,6 @@
                 if (requestion_marker) {
                     drawnItems.addLayer(requestion_marker);
                 }
-
-                {% if can_change_requestion %}
-                    // Initialize the draw control and pass it the FeatureGroup of editable layers
-                    var drawControlOptions = {
-                        edit: {
-                            featureGroup: drawnItems,
-                            remove: false,
-                            edit: {title: 'Изменить местоположение'}
-                        },
-                        draw: {
-                            polyline: false,
-                            polygon: false,
-                            circle: false, // Turns off this drawing tool
-                            rectangle: false,
-                            marker: true
-                        }
-                    };
-                    if (requestion_marker) {
-                        drawControlOptions['draw']['marker'] = false;
-                    }
-                    var drawControl = new L.Control.Draw(drawControlOptions);
-                    map.addControl(drawControl);
-                {% endif %}
 
                 function addDrawControl(map, control){
                     map.addControl(control);
@@ -532,7 +523,8 @@
                 <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
             </div>
             <div id="account-requestion-map"></div>
-            <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
+            <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
+            Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
         </div>
         </div>
         <ul class='map-legend'>
