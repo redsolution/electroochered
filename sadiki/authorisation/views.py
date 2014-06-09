@@ -5,7 +5,7 @@ from django.contrib.auth import get_backends, login
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
 from django.contrib.auth.views import password_change
 from django.core.urlresolvers import reverse
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
@@ -126,7 +126,7 @@ def is_allowed_send_confirm(user):
     - не запрашивал подтверждения последние 5 минут (от спама)
     """
     if user.is_anonymous():
-        raise Http404
+        raise PermissionDenied
     if any((not user.email, user.get_profile().email_verified)):
         return False
     try:
