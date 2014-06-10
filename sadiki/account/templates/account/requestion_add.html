@@ -357,7 +357,7 @@
                 <div class="requestion-info">
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
-                        <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+                        <a class="btn" id="get_coords" {% if form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
                         <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
                         <div style="overflow: hidden; padding-right: .5em;">
                         <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>

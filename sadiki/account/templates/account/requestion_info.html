@@ -283,7 +283,7 @@
                     $('#get_coords').click();
                 }
             });
-            
+
             // удаляем льготы, появившиеся при переносе Челябинской ЭО
             delete_special_benefits();
 
@@ -504,7 +504,7 @@
     <div class="span6">
         <div class="requestion-info">
         <div id="location-header" class="{% if change_requestion_form.location.errors %}error {% endif %}field">
-            <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+            <a class="btn" id="get_coords" {% if change_requestion_form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
             <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
             <div style="overflow: hidden; padding-right: .5em;">
             <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
@@ -530,7 +530,7 @@
 {% if can_change_requestion %}
 <div class="row">
     <div class="span11">
-        <button class="btn btn-primary btn-large" type="submit" disabled="disabled">Сохранить</button>
+        <button class="btn btn-primary btn-large" type="button" disabled="disabled">Сохранить</button>
     </div>
 </div>
 {% endif %}
