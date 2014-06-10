@@ -1557,7 +1557,8 @@ dl {
 
 #get_coords {
     float: right;
-    margin-top: 2px;
+    position: relative;
+    top: 21px;
 }
 
 #coords_success {
