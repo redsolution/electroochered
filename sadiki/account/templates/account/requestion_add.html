@@ -68,16 +68,9 @@
             area.center = center;
         });
 
-
-
         var drawnItems = new L.FeatureGroup();
         // Initialize the draw control and pass it the FeatureGroup of editable layers
         var draw_control_options = {
-            edit: {
-                featureGroup: drawnItems,
-                remove: false,
-                edit: {title: 'Изменить местоположение'}
-            },
             draw: {
                 polyline: false,
                 polygon: false,
@@ -91,7 +84,7 @@
             map.addControl(control);
             $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
                 if (requestion_point) {
-                        map.panTo(requestion_point);
+                    map.panTo(requestion_point);
                 }
             })
         }
@@ -99,8 +92,6 @@
         $(document).ready(function(){
             // прячем родной m2m django виджет
             $('#id_areas').hide();
-            $('#coords_alert').hide();
-            $('#coords_success').hide();
 
             // поиск адреса при клике ентера и активном поле с адресом
             $('#address_text').keypress(function(e) {
@@ -139,30 +130,29 @@
 
             add_draw_control(map, drawControl);
 
-            map.on('draw:edited', function (e) {
-                e.layers.eachLayer(function (layer) {
-                    lat_lng = layer.getLatLng()
-                    requestion_point = [lat_lng.lat, lat_lng.lng]
-                    requestion_marker = L.marker(requestion_point)
-                    $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
-                });
-            });
-
             map.on('draw:created', function (e) {
                 var type = e.layerType,
                     layer = e.layer;
-                //убрать элемент добавления маркераs
+                //убрать элемент добавления маркера
                 map.removeControl(drawControl);
-                draw_control_options['draw']['marker'] = false;
-                drawControl = new L.Control.Draw(draw_control_options);
-                add_draw_control(map, drawControl);
 
                 drawnItems.clearLayers();
-                drawnItems.addLayer(layer);
-                lat_lng = layer.getLatLng()
-                requestion_point = [lat_lng.lat, lat_lng.lng]
-                requestion_marker = L.marker(requestion_point)
-                $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")")
+                lat_lng = layer.getLatLng();
+                requestion_point = [lat_lng.lat, lat_lng.lng];
+                // добавляем маркер заявки
+                requestion_marker = L.marker(requestion_point, {
+                    draggable: true,
+                    title: 'Маркер положения заявки',
+                    zIndexOffset: 1001,
+                });
+                // добавляем действие при перемещении маркера заявки
+                requestion_marker.on('dragend', function() {
+                    lat_lng = this.getLatLng();
+                    requestion_point = [lat_lng.lat, lat_lng.lng];
+                    $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                });
+                drawnItems.addLayer(requestion_marker);
+                $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")");
             });
 
             renderMarkers(sadik_location_data, map)
@@ -366,17 +356,15 @@
                 <div class="requestion-info">
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
-                        <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
-                        <div id="coords_alert" class="alert">
-                            <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
-                        </div>
                         <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+                        <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
                         <div style="overflow: hidden; padding-right: .5em;">
                         <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
-                        <div id="coords_success" class="alert alert-success">
+                        <div id="coords_alert" class="alert" style="display: none;">
+                        </div>
+                        <div id="coords_success" class="alert alert-success" style="display: none;">
                             Теперь при помощи маркера <i class="icon-map-marker"></i>укажите 
                             местоположение на карте
-                            <button type="button" class="close alert-close" data-dismiss="alert">&times;</button>
                         </div>
                     <div class="hidden">
                         {{ form.location }}

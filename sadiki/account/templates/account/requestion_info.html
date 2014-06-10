@@ -277,6 +277,13 @@
                 field_changed(container_el);
             })
 
+            // поиск адреса по ентеру
+            $('#address_text').keypress(function(e) {
+                if(e.keyCode==13) {
+                    $('#get_coords').click();
+                }
+            });
+            
             // удаляем льготы, появившиеся при переносе Челябинской ЭО
             delete_special_benefits();
 
