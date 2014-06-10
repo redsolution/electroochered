@@ -153,6 +153,7 @@
                 });
                 drawnItems.addLayer(requestion_marker);
                 $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")");
+                $('#req_mark').parent().show();
             });
 
             renderMarkers(sadik_location_data, map)
@@ -363,19 +364,20 @@
                         <div id="coords_alert" class="alert" style="display: none;">
                         </div>
                         <div id="coords_success" class="alert alert-success" style="display: none;">
-                            Теперь при помощи маркера <i class="icon-map-marker"></i>укажите 
-                            местоположение на карте
+                            Теперь при помощи кнопки <i class="icon-map-marker"></i>укажите 
+                            местоположение на карте, или перетащите маркер заявки мышкой на нужное место
                         </div>
                     <div class="hidden">
                         {{ form.location }}
                     </div>
                     <div id="account-requestion-map"></div>
-                    <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.</p>
+                    <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
+                    Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
                     </div>
                 </div>
                 <ul class='map-legend'>
                     <li><h3 class="icon-map-marker"></h3> - указать местоположение заявки на карте</li>
-                    <li><h3 class="icon-edit"></h3> - редактировать местоположение заявки на карте</li>
+                    <li style="display: none;" ><img id="req_mark" src="{{ STATIC_URL }}leaflet/images/marker-icon.png" height="20" width="12" /> - маркер положения заявки</li>
                     <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
                     <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
                     <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>
