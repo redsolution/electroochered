@@ -529,6 +529,7 @@
         </div>
         <ul class='map-legend'>
             {% if requestion.location %}<li><h3 class="icon-map-marker"></h3> - центрировать карту по заявке</li>{% endif %}
+            <li><img id="req_mark" src="{{ STATIC_URL }}leaflet/images/marker-icon.png" height="20" width="12" /> - маркер положения заявки</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-gray.png"/> - остальные ДОУ муниципалитета</li>

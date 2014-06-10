@@ -1580,3 +1580,7 @@ dl {
     border: 0;
     -webkit-appearance: none; 
 }
+
+#req_mark {
+    margin-left: 5px;
+}
