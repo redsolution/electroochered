@@ -85,7 +85,7 @@
                     $(element).children("label").addClass('changed');
                 }
                 // submit активный
-                $('#requestion-form button:submit').attr('disabled', false);
+                $('#requestion-form button:button').attr('disabled', false);
                 // сообщение при закрытии окна
                 function confirmmsg() {
                     return "Все несохраненные изменения будут утеряны";
@@ -207,7 +207,7 @@
         //при отправке формы нужно убрать запрос на обновление страницы
         function form_submit(f){
             window.onbeforeunload = null;
-            $('#requestion-form button:submit').attr('disabled', true);
+            $('#requestion-form button:button').attr('disabled', true);
             f.submit();
         }
 
@@ -299,6 +299,11 @@
                 "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
             });
         });
+
+        $("#requestionform_submit").click(function() {
+            $(this).prop("disabled", true);
+            $("#requestion-form").submit();
+        })
         </script>
 {% endblock %}
 
@@ -530,7 +535,7 @@
 {% if can_change_requestion %}
 <div class="row">
     <div class="span11">
-        <button class="btn btn-primary btn-large" type="button" disabled="disabled">Сохранить</button>
+        <button id="requestionform_submit" class="btn btn-primary btn-large pull-right" type="button" disabled="disabled">Сохранить</button>
     </div>
 </div>
 {% endif %}
