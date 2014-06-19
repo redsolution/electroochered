@@ -5,8 +5,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
-from django.db.models import Q
-from django.http import HttpResponseRedirect, Http404
+from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _

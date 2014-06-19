@@ -21,7 +21,8 @@ from sadiki.core.models import Requestion, \
 from sadiki.core.permissions import RequirePermissionsMixin, \
     REQUESTER_PERMISSION
 from sadiki.core.signals import post_status_change, pre_status_change
-from sadiki.core.utils import check_url, get_unique_username, get_coords_from_address
+from sadiki.core.utils import check_url, get_unique_username, get_coords_from_address, \
+    create_xls_from_queue
 from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
     CHANGE_REQUESTION_BY_OPERATOR, Transition, workflow, CREATE_PROFILE,\
     CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
@@ -50,6 +51,32 @@ class FrontPage(OperatorPermissionMixin, TemplateView):
 class Queue(OperatorPermissionMixin, AnonymQueue):
     u"""Отображение очереди в район для оператора"""
     template_name = 'operator/queue.html'
+
+    def get(self, *args, **kwds):
+        u"""
+        ``get`` переопределен для того, чтобы если заявка не нашлась по номеру
+        из-за того, что выставлены параметры фильтра, которые её скрывают,
+        автоматически перенаправлять на страницу безо всяких фильтров
+        """
+        request = args[0]
+        if request.GET.get('type') == 'xls':
+            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            queryset, form = self.process_filter_form(self.queryset, request.GET)
+            num = queryset.count()
+            if num < 5000:
+                create_xls_from_queue(response, queryset)
+                return response
+            else:
+                path = request.get_full_path().replace('&type=xls', '')
+                messages.error(
+                    request,
+                    u"""Фильтр вернул {} заявок, экспорт невозможен.
+                    Для корректной работы экспорта количество отфильтрованных
+                    заявок не должно превышать 5000.
+                    """.format(num))
+                return HttpResponseRedirect(path)
+
+        return super(Queue, self).get(*args, **kwds)
 
 
 class Registration(OperatorPermissionMixin, AccountRequestionAdd):

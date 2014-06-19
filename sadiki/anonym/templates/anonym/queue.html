@@ -29,6 +29,18 @@
             placement: "top", html:true});
     });
     </script>
+
+    <script type="text/javascript">
+        // отключаем кнопку после нажатия
+        $('#export_to_excel').click(function() {
+            $(this).addClass("disabled");
+            $(this).prop("disabled", true);
+            $('#xls').val('xls');
+            $('.queue-forms form').submit();
+            $('#xls').val('');
+            return false;
+        });
+    </script>
 {% endblock %}
 
 {% block content_title %}
@@ -46,8 +58,16 @@
         <div class="queue-forms clearfix" id="filterForm">
             <form action="." method="get" class='uniForm'>
             {% izenform form options notag=1 nocsrf=1 %}
+            {% if request.user.is_administrative_person %}
+            <input id="xls" type="hidden" name="type" value="" />
+            <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
+            фильтрации возвращал не более 5000 заявок.</p>
+            {% endif %}
             <div class="buttonHolder">
                 <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
+                {% if request.user.is_administrative_person %}
+                <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
+                {% endif %}
             </div>
             </form>
         </div>

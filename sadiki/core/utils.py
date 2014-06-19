@@ -364,3 +364,60 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
             ws.col(5).width = 256 * 35
             ws.col(6).width = 256 * 45
     wb.save(response)
+
+
+def create_xls_from_queue(response, queue):
+    reqs = queue.select_related('areas', 'benefit_category')
+    file_name = u'Filter_results'
+    response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
+    import xlwt
+    style = xlwt.XFStyle()
+    style.num_format_str = 'DD-MM-YYYY'
+    header_style = xlwt.easyxf('font: bold 1')
+    wb = xlwt.Workbook(encoding='utf-8')
+    ws = wb.add_sheet(u'Результаты фильтра')
+    header = [
+        u'Номер заявки',
+        u'Дата рождения',
+        u'Дата регистрации',
+        u'Адрес',
+        u'Категория льгот',
+        u'Группа',
+        u'Желаемый год поступления',
+        u'Статус заявки',
+        u'Группы ДОУ',
+    ]
+    row_number = 0
+    for column_number, element in enumerate(header):
+        ws.write(row_number, column_number, element, header_style)
+    row_number += 1
+    age_groups = sadiki.core.models.AgeGroup.objects.all()
+    current_distribution_year = get_current_distribution_year()
+    for requestion in reqs:
+        try:
+            age_groups_calculated = requestion.age_groups(
+                age_groups=age_groups,
+                current_distribution_year=current_distribution_year
+            )[0].short_name
+        except IndexError:
+            age_groups_calculated = ''
+        row = [
+            requestion.requestion_number,
+            requestion.birth_date,
+            requestion.registration_datetime,
+            requestion.location_properties,
+            requestion.benefit_category.name,
+            age_groups_calculated,
+            requestion.admission_date,
+            requestion.get_status_display(),
+            '; '.join([area.name for area in requestion.areas.all()]),
+        ]
+        for column_number, element in enumerate(row):
+            ws.write(row_number, column_number, element, style)
+        row_number += 1
+    ws.col(0).width = 256 * 20
+    ws.col(3).width = 256 * 30
+    ws.col(4).width = 256 * 20
+    ws.col(7).width = 256 * 25
+    ws.col(8).width = 256 * 200
+    wb.save(response)
