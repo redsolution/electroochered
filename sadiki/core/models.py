@@ -774,13 +774,6 @@ class RequestionQuerySet(models.query.QuerySet):
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
                         ))
 
-    # TODO: remove if unused
-    def distribution_queue(self):
-        return self.filter(status__in=(
-            STATUS_ON_DISTRIBUTION,
-            STATUS_ON_TEMP_DISTRIBUTION
-        ))
-
     def active_queue(self):
         u"""возвращает активные заявки, отображаемые в очереди"""
         return self.filter(
@@ -1110,6 +1103,18 @@ class Requestion(models.Model):
     @property
     def editable(self):
         return self.status in REQUESTION_MUTABLE_STATUSES
+
+    @property
+    def is_available_for_actions(self):
+        u""" Если есть незавершенное распрелеление и заявке выделено место,
+        то делать с ней ничего нельзя
+        """
+        try:
+            active_distribution = Distribution.objects.get(
+                ~Q(status=DISTRIBUTION_STATUS_END))
+        except Distribution.DoesNotExists:
+            active_distribution = None
+        return not (self.status == 6 and active_distribution)
 
     def available_temp_vacancies(self):
         return Vacancies.objects.filter(

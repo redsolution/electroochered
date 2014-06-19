@@ -135,15 +135,17 @@
 
 {# действия с заявкой #}
 {% block bottom %}
-    <h2 class="page-header">Действия с заявкой</h2>
-    <div class="btn-group">
-        {% for transition in requestion.available_transitions %}
-            {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
-            {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
-        {% endfor %}
-        {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
-        {% if find_profile_for_requestion_url|check_url_availability:request.user %}
-            <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
-        {% endif %}
-    </div>
+    {% if requestion.is_available_for_actions %}
+        <h2 class="page-header">Действия с заявкой</h2>
+        <div class="btn-group">
+            {% for transition in requestion.available_transitions %}
+                {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
+                {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
+            {% endfor %}
+            {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
+            {% if find_profile_for_requestion_url|check_url_availability:request.user %}
+                <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
+            {% endif %}
+        </div>
+    {% endif %}
 {% endblock bottom %}
