@@ -12,7 +12,12 @@
     {% for sadik in sadiks %}
         <h3>
         {% if not distribution %}
-            <a name="sadik_{{ sadik.id }}"></a><a href="{% url sadikgroup_change_places sadik.id %}">{{ sadik.short_name }}</a>
+            {% if sadik.active_distribution %}
+                <a name="sadik_{{ sadik.id }}"></a><a href="{% url sadikgroup_change_places sadik.id %}">{{ sadik.short_name }}</a>
+            {% else %} 
+                {{ sadik.short_name }}
+                <p class="gray">В настройках ДОУ запрещено участие в распределении. Выделение мест невозможно.</p>
+            {% endif %}
         {% else %}
             {{ sadik.short_name }}
         {% endif %}
