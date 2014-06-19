@@ -61,6 +61,16 @@
             var areaSadikIconURL = '{{ STATIC_URL }}img/sadik-icon-yellow.png';
             var inactiveSadikIconURL = '{{ STATIC_URL }}img/sadik-icon-gray.png';
 
+            var drawControlOptions = {
+                draw: {
+                    polyline: false,
+                    polygon: false,
+                    circle: false, // Turns off this drawing tool
+                    rectangle: false,
+                    marker: true
+                }
+            }
+
             for (s in sadik_location_data) {
                 var sadik = sadik_location_data[s];
                 areas_all.forEach(function(area) {
@@ -114,6 +124,9 @@
                 map.addLayer(drawnItems);
                 if (requestion_marker) {
                     drawnItems.addLayer(requestion_marker);
+                } else {
+                    drawControl = new L.Control.Draw(drawControlOptions);
+                    addDrawControl(map, drawControl);
                 }
 
                 function addDrawControl(map, control){
@@ -524,7 +537,11 @@
         </div>
         </div>
         <ul class='map-legend'>
-            {% if requestion.location %}<li><h3 class="icon-map-marker"></h3> - центрировать карту по заявке</li>{% endif %}
+            {% if requestion.location %}
+                <li><h3 class="icon-map-marker"></h3> - центрировать карту по заявке</li>
+            {% else %}
+                <li><h3 class="icon-map-marker"></h3> - указать местоположение заявки на карте</li>
+            {% endif %}
             <li><img id="req_mark" src="{{ STATIC_URL }}leaflet/images/marker-icon.png" height="20" width="12" /> - маркер положения заявки</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon.png"/> - выбранные приоритетные ДОУ</li>
             <li><img src="{{ STATIC_URL }}img/sadik-icon-yellow.png"/> - в один из этих ДОУ заявка будет зачислена, если в приоритетных не останется места</li>
