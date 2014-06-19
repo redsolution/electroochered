@@ -1,0 +1,18 @@
+{% extends 'anonym/queue_base.html' %}
+
+{% block content_title %}<h1>{% block title %}Список административных сотрудников{% endblock %}</h1>{% endblock %}
+
+{% block content %}
+<p class="hint">По клику на имя сотрудника откроется страница со списоком его действий в системе</p>
+<ul>
+{% for user in op_persons %}
+	<li><a href="{% url logs_by_person user.id %}">{{ user.get_verbose_name }} (Оператор)</a></li>
+{% endfor %}
+{% for user in adm_persons %}
+	<li><a href="{% url logs_by_person user.id %}">{{ user.get_verbose_name }} (Администратор)</a></li>
+{% endfor %}
+{% for user in sup_persons %}
+	<li><a href="{% url logs_by_person user.id %}">{{ user.get_verbose_name }} (Суперпользователь)</a></li>
+{% endfor %}
+</ul>
+{% endblock content %}

@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
@@ -13,7 +15,7 @@ from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
     TEMP_PASS_TRANSFER, TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, \
     DECISION_DISTRIBUTION, PASS_DISTRIBUTED, \
     DISTRIBUTED_ARCHIVE, STATUS_CHANGE_TRANSITIONS
-from sadiki.logger.models import Logger
+from sadiki.logger.models import Logger, LoggerMessage
 from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_plugin_logs
 from sadiki.operator.views.base import OperatorPermissionMixin
 
@@ -82,4 +84,56 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
         return self.render_to_response(data)
 
 
+class LogsByPerson(TemplateView):
+    template_name = 'logger/logs_by_person.html'
+
+    def get(self, request, user_id):
+        user = get_object_or_404(User, id=user_id)
+        logs = Logger.objects.filter(user=user).order_by('-datetime')
+        page_size = 50
+        paginator = Paginator(logs, page_size)
+        page = request.GET.get('page', 1)
+        try:
+            paginated_logs = paginator.page(page)
+        except PageNotAnInteger:
+            paginated_logs = paginator.page(1)
+        except EmptyPage:
+            paginated_logs = paginator.page(paginator.num_pages)
+
+        log_data = []
+        for log in paginated_logs:
+            requestion = None
+            if log.content_type == ContentType.objects.get_for_model(Requestion):
+                requestion = Requestion.objects.get(pk=log.object_id)
+            log_data.append((log, LoggerMessage.objects.filter(logger=log),
+                             requestion))
+        data = {
+            'person': user,
+            'logs': paginated_logs,
+            'log_data': log_data,
+            'paginator': paginator,
+            'offset': (int(page) - 1) * page_size,
+            'page_obj': paginator.page(page),
+        }
+        return self.render_to_response(data)
+
+
+class AdmPersonsList(TemplateView):
+    template_name = 'anonym/adm_persons_list.html'
+
+    def get(self, request):
+        op_perms = Permission.objects.get(codename='is_operator')
+        adm_perms = Permission.objects.get(codename='is_administrator')
+        sup_perms = Permission.objects.get(codename='is_supervisor')
+        adm_persons = User.objects.filter(
+            groups__permissions=adm_perms).exclude(username='administrator')
+        sup_persons = User.objects.filter(groups__permissions=sup_perms)
+        op_persons = User.objects.filter(
+            groups__permissions=op_perms).exclude(username='operator')
+        data = {
+            'adm_persons': adm_persons,
+            'op_persons': op_persons,
+            'sup_persons': sup_persons,
+        }
+        return self.render_to_response(data)
 
