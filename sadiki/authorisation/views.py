@@ -111,7 +111,7 @@ def password_set(request):
     Если у пользователя не задан пароль, то не нужно запрашивать его
     """
     if request.user.password and request.user.has_usable_password():
-        return Http404
+        raise Http404
     return password_change(request, template_name=u'authorisation/passwd_set.html',
                            password_change_form=SetPasswordForm)
 
