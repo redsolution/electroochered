@@ -84,7 +84,7 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
         return self.render_to_response(data)
 
 
-class LogsByPerson(TemplateView):
+class LogsByPerson(OperatorPermissionMixin, TemplateView):
     template_name = 'logger/logs_by_person.html'
 
     def get(self, request, user_id):
@@ -118,8 +118,8 @@ class LogsByPerson(TemplateView):
         return self.render_to_response(data)
 
 
-class AdmPersonsList(TemplateView):
-    template_name = 'anonym/adm_persons_list.html'
+class AdmPersonsList(OperatorPermissionMixin, TemplateView):
+    template_name = 'logger/adm_persons_list.html'
 
     def get(self, request):
         op_perms = Permission.objects.get(codename='is_operator')
