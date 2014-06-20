@@ -1543,8 +1543,8 @@ dl {
     width: 97.5%;
 }
 
-#id_status + div + p {
-    margin-top: -20px;
+#id_status + div + p, #id_area + div + p {
+    margin-top: -23px;
 }
 
 .text-success {
