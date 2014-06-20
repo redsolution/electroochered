@@ -11,6 +11,7 @@ from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
 from django.core.validators import MaxValueValidator
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models.query_utils import Q
 from django.db.models.signals import m2m_changed, post_save
@@ -1112,7 +1113,7 @@ class Requestion(models.Model):
         try:
             active_distribution = Distribution.objects.get(
                 ~Q(status=DISTRIBUTION_STATUS_END))
-        except Distribution.DoesNotExists:
+        except ObjectDoesNotExist:
             active_distribution = None
         return not (self.status == 6 and active_distribution)
 
