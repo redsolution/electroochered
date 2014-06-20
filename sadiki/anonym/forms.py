@@ -201,9 +201,9 @@ class QueueFilterForm(forms.Form):
         queryset=AgeGroup.objects.all(), required=False,
         help_text=u"При выборе в очереди будут отображаться заявки "
                   u"только этой возрастной категории")
-    area = forms.ModelChoiceField(
+    area = forms.ModelMultipleChoiceField(
         label=u'Группа ДОУ для зачисления', queryset=Area.objects.all(),
-        empty_label=u"Весь муниципалитет", required=False,
+        required=False,
         help_text=u"При выборе в очереди будут отображаться заявки, "
                   u"для которых указана возможность зачисления в эту группу ДОУ"
     )
