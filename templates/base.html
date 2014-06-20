@@ -123,13 +123,13 @@ chromium.org/developers/how-tos/chrome-frame-getting-started -->
     });
 </script>
 <script type="text/javascript"> 
-var $buoop = {vs:{i:10,f:25,o:17,s:5.1}, l: "ru",reminder: 0,}; 
+var $buoop = {}; 
 $buoop.ol = window.onload; 
 window.onload=function(){ 
  try {if ($buoop.ol) $buoop.ol();}catch (e) {} 
  var e = document.createElement("script"); 
  e.setAttribute("type", "text/javascript"); 
- e.setAttribute("src", "//browser-update.org/update.js"); 
+ e.setAttribute("src", "{{ STATIC_URL }}js/update.js"); 
  document.body.appendChild(e); 
 } 
 </script> 
