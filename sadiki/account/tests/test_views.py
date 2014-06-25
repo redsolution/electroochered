@@ -222,3 +222,53 @@ class CoreViewsTest(TestCase):
             {'email': 'somemail@example.com'},
             **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
         self.assertEqual(op_change.status_code, 405)
+
+    def test_requestion_add(self):
+        """
+        Проверяем корректрость работы ключа token, хранящегося в сессии
+        пользователя.
+        """
+        self.assertTrue(self.client.login(username=self.requester.username,
+                                          password='123456q'))
+        # до посещения страницы с формой, токена нет
+        self.assertIsNone(self.client.session.get('token', None))
+
+        # зашли на страницу с формой, токен появился
+        response = self.client.get(reverse('requestion_add_by_user'))
+        self.assertEqual(response.status_code, 200)
+        session = self.client.session
+        self.assertIsNotNone(session.get('token', None))
+
+        # успешный post, создается заявка, токен удаляется
+        create_response = self.client.post(
+            reverse('requestion_add_by_user'),
+            {'name': 'Ann',
+             'sex': 'Ж',
+             'birth_date': '07.06.2014',
+             'admission_date': '01.01.2014',
+             'template': '2',
+             'document_number': 'II-ИВ 016809',
+             'areas': '1',
+             'location': 'POINT (60.115814208984375 55.051432600719835)'
+             })
+        self.assertEqual(create_response.status_code, 302)
+        self.assertRedirects(create_response,
+                             'http://testserver/account/request/1/')
+        self.assertIsNone(self.client.session.get('token', None))
+
+        # пробуем post без токена, перенаправляет на страницу добавления заявки
+        create_response = self.client.post(
+            reverse('requestion_add_by_user'),
+            {'name': 'Mary',
+             'sex': 'Ж',
+             'birth_date': '06.06.2014',
+             'admission_date': '01.01.2014',
+             'template': '2',
+             'document_number': 'II-ИВ 016808',
+             'areas': '2',
+             'location': 'POINT (60.115814208984375 55.051432600719835)'
+             })
+        self.assertEqual(create_response.status_code, 302)
+        self.assertRedirects(create_response,
+                             'http://testserver/account/request/add/')
+        self.assertIsNotNone(self.client.session.get('token', None))

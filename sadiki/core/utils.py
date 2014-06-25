@@ -2,6 +2,8 @@
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
+import random
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -421,3 +423,7 @@ def create_xls_from_queue(response, queue):
     ws.col(7).width = 256 * 25
     ws.col(8).width = 256 * 200
     wb.save(response)
+
+
+def get_random_token():
+    return '%030x' % random.randrange(16**30)

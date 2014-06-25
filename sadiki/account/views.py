@@ -21,8 +21,8 @@ from sadiki.core.models import Requestion, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin
-from sadiki.core.utils import get_openlayers_js, get_current_distribution_year, \
-    get_coords_from_address
+from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
+    get_coords_from_address, get_random_token
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
@@ -163,6 +163,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     requestion_form = RequestionForm
     benefits_form = BenefitsForm
     logger_action = REQUESTION_ADD_BY_REQUESTER
+    token = get_random_token()
 
     def get_context_data(self, **kwargs):
         districts_all = District.objects.all()
@@ -190,6 +191,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         return None
 
     def get(self, request, profile):
+        request.session['token'] = self.token
         context = self.get_context_data(profile=profile)
         form = self.requestion_form()
         benefits_form = self.benefits_form()
@@ -206,6 +208,10 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request, profile):
+        if not (request.session.get('token', None) and
+                request.session['token'] == self.token):
+            return HttpResponseRedirect(reverse('requestion_add_by_user'))
+        del request.session['token']
         context = self.get_context_data(profile=profile)
         form = self.requestion_form(request.POST)
         benefits_form = self.benefits_form(data=request.POST)
