@@ -232,6 +232,22 @@ class CoreViewsTest(TestCase):
                                           password='123456q'))
         # до посещения страницы с формой, токена нет
         self.assertIsNone(self.client.session.get('token', None))
+        # заявка не сохраняется, редирект на страницу добавления заявки
+        create_response = self.client.post(
+            reverse('requestion_add_by_user'),
+            {'name': 'Ann',
+             'sex': 'Ж',
+             'birth_date': '07.06.2014',
+             'admission_date': '01.01.2014',
+             'template': '2',
+             'document_number': 'II-ИВ 016809',
+             'areas': '1',
+             'location': 'POINT (60.115814208984375 55.051432600719835)'
+             })
+        self.assertEqual(create_response.status_code, 302)
+        self.assertRedirects(create_response,
+                             reverse('requestion_add_by_user'))
+        self.assertIsNotNone(self.client.session.get('token', None))
 
         # зашли на страницу с формой, токен появился
         response = self.client.get(reverse('requestion_add_by_user'))
@@ -252,11 +268,13 @@ class CoreViewsTest(TestCase):
              'location': 'POINT (60.115814208984375 55.051432600719835)'
              })
         self.assertEqual(create_response.status_code, 302)
-        self.assertRedirects(create_response,
-                             'http://testserver/account/request/1/')
+        self.assertRedirects(
+            create_response,
+            reverse('account_requestion_info', args=(1,)))
         self.assertIsNone(self.client.session.get('token', None))
 
-        # пробуем post без токена, перенаправляет на страницу добавления заявки
+        # пробуем post без токена, перенаправляет на последнюю добавленную
+        # заявку, если такая имеется
         create_response = self.client.post(
             reverse('requestion_add_by_user'),
             {'name': 'Mary',
@@ -269,6 +287,7 @@ class CoreViewsTest(TestCase):
              'location': 'POINT (60.115814208984375 55.051432600719835)'
              })
         self.assertEqual(create_response.status_code, 302)
-        self.assertRedirects(create_response,
-                             'http://testserver/account/request/add/')
-        self.assertIsNotNone(self.client.session.get('token', None))
+        self.assertRedirects(
+            create_response,
+            reverse('account_requestion_info', args=(1,)))
+        self.assertIsNone(self.client.session.get('token', None))

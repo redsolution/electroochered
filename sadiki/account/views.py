@@ -210,6 +210,11 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def post(self, request, profile):
         if not (request.session.get('token', None) and
                 request.session['token'] == self.token):
+            user_requestions = Requestion.objects.filter(
+                profile=profile).order_by('registration_datetime')
+            if len(user_requestions) > 0:
+                return HttpResponseRedirect(
+                    self.redirect_to(user_requestions[0]))
             return HttpResponseRedirect(reverse('requestion_add_by_user'))
         del request.session['token']
         context = self.get_context_data(profile=profile)
@@ -217,9 +222,10 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         benefits_form = self.benefits_form(data=request.POST)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
-            formset = DocumentFormset(data=request.POST,
+            formset = DocumentFormset(
+                data=request.POST,
                 queryset=EvidienceDocument.objects.filter(
-                template__destination=BENEFIT_DOCUMENT))
+                    template__destination=BENEFIT_DOCUMENT))
         else:
             formset = None
         if all((form.is_valid(), benefits_form.is_valid(), (not formset or formset.is_valid()))):
