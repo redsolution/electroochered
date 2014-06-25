@@ -246,8 +246,8 @@ class CoreViewsTest(TestCase):
              })
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(create_response,
-                             reverse('requestion_add_by_user'))
-        self.assertIsNotNone(self.client.session.get('token', None))
+                             reverse('account_frontpage'))
+        self.assertIsNone(self.client.session.get('token', None))
 
         # зашли на страницу с формой, токен появился
         response = self.client.get(reverse('requestion_add_by_user'))
@@ -289,5 +289,5 @@ class CoreViewsTest(TestCase):
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(
             create_response,
-            reverse('account_requestion_info', args=(1,)))
+            reverse('account_frontpage'))
         self.assertIsNone(self.client.session.get('token', None))

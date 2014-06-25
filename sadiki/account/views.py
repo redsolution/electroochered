@@ -182,6 +182,9 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def redirect_to(self, requestion):
         return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
 
+    def redirect_to_profile(self, profile):
+        return reverse('account_frontpage')
+
     @method_decorator(login_required)
     def dispatch(self, request):
         profile = request.user.get_profile()
@@ -210,12 +213,11 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     def post(self, request, profile):
         if not (request.session.get('token', None) and
                 request.session['token'] == self.token):
-            user_requestions = Requestion.objects.filter(
-                profile=profile).order_by('registration_datetime')
-            if len(user_requestions) > 0:
-                return HttpResponseRedirect(
-                    self.redirect_to(user_requestions[0]))
-            return HttpResponseRedirect(reverse('requestion_add_by_user'))
+            if request.ression.get('token', None):
+                del request.session['token']
+            if profile:
+                return HttpResponseRedirect(self.redirect_to_profile(profile))
+            return HttpResponseRedirect(request.path)
         del request.session['token']
         context = self.get_context_data(profile=profile)
         form = self.requestion_form(request.POST)

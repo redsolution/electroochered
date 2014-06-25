@@ -2,7 +2,7 @@
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
-import random
+import uuid
 
 from django import forms
 from django.conf import settings
@@ -426,4 +426,4 @@ def create_xls_from_queue(response, queue):
 
 
 def get_random_token():
-    return '%030x' % random.randrange(16**30)
+    return uuid.uuid4()
