@@ -247,6 +247,7 @@
 {% block content %}
     <form id="mainform" action="." class="requestion-form requestion-add-form" method="POST">
         {% csrf_token %}
+        {{ form.token }}
         {{ form.media }}
         {{ benefits_form.media }}
         {% if form.non_field_errors or benefits_form.non_field_errors %}

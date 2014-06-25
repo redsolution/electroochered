@@ -26,10 +26,11 @@ class RequestionForm(FormWithDocument):
         label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS(),
         help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
+    token = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
         model = Requestion
-        _base_fields = ['areas', 'name',
+        _base_fields = ['areas', 'name', 'token',
                         'birth_date', 'sex', 'template',
                         'document_number', 'district',
                         'pref_sadiks', 'location', 'admission_date']

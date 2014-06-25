@@ -231,8 +231,8 @@ class CoreViewsTest(TestCase):
         self.assertTrue(self.client.login(username=self.requester.username,
                                           password='123456q'))
         # до посещения страницы с формой, токена нет
-        self.assertIsNone(self.client.session.get('token', None))
-        # заявка не сохраняется, редирект на страницу добавления заявки
+        self.assertIsNone(self.client.session.get('token'))
+        # заявка не сохраняется, редирект на страницу, с которой пришли
         create_response = self.client.post(
             reverse('requestion_add_by_user'),
             {'name': 'Ann',
@@ -246,16 +246,21 @@ class CoreViewsTest(TestCase):
              })
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(create_response,
-                             reverse('account_frontpage'))
-        self.assertIsNone(self.client.session.get('token', None))
+                             reverse('requestion_add_by_user'))
+        # после редиректа токен появляется
+        self.assertIsNotNone(self.client.session.get('token'))
+        self.client.session.flush()
+        self.assertIsNone(self.client.session.get('token'))
 
         # зашли на страницу с формой, токен появился
+        self.client.login(username=self.requester.username, password='123456q')
         response = self.client.get(reverse('requestion_add_by_user'))
         self.assertEqual(response.status_code, 200)
-        session = self.client.session
-        self.assertIsNotNone(session.get('token', None))
+        self.assertIsNotNone(self.client.session.get('token', None))
+        token = response.context['form']['token'].value()
+        self.assertIn(token, self.client.session['token'].keys())
 
-        # успешный post, создается заявка, токен удаляется
+        # успешный post, создается заявка, токен не удаляется
         create_response = self.client.post(
             reverse('requestion_add_by_user'),
             {'name': 'Ann',
@@ -265,16 +270,20 @@ class CoreViewsTest(TestCase):
              'template': '2',
              'document_number': 'II-ИВ 016809',
              'areas': '1',
-             'location': 'POINT (60.115814208984375 55.051432600719835)'
+             'location': 'POINT (60.115814208984375 55.051432600719835)',
+             'token': token,
              })
         self.assertEqual(create_response.status_code, 302)
+        created_requestion = create_response.context['requestion']
         self.assertRedirects(
             create_response,
-            reverse('account_requestion_info', args=(1,)))
-        self.assertIsNone(self.client.session.get('token', None))
+            reverse('account_requestion_info', args=(created_requestion.id,)))
+        self.assertIsNotNone(self.client.session.get('token', None))
+        self.assertEqual(self.client.session['token'][token],
+                         created_requestion.id)
 
-        # пробуем post без токена, перенаправляет на последнюю добавленную
-        # заявку, если такая имеется
+        # пробуем post со старым токеном, перенаправляет на заявку по id,
+        # хранящемуся по этому токену, если такая имеется
         create_response = self.client.post(
             reverse('requestion_add_by_user'),
             {'name': 'Mary',
@@ -284,10 +293,11 @@ class CoreViewsTest(TestCase):
              'template': '2',
              'document_number': 'II-ИВ 016808',
              'areas': '2',
-             'location': 'POINT (60.115814208984375 55.051432600719835)'
+             'location': 'POINT (60.115814208984375 55.051432600719835)',
+             'token': token,
              })
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(
             create_response,
-            reverse('account_frontpage'))
-        self.assertIsNone(self.client.session.get('token', None))
+            reverse('account_requestion_info', args=(created_requestion.id,)))
+        self.assertIsNotNone(self.client.session.get('token'))

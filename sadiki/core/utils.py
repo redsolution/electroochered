@@ -426,4 +426,4 @@ def create_xls_from_queue(response, queue):
 
 
 def get_random_token():
-    return uuid.uuid4()
+    return str(uuid.uuid4())

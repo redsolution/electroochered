@@ -163,7 +163,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
     requestion_form = RequestionForm
     benefits_form = BenefitsForm
     logger_action = REQUESTION_ADD_BY_REQUESTER
-    token = get_random_token()
 
     def get_context_data(self, **kwargs):
         districts_all = District.objects.all()
@@ -194,9 +193,14 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         return None
 
     def get(self, request, profile):
-        request.session['token'] = self.token
+        token = get_random_token()
+        if request.session.get('token'):
+            request.session['token'].update({token: None})
+            request.session.modified = True
+        else:
+            request.session['token'] = {token: None}
         context = self.get_context_data(profile=profile)
-        form = self.requestion_form()
+        form = self.requestion_form(initial={'token': token})
         benefits_form = self.benefits_form()
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
@@ -211,14 +215,15 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         return self.render_to_response(context)
 
     def post(self, request, profile):
-        if not (request.session.get('token', None) and
-                request.session['token'] == self.token):
-            if request.ression.get('token', None):
-                del request.session['token']
-            if profile:
-                return HttpResponseRedirect(self.redirect_to_profile(profile))
+        token_dict = request.session.get('token')
+        current_request_token = request.POST.get('token')
+        if not token_dict or not(current_request_token in token_dict.keys()):
             return HttpResponseRedirect(request.path)
-        del request.session['token']
+        if token_dict[current_request_token]:
+            requestion = Requestion.objects.get(
+                pk=token_dict[current_request_token])
+            return HttpResponseRedirect(self.redirect_to(requestion))
+
         context = self.get_context_data(profile=profile)
         form = self.requestion_form(request.POST)
         benefits_form = self.benefits_form(data=request.POST)
@@ -253,6 +258,8 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 'user': request.user, 'obj': requestion,
                 'added_pref_sadiks': pref_sadiks})
             messages.info(request, u'Добавлена заявка %s' % requestion.requestion_number)
+            request.session['token'][current_request_token] = requestion.id
+            request.session.modified = True
             return HttpResponseRedirect(self.redirect_to(requestion))
         else:
             context.update({'form': form, 'benefits_form': benefits_form,
