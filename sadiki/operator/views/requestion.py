@@ -91,9 +91,6 @@ class Registration(OperatorPermissionMixin, AccountRequestionAdd):
     def redirect_to(self, requestion):
         return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
 
-    def redirect_to_profile(self, profile):
-        return reverse('operator_profile_info', args=(profile.id, ))
-
     def get_documents_formset(self):
         return generic_inlineformset_factory(EvidienceDocument,
             formset=CustomGenericInlineFormSet,

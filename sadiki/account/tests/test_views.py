@@ -301,3 +301,21 @@ class CoreViewsTest(TestCase):
             create_response,
             reverse('account_requestion_info', args=(created_requestion.id,)))
         self.assertIsNotNone(self.client.session.get('token'))
+
+        # пробуем post с неверным токеном, перенаправляет страницу регистрации
+        create_response = self.client.post(
+            reverse('requestion_add_by_user'),
+            {'name': 'Mary',
+             'sex': 'Ж',
+             'birth_date': '06.06.2014',
+             'admission_date': '01.01.2014',
+             'template': '2',
+             'document_number': 'II-ИВ 016808',
+             'areas': '2',
+             'location': 'POINT (60.115814208984375 55.051432600719835)',
+             'token': 'some-wrong-token',
+             })
+        self.assertEqual(create_response.status_code, 302)
+        self.assertRedirects(
+            create_response, reverse('requestion_add_by_user',))
+        self.assertIsNotNone(self.client.session.get('token'))

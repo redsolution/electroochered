@@ -179,10 +179,8 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
         raise NotImplementedError()
 
     def redirect_to(self, requestion):
-        return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
-
-    def redirect_to_profile(self, profile):
-        return reverse('account_frontpage')
+        return reverse('account_requestion_info',
+                       kwargs={'requestion_id': requestion.id})
 
     @method_decorator(login_required)
     def dispatch(self, request):
@@ -235,7 +233,8 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                     template__destination=BENEFIT_DOCUMENT))
         else:
             formset = None
-        if all((form.is_valid(), benefits_form.is_valid(), (not formset or formset.is_valid()))):
+        if all((form.is_valid(), benefits_form.is_valid(),
+                (not formset or formset.is_valid()))):
             if not profile:
                 profile = self.create_profile()
             requestion = form.save(profile=profile)
@@ -247,23 +246,27 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                 benefit_documents = formset.save()
             else:
                 benefit_documents = None
-            context_dict = {'requestion': requestion,
+            context_dict = {
+                'requestion': requestion,
                 'pref_sadiks': pref_sadiks,
                 'benefit_documents': benefit_documents,
                 'areas': form.cleaned_data.get('areas')}
             context_dict.update(dict([(field, benefits_form.cleaned_data[field])
-                for field in benefits_form.changed_data]))
-            Logger.objects.create_for_action(self.logger_action,
+                                for field in benefits_form.changed_data]))
+            Logger.objects.create_for_action(
+                self.logger_action,
                 context_dict=context_dict, extra={
-                'user': request.user, 'obj': requestion,
-                'added_pref_sadiks': pref_sadiks})
-            messages.info(request, u'Добавлена заявка %s' % requestion.requestion_number)
+                    'user': request.user, 'obj': requestion,
+                    'added_pref_sadiks': pref_sadiks})
+            messages.info(request,
+                          u'Добавлена заявка %s' % requestion.requestion_number)
             request.session['token'][current_request_token] = requestion.id
             request.session.modified = True
             return HttpResponseRedirect(self.redirect_to(requestion))
         else:
             context.update({'form': form, 'benefits_form': benefits_form,
-                            'formset': formset, 'openlayers_js': get_openlayers_js()})
+                            'formset': formset,
+                            'openlayers_js': get_openlayers_js()})
             return self.render_to_response(context)
 
 
@@ -279,7 +282,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         return requestion.editable
 
     def redirect_to(self, requestion):
-        return reverse('account_requestion_info', kwargs={'requestion_id': requestion.id})
+        return reverse('account_requestion_info',
+                       kwargs={'requestion_id': requestion.id})
 
     def get_documents_formset(self):
         return None
@@ -307,7 +311,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def post(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = self.change_requestion_form(request.POST, instance=requestion)
+        change_requestion_form = self.change_requestion_form(
+            request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
         pref_sadiks_form = PreferredSadikForm(request.POST, instance=requestion)
         DocumentFormset = self.get_documents_formset()
