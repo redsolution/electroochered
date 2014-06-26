@@ -228,22 +228,22 @@ class CoreViewsTest(TestCase):
         Проверяем корректрость работы ключа token, хранящегося в сессии
         пользователя.
         """
+        form_data = {'name': 'Ann',
+                     'sex': 'Ж',
+                     'birth_date': '07.06.2014',
+                     'admission_date': '01.01.2014',
+                     'template': '2',
+                     'document_number': 'II-ИВ 016809',
+                     'areas': '1',
+                     'location': 'POINT (60.115814208984375 55.051432600719835)'
+                     }
         self.assertTrue(self.client.login(username=self.requester.username,
                                           password='123456q'))
         # до посещения страницы с формой, токена нет
         self.assertIsNone(self.client.session.get('token'))
         # заявка не сохраняется, редирект на страницу, с которой пришли
         create_response = self.client.post(
-            reverse('requestion_add_by_user'),
-            {'name': 'Ann',
-             'sex': 'Ж',
-             'birth_date': '07.06.2014',
-             'admission_date': '01.01.2014',
-             'template': '2',
-             'document_number': 'II-ИВ 016809',
-             'areas': '1',
-             'location': 'POINT (60.115814208984375 55.051432600719835)'
-             })
+            reverse('requestion_add_by_user'), form_data)
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(create_response,
                              reverse('requestion_add_by_user'))
@@ -261,18 +261,11 @@ class CoreViewsTest(TestCase):
         self.assertIn(token, self.client.session['token'].keys())
 
         # успешный post, создается заявка, токен не удаляется
+        form_data.update({'name': 'Ann',
+                          'document_number': 'II-ИВ 016807',
+                          'token': token, })
         create_response = self.client.post(
-            reverse('requestion_add_by_user'),
-            {'name': 'Ann',
-             'sex': 'Ж',
-             'birth_date': '07.06.2014',
-             'admission_date': '01.01.2014',
-             'template': '2',
-             'document_number': 'II-ИВ 016809',
-             'areas': '1',
-             'location': 'POINT (60.115814208984375 55.051432600719835)',
-             'token': token,
-             })
+            reverse('requestion_add_by_user'), form_data)
         self.assertEqual(create_response.status_code, 302)
         created_requestion = create_response.context['requestion']
         self.assertRedirects(
@@ -284,18 +277,11 @@ class CoreViewsTest(TestCase):
 
         # пробуем post со старым токеном, перенаправляет на заявку по id,
         # хранящемуся по этому токену, если такая имеется
+        form_data.update({'name': 'Mary',
+                          'document_number': 'II-ИВ 016809',
+                          'token': token, })
         create_response = self.client.post(
-            reverse('requestion_add_by_user'),
-            {'name': 'Mary',
-             'sex': 'Ж',
-             'birth_date': '06.06.2014',
-             'admission_date': '01.01.2014',
-             'template': '2',
-             'document_number': 'II-ИВ 016808',
-             'areas': '2',
-             'location': 'POINT (60.115814208984375 55.051432600719835)',
-             'token': token,
-             })
+            reverse('requestion_add_by_user'), form_data)
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(
             create_response,
@@ -303,19 +289,20 @@ class CoreViewsTest(TestCase):
         self.assertIsNotNone(self.client.session.get('token'))
 
         # пробуем post с неверным токеном, перенаправляет страницу регистрации
+        form_data.update({'name': 'Mary',
+                          'document_number': 'II-ИВ 016805',
+                          'token': 'some-wrong-token', })
         create_response = self.client.post(
-            reverse('requestion_add_by_user'),
-            {'name': 'Mary',
-             'sex': 'Ж',
-             'birth_date': '06.06.2014',
-             'admission_date': '01.01.2014',
-             'template': '2',
-             'document_number': 'II-ИВ 016808',
-             'areas': '2',
-             'location': 'POINT (60.115814208984375 55.051432600719835)',
-             'token': 'some-wrong-token',
-             })
+            reverse('requestion_add_by_user'), form_data)
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(
             create_response, reverse('requestion_add_by_user',))
         self.assertIsNotNone(self.client.session.get('token'))
+
+        # после посещения страницы добавления заявки добавляется еще 1 токен
+        self.assertEqual(len(self.client.session['token']), 2)
+        response = self.client.get(reverse('requestion_add_by_user'))
+        self.assertEqual(len(self.client.session['token']), 3)
+        token = response.context['form']['token'].value()
+        self.assertIn(token, self.client.session['token'].keys())
+        self.assertIsNone(self.client.session['token'][token])

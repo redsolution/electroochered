@@ -6,7 +6,7 @@ from django.core.urlresolvers import reverse
 
 from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
     SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address
-from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
+from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME, \
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 
 
@@ -65,7 +65,7 @@ class CoreViewsTest(TestCase):
             'core-evidiencedocument-content_type-object_id-TOTAL_FORMS': '1',
             'core-evidiencedocument-content_type-object_id-INITIAL_FORMS': '0',
             'core-evidiencedocument-content_type-object_id-MAX_NUM_FORMS':
-            '1000',
+                '1000',
         }
         self.assertTrue(self.client.login(username=self.operator.username,
                                           password='password'))
@@ -82,7 +82,7 @@ class CoreViewsTest(TestCase):
              'document_number': 'II-ИВ 016809',
              'areas': '1',
              'location': 'POINT (60.115814208984375 55.051432600719835)'
-             })
+            })
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(create_response,
                              reverse('anonym_registration'))
@@ -135,3 +135,22 @@ class CoreViewsTest(TestCase):
             create_response,
             reverse('operator_requestion_info', args=(token_req_num,)))
         self.assertIsNotNone(self.client.session.get('token'))
+
+        # пробуем с неверным токеном еще раз, перенаправляет на
+        # страницу добавления заявки
+        form_data.update(
+            {'name': 'Mary',
+             'birth_date': '06.06.2014',
+             'template': '2',
+             'document_number': 'II-ИВ 016808',
+             'areas': '2',
+             'token': 'some-wrong-token', }
+        )
+        create_response = self.client.post(
+            reverse('anonym_registration'), form_data)
+        self.assertEqual(create_response.status_code, 302)
+        self.assertRedirects(
+            create_response,
+            reverse('anonym_registration'))
+        self.assertIsNotNone(self.client.session.get('token'))
+        self.assertEqual(len(self.client.session['token']), 3)
