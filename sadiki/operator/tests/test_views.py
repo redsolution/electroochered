@@ -86,13 +86,14 @@ class CoreViewsTest(TestCase):
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(create_response,
                              reverse('anonym_registration'))
-        self.assertIsNotNone(self.client.session.get('token', None))
+        self.assertIsNotNone(self.client.session.get('token'))
 
         # зашли на страницу с формой, токен появился
         response = self.client.get(reverse('anonym_registration'))
         self.assertEqual(response.status_code, 200)
-        session = self.client.session
-        self.assertIsNotNone(session.get('token', None))
+        token = response.context['form']['token'].value()
+        self.assertIsNotNone(self.client.session.get('token'))
+        self.assertIsNone(self.client.session['token'][token])
 
         # успешный post, создается заявка, токен удаляется
         form_data.update(
@@ -103,29 +104,34 @@ class CoreViewsTest(TestCase):
              'template': '2',
              'document_number': 'II-ИВ 016809',
              'areas': '1',
-             'location': 'POINT (60.115814208984375 55.051432600719835)', }
+             'location': 'POINT (60.115814208984375 55.051432600719835)',
+             'token': token, }
         )
         create_response = self.client.post(
             reverse('anonym_registration'), form_data)
+        requestion = create_response.context['requestion']
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(
             create_response,
-            reverse('operator_requestion_info', args=(1,)))
-        self.assertIsNone(self.client.session.get('token', None))
+            reverse('operator_requestion_info', args=(requestion.id,)))
+        self.assertIsNotNone(self.client.session.get('token', None))
+        self.assertEqual(self.client.session['token'][token], requestion.id)
 
-        # пробуем post без токена, перенаправляет на последнюю добавленную
-        # заявку, если такая имеется
+        # пробуем с таким же токеном еще раз, перенаправляет на
+        # заявку c id, хранящемся в сессии по токену, если такая имеется
         form_data.update(
             {'name': 'Mary',
              'birth_date': '06.06.2014',
              'template': '2',
              'document_number': 'II-ИВ 016808',
-             'areas': '2', }
+             'areas': '2',
+             'token': token, }
         )
         create_response = self.client.post(
             reverse('anonym_registration'), form_data)
         self.assertEqual(create_response.status_code, 302)
+        token_req_num = self.client.session['token'][token]
         self.assertRedirects(
             create_response,
-            reverse('operator_requestion_info', args=(1,)))
-        self.assertIsNone(self.client.session.get('token', None))
+            reverse('operator_requestion_info', args=(token_req_num,)))
+        self.assertIsNotNone(self.client.session.get('token'))
