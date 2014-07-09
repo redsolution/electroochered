@@ -20,15 +20,6 @@
 {% load_settings %}
  {{ block.super }}
     <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}/js/jquery.multiple.select.js"></script>
-    <script>
-        $('#id_status').multipleSelect({
-            placeholder: "Выберите статусы из списка",
-            selectAllText: "Выбрать все",
-            allSelected: "Выбраны все статусы",
-            countSelected: "# из % выбрано",
-        });
-    </script>
     {% include "includes/leaflet_js.html" %}
     <script type="text/javascript">
         $(function(){

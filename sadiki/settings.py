@@ -3,6 +3,8 @@ import os
 gettext_noop = lambda s: s
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
+DEBUG = True
+
 TIME_ZONE = None
 
 LANGUAGE_CODE = 'ru'
