@@ -63,7 +63,7 @@
         </li>
     {% endif %}
     {% if  sadik_list|check_url_availability:request.user %}
-        <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll %}class="active"{% endif %} >
+        <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll  or url_name == "openbox_map"  %}class="active"{% endif %} >
             <a href="{{ sadik_list }}">
             <i class="imgicon house"></i>
             <p>Список ДОУ</p>

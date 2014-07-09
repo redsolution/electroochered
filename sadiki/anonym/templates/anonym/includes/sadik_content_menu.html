@@ -25,4 +25,8 @@
             <a href="{{ requestion_list_enroll_url }}">Зачисление</a>
         </li>
     {% endif %}
+    {% url openbox_map as openbox_map_url %}
+    <li {% if request.path == openbox_map_url %}class="active"{% endif %}>
+        <a href="{{ openbox_map_url }}">Карта</a>
+    </li>
 </ul>
