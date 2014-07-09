@@ -888,11 +888,9 @@ html, body {
 }
 
 .steps .step-description td{
-    font-size: 10px;
     text-align: left;
     padding: 12px;
     vertical-align: top;
-    
 }
 
 .step-header .step1 { background: url('../img/step1_h.png') center no-repeat; }
