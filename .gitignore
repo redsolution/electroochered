@@ -28,7 +28,3 @@ lock/*
 secure_static/
 ENV/*
 env/*
-*.save
-wsgi.py
-templates/includes/notifier.html
-
