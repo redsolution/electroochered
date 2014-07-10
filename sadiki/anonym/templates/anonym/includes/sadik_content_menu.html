@@ -5,6 +5,10 @@
     <li {% if request.path == sadik_list_url %}class="active"{% endif %}>
         <a href="{{ sadik_list_url }}">Список ДОУ</a>
     </li>
+    {% url sadiki_map as sadiki_map_url %}
+    <li {% if request.path == sadiki_map_url %}class="active"{% endif %}>
+        <a href="{{ sadiki_map_url }}">Карта ДОУ</a>
+    </li>
     {% if sadik %}
         {% url sadik_info sadik_id=sadik.id as sadik_url %}
         <li {% if request.path == sadik_url %}class="active"{% endif %}>
@@ -25,8 +29,4 @@
             <a href="{{ requestion_list_enroll_url }}">Зачисление</a>
         </li>
     {% endif %}
-    {% url sadiki_map as sadiki_map_url %}
-    <li {% if request.path == sadiki_map_url %}class="active"{% endif %}>
-        <a href="{{ sadiki_map_url }}">Карта</a>
-    </li>
 </ul>

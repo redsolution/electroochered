@@ -10,5 +10,5 @@ urlpatterns = patterns('',
     url(r'^sadik/(?P<sadik_id>\d{1,7})/$', SadikInfo.as_view(),
         name=u'sadik_info'),
     url(r'^map/', SadikiMap.as_view(), 
-    	name='openbox_map'),
+    	name='sadiki_map'),
 )

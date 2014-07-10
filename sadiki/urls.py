@@ -7,7 +7,6 @@ from django.conf.urls.defaults import patterns, url
 from sadiki.administrator.admin import site as sadiki_admin_site
 from sadiki.core.views import VkontakteFrame
 from sadiki.plugins import plugins, SadikiPlugin
-from sadiki.views import OpenBoxMap
 
 admin.autodiscover()
 
@@ -40,7 +39,6 @@ urlpatterns += patterns(
          {'template': 'robots.txt', 'mimetype': 'text/plain'}),
     (r'^tinymce/', include('tinymce.urls')),
     url(r'^vk/', VkontakteFrame.as_view(), name='vk_app'),
-    url(r'^map/', OpenBoxMap.as_view(), name='openbox_map'),
 )
 
 for plugin in plugins:
