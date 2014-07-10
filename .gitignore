@@ -4,6 +4,7 @@
 *.sql
 *.res
 *.patch
+*.save
 .svn
 .project
 .pydevproject
@@ -12,6 +13,8 @@
 .installed.cfg
 eturn-django-settings.ini
 local_env.py
+wsgi.py
+templates/includes/notifier.html
 bin/*
 downloads/*
 eggs/*
