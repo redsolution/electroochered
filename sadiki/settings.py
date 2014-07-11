@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.flatpages',
     'django.contrib.gis',
+    'sadiki.api',
     'sadiki.core',
     'sadiki.account',
     'sadiki.authorisation',
