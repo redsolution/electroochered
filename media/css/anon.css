@@ -493,6 +493,7 @@ table.table.table-bordered tr.highlight td {
     padding-right: 100px;
 }
 .header .logo h2{
+    color: #08C;
     font-size: 27px;
 }
 
@@ -590,6 +591,14 @@ table.table.table-bordered tr.highlight td {
 .header .logarea .dropdown-toggle .selector{
     margin-right: 10px;
     margin-top: 13px;
+}
+
+.header .dou_description {
+    position: absolute;
+    text-align: center;
+    bottom: 60px;
+    right: 0px;
+    width: 580px;
 }
 
 .header_warn {
@@ -695,7 +704,7 @@ table.table.table-bordered tr.highlight td {
 }
 
 .stickyfooter .footer-description{
-    margin: 0px;
+    margin: 10px 0px 0px 0px;
 }
 
 .stickyfooter .footer-description img {
@@ -714,7 +723,7 @@ table.table.table-bordered tr.highlight td {
 
 .stickyfooter .footer-links{
     padding: 0px;
-    margin-left: 30px;
+    margin: 10px 0px 0px 30px;
 }
 
 .stickyfooter .footer-links a{
@@ -723,11 +732,31 @@ table.table.table-bordered tr.highlight td {
     line-height: 2;
 }
 
+.stickyfooter .footer-links p{
+    margin: 0;
+}
+
 .stickyfooter .rslogo {
     float: right !important;
-    margin: 10px 20px 0 0;
+    margin: 35px 20px 0 0;
     text-align: right;
 }
+
+.stickyfooter .mestovsadik_logo{
+    float: right !important;
+    margin: 10px 100px 0 0;
+    text-align: center;
+}
+
+.stickyfooter .mestovsadik_logo a{
+    text-decoration: none;
+}
+
+.stickyfooter .mestovsadik_logo a h3{
+    color: #08C;
+    font: bold 22px Arial;
+}
+
 /* Sticky Footer by Ryan Fait http://ryanfait.com/ */
 * {
     margin: 0;
