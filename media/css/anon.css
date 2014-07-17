@@ -753,10 +753,19 @@ table.table.table-bordered tr.highlight td {
     text-transform: uppercase;
 }
 
+.stickyfooter .mestovsadik_logo a:hover{
+    color: #08C;
+}
+
 .stickyfooter .mestovsadik_logo a h3{
     color: #08C;
     font: bold 22px "Trebuchet MS",verdana,Arial;
 
+}
+
+.stickyfooter .mestovsadik_logo a p {
+    text-transform: none;
+    font-size: 12px;
 }
 
 /* Sticky Footer by Ryan Fait http://ryanfait.com/ */
