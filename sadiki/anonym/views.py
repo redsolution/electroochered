@@ -134,10 +134,8 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = queryset.filter(areas__in=area).distinct()
                 decision_date = form.cleaned_data.get('decision_date')
                 if decision_date:
-                    decision_date = datetime.datetime.strptime(
-                        decision_date, '%Y-%m-%d')
-                    queryset = queryset.filter(status__in='13',
-                        decision_datetime=decision_date)  
+                    queryset = self.fullqueryset.filter(status__in=[13,]).filter(
+                        decision_datetime__year=decision_date)
                 admission_date = form.cleaned_data.get('admission_date')
                 if admission_date:
                     admission_date = datetime.datetime.strptime(
