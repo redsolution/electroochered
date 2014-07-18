@@ -49,7 +49,7 @@ li:hover .imgicon.graph {background-position: -64px -192px;}
 .imgicon.flag {background-position: -64px -128px;}
 .imgicon.cert {background-position: -128px -128px;}
 .imgicon.wand {background-position: -192px -128px;}
-
+ 
 /* Clear Floated Elements
 ----------------------------------------------------------------------------------------------------*/
 
@@ -97,7 +97,7 @@ h2 {
     font-size: 30px;
 }
 
-.boxshadow {
+.boxshadow { 
     -webkit-box-shadow: 0px 0px 10px 0px #CCCCCC;
     -moz-box-shadow: 0px 0px 10px 0px #CCCCCC;
     box-shadow: 0px 0px 10px 0px #CCCCCC;
@@ -492,11 +492,14 @@ table.table.table-bordered tr.highlight td {
     padding-left: 5px; 
     padding-right: 100px;
 }
+
 .header .logo h2{
+    color:  #0375e0;
     font-size: 27px;
 }
 
 .header .logo a {
+    color:  #0375e0;
     text-align: center;
     text-decoration: none;
 }
@@ -521,7 +524,7 @@ table.table.table-bordered tr.highlight td {
 .header .contacts {
     float: left;
     margin-top: 40px;
-    padding-right:26px;
+    padding-right: 4%;
 }
 
 .header .contacts h3{
@@ -535,7 +538,6 @@ table.table.table-bordered tr.highlight td {
 }
 
 .header .logarea{
-    float: left;
     margin-top: 40px;
     padding-left: 20px;
 }
@@ -590,6 +592,14 @@ table.table.table-bordered tr.highlight td {
 .header .logarea .dropdown-toggle .selector{
     margin-right: 10px;
     margin-top: 13px;
+}
+
+.header .dou_description {
+    position: absolute;
+    text-align: center;
+    bottom: 46px;
+    right: 0px;
+    width: 580px;
 }
 
 .header_warn {
@@ -695,7 +705,7 @@ table.table.table-bordered tr.highlight td {
 }
 
 .stickyfooter .footer-description{
-    margin: 0px;
+    margin: 10px 0px 0px 0px;
 }
 
 .stickyfooter .footer-description img {
@@ -714,20 +724,50 @@ table.table.table-bordered tr.highlight td {
 
 .stickyfooter .footer-links{
     padding: 0px;
-    margin-left: 30px;
+    margin: 10px 0px 0px 80px;
 }
 
 .stickyfooter .footer-links a{
     font: 16px Arial;
-    color: #0375e0;
     line-height: 2;
+}
+
+.stickyfooter .footer-links p{
+    margin: 0;
 }
 
 .stickyfooter .rslogo {
     float: right !important;
-    margin: 10px 20px 0 0;
+    margin: 35px 20px 0 0;
     text-align: right;
 }
+
+.stickyfooter .mestovsadik_logo{
+    float: right !important;
+    margin: 10px 70px 0 0;
+    text-align: center;
+}
+
+.stickyfooter .mestovsadik_logo a{
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.stickyfooter .mestovsadik_logo a:hover{
+    color: #08C;
+}
+
+.stickyfooter .mestovsadik_logo a h3{
+    color: #08C;
+    font: bold 22px "Trebuchet MS",verdana,Arial;
+
+}
+
+.stickyfooter .mestovsadik_logo a p {
+    text-transform: none;
+    font-size: 12px;
+}
+
 /* Sticky Footer by Ryan Fait http://ryanfait.com/ */
 * {
     margin: 0;

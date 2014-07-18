@@ -35,6 +35,9 @@
 		или
 		<a href="/registration/">Зарегистрироваться</a>
 	</div>
+    <div class="dou_description">
+        {% chunk "dou_description" %}
+    </div>
 </div>
 <div class="main-menu"> 
     {% include "includes/main_menu.html" %}
@@ -71,6 +74,13 @@
     {% chunk "footer" %}
     <div class="rslogo grid_3">
         <a href="http://redsolution.ru"><img src="{{ STATIC_URL }}img/redsolution.png" alt="redsolution"></a>
+    </div>
+    <div class="mestovsadik_logo grid_3">
+        <a href="http://mestovsadik.ru">
+            <img src="{{ STATIC_URL }}img/login_logo.png" width="170px" alt="mestovsadik">
+            <h3>электроочередь</h3>
+            <p>сайт проекта www.mestovsadik.ru</p>
+        </a>
     </div>
 </div>
 
