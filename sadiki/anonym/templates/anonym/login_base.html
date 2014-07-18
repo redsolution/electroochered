@@ -1,0 +1,82 @@
+{% load chunks %}
+<!DOCTYPE html>
+<html>
+<head> 
+    <title>{% block title %}{% endblock %} - Электронная очередь</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico" type="image/x-icon">
+
+{% block css %}
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/bootstrap.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome.css" />
+    <!--[if lt IE 7]> <link rel="stylesheet" href="{{ STATIC_URL }}css/font-awesome-ie7.css" /> <![endif]-->
+	<link rel="stylesheet" href="{{ STATIC_URL }}css/960.min.css" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/anon.css" />
+{% endblock css %}
+
+{% block js %}
+    <script type="text/javascript" src="{{ STATIC_URL }}js/libs/jquery-1.7.1.min.js"></script>
+{% endblock %}
+
+</head>
+<body>
+<div class="header container_12">
+	<div class="logo">
+		<a href="/"><img src="{{ STATIC_URL }}img/login_logo.png" alt="Логотип"/>
+	    		<h2>Электронная очередь</h2> 
+        		<p>в ДОУ {{ MUNICIPALITY_NAME_GENITIVE }}</p>
+		</a>
+	</div>
+	<div class="contacts">
+		{% chunk "contacts" %}
+	</div>
+	<div class="logarea">
+		<a href="/auth/login/">Войти в систему</a>
+		или
+		<a href="/registration/">Зарегистрироваться</a>
+	</div>
+</div>
+<div class="main-menu"> 
+    {% include "includes/main_menu.html" %}
+</div>
+<div class="content-main container_12">
+    <h1>Получить путёвку в детский сад: 4 шага</h1>
+    <table class="steps">
+        <tr>
+            <td> <img src="{{ STATIC_URL }}img/step1.png" alt="Step 1" /> </td>
+            <td> <img src="{{ STATIC_URL }}img/step2.png" alt="Step 2" /> </td>
+            <td> <img src="{{ STATIC_URL }}img/step3.png" alt="Step 3" /> </td>
+            <td> <img src="{{ STATIC_URL }}img/step4.png" alt="Step 4" /> </td>
+        </tr>
+        <tr class="step-header">
+            <td class="step1" > регистрация </td>
+            <td class="step2"> проверка документов </td>
+            <td class="step3"> ожидание </td>
+            <td class="step4"> получение путевки </td>
+        </tr>
+        <tr class="step-description">
+            <td class="step1"> {% chunk "step1-description" %} </td>
+            <td class="step2"> {% chunk "step2-description" %} </td>
+            <td class="step3"> {% chunk "step3-description" %} </td>
+            <td class="step4"> {% chunk "step4-description" %} </td>
+        </tr>
+    </table>
+</div>
+<div class="map-area container_12">
+    <h1> Все детские сады {{ MUNICIPALITY_NAME_GENITIVE }} на одной карте </h1>
+    {% block map %}
+    {% endblock %}
+</div>
+<div class="stickyfooter container_12">
+    {% chunk "footer" %}
+    <div class="rslogo grid_3">
+        <a href="http://redsolution.ru"><img src="{{ STATIC_URL }}img/redsolution.png" alt="redsolution"></a>
+    </div>
+</div>
+
+{% block bottomjs %}
+   <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap.js"></script>
+{% endblock %}
+
+</body>
+</html>

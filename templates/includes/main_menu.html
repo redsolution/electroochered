@@ -1,0 +1,91 @@
+{% load sadiki_core_tags flatpages %}
+{% load_urlpatterns %}
+
+{% get_flatpages "/about_registration/" as about_registration_pages %}
+{% get_flatpages "/queue_howto/" as queue_howto_pages %}
+{% resolve_url_name request.path as url_name %}
+
+<ul class="container_12">
+    {# пункты меню для анонима #}
+    {% if request.user.is_anonymous %}
+        {% create_extend_list anonym_registration login as registration_urls %}
+        {% if  anonym_registration|check_url_availability:request.user %}
+            {% if about_registration_pages %}
+                {% create_extend_list registration_urls about_registration_pages.0.url as registration_urls %}
+            {% endif %}
+            <li {% if request.path in registration_urls %}class="active"{% endif %}>
+                <a href="{{ anonym_registration }}">
+                <i class="imgicon key"></i>
+                <p>Регистрация</p>
+                </a>
+            </li>
+        {% endif %}
+    {% endif %}
+    {# пункты меню оператора #}
+    {% if request.user.is_operator %}
+        <li {% if request.path == anonym_registration %}class="active"{% endif %}>
+            <a href="{{ anonym_registration }}"><i class="imgicon key"></i><p>Добавить заявку</p></a>
+        </li>
+    {% endif %}
+    {# пункты меню оператора и оператора ДОУ #}
+    {% if request.user.is_sadik_operator or request.user.is_operator %}
+        {% create_extend_list sadik_list_with_groups distribution_info decision_manager as distribution_urls %}
+        <li {% if request.path in distribution_urls or url_name == "sadikgroup_change_places" %}class="active"{% endif %}>
+            <a href="{{ distribution_info }}"><i class="imgicon wand"></i><p>Комплектование</p></a>
+        </li>
+    {% endif %}
+    {# пункты меню заявителя #}
+    {% if request.user.is_requester %}
+        {# профиль #}
+        {% if account_frontpage|check_url_availability:request.user %}
+        <li {% if url_name == 'account_profile_change' or url_name == 'account_frontpage' or url_name == 'account_requestion_info' or url_name == 'account_logs' %}class="active"{% endif %} >
+            <a href="{{ account_frontpage }}">
+                <i class="imgicon gear"></i>
+                <p>Личный кабинет</p>
+            </a>
+        </li>
+        {% endif %}
+    {% endif %}
+
+    {# общие для всех пользователей пункты #}
+
+    {% create_extend_list anonym_queue anonym_requestion_search as queue_urls %}
+    {% if queue_howto_pages %}
+        {% create_extend_list queue_urls queue_howto_pages.0.url as queue_urls %}
+    {% endif %}
+    {% if  anonym_queue|check_url_availability:request.user %}
+        <li {% if request.path in queue_urls %}class="active"{% endif %} >
+
+            <a href="{{ anonym_queue }}">
+            <i class="imgicon search"></i>
+            <p>Просмотр очереди</p>
+            </a>
+        </li>
+    {% endif %}
+    {% if  sadik_list|check_url_availability:request.user %}
+        <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll %}class="active"{% endif %} >
+            <a href="{{ sadik_list }}">
+            <i class="imgicon house"></i>
+            <p>Список ДОУ</p>
+            </a>
+        </li>
+    {% endif %}
+    {# отчеты для оператора #}
+    {% if  wait_time_statistics|check_url_availability:request.user %}
+        <li {% if request.path == wait_time_statistics %}class="active"{% endif %} >
+            <a href="{{ wait_time_statistics }}">
+            <i class="imgicon graph"></i>
+            <p>Статистика</p>
+            </a>
+        </li>
+    {% endif %}
+    {% get_flatpages "/about/" as about_pages %}
+    {% if about_pages %}
+        <li {% if request.path == about_pages.0.url %}class="active"{% endif %}>
+            <a href="{{ about_pages.0.url }}">
+                <i class="imgicon house"></i>
+                <p>{{ about_pages.0.title }}</p>
+            </a>
+        </li>
+    {% endif %}
+</ul>

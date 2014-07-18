@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponse
+from django.db.models import Q
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
@@ -25,7 +25,7 @@ from sadiki.logger.utils import add_special_transitions_to_requestions
 
 
 class Frontpage(RequirePermissionsMixin, TemplateView):
-    template_name = 'anonym/frontpage.html'
+    template_name = 'anonym/login_page.html'
 
 
 class Registration(RequirePermissionsMixin, TemplateView):
@@ -131,12 +131,7 @@ class Queue(RequirePermissionsMixin, ListView):
                         benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
-                    queryset = queryset.filter(areas__in=area).distinct()
-                admission_date = form.cleaned_data.get('admission_date')
-                if admission_date:
-                    admission_date = datetime.datetime.strptime(
-                        admission_date, '%Y-%m-%d %H:%M:%S')
-                    queryset = queryset.filter(admission_date=admission_date)
+                    queryset = queryset.queue().filter(areas=area).distinct()
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
