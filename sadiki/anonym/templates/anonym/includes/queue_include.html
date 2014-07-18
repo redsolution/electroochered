@@ -11,7 +11,6 @@
         <th id="benefit-categories-row">Категория льгот <span class="icon-question-sign"></span></th>
         <th id="age-groups-row">Возрастная категория <span class="icon-question-sign"></span></th>
         <th id="admission-date">Желаемый год поступления</th>
-        <th id="admission-date">Фактическй год поступления</th>
         <th id="requestion-status-row">Статус заявки <span class="icon-question-sign"></span></th>
         <th id="special-actions-row">Особые действия <span class="icon-question-sign"></span></th>
     </tr>
@@ -48,9 +47,6 @@
             </td>
             <td>
                 {{ requestion.admission_date.year }}
-            </td>
-            <td>
-                {{ requestion.decision_datetime.year }}
             </td>
             <td>
                 {{ requestion.get_status_display }}
