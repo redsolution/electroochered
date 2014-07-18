@@ -28,6 +28,10 @@ class Frontpage(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/login_page.html'
 
 
+class SadikiMap(RequirePermissionsMixin, TemplateView):
+    template_name = 'anonym/sadiki_map.html'
+
+
 class Registration(RequirePermissionsMixin, TemplateView):
     u"""Регистрация пользователя в системе"""
     template_name = 'anonym/registration.html'
