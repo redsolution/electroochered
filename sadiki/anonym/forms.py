@@ -219,9 +219,9 @@ class QueueFilterForm(forms.Form):
                   u"только с указанным годом поступления"
     )
     decision_date = forms.ChoiceField(
-        label=u'Фактический год поступления', required=False,
+        label=u'Фактический год зачисления', required=False,
         help_text=u"При выборе в очереди будут отображаться заявки "
-                  u"только с указанным годом поступления"
+                  u"только с указанным фактическим годом зачисления "
     )
     without_facilities = forms.BooleanField(
         label=u"Сортировать очередь", required=False,

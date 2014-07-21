@@ -121,6 +121,10 @@ class Queue(RequirePermissionsMixin, ListView):
                 if form.cleaned_data.get('status', None):
                     status = form.cleaned_data['status']
                     queryset = self.fullqueryset.filter(status__in=status)
+                decision_date = form.cleaned_data.get('decision_date')
+                if decision_date:
+                    queryset = self.fullqueryset.filter(status__in=[13,]).filter(
+                        decision_datetime__year=decision_date)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(
@@ -132,10 +136,6 @@ class Queue(RequirePermissionsMixin, ListView):
                 area = form.cleaned_data.get('area')
                 if area:
                     queryset = queryset.filter(areas__in=area).distinct()
-                decision_date = form.cleaned_data.get('decision_date')
-                if decision_date:
-                    queryset = self.fullqueryset.filter(status__in=[13,]).filter(
-                        decision_datetime__year=decision_date)
                 admission_date = form.cleaned_data.get('admission_date')
                 if admission_date:
                     admission_date = datetime.datetime.strptime(
