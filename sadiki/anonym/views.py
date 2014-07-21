@@ -125,6 +125,10 @@ class Queue(RequirePermissionsMixin, ListView):
                 if form.cleaned_data.get('status', None):
                     status = form.cleaned_data['status']
                     queryset = self.fullqueryset.filter(status__in=status)
+                decision_date = form.cleaned_data.get('decision_date')
+                if decision_date:
+                    queryset = self.fullqueryset.filter(status__in=[13,]).filter(
+                        decision_datetime__year=decision_date)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(
