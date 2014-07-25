@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
@@ -139,7 +140,13 @@ class Queue(RequirePermissionsMixin, ListView):
                         benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
-                    queryset = queryset.queue().filter(areas=area).distinct()
+                    queryset = queryset.queue().filter(areas__in=area).distinct()
+                admission_date = form.cleaned_data.get('admission_date')
+                if admission_date:
+                    admission_date = datetime.datetime.strptime(
+                        admission_date, '%Y-%m-%d %H:%M:%S')
+                    queryset = queryset.filter(
+                        admission_date=admission_date)
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
