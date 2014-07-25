@@ -44,7 +44,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         for k,v in DEFAULT.iteritems():
-            Chunk.objects.create(
+            chunk, create = Chunk.objects.get_or_create(
                 key=k,
                 content=v
             )
+            if not create:
+                print "exists: %s "%k
+            if create:
+                print "added: %s "%k
