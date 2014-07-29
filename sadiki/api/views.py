@@ -2,12 +2,13 @@
 import calendar
 
 from django.utils import simplejson
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, REQUESTION_IDENTITY
+from sadiki.api.utils import sign_is_valid, make_sign
 
 
 def get_distributions(request):
@@ -53,12 +54,23 @@ def get_distribution(request, id):
 @csrf_exempt
 def get_child(request):
     doc = request.POST.get('doc')
-    requestion_ct = ContentType.objects.get_for_model(Requestion)
-    requestion_ids = EvidienceDocument.objects.filter(
-        content_type=requestion_ct,
-        document_number=doc,
-        template__destination=REQUESTION_IDENTITY).values_list('object_id',
-                                                               flat=True)
-    print requestion_ids
-    print doc
-    return HttpResponse()
+    signed_data = request.POST.get('sign')
+    if sign_is_valid(signed_data):
+        requestion_ct = ContentType.objects.get_for_model(Requestion)
+        requestion_ids = EvidienceDocument.objects.filter(
+            content_type=requestion_ct, document_number=doc,
+            template__destination=REQUESTION_IDENTITY).values_list('object_id',
+                                                                   flat=True)
+        if not requestion_ids:
+            return HttpResponse()
+        requestions = Requestion.objects.filter(id__in=requestion_ids)
+        data = []
+        for requestion in requestions:
+            data.append({
+                'requestion_number': requestion.requestion_number,
+                'status': requestion.status,
+                'id': requestion.id,
+            })
+        response = [{'sign': make_sign(data).data, 'data': data}]
+        return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+    raise Http404
