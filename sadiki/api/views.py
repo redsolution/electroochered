@@ -5,6 +5,7 @@ from django.utils import simplejson
 from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
+from django.core.urlresolvers import reverse
 
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, REQUESTION_IDENTITY
@@ -66,10 +67,13 @@ def get_child(request):
         requestions = Requestion.objects.filter(id__in=requestion_ids)
         data = []
         for requestion in requestions:
+            url = request.build_absolute_uri(reverse('requestion_logs',
+                                                     args=(requestion.id, )))
             data.append({
                 'requestion_number': requestion.requestion_number,
                 'status': requestion.status,
                 'id': requestion.id,
+                'url': url,
             })
         response = [{'sign': make_sign(data).data, 'data': data}]
         return HttpResponse(simplejson.dumps(response), mimetype='text/json')

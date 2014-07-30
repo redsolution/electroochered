@@ -9,4 +9,4 @@ def sign_is_valid(data):
 
 def make_sign(data):
     gpg = gnupg.GPG()
-    return gpg.sign(str(data), detach=True)
+    return gpg.sign(str(data))
