@@ -12,6 +12,10 @@ DEFAULT = [
     ["footer",
     u"Блок с гербом и ссылками в нижней части сайта",
     u"""
+    """],
+    ["anonym-footer",
+    u"Блок с гербом и ссылками в нижней части главной страницы",
+    u"""
     <div class="footer-logo grid_1">
         <img src="/media/upload/attachment/source/coat-of-arms-of-chelyabinsk-2000-b25a.png" width="78px" />
         </div>
