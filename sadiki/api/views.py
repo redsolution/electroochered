@@ -17,8 +17,8 @@ def get_distributions(request):
     return HttpResponse(simplejson.dumps(list(data)), mimetype='text/json')
 
 
-def get_distribution(request, id):
-    distribution_qs = Distribution.objects.filter(pk=id)
+def get_distribution(request, _id):
+    distribution_qs = Distribution.objects.filter(pk=_id)
     if len(distribution_qs) != 1:
         return HttpResponse(simplejson.dumps([0, ]), mimetype='text/json')
     dist = distribution_qs[0]
@@ -40,7 +40,8 @@ def get_distribution(request, id):
                 kg_dict['requestions'].append({
                     'requestion_number': requestion.requestion_number,
                     'name': requestion.name,
-                    'birth_date': calendar.timegm(requestion.birth_date.timetuple())})
+                    'birth_date': calendar.timegm(
+                        requestion.birth_date.timetuple())})
             results.append(kg_dict)
     data = [{
         'id': dist.id,
@@ -74,6 +75,8 @@ def get_child(request):
                 'status': requestion.status,
                 'id': requestion.id,
                 'url': url,
+                'distribution_datetime': calendar.timegm(
+                    requestion.distribution_datetime.timetuple()),
             })
         response = [{'sign': make_sign(data).data, 'data': data}]
         return HttpResponse(simplejson.dumps(response), mimetype='text/json')
