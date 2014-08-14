@@ -185,7 +185,7 @@
                         <span class="status-not-approved">Почтовый ящик не подтвержден</span>
                     {% endif %}
                 </p>
-                <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен. На него оправлено письмо с инструкциями по подтверждению почтового ящика. Письмо действительно в течение трех дней.</p>
+                <p class="text-success" hidden="" id="mail_change_success">Электронный почтовый ящик успешно изменен. На него отправлено письмо с инструкциями по подтверждению почтового ящика. Письмо действительно в течение трех дней.</p>
                 {% if user == profile.user and user.email and not profile.email_verified %}
                     <button  id="confirm_mail_button" class="btn btn-small btn-success" type="button" onclick="send_confirmation_letter(); return false">
                     Подтвердить почтовый адрес</button>

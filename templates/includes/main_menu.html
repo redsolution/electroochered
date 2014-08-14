@@ -5,7 +5,7 @@
 {% get_flatpages "/queue_howto/" as queue_howto_pages %}
 {% resolve_url_name request.path as url_name %}
 
-<ul class="nav">
+<ul class="container_12">
     {# пункты меню для анонима #}
     {% if request.user.is_anonymous %}
         {% create_extend_list anonym_registration login as registration_urls %}
@@ -63,7 +63,7 @@
         </li>
     {% endif %}
     {% if  sadik_list|check_url_availability:request.user %}
-        <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll  or url_name == "sadiki_map"  %}class="active"{% endif %} >
+        <li {% if request.path == sadik_list or url_name == "sadik_info" or url_name == "sadik_info_change" or request.path == requestion_list_enroll %}class="active"{% endif %} >
             <a href="{{ sadik_list }}">
             <i class="imgicon house"></i>
             <p>Список ДОУ</p>

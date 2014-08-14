@@ -9,7 +9,7 @@ this.op=op||{};
 //options
 this.op.l = op.l||n["language"]||n["userLanguage"]||document.documentElement.getAttribute("lang")||"ru";
 var ll=this.op.l.substr(0,2);
-this.op.vsakt = {i:11,f:28,o:12.1,s:7,n:20,c:32};
+this.op.vsakt = {i:11,f:28,o:22,s:7,n:20,c:32};
 //this.op.vsdefault = {i:8,f:10,o:12,s:5,n:10};
 this.op.vsdefault = {i:8,f:23,o:12,s:5.2,n:12,c:28};
 this.op.vsmin={i:7,f:16,o:12,s:5,n:10,c:28};

@@ -1,0 +1,85 @@
+{% extends 'anonym/login_base.html' %}
+{% load sadiki_core_tags %}
+
+{% block content_header %}{% endblock %}
+
+{% block css %}
+    {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+{% endblock %}
+
+{% block bottomjs %}
+{% load_settings %}
+    {% include "includes/leaflet_js.html" %}
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap.js"></script>
+    <script type="text/javascript"> 
+    var $buoop = {}; 
+    $buoop.ol = window.onload; 
+    window.onload=function(){ 
+     try {if ($buoop.ol) $buoop.ol();}catch (e) {} 
+     var e = document.createElement("script"); 
+     e.setAttribute("type", "text/javascript"); 
+     e.setAttribute("src", "{{ STATIC_URL }}js/update.js?v1.5.9"); 
+     document.body.appendChild(e); 
+    } 
+    </script> 
+    <script type="text/javascript">
+        $(function(){
+            var lonlat = [{{ settings.MAP_CENTER }}];
+            lonlat.reverse();
+            var map = new L.Map("map", {
+                center: L.latLng(lonlat),
+                zoom: {{ settings.MAP_ZOOM }}
+            });
+            var activeSadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62]  // the same for the shadow
+            });
+            var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+                subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+                attribution: 'Map data © OpenStreetMap contributors',
+                center: L.latLng(lonlat),
+                zoom: {{ settings.MAP_ZOOM }}
+            });
+            osmLayer.addTo(map);
+        
+            function renderMarkers(markers, map) {
+                var markersLayer = new L.MarkerClusterGroup({
+                    maxClusterRadius: 30
+                });
+                for (var i=0; i<markers.length; i++) {
+                    var m = L.marker(markers[i].location.reverse(), {
+                        title: markers[i].name,
+                        icon: activeSadikIcon
+                    });
+                    m.bindPopup('<b>'+markers[i].name+'</b><div>Адрес: '+markers[i].address+'</div><div>Телефон: '+ markers[i].phone +'</div><a href="'+ markers[i].url +'">Перейти к ДОУ</a>');
+                    markersLayer.addLayer(m);
+                }
+                map.addLayer(markersLayer);
+            }
+        
+            function fetchSadiks(map) {
+                $.ajax({
+                    type: 'json',
+                    url: '/api/sadiki.json'
+                })
+                .success(function(data){
+                    renderMarkers(data, map);
+                });
+            }
+        
+            fetchSadiks(map);
+        
+        });
+    </script>
+{% endblock %}
+
+{% block map %}
+{#    <div class="center-aligned">#}
+        <div id="map"></div>
+{#    </div>#}
+{% endblock %}
+

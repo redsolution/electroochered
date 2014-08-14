@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*- 
 from django.conf.urls.defaults import patterns, url
-from sadiki.anonym.views import Frontpage, SadikInfo, SadikList
+from sadiki.anonym.views import Frontpage, SadikInfo, SadikList, SadikiMap
 
 
 urlpatterns = patterns('',
@@ -9,4 +9,6 @@ urlpatterns = patterns('',
         name=u'sadik_list'),
     url(r'^sadik/(?P<sadik_id>\d{1,7})/$', SadikInfo.as_view(),
         name=u'sadik_info'),
+    url(r'^map/', SadikiMap.as_view(), 
+    	name='sadiki_map'),
 )

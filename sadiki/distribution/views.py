@@ -196,7 +196,8 @@ class DecisionManager(OperatorPermissionMixin, View):
                 # должны быть места в приоритетных ДОУ
                 query_for_pref_sadiks = Q(
                     pref_sadiks__groups__free_places__gt=0,
-                    pref_sadiks__groups__age_group=age_group)
+                    pref_sadiks__groups__age_group=age_group,
+                    pref_sadiks__groups__active=True)
                 # либо указана возможность зачисления в любой ДОУ и в выбранной
                 # области есть ДОУ с местами или не указана область
                 query_for_any_sadiks = Q(
