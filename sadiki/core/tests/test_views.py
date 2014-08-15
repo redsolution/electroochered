@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import random
 from django.test import TestCase, Client
 from django.core import management
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
 
 from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
-    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address
+    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address, RequestionQuerySet, \
+    STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 
@@ -26,6 +28,10 @@ class CoreViewsTest(TestCase):
         Address.objects.all().delete()
 
     def setUp(self):
+        management.call_command('generate_sadiks', 1)
+        management.call_command('generate_requestions', 25,
+                                distribute_in_any_sadik=True)
+
         self.operator = User(username='operator')
         self.operator.set_password("password")
         self.operator.save()
@@ -60,9 +66,6 @@ class CoreViewsTest(TestCase):
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 403)
 
-        management.call_command('generate_sadiks', 1)
-        management.call_command('generate_requestions', 2,
-                                distribute_in_any_sadik=True)
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 200)
@@ -77,3 +80,64 @@ class CoreViewsTest(TestCase):
                      password=self.requester.password)
         requester_response = client.get(reverse('anonym_queue'))
         self.assertEqual(requester_response.status_code, 200)
+
+    def test_queue_context(self):
+        Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+
+        # провека количества заявок в контексте от лица анонимного пользователя
+        anonym_response = self.client.get(reverse('anonym_queue'))
+        self.assertEqual(anonym_response.status_code, 200)
+        self.assertEqual(anonym_response.context_data["requestions"].count(),
+                         Requestion.objects.queue().count())
+
+        # от оператора
+        self.client.login(username=self.operator.username,
+                          password=self.operator.password)
+        operator_response = self.client.get(reverse('anonym_queue'))
+        self.assertEqual(operator_response.status_code, 200)
+        self.assertEqual(anonym_response.context_data["requestions"].count(),
+                         Requestion.objects.queue().count())
+        self.client.logout()
+
+        # от подтверженного пользователя
+        self.client.login(username=self.requester.username,
+                          password=self.requester.password)
+        requester_response = self.client.get(reverse('anonym_queue'))
+        self.assertEqual(anonym_response.status_code, 200)
+        self.assertEqual(anonym_response.context_data["requestions"].count(),
+                         Requestion.objects.queue().count())
+
+    def test_status(self):
+        Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+
+        # Проверям фильтр без указания статуса
+        response = self.client.get(reverse('anonym_queue'))
+        self.assertEqual(response.context_data["requestions"].count(),
+                         Requestion.objects.count())
+        for v in response.context_data["requestions"]:
+            self.assertIn(v.status, 
+                          [STATUS_REQUESTER,
+                           STATUS_REQUESTER_NOT_CONFIRMED]
+                         )
+
+        # Проверям фильтр со статсуом 17( Снят с учёта )
+        requestion = Requestion.objects.order_by('?')[0]
+        requestion.status = STATUS_REMOVE_REGISTRATION
+        requestion.save()
+
+        response = self.client.get(reverse('anonym_queue'), 
+                                   data={'status': [17]})
+        self.assertEqual(response.context_data["requestions"].count(),
+                         Requestion.objects.filter(
+                            status=STATUS_REMOVE_REGISTRATION).count()
+                        )
+        for v in response.context_data["requestions"]:
+            self.assertEqual(v.status, STATUS_REMOVE_REGISTRATION)                
+
+        # Проверяем фильтр со статусом, отсутсвущем в списке
+        # в случае, если записей с таким фильтром нет,
+        # то он вернет все записи
+        response = self.client.get(reverse('anonym_queue'),
+                                   data={'status': [99]})
+        self.assertEqual(response.context_data["requestions"].count(),
+                         Requestion.objects.queue().count())    
