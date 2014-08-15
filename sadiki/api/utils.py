@@ -60,6 +60,14 @@ def create_requestion(data):
     {'name': Имя ребенка, без пробелов;
      'birth_date': дата рождения;
      'sex': пол (u"М" или u"Ж");
+     'district': район проживания, если в системе активированы районы;
+     'location_properties': адрес проживания прописью, свободная форма;
+     'profile': профиль заявителя, создается автоматически;
+     'registration_datetime': дата постановки в очередь (unixtimestamp);
+     'birth_doc': номер свидетельства о рождении (unixtimestamp);
+     'birth_doc_type': тип свидетельства о рождении, 0 - российский,
+                       1 - зарубежное
+    }
 
     :return:
     """
@@ -90,7 +98,10 @@ def create_requestion(data):
         'registration_datetime': datetime.datetime.fromtimestamp(
             data.get('registration_datetime')),
     }
-    req = Requestion.objects.create(**defaults)
+    try:
+        req = Requestion.objects.create(**defaults)
+    except Exception as e:
+        return e.message
     req.areas.add(*[area for area in Area.objects.all()])
     create_document(req, data['birth_doc'], data['birth_doc_type'])
     return req
