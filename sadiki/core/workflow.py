@@ -133,6 +133,7 @@ DISTRIBUTION_BY_RESOLUTION = 58
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
 ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться
+REQUESTION_TRANSFER = 66            # Перевод из другого муниципалитета
 
 #Изменение данных заявки
 CHANGE_REQUESTION = 71
@@ -187,6 +188,8 @@ workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR,
              u'Регистрация через оператора', )
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, CONFIRM_REQUESTION,
              u'Подтверждение заявки', permissions=[OPERATOR_PERMISSION[0]])
+workflow.add(None, STATUS_REQUESTER, REQUESTION_TRANSFER,
+             u'Перевод из другого муниципалитета',)
 
 # 2) Комплектование
 # 2.1) Очередники
@@ -669,6 +672,11 @@ ACTION_TEMPLATES.update({
     },
     EMAIL_VERIFICATION: {
         ACCOUNT_LOG: Template(email_verification_template)
+    },
+    REQUESTION_TRANSFER: {
+        ANONYM_LOG: Template(u"""
+        Заявка перенесена из другого муниципалитета: {{ sender_info }}.
+        """)
     }
 })
 

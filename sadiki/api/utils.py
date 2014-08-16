@@ -6,6 +6,8 @@ import datetime
 from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from sadiki.logger.models import Logger
+from sadiki.core.workflow import REQUESTION_TRANSFER
 
 from sadiki.core.models import Requestion, Area, Profile, EvidienceDocument, \
     EvidienceDocumentTemplate
@@ -94,7 +96,7 @@ def create_requestion(data):
         'sex': None,
         'location_properties': None,
         'profile': create_profile(),
-        'birth_date': datetime.datetime.fromtimestamp(data.get('birth_date')),
+        'birth_date': datetime.date.fromtimestamp(data.get('birth_date')),
         'registration_datetime': datetime.datetime.fromtimestamp(
             data.get('registration_datetime')),
     }
@@ -104,4 +106,10 @@ def create_requestion(data):
         return e.message
     req.areas.add(*[area for area in Area.objects.all()])
     create_document(req, data['birth_doc'], data['birth_doc_type'])
+    # создаем запись в логах
+    Logger.objects.create_for_action(
+        REQUESTION_TRANSFER,
+        context_dict={'sender_info': data.get('sender_info'), },
+        extra={'obj': req}
+    )
     return req
