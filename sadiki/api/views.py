@@ -33,15 +33,20 @@ def get_distribution(request, _id):
             distributed_in_vacancy__sadik_group__sadik=sadik).order_by(
                 '-birth_date').select_related('profile').select_related(
                     'distributed_in_vacancy__sadik_group__age_group')
-        requestions.add_related_documents()
+        requestion_ct = ContentType.objects.get_for_model(Requestion)
         if requestions:
             kg_dict = {'kindergtn': sadik.id, 'requestions': []}
             for requestion in requestions:
+                birth_cert = EvidienceDocument.objects.filter(
+                    template__destination=REQUESTION_IDENTITY,
+                    content_type=requestion_ct, object_id=requestion.id)[0]
                 kg_dict['requestions'].append({
                     'requestion_number': requestion.requestion_number,
                     'name': requestion.name,
                     'birth_date': calendar.timegm(
-                        requestion.birth_date.timetuple())})
+                        requestion.birth_date.timetuple()),
+                    'birth_cert': birth_cert.document_number})
+
             results.append(kg_dict)
     data = [{
         'id': dist.id,
@@ -50,7 +55,8 @@ def get_distribution(request, _id):
         'year': dist.year.year,
         'results': results,
     }]
-    return HttpResponse(simplejson.dumps(data), mimetype='text/json')
+    response = [{'sign': make_sign(data).data, 'data': data}]
+    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
 
 
 @csrf_exempt
