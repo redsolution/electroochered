@@ -91,10 +91,10 @@ def create_requestion(data):
     if not 'registration_datetime' in data.keys():
         return u"Не указана дата постановки в очередь"
     defaults = {
-        'name': None,
+        'name': data.get('name'),
         'district': None,
-        'sex': None,
-        'location_properties': None,
+        'sex': data.get('sex'),
+        'location_properties': data.get('location_properties'),
         'profile': create_profile(),
         'birth_date': datetime.date.fromtimestamp(data.get('birth_date')),
         'registration_datetime': datetime.datetime.fromtimestamp(
