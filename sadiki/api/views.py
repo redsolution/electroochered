@@ -70,6 +70,8 @@ def get_distribution(request):
 
 @csrf_exempt
 def get_child(request):
+    if request.method == 'GET':
+        raise Http404
     doc = request.POST.get('doc')
     signed_data = request.POST.get('sign')
     if sign_is_valid(signed_data):
@@ -96,3 +98,23 @@ def get_child(request):
         response = [{'sign': make_sign(data).data, 'data': data}]
         return HttpResponse(simplejson.dumps(response), mimetype='text/json')
     raise Http404
+
+
+@csrf_exempt
+def api_test(request):
+    status = 'error'
+    msg = None
+    if request.method == 'GET':
+        msg = "Wrong method, use POST instead of GET"
+    signed_data = request.POST.get('signed_data')
+    if not (signed_data and sign_is_valid(signed_data)):
+        msg = "Sing check error"
+    test_string = request.POST.get('test_string')
+    if not test_string == u"Проверочная строка":
+        msg = "wrong test_string"
+    if not msg:
+        status = 'ok'
+        msg = "All passed"
+    response = [{'sign': make_sign(msg).data, 'data': msg, 'status': status}]
+    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+
