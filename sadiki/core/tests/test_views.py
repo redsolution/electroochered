@@ -4,10 +4,12 @@ from django.test import TestCase, Client
 from django.core import management
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
+from django.db.models import Q
 
 from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
     SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address, RequestionQuerySet, \
-    STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER
+    STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, \
+    STATUS_NOT_APPEAR
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 
@@ -60,6 +62,7 @@ class CoreViewsTest(TestCase):
         Requestion.objects.all().delete()
         SadikGroup.objects.all().delete()
         Sadik.objects.all().delete()
+        User.objects.all().delete()
 
     def test_queue_response_code(self):
         client = Client()
@@ -70,14 +73,16 @@ class CoreViewsTest(TestCase):
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 200)
 
-        client.login(username=self.operator.username,
-                     password=self.operator.password)
+        login = client.login(username=self.operator.username,
+                             password=self.operator.password)
+        self.assertTrue(login)
         operator_response = client.get(reverse('anonym_queue'))
         self.assertEqual(operator_response.status_code, 200)
         client.logout()
 
-        client.login(username=self.requester.username,
-                     password=self.requester.password)
+        login = client.login(username=self.requester.username,
+                             password=self.requester.password)
+        self.assertTrue(login)
         requester_response = client.get(reverse('anonym_queue'))
         self.assertEqual(requester_response.status_code, 200)
 
@@ -89,10 +94,14 @@ class CoreViewsTest(TestCase):
         self.assertEqual(anonym_response.status_code, 200)
         self.assertEqual(anonym_response.context_data["requestions"].count(),
                          Requestion.objects.queue().count())
+        print self.operator.username, self.operator.password
 
         # от оператора
-        self.client.login(username=self.operator.username,
-                          password=self.operator.password)
+        login = self.client.login(
+            username=self.operator.username,
+            password=self.operator.password
+        )
+        self.assertTrue(login)
         operator_response = self.client.get(reverse('anonym_queue'))
         self.assertEqual(operator_response.status_code, 200)
         self.assertEqual(anonym_response.context_data["requestions"].count(),
@@ -100,8 +109,11 @@ class CoreViewsTest(TestCase):
         self.client.logout()
 
         # от подтверженного пользователя
-        self.client.login(username=self.requester.username,
-                          password=self.requester.password)
+        login = self.client.login(
+            username=self.requester.username,
+            password=self.requester.password
+        )
+        self.assertTrue(login)
         requester_response = self.client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 200)
         self.assertEqual(anonym_response.context_data["requestions"].count(),
@@ -112,10 +124,12 @@ class CoreViewsTest(TestCase):
 
         # Проверям фильтр без указания статуса
         response = self.client.get(reverse('anonym_queue'))
+
         self.assertEqual(response.context_data["requestions"].count(),
-                         Requestion.objects.count())
+                 Requestion.objects.queue().count())
+        
         for v in response.context_data["requestions"]:
-            self.assertIn(v.status, 
+            self.assertIn(v.status,
                           [STATUS_REQUESTER,
                            STATUS_REQUESTER_NOT_CONFIRMED]
                          )
@@ -138,6 +152,8 @@ class CoreViewsTest(TestCase):
         # в случае, если записей с таким фильтром нет,
         # то он вернет все записи
         response = self.client.get(reverse('anonym_queue'),
-                                   data={'status': [99]})
-        self.assertEqual(response.context_data["requestions"].count(),
-                         Requestion.objects.queue().count())    
+                                   data={'status': [STATUS_NOT_APPEAR],
+                                         'Benefit_category': 1}
+                                  )
+
+        self.assertFalse(response.context_data["requestions"])  
