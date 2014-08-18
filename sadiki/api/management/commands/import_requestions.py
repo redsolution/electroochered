@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import sys
-import gnupg
 import json
 
 from django.core.management.base import BaseCommand
 
-from sadiki.api.utils import create_requestion
+from sadiki.api.utils import create_requestion, decrypt_data
 
 
 class Command(BaseCommand):
@@ -25,9 +24,3 @@ class Command(BaseCommand):
             for item in data:
                 req = create_requestion(item)
                 print req
-
-
-def decrypt_data(data):
-    gpg = gnupg.GPG()
-    decrypted_data = gpg.decrypt(data)
-    return decrypted_data

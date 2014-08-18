@@ -17,7 +17,16 @@ def get_distributions(request):
     return HttpResponse(simplejson.dumps(list(data)), mimetype='text/json')
 
 
-def get_distribution(request, _id):
+@csrf_exempt
+def get_distribution(request):
+    if request.method == 'GET':
+        raise Http404
+    signed_data = request.POST.get('signed_data')
+    if not (signed_data and sign_is_valid(signed_data)):
+        raise Http404
+    _id = request.POST.get('id')
+    if not _id:
+        raise Http404
     distribution_qs = Distribution.objects.filter(pk=_id)
     if len(distribution_qs) != 1:
         return HttpResponse(simplejson.dumps([0, ]), mimetype='text/json')

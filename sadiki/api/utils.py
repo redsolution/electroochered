@@ -24,6 +24,12 @@ def make_sign(data):
     return gpg.sign(str(data))
 
 
+def decrypt_data(data):
+    gpg = gnupg.GPG()
+    decrypted_data = gpg.decrypt(data)
+    return decrypted_data
+
+
 BIRTH_DOC_SIMPLE = 0
 BIRTH_DOC_SIMPLE_TEMPLATE = EvidienceDocumentTemplate.objects.get(
     regex=ur'^[A-Z]{1,3}-[А-Я]{1,2} \d{6,7}$')
@@ -74,7 +80,7 @@ def create_requestion(data):
     :return:
     """
     # проверяем свидетельство о рождении
-    if not 'birth_doc' in data.keys():
+    if not data.get('birth_doc'):
         return u"Не указан номер свидетельства о рождении"
     if data.get('birth_doc_type') == BIRTH_DOC_SIMPLE and not \
             (re.match(BIRTH_DOC_SIMPLE_TEMPLATE.regex,
