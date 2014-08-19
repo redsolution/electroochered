@@ -87,14 +87,16 @@ def get_child(request):
         for requestion in requestions:
             url = request.build_absolute_uri(reverse('requestion_logs',
                                                      args=(requestion.id, )))
-            data.append({
+            req_dict = {
                 'requestion_number': requestion.requestion_number,
                 'status': requestion.status,
                 'id': requestion.id,
                 'url': url,
-                'distribution_datetime': calendar.timegm(
-                    requestion.distribution_datetime.timetuple()),
-            })
+            }
+            if requestion.distribution_datetime:
+                req_dict['distribution_datetime'] = calendar.timegm(
+                    requestion.distribution_datetime.timetuple())
+            data.append(req_dict)
         response = [{'sign': make_sign(data).data, 'data': data}]
         return HttpResponse(simplejson.dumps(response), mimetype='text/json')
     raise Http404
