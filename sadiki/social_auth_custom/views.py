@@ -78,7 +78,11 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             params = {'access_token': access_token,
                       'fields': fields,
                       'uids': uid}
-            data = vkontakte_api('users.get', params).get('response')[0]
+            raw_data = vkontakte_api('users.get', params).get('response')
+            if not raw_data:
+                return HttpResponse(content=json.dumps({'ok': True}),
+                                    mimetype='text/javascript')
+            data = raw_data[0]
             field = request.POST.get("field")
             if field == "first_name":
                 field_value = data.get('first_name')
@@ -91,10 +95,11 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
                 profile.skype = field_value
             else:
                 return HttpResponse(content=json.dumps({'ok': False}),
-                        mimetype='text/javascript')
+                                    mimetype='text/javascript')
             profile.save()
-            return HttpResponse(content=json.dumps({'ok': True, 'field_value': field_value}),
-                    mimetype='text/javascript')
+            return HttpResponse(content=json.dumps(
+                {'ok': True, 'field_value': field_value}),
+                mimetype='text/javascript')
         else:
             return HttpResponseBadRequest()
 
