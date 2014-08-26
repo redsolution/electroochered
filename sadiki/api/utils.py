@@ -10,7 +10,7 @@ from sadiki.logger.models import Logger
 from sadiki.core.workflow import REQUESTION_TRANSFER
 
 from sadiki.core.models import Requestion, Area, Profile, EvidienceDocument, \
-    EvidienceDocumentTemplate
+    EvidienceDocumentTemplate, REQUESTION_IDENTITY
 from sadiki.core import utils as core_utils
 
 
@@ -32,9 +32,11 @@ def decrypt_data(data):
 
 BIRTH_DOC_SIMPLE = 0
 BIRTH_DOC_SIMPLE_TEMPLATE = EvidienceDocumentTemplate.objects.get(
+    destination=REQUESTION_IDENTITY,
     regex=ur'^[A-Z]{1,3}-[А-Я]{1,2} \d{6,7}$')
 BIRTH_DOC_FOREIGN = 1
 BIRTH_DOC_FOREIGN_TEMPLATE = EvidienceDocumentTemplate.objects.filter(
+    destination=REQUESTION_IDENTITY,
     regex=ur'.*')[0]
 
 
