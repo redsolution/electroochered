@@ -305,22 +305,13 @@ class RequestionSearch(RequirePermissionsMixin, TemplateView):
         else:
             return self.render_to_response(context_data)
 
+
 class SadikList(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_list.html'
 
     def get(self, request):
         sadik_list = Sadik.objects.all().select_related('address')
-        if not request.user.is_anonymous():
-            try:
-                profile = request.user.get_profile()
-            except Profile.DoesNotExist:
-                pass
-            else:
-                if not request.user.is_requester():
-                    return self.render_to_response(
-                        {'sadik_list': sadik_list.filter_for_profile(profile)})
-        return self.render_to_response({'sadik_list': sadik_list.filter(
-            active_registration=True)})
+        return self.render_to_response({'sadik_list': sadik_list})
 
 
 class SadikInfo(RequirePermissionsMixin, TemplateView):
