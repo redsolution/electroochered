@@ -14,7 +14,7 @@ from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
     BenefitCategory, Address, EvidienceDocument, Area
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN
-from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
+from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, JQueryUIAdmissionDateWidget
 
 
 class RequestionForm(FormWithDocument):
@@ -46,6 +46,7 @@ class RequestionForm(FormWithDocument):
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\
             ребёнка"
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
+        self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
