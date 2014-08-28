@@ -370,6 +370,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'change_requestion_form': change_requestion_form,
             'change_benefits_form': change_benefits_form,
             'pref_sadiks_form': pref_sadiks_form,
+            'use_districts': USE_DISTRICTS,
+
         })
         return self.render_to_response(context)
 

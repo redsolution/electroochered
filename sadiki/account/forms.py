@@ -12,7 +12,7 @@ from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import map_widget, location_errors
 from sadiki.core.models import EvidienceDocumentTemplate, \
     Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
-    BenefitCategory, Address, EvidienceDocument, Area
+    BenefitCategory, Address, EvidienceDocument, Area, District
 from sadiki.core.settings import BENEFIT_SYSTEM_MIN
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS
 
@@ -70,7 +70,7 @@ class ChangeRequestionForm(forms.ModelForm):
 
     class Meta:
         model = Requestion
-        fields = ('name', 'sex', 'location', 'admission_date',)
+        fields = ('name', 'sex', 'location', 'admission_date', 'district')
 
     def __init__(self, *args, **kwds):
         self.base_fields['location'].required = True

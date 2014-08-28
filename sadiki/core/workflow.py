@@ -488,6 +488,7 @@ change_requestion_anonym_template = u"""
             Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
         {% endif %}
         {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
+        {% if requestion.district %} Район: {{ requestion.district }}{% endif %}
         """
 
 change_requestion_account_template = u"""

@@ -474,7 +474,13 @@
         <div class="requestion-info">
             {% if use_districts and requestion.district %}
             <div id="district_div">
-                <label class="field-label">Район: {{ requestion.district }}</label>
+                <label class="field-label">Район</label>
+                <p class="field-value hidden-input">
+                    <label class="value">{{ requestion.district }}</label>
+                    {{ change_requestion_form.district }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+
+                </p>    
             </div>
             {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
