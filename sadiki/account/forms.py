@@ -77,6 +77,7 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['location'].required = True
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
+        self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
 
