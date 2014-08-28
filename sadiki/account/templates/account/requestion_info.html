@@ -278,7 +278,7 @@
 
         function change_admission_label(text, date) {
             $('#admission_date_label').text(text);
-            field_changed(this);
+            field_changed($(this).parents('.field'));
         }
 
         $(document).ready(function(){
