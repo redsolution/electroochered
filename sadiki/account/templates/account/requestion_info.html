@@ -304,8 +304,9 @@
             // удаляем льготы, появившиеся при переносе Челябинской ЭО
             delete_special_benefits();
 
-            // поднимаем картинку виджета выбора даты поступления
+            // меняем значение поля и отметку "изменено" при выборе даты
             $('#id_admission_date').datepicker('option', 'onSelect', change_admission_label);
+            // поднимаем картинку виджета выбора даты поступления
             $('#id_admission_date').next().css('margin-top', '-5px');
 
             $("#queue_explain").popover({
