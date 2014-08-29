@@ -472,7 +472,7 @@ change_profile_account_template = u'''
     '''
 
 change_requestion_anonym_template = u"""
-        {% if "admission_date" in changed_data %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
+        {% if "admission_date" in changed_data %}Желаемая дата зачисления: {{ requestion.admission_date.year }};{% endif %}
         {% if "benefits" in changed_data %}
             Основная категория льгот: {{ requestion.benefit_category }};
         {% endif %}

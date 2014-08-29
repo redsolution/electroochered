@@ -915,7 +915,7 @@ class Requestion(models.Model):
     # Child data
     admission_date = models.DateField(
         u'Желаемая дата зачисления', blank=True, null=True,
-        help_text=u"Год, начиная с которого заявка может быть зачислена")
+        help_text=u"Дата, начиная с которой заявка может быть зачислена")
     requestion_number = models.CharField(
         verbose_name=u'Номер заявки', max_length=23, blank=True, null=True)
     distribution_type = models.IntegerField(
