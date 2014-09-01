@@ -214,7 +214,7 @@ class QueueFilterForm(forms.Form):
                   u"для которых указана возможность зачисления в эту группу ДОУ"
     )
     admission_date = forms.ChoiceField(
-        label=u'Желаемый год поступления', required=False,
+        label=u'Желаемый год зачисления', required=False,
         help_text=u"При выборе в очереди будут отображаться заявки "
                   u"только с указанным годом поступления"
     )

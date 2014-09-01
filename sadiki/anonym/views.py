@@ -146,7 +146,7 @@ class Queue(RequirePermissionsMixin, ListView):
                     admission_date = datetime.datetime.strptime(
                         admission_date, '%Y-%m-%d %H:%M:%S')
                     queryset = queryset.filter(
-                        admission_date=admission_date)
+                        admission_date__year=admission_date.year)
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):

@@ -902,28 +902,27 @@ class Requestion(models.Model):
     class Meta:
         verbose_name = u'Заявка в очереди'
         verbose_name_plural = u'Заявки в очереди'
-        ordering = ['-benefit_category__priority', 'registration_datetime', 'id']
+        ordering = ['-benefit_category__priority',
+                    'registration_datetime', 'id']
 
-    areas = models.ManyToManyField('Area',
-        verbose_name=u'Предпочитаемые группы ДОУ',
+    areas = models.ManyToManyField(
+        'Area', verbose_name=u'Предпочитаемые группы ДОУ',
         help_text=u"""Группа в которой вы хотели бы посещать ДОУ.""")
 
     district = models.ForeignKey(
         'District', blank=True, null=True, verbose_name=u'Район заявки')
 
     # Child data
-    admission_date = YearChoiceField(u'Желаемый год поступления',
-        blank=True, null=True,
-        help_text=u"Год, начиная с которого заявка может быть зачислена")
-    #    admission_date_type = models.IntegerField(u'тип желаемой даты поступления',
-    #        choices=ADMISSION_DATE_TYPE_CHOICES)
-    requestion_number = models.CharField(verbose_name=u'Номер заявки',
-        max_length=23, blank=True, null=True)
+    admission_date = models.DateField(
+        u'Желаемая дата зачисления', blank=True, null=True,
+        help_text=u"Дата, начиная с которой заявка может быть зачислена")
+    requestion_number = models.CharField(
+        verbose_name=u'Номер заявки', max_length=23, blank=True, null=True)
     distribution_type = models.IntegerField(
         verbose_name=u'тип распределения', choices=DISTRIBUTION_TYPE_CHOICES,
         default=DEFAULT_DISTRIBUTION_TYPE)
-    # используется для хранения путевки, которая выдана ребенку
-    # (например при переводе или постоянном зачислении), чтобы можно было вернуть
+    # используется для хранения путевки, которая выдана ребенку (например при
+    # переводе или постоянном зачислении), чтобы можно было вернуть
     previous_distributed_in_vacancy = models.ForeignKey(
         'Vacancies', blank=True, null=True,
         related_name=u"previous_requestions")
@@ -931,7 +930,8 @@ class Requestion(models.Model):
         'Vacancies', blank=True, null=True)
 
     # Child info
-    birth_date = models.DateField(u'Дата рождения ребёнка', validators=[birth_date_validator])
+    birth_date = models.DateField(
+        u'Дата рождения ребёнка', validators=[birth_date_validator])
     # сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(u'имя ребёнка', max_length=255, null=True,
                             validators=[validate_no_spaces, ],
