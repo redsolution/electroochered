@@ -2,11 +2,12 @@
 from django.conf.urls import patterns, url, include
 
 from sadiki.api.views import get_distributions, get_distribution, get_child, \
-    api_test
+    api_test, get_kindergartens
 
 urlpatterns = patterns('',
     url(r'^get_distributions/$', get_distributions),
     url(r'^get_distribution/', get_distribution),
     url(r'^get_child/', get_child),
     url(r'^test/', api_test),
+    url(r'^get_kg_info/', get_kindergartens)
 )
