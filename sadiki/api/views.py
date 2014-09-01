@@ -133,7 +133,5 @@ def get_kindergartens(request):
             'head_name': sadik.head_name,
             'email': sadik.email,
             'site': sadik.site,
-            'tech_level': sadik.tech_level,
-            'features': sadik.extended_info,
         })
     return HttpResponse(simplejson.dumps(data), mimetype='text/json')
