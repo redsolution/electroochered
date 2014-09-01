@@ -134,4 +134,5 @@ def get_kindergartens(request):
             'email': sadik.email,
             'site': sadik.site,
         })
-    return HttpResponse(simplejson.dumps(data), mimetype='text/json')
+    response = [{'sign': make_sign(data).data, 'data': data}]
+    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
