@@ -317,7 +317,10 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
                        requestion.location_properties,
                        unicode(requestion.distributed_in_vacancy.sadik_group)]
                 if settings.USE_DISTRICTS:
-                    row.insert(4, requestion.district.title)
+                    if requestion.district:
+                        row.insert(4, requestion.district.title)
+                    else:
+                        row.insert(4, '')
                 else:
                     row.insert(4, requestions_by_sadik[0].area.name)
                 if requestion.related_documents:
