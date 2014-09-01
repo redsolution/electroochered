@@ -126,6 +126,7 @@ def get_kindergartens(request):
     data = []
     for sadik in Sadik.objects.all():
         data.append({
+            'id': sadik.id,
             'address': sadik.address.text,
             'phone': sadik.phone,
             'name': sadik.short_name,
@@ -133,5 +134,6 @@ def get_kindergartens(request):
             'email': sadik.email,
             'site': sadik.site,
             'tech_level': sadik.tech_level,
+            'features': sadik.extended_info,
         })
     return HttpResponse(simplejson.dumps(data), mimetype='text/json')
