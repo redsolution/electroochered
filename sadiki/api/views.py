@@ -120,3 +120,18 @@ def api_test(request):
     response = [{'sign': make_sign(msg).data, 'data': msg, 'status': status}]
     return HttpResponse(simplejson.dumps(response), mimetype='text/json')
 
+
+@csrf_exempt
+def get_kindergartens(request):
+    data = []
+    for sadik in Sadik.objects.all():
+        data.append({
+            'address': sadik.address.text,
+            'phone': sadik.phone,
+            'name': sadik.short_name,
+            'head_name': sadik.head_name,
+            'email': sadik.email,
+            'site': sadik.site,
+            'tech_level': sadik.tech_level,
+        })
+    return HttpResponse(simplejson.dumps(data), mimetype='text/json')
