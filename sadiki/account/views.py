@@ -425,7 +425,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
             'sadiks_location_data': get_json_sadiks_location_data(),
             'pref_sadiks_ids': pref_sadiks_ids,
-            'areas_ids': requestion.areas.all().values_list('id', flat=True),
+            'areas_ids': simplejson.dumps([
+                req for req in requestion.areas.all().values_list(
+                    'id', flat=True)]),
             'can_change_benefits': self.can_change_benefits(requestion),
             'can_change_requestion': self.can_change_requestion(requestion),
             'plugin_menu_items': get_plugin_menu_items(),
