@@ -448,7 +448,7 @@ requestion_anonym_template = u"""
     {% endfor %}
     {% if requestion.birth_date %}Дата рождения: {{ requestion.birth_date }};{% endif %}
     {% if not requestion.distribute_in_any_sadik == None %}Зачислять в любой ДОУ: {{ requestion.distribute_in_any_sadik|yesno:"Да, Нет" }};{% endif %}
-    {% if requestion.admission_date %}Желаемый год поступления: {{ requestion.admission_date.year }};{% endif %}
+    {% if requestion.admission_date %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
     {% if pref_sadiks %}
         Приоритетные МДОУ: {% for sadik in pref_sadiks %}{{ sadik }};{% endfor %}
     {% endif %}
@@ -472,7 +472,7 @@ change_profile_account_template = u'''
     '''
 
 change_requestion_anonym_template = u"""
-        {% if "admission_date" in changed_data %}Желаемая дата зачисления: {{ requestion.admission_date.year }};{% endif %}
+        {% if "admission_date" in changed_data %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
         {% if "benefits" in changed_data %}
             Основная категория льгот: {{ requestion.benefit_category }};
         {% endif %}
