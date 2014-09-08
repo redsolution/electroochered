@@ -4,14 +4,18 @@
 *.sql
 *.res
 *.patch
+*.save
 .svn
 .project
 .pydevproject
 .settings
 .idea/*
 .installed.cfg
+wsgi.py
 eturn-django-settings.ini
 local_env.py
+wsgi.py
+templates/includes/notifier.html
 bin/*
 downloads/*
 eggs/*
@@ -22,6 +26,7 @@ searchindex/
 snapshots/
 sadiki/cover/
 sadiki/local_settings.py
+templates/includes/notifier.html
 doc/build
 static/*
 lock/*

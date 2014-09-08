@@ -64,6 +64,27 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
         super(JqueryUIFutureDateWidget, self).__init__(
             attrs, default_class, **kwargs)
 
+
+class JQueryUIAdmissionDateWidget(JqueryUIDateWidget):
+    def render(self, name, value, *args, **kwargs):
+        max_year = datetime.date.today().year + 2
+        js = '''
+        <script type="text/javascript">
+        //<![CDATA[
+            $(function(){{
+            var datepicker_conf = {{maxDate: new Date({year}, 11, 31),
+                                    minDate: new Date(),
+                                    dateFormat: '{format:>s}'}};
+                $("#id_{name:>s}").datepicker(datepicker_conf);
+            }});
+        //]]>
+        </script> '''.format(year=max_year, name=name,
+                             format=settings.JS_DATE_FORMAT)
+        html = super(JqueryUIDateWidget, self).render(name, value, *args,
+                                                      **kwargs)
+        return mark_safe(html + js)
+
+
 class JqSplitDateTimeWidget(MultiWidget):
 
     def __init__(self, attrs=None, date_format=None, time_format=None):

@@ -172,6 +172,7 @@ class QueueFilterForm(forms.Form):
             'age_group',
             'area',
             'admission_date',
+            'decision_date',
             'without_facilities',
         ]
         admission_date_choices = [
@@ -179,6 +180,11 @@ class QueueFilterForm(forms.Form):
             Requestion.objects.queue().dates('admission_date', 'year')]
         admission_date_choices = [('', '---------'),] + admission_date_choices
         self.fields['admission_date'].choices = admission_date_choices
+        decision_date_choices = [
+            (year.year,year.year) for year in
+            Requestion.objects.queue().dates('decision_datetime', 'year')]
+        decision_date_choices = [('', '---------'),] + decision_date_choices
+        self.fields['decision_date'].choices = decision_date_choices
 
     requestion_number = forms.CharField(
         label=u'Номер заявки в системе', required=False,
@@ -208,9 +214,14 @@ class QueueFilterForm(forms.Form):
                   u"для которых указана возможность зачисления в эту группу ДОУ"
     )
     admission_date = forms.ChoiceField(
-        label=u'Желаемый год поступления', required=False,
+        label=u'Желаемый год зачисления', required=False,
         help_text=u"При выборе в очереди будут отображаться заявки "
                   u"только с указанным годом поступления"
+    )
+    decision_date = forms.ChoiceField(
+        label=u'Фактический год зачисления', required=False,
+        help_text=u"При выборе в очереди будут отображаться заявки "
+                  u"только с указанным фактическим годом зачисления "
     )
     without_facilities = forms.BooleanField(
         label=u"Сортировать очередь", required=False,

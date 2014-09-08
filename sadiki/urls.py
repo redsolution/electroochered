@@ -25,6 +25,7 @@ if settings.DEBUG:
 urlpatterns += patterns(
     '',
     (r'^adm/', include(sadiki_admin_site.urls)),
+    (r'^api2/', include('sadiki.api.urls')),
     (r'^auth/', include('sadiki.authorisation.urls')),
     (r'^social_auth/', include('sadiki.social_auth_custom.urls')),
     (r'^account/', include('sadiki.account.urls')),
@@ -39,6 +40,7 @@ urlpatterns += patterns(
          {'template': 'robots.txt', 'mimetype': 'text/plain'}),
     (r'^tinymce/', include('tinymce.urls')),
     url(r'^vk/', VkontakteFrame.as_view(), name='vk_app'),
+    url(r'^admin/', include(admin.site.urls)),
 )
 
 for plugin in plugins:

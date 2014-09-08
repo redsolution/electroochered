@@ -276,6 +276,10 @@
             });
         }
 
+        function change_admission_label(text, date) {
+            $('#admission_date_label').text(text);
+            field_changed($(this).parents('.field'));
+        }
 
         $(document).ready(function(){
             // прячем родной m2m django виджет
@@ -299,6 +303,11 @@
 
             // удаляем льготы, появившиеся при переносе Челябинской ЭО
             delete_special_benefits();
+
+            // меняем значение поля и отметку "изменено" при выборе даты
+            $('#id_admission_date').datepicker('option', 'onSelect', change_admission_label);
+            // поднимаем картинку виджета выбора даты поступления
+            $('#id_admission_date').next().css('margin-top', '-5px');
 
             $("#queue_explain").popover({
                 title: "Положние заявки в очереди",
@@ -381,12 +390,10 @@
             </p>
         </div>
         <div class="field">
-            <label class="field-label">Желаемый год поступления</label>
+            <label class="field-label">Желаемая дата зачисления</label>
             <p class="field-value hidden-input">
-                <label class="value">{{ requestion.admission_date.year }}</label>
+                <label id="admission_date_label" class="value">{{ requestion.admission_date }}</label>
                 {{ change_requestion_form.admission_date }}
-                 <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-
             </p>
         </div>
 
@@ -474,7 +481,13 @@
         <div class="requestion-info">
             {% if use_districts and requestion.district %}
             <div id="district_div">
-                <label class="field-label">Район: {{ requestion.district }}</label>
+                <label class="field-label">Район</label>
+                <p class="field-value hidden-input">
+                    <label class="value">{{ requestion.district }}</label>
+                    {{ change_requestion_form.district }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+
+                </p>    
             </div>
             {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">

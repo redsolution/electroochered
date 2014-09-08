@@ -5,7 +5,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, Http404, HttpResponse
+from django.db.models import Q
+from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
@@ -25,7 +26,11 @@ from sadiki.logger.utils import add_special_transitions_to_requestions
 
 
 class Frontpage(RequirePermissionsMixin, TemplateView):
-    template_name = 'anonym/frontpage.html'
+    template_name = 'anonym/login_page.html'
+
+
+class SadikiMap(RequirePermissionsMixin, TemplateView):
+    template_name = 'anonym/sadiki_map.html'
 
 
 class Registration(RequirePermissionsMixin, TemplateView):
@@ -121,6 +126,10 @@ class Queue(RequirePermissionsMixin, ListView):
                 if form.cleaned_data.get('status', None):
                     status = form.cleaned_data['status']
                     queryset = self.fullqueryset.filter(status__in=status)
+                decision_date = form.cleaned_data.get('decision_date')
+                if decision_date:
+                    queryset = self.fullqueryset.filter(status__in=[13,]).filter(
+                        decision_datetime__year=decision_date)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(
@@ -131,12 +140,13 @@ class Queue(RequirePermissionsMixin, ListView):
                         benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
-                    queryset = queryset.filter(areas__in=area).distinct()
+                    queryset = queryset.queue().filter(areas__in=area).distinct()
                 admission_date = form.cleaned_data.get('admission_date')
                 if admission_date:
                     admission_date = datetime.datetime.strptime(
                         admission_date, '%Y-%m-%d %H:%M:%S')
-                    queryset = queryset.filter(admission_date=admission_date)
+                    queryset = queryset.filter(
+                        admission_date__year=admission_date.year)
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
@@ -295,22 +305,13 @@ class RequestionSearch(RequirePermissionsMixin, TemplateView):
         else:
             return self.render_to_response(context_data)
 
+
 class SadikList(RequirePermissionsMixin, TemplateView):
     template_name = 'anonym/sadik_list.html'
 
     def get(self, request):
         sadik_list = Sadik.objects.all().select_related('address')
-        if not request.user.is_anonymous():
-            try:
-                profile = request.user.get_profile()
-            except Profile.DoesNotExist:
-                pass
-            else:
-                if not request.user.is_requester():
-                    return self.render_to_response(
-                        {'sadik_list': sadik_list.filter_for_profile(profile)})
-        return self.render_to_response({'sadik_list': sadik_list.filter(
-            active_registration=True)})
+        return self.render_to_response({'sadik_list': sadik_list})
 
 
 class SadikInfo(RequirePermissionsMixin, TemplateView):
