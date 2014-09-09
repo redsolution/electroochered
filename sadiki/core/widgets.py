@@ -6,7 +6,7 @@ from time import strftime
 from django import forms
 from django.conf import settings
 from django.template.loader import render_to_string
-from django.utils import simplejson
+from django.templatetags.static import static
 from django.utils.encoding import force_unicode
 from django.utils.html import conditional_escape
 from django.utils.safestring import mark_safe
@@ -17,9 +17,11 @@ DEFAULT_HEIGHT = 300
 DEFAULT_LAT = 61.401951
 DEFAULT_LNG = 55.160478
 
+
 class JqueryUIDateWidget(DateInput):
 
-    def __init__(self, attrs=None, default_class='datepicker textInput', **kwargs):
+    def __init__(self, attrs=None, default_class='datepicker textInput',
+                 **kwargs):
         if not attrs:
             attrs = {'class': default_class}
         else:
@@ -32,18 +34,21 @@ class JqueryUIDateWidget(DateInput):
         <script type="text/javascript">
         //<![CDATA[
             $(function(){{
-            var datepicker_conf = {{maxDate: new Date(), dateFormat: '{format:>s}'}};
+            var datepicker_conf = {{maxDate: new Date(),
+                                    dateFormat: '{format:>s}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
         </script> '''.format(name=name, format=settings.JS_DATE_FORMAT)
-        html = super(JqueryUIDateWidget, self).render(name, value, *args, **kwargs)
+        html = super(JqueryUIDateWidget, self).render(name, value, *args,
+                                                      **kwargs)
         return mark_safe(html + js)
 
     class Media:
         js = (
             "js/jqueryuidate.js",
-            )
+        )
+
 
 class JqueryUIFutureDateWidget(JqueryUIDateWidget):
 
@@ -52,12 +57,15 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
         <script type="text/javascript">
         //<![CDATA[
             $(function(){{
-                var datepicker_conf = {{minDate: new Date(), dateFormat: '{format:>s}'}};
+                var datepicker_conf = {{minDate: new Date(),
+                                        dateFormat: '{format:>s}',
+                                        }};
                     $("#id_{name:>s}").datepicker(datepicker_conf);
                 }});
         //]]>
         </script> '''.format(name=name, format=settings.JS_DATE_FORMAT)
-        html = super(JqueryUIDateWidget, self).render(name, value, *args, **kwargs)
+        html = super(JqueryUIDateWidget, self).render(name, value, *args,
+                                                      **kwargs)
         return mark_safe(html + js)
 
     def __init__(self, attrs=None, default_class='datepicker_future', **kwargs):
@@ -68,18 +76,20 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
 class JQueryUIAdmissionDateWidget(JqueryUIDateWidget):
     def render(self, name, value, *args, **kwargs):
         max_year = datetime.date.today().year + 2
+        static_url = static('img/icon_edit.fw.png')
         js = '''
         <script type="text/javascript">
         //<![CDATA[
             $(function(){{
             var datepicker_conf = {{maxDate: new Date({year}, 11, 31),
                                     minDate: new Date(),
-                                    dateFormat: '{format:>s}'}};
+                                    dateFormat: '{format:>s}',
+                                    buttonImage: '{img_url}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
         </script> '''.format(year=max_year, name=name,
-                             format=settings.JS_DATE_FORMAT)
+                             format=settings.JS_DATE_FORMAT, img_url=static_url)
         html = super(JqueryUIDateWidget, self).render(name, value, *args,
                                                       **kwargs)
         return mark_safe(html + js)
