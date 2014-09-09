@@ -1298,7 +1298,7 @@ tr.dynamic-form .errorlist {
     width: 60px !important;
 }
 
-.form-disabled .editor{
+.form-disabled .editor, .form-disabled .ui-datepicker-trigger{
     display: none;
 }
 
@@ -1553,7 +1553,7 @@ dl {
 
 #filled_email_label {
     margin-top: 4px;
-} 
+}
 
 #get_coords {
     float: right;
@@ -1579,7 +1579,7 @@ dl {
     cursor: pointer;
     background: transparent;
     border: 0;
-    -webkit-appearance: none; 
+    -webkit-appearance: none;
 }
 
 #req_mark {
@@ -1587,12 +1587,12 @@ dl {
 }
 
 #export_to_excel {
-    padding: 10px 22px; 
-    line-height: 1; 
-    background: #777; 
-    border: 1px solid #494949; 
-    font-size: 12px; 
-    font-weight: bold; 
+    padding: 10px 22px;
+    line-height: 1;
+    background: #777;
+    border: 1px solid #494949;
+    font-size: 12px;
+    font-weight: bold;
     color: #fff;
      /* CSS3 */
     border-radius:         4px;
