@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="{{ STATIC_URL }}css/ui/Aristo.css" type="text/css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}zenforms/css/uni-form.css" type="text/css" />
     <link rel="stylesheet" href="{{ STATIC_URL }}zenforms/css/default.uni-form.css" type="text/css" />
-    <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css?v1.5.9" />
+    <link rel="stylesheet" href="{{ STATIC_URL }}css/style.css?v1.5.9c" />
 {% endblock css %}
 
 {% block js %}
@@ -121,17 +121,17 @@ chromium.org/developers/how-tos/chrome-frame-getting-started -->
         $('#mainform').submit();
     });
 </script>
-<script type="text/javascript"> 
-var $buoop = {}; 
-$buoop.ol = window.onload; 
-window.onload=function(){ 
- try {if ($buoop.ol) $buoop.ol();}catch (e) {} 
- var e = document.createElement("script"); 
- e.setAttribute("type", "text/javascript"); 
- e.setAttribute("src", "{{ STATIC_URL }}js/update.js?v1.5.9"); 
- document.body.appendChild(e); 
-} 
-</script> 
+<script type="text/javascript">
+var $buoop = {};
+$buoop.ol = window.onload;
+window.onload=function(){
+ try {if ($buoop.ol) $buoop.ol();}catch (e) {}
+ var e = document.createElement("script");
+ e.setAttribute("type", "text/javascript");
+ e.setAttribute("src", "{{ STATIC_URL }}js/update.js?v1.5.9");
+ document.body.appendChild(e);
+}
+</script>
 {% endblock %}
 </body>
 </html>
