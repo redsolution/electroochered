@@ -41,6 +41,27 @@
             return false;
         });
     </script>
+    <script type="text/javascript">
+        $(".uniForm fieldset")
+            .children().eq(1).nextAll()
+            .wrapAll("<div class=\"spoiler\"></div>");
+
+        $(".spoiler")
+            .hide()
+            .before("<a href=\"#\" id=\"open_spoiler\"> \
+                        Расширенный поиск\
+                        <span class=\"caret caret-margins caret-right\"></span> \
+                     </a>");
+
+        $("#open_spoiler").click(function(e){
+            e.preventDefault();
+            $(".spoiler").slideToggle();
+            $(this).children("span").toggleClass("caret-right");
+        });
+
+    </script>
+
+
 {% endblock %}
 
 {% block content_title %}
