@@ -13,6 +13,14 @@ from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 
+OPERATOR_USERNAME = 'operator'
+OPERATOR_PASSWORD = 'password'
+
+SUPERVISOR_USERNAME = 'supervisor'
+SUPERVISOR_PASSWORD = 'password'
+
+REQUESTER_USERNAME = 'requester'
+REQUESTER_PASSWORD = '1234'
 
 class CoreViewsTest(TestCase):
     fixtures = ['sadiki/core/fixtures/test_initial.json', ]
@@ -34,8 +42,8 @@ class CoreViewsTest(TestCase):
         management.call_command('generate_requestions', 25,
                                 distribute_in_any_sadik=True)
 
-        self.operator = User(username='operator')
-        self.operator.set_password("password")
+        self.operator = User(username=OPERATOR_USERNAME)
+        self.operator.set_password(OPERATOR_PASSWORD)
         self.operator.save()
         Profile.objects.create(user=self.operator)
         operator_group = Group.objects.get(name=OPERATOR_GROUP_NAME)
@@ -43,15 +51,15 @@ class CoreViewsTest(TestCase):
         distributor_group = Group.objects.get(name=DISTRIBUTOR_GROUP_NAME)
         self.operator.groups = (operator_group, sadik_operator_group,
                                 distributor_group)
-        self.supervisor = User(username="supervisor")
-        self.supervisor.set_password("password")
+        self.supervisor = User(username=SUPERVISOR_USERNAME)
+        self.supervisor.set_password(SUPERVISOR_PASSWORD)
         self.supervisor.save()
         Profile.objects.create(user=self.supervisor)
         supervisor_group = Group.objects.get(name=SUPERVISOR_GROUP_NAME)
         self.supervisor.groups = (supervisor_group,)
 
-        self.requester = User(username='requester')
-        self.requester.set_password('1234')
+        self.requester = User(username=REQUESTER_USERNAME)
+        self.requester.set_password(REQUESTER_PASSWORD)
         self.requester.save()
         permission = Permission.objects.get(codename=u'is_requester')
         self.requester.user_permissions.add(permission)
@@ -73,15 +81,15 @@ class CoreViewsTest(TestCase):
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 200)
 
-        login = client.login(username=self.operator.username,
-                             password=self.operator.password)
+        login = client.login(username=OPERATOR_USERNAME ,
+                             password=OPERATOR_PASSWORD)
         self.assertTrue(login)
         operator_response = client.get(reverse('anonym_queue'))
         self.assertEqual(operator_response.status_code, 200)
         client.logout()
 
-        login = client.login(username=self.requester.username,
-                             password=self.requester.password)
+        login = client.login(username=REQUESTER_USERNAME,
+                             password=REQUESTER_PASSWORD)
         self.assertTrue(login)
         requester_response = client.get(reverse('anonym_queue'))
         self.assertEqual(requester_response.status_code, 200)
@@ -94,12 +102,11 @@ class CoreViewsTest(TestCase):
         self.assertEqual(anonym_response.status_code, 200)
         self.assertEqual(anonym_response.context_data["requestions"].count(),
                          Requestion.objects.queue().count())
-        print self.operator.username, self.operator.password
 
         # от оператора
         login = self.client.login(
-            username=self.operator.username,
-            password=self.operator.password
+            username=OPERATOR_USERNAME ,
+            password=OPERATOR_PASSWORD
         )
         self.assertTrue(login)
         operator_response = self.client.get(reverse('anonym_queue'))
@@ -110,8 +117,8 @@ class CoreViewsTest(TestCase):
 
         # от подтверженного пользователя
         login = self.client.login(
-            username=self.requester.username,
-            password=self.requester.password
+            username=REQUESTER_USERNAME,
+            password=REQUESTER_PASSWORD
         )
         self.assertTrue(login)
         requester_response = self.client.get(reverse('anonym_queue'))
