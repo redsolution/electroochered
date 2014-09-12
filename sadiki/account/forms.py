@@ -47,6 +47,7 @@ class RequestionForm(FormWithDocument):
             ребёнка"
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
+        self.base_fields['admission_date'].required = True
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
