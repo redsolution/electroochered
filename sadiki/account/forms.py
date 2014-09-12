@@ -1,31 +1,31 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django import forms
 from django.conf import settings
-from django.contrib import admin
-from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
-from django.contrib.gis.forms.fields import GeometryField
-from django.forms.formsets import DELETION_FIELD_NAME
-from django.forms.models import BaseInlineFormSet, ModelForm
+from django.forms.models import ModelForm
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
-import sadiki.conf_settings
 from sadiki.core.fields import SadikWithAreasNameField
-from sadiki.core.geo_field import map_widget, location_errors
-from sadiki.core.models import EvidienceDocumentTemplate, \
-    Profile, Requestion, Sadik, BENEFIT_DOCUMENT, REQUESTION_IDENTITY, Benefit, \
-    BenefitCategory, Address, EvidienceDocument, Area, District
-from sadiki.core.settings import BENEFIT_SYSTEM_MIN
-from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, JQueryUIAdmissionDateWidget
+from sadiki.core.geo_field import location_errors
+from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
+    Benefit
+from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
+    JQueryUIAdmissionDateWidget
 
 
 class RequestionForm(FormWithDocument):
-    name = forms.CharField(label=u"Имя ребёнка", max_length=20,
-                           help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
-    template = TemplateFormField(destination=REQUESTION_IDENTITY,
-        label=u'Тип документа')
+    name = forms.CharField(
+        label=u"Имя ребёнка", max_length=20,
+        help_text=u"В поле достаточно ввести только имя ребёнка. "
+                  u"Фамилию и отчество вводить не нужно!")
+    template = TemplateFormField(
+        destination=REQUESTION_IDENTITY, label=u'Тип документа')
     pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
+        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
+            active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS(),
-        help_text=u'Этот список не даёт прав на внеочередное зачисление в выбранные ДОУ')
+        help_text=u'Этот список не даёт прав на внеочередное зачисление '
+                  u'в выбранные ДОУ')
     token = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
@@ -48,6 +48,7 @@ class RequestionForm(FormWithDocument):
         self.base_fields['birth_date'].widget = JqueryUIDateWidget()
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['admission_date'].required = True
+        self.base_fields['admission_date'].initial = datetime.date.today()
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
@@ -68,7 +69,8 @@ class RequestionForm(FormWithDocument):
 class ChangeRequestionForm(forms.ModelForm):
     name = forms.CharField(
         label=u"Имя ребёнка", max_length=20,
-        help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
+        help_text=u"В поле достаточно ввести только имя ребёнка. "
+                  u"Фамилию и отчество вводить не нужно!")
 
     class Meta:
         model = Requestion
@@ -84,10 +86,11 @@ class ChangeRequestionForm(forms.ModelForm):
 
 class BenefitsForm(forms.ModelForm):
 
-    benefits = forms.ModelMultipleChoiceField(label=u'Льготы для заявки',
-        queryset=Benefit.objects.all(), widget=SelectMultipleJS(),
-        help_text=u'Выбранные льготы недействительны без документального подтверждения',
-        required=False
+    benefits = forms.ModelMultipleChoiceField(
+        label=u'Льготы для заявки', queryset=Benefit.objects.all(),
+        widget=SelectMultipleJS(), required=False,
+        help_text=u'Выбранные льготы недействительны без документального '
+                  u'подтверждения',
     )
 
     class Meta:
@@ -97,7 +100,8 @@ class BenefitsForm(forms.ModelForm):
 
 class PreferredSadikForm(forms.ModelForm):
     pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(active_registration=True).select_related('area'),
+        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
+            active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS())
 
     class Meta:
