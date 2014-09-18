@@ -187,16 +187,24 @@ class EvidienceDocument(models.Model):
         verbose_name = u'Документ'
         verbose_name_plural = u'Документы'
 
-    template = models.ForeignKey(EvidienceDocumentTemplate,
-        verbose_name=u'шаблон документа')
-    document_number = models.CharField(u'Номер документа',
-            max_length=255)
-    confirmed = models.NullBooleanField(verbose_name=u'Подтвержден', default=None)
+    template = models.ForeignKey(
+        EvidienceDocumentTemplate, verbose_name=u'шаблон документа')
+    document_number = models.CharField(u'Номер документа', max_length=255)
+    confirmed = models.NullBooleanField(
+        verbose_name=u'Подтвержден', default=None)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
                                default=False)
+    gives_health_impairment = models.BooleanField(
+        verbose_name=u"Отмечает ребенка с ограниченными возможностями здоровья")
+    gives_compensating_group = models.BooleanField(
+        verbose_name=u"Предоставляет возможность зачисления в группу "
+                     u"компенсирующей направленности")
+    gives_wellness_group = models.BooleanField(
+        verbose_name=u"Предоставляет возможность зачисления в группу "
+                     u"оздоровительной направленности")
 
     objects = query_set_factory(EvidienceDocumentQueryset)
 
@@ -245,6 +253,15 @@ class BenefitCategory(models.Model):
         return self.name
 
 
+BENEFIT_REGIONAL = 1
+BENEFIT_FEDERAL = 2
+
+BENEFIT_STATUS_CHOICES = (
+    (BENEFIT_REGIONAL, u"Региональная"),
+    (BENEFIT_FEDERAL, u"Федеральная"),
+)
+
+
 class Benefit(models.Model):
     u"""Льготы"""
 
@@ -253,12 +270,18 @@ class Benefit(models.Model):
         verbose_name_plural = u'Льготы'
 
     category = models.ForeignKey("BenefitCategory", verbose_name=u'тип льгот')
-    name = models.CharField(verbose_name=u'название', max_length=255, unique=True)
-    description = models.CharField(verbose_name=u'описание', max_length=255, blank=True)
-    evidience_documents = models.ManyToManyField(EvidienceDocumentTemplate,
-        verbose_name=u"Необходимые документы")
-    sadik_related = models.ManyToManyField("Sadik",
-        verbose_name=u"ДОУ в которых есть группы", blank=True, null=True,)
+    status = models.IntegerField(
+        verbose_name=u"Статус", choices=BENEFIT_STATUS_CHOICES, blank=True,
+        null=True)
+    name = models.CharField(
+        verbose_name=u'название', max_length=255, unique=True)
+    description = models.CharField(
+        verbose_name=u'описание', max_length=255, blank=True)
+    evidience_documents = models.ManyToManyField(
+        EvidienceDocumentTemplate, verbose_name=u"Необходимые документы")
+    sadik_related = models.ManyToManyField(
+        "Sadik", verbose_name=u"ДОУ в которых есть группы", blank=True,
+        null=True,)
 
     def __unicode__(self):
         return self.name
@@ -933,37 +956,51 @@ class Requestion(models.Model):
     birth_date = models.DateField(
         u'Дата рождения ребёнка', validators=[birth_date_validator])
     # сейчас в формах имя пользователя ограничено 20 символами
-    name = models.CharField(u'имя ребёнка', max_length=255, null=True,
-                            validators=[validate_no_spaces, ],
-                            help_text=u"В поле достаточно ввести только имя ребёнка. Фамилию и отчество вводить не нужно!")
-    sex = models.CharField(max_length=1, verbose_name=u'Пол ребёнка',
+    name = models.CharField(
+        u'имя ребёнка', max_length=255, null=True,
+        validators=[validate_no_spaces, ],
+        help_text=u"В поле достаточно ввести только имя ребёнка. "
+                  u"Фамилию и отчество вводить не нужно!")
+    sex = models.CharField(
+        max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
-    cast = models.IntegerField(verbose_name=u'Тип заявки',
+    cast = models.IntegerField(
+        verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
-    status = models.IntegerField(verbose_name=u'Статус', choices=STATUS_CHOICES,
+    status = models.IntegerField(
+        verbose_name=u'Статус', choices=STATUS_CHOICES,
         null=True, default=STATUS_REQUESTER_NOT_CONFIRMED)
     registration_datetime = models.DateTimeField(
         verbose_name=u'Дата и время подачи заявки',
         default=datetime.datetime.now, validators=[registration_date_validator])
-    number_in_old_list = models.CharField(verbose_name=u'Номер в бумажном списке',
-        max_length=15, blank=True, null=True)
-    benefits = models.ManyToManyField(Benefit, blank=True, verbose_name=u'Льготы')
-    benefit_category = models.ForeignKey("BenefitCategory",
-        verbose_name=u"Категория льгот", null=True)
+    number_in_old_list = models.CharField(
+        verbose_name=u'Номер в бумажном списке', max_length=15, blank=True,
+        null=True)
+    benefits = models.ManyToManyField(
+        Benefit, blank=True, verbose_name=u'Льготы')
+    benefit_category = models.ForeignKey(
+        "BenefitCategory", verbose_name=u"Категория льгот", null=True)
     pref_sadiks = models.ManyToManyField('Sadik')
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
-    location = PointField(verbose_name=u'Местоположение', blank=True, null=True,
-                          help_text=u"Относительно этого местоположения будут определятся ближайшие ДОУ")
-    location_properties = models.CharField(verbose_name=u'Параметры местоположения',
-                                           max_length=250, blank=True, null=True)
+    location = PointField(
+        verbose_name=u'Местоположение', blank=True, null=True,
+        help_text=u"Относительно этого местоположения будут определятся "
+                  u"ближайшие ДОУ")
+    location_properties = models.CharField(
+        verbose_name=u'Параметры местоположения', max_length=250, blank=True,
+        null=True)
 
     # Поля, назначаемые системой
     status_change_datetime = models.DateTimeField(
-        verbose_name=u'дата и время последнего изменения статуса', blank=True, null=True)
+        verbose_name=u'дата и время последнего изменения статуса', blank=True,
+        null=True)
     decision_datetime = models.DateTimeField(
         verbose_name=u'дата и время выделения места', blank=True, null=True)
     distribution_datetime = models.DateTimeField(
-        verbose_name = u"дата и время окончательного зачисления", blank=True, null=True)
+        verbose_name=u"дата и время окончательного зачисления", blank=True,
+        null=True)
+    closest_kg = PointField(
+        verbose_name=u"Ближайший ДОУ", null=True, blank=True)
 
     # Flags
     distribute_in_any_sadik = models.BooleanField(
