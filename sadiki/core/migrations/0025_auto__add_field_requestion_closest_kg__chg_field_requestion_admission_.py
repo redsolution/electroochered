@@ -8,21 +8,6 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'EvidienceDocument.gives_health_impairment'
-        db.add_column('core_evidiencedocument', 'gives_health_impairment',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Adding field 'EvidienceDocument.gives_compensating_group'
-        db.add_column('core_evidiencedocument', 'gives_compensating_group',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
-        # Adding field 'EvidienceDocument.gives_wellness_group'
-        db.add_column('core_evidiencedocument', 'gives_wellness_group',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
-
         # Adding field 'Requestion.closest_kg'
         db.add_column('core_requestion', 'closest_kg',
                       self.gf('django.contrib.gis.db.models.fields.PointField')(null=True, blank=True),
@@ -31,6 +16,21 @@ class Migration(SchemaMigration):
 
         # Changing field 'Requestion.admission_date'
         db.alter_column('core_requestion', 'admission_date', self.gf('django.db.models.fields.DateField')(null=True))
+        # Adding field 'EvidienceDocumentTemplate.gives_health_impairment'
+        db.add_column('core_evidiencedocumenttemplate', 'gives_health_impairment',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'EvidienceDocumentTemplate.gives_compensating_group'
+        db.add_column('core_evidiencedocumenttemplate', 'gives_compensating_group',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
+        # Adding field 'EvidienceDocumentTemplate.gives_wellness_group'
+        db.add_column('core_evidiencedocumenttemplate', 'gives_wellness_group',
+                      self.gf('django.db.models.fields.BooleanField')(default=False),
+                      keep_default=False)
+
         # Adding field 'Benefit.status'
         db.add_column('core_benefit', 'status',
                       self.gf('django.db.models.fields.IntegerField')(null=True, blank=True),
@@ -38,21 +38,21 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
-        # Deleting field 'EvidienceDocument.gives_health_impairment'
-        db.delete_column('core_evidiencedocument', 'gives_health_impairment')
-
-        # Deleting field 'EvidienceDocument.gives_compensating_group'
-        db.delete_column('core_evidiencedocument', 'gives_compensating_group')
-
-        # Deleting field 'EvidienceDocument.gives_wellness_group'
-        db.delete_column('core_evidiencedocument', 'gives_wellness_group')
-
         # Deleting field 'Requestion.closest_kg'
         db.delete_column('core_requestion', 'closest_kg')
 
 
         # Changing field 'Requestion.admission_date'
         db.alter_column('core_requestion', 'admission_date', self.gf('sadiki.core.fields.YearChoiceField')(null=True))
+        # Deleting field 'EvidienceDocumentTemplate.gives_health_impairment'
+        db.delete_column('core_evidiencedocumenttemplate', 'gives_health_impairment')
+
+        # Deleting field 'EvidienceDocumentTemplate.gives_compensating_group'
+        db.delete_column('core_evidiencedocumenttemplate', 'gives_compensating_group')
+
+        # Deleting field 'EvidienceDocumentTemplate.gives_wellness_group'
+        db.delete_column('core_evidiencedocumenttemplate', 'gives_wellness_group')
+
         # Deleting field 'Benefit.status'
         db.delete_column('core_benefit', 'status')
 
@@ -164,9 +164,6 @@ class Migration(SchemaMigration):
             'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True', 'blank': 'True'}),
             'document_number': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'fake': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'gives_compensating_group': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'gives_health_impairment': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'gives_wellness_group': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
             'template': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.EvidienceDocumentTemplate']"})
@@ -175,6 +172,9 @@ class Migration(SchemaMigration):
             'Meta': {'unique_together': "(('name', 'destination'),)", 'object_name': 'EvidienceDocumentTemplate'},
             'destination': ('django.db.models.fields.IntegerField', [], {}),
             'format_tips': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
+            'gives_compensating_group': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'gives_health_impairment': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'gives_wellness_group': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'import_involved': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),

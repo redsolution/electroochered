@@ -144,7 +144,8 @@ DOCUMENT_TEMPLATE_TYPES = (
     (PROFILE_IDENTITY, u'идентифицирует родителя'),
     (REQUESTION_IDENTITY, u'идентифицирует ребёнка'),
     (BENEFIT_DOCUMENT, u'документы к льготам'),
-    )
+)
+
 
 class EvidienceDocumentTemplate(models.Model):
 
@@ -154,16 +155,26 @@ class EvidienceDocumentTemplate(models.Model):
         unique_together = (("name", "destination"),)
 
     name = models.CharField(verbose_name=u'название', max_length=255)
-    format_tips = models.CharField(verbose_name=u'подсказка к формату',
-        max_length=255, blank=True)
+    format_tips = models.CharField(
+        verbose_name=u'подсказка к формату', max_length=255, blank=True)
     destination = models.IntegerField(
         verbose_name=u'назначение документа',
         choices=DOCUMENT_TEMPLATE_TYPES)
     regex = models.TextField(verbose_name=u'Регулярное выражение')
-    import_involved = models.BooleanField(verbose_name=u"Учитывается при импорте", default=False)
+    import_involved = models.BooleanField(
+        verbose_name=u"Учитывается при импорте", default=False)
+    gives_health_impairment = models.BooleanField(
+        verbose_name=u"Отмечает ребенка с ограниченными возможностями здоровья")
+    gives_compensating_group = models.BooleanField(
+        verbose_name=u"Предоставляет возможность зачисления в группу "
+                     u"компенсирующей направленности")
+    gives_wellness_group = models.BooleanField(
+        verbose_name=u"Предоставляет возможность зачисления в группу "
+                     u"оздоровительной направленности")
 
     def __unicode__(self):
         return self.name
+
 
 class EvidienceDocumentQueryset(models.query.QuerySet):
     def confirmed(self):
@@ -197,14 +208,6 @@ class EvidienceDocument(models.Model):
     content_object = generic.GenericForeignKey('content_type', 'object_id')
     fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
                                default=False)
-    gives_health_impairment = models.BooleanField(
-        verbose_name=u"Отмечает ребенка с ограниченными возможностями здоровья")
-    gives_compensating_group = models.BooleanField(
-        verbose_name=u"Предоставляет возможность зачисления в группу "
-                     u"компенсирующей направленности")
-    gives_wellness_group = models.BooleanField(
-        verbose_name=u"Предоставляет возможность зачисления в группу "
-                     u"оздоровительной направленности")
 
     objects = query_set_factory(EvidienceDocumentQueryset)
 
