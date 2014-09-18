@@ -23,7 +23,7 @@ class RequestionForm(FormWithDocument):
     pref_sadiks = SadikWithAreasNameField(
         label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
             active_registration=True).select_related('area'),
-        required=False, widget=SelectMultipleJS(),
+        required=True, widget=SelectMultipleJS(),
         help_text=u'Этот список не даёт прав на внеочередное зачисление '
                   u'в выбранные ДОУ')
     token = forms.CharField(widget=forms.HiddenInput())
