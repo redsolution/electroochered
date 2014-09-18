@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Requestion.closest_kg'
         db.add_column('core_requestion', 'closest_kg',
-                      self.gf('django.contrib.gis.db.models.fields.PointField')(null=True, blank=True),
+                      self.gf('django.db.models.fields.related.ForeignKey')(blank=True, related_name='closest_kg', null=True, to=orm['core.Sadik']),
                       keep_default=False)
 
 
@@ -39,7 +39,7 @@ class Migration(SchemaMigration):
 
     def backwards(self, orm):
         # Deleting field 'Requestion.closest_kg'
-        db.delete_column('core_requestion', 'closest_kg')
+        db.delete_column('core_requestion', 'closest_kg_id')
 
 
         # Changing field 'Requestion.admission_date'
@@ -209,7 +209,7 @@ class Migration(SchemaMigration):
             'benefits': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Benefit']", 'symmetrical': 'False', 'blank': 'True'}),
             'birth_date': ('django.db.models.fields.DateField', [], {}),
             'cast': ('django.db.models.fields.IntegerField', [], {'default': '3'}),
-            'closest_kg': ('django.contrib.gis.db.models.fields.PointField', [], {'null': 'True', 'blank': 'True'}),
+            'closest_kg': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'closest_kg'", 'null': 'True', 'to': "orm['core.Sadik']"}),
             'decision_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'distribute_in_any_sadik': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
             'distributed_in_vacancy': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Vacancies']", 'null': 'True', 'blank': 'True'}),

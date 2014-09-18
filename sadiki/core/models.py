@@ -1002,14 +1002,17 @@ class Requestion(models.Model):
     distribution_datetime = models.DateTimeField(
         verbose_name=u"дата и время окончательного зачисления", blank=True,
         null=True)
-    closest_kg = PointField(
-        verbose_name=u"Ближайший ДОУ", null=True, blank=True)
+    closest_kg = models.ForeignKey(
+        Sadik, verbose_name=u"Ближайший ДОУ", null=True, blank=True,
+        related_name='closest_kg')
 
     # Flags
     distribute_in_any_sadik = models.BooleanField(
-        verbose_name=u'Пользователь согласен на зачисление в ДОУ, отличные от приоритетных, в выбранных территориальных областях',
-        default=True, help_text=u"""Установите этот флаг, если готовы получить место в любом детском саду в выбранных
-            территориальных областях, в случае, когда в приоритетных ДОУ не окажется места""")
+        verbose_name=u"Пользователь согласен на зачисление в ДОУ, отличные от "
+                     u"приоритетных, в выбранных территориальных областях",
+        default=True, help_text=u"""Установите этот флаг, если готовы получить
+            место в любом детском саду в выбранных территориальных областях,
+            в случае, когда в приоритетных ДОУ не окажется места""")
 
     objects = query_set_factory(RequestionQuerySet)
 
