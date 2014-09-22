@@ -39,7 +39,9 @@ class Command(BaseCommand):
 
 def find_closest_kg(requestion):
     kgs = Sadik.objects.filter(
-        area__in=requestion.areas.all()).select_related('address')
+        area__in=requestion.areas.all(),
+        active_registration=True,
+        active_distribution=True).select_related('address')
     closest = None
     for kg in kgs:
         if kg.address.coords:
