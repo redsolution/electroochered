@@ -16,12 +16,14 @@ from django.db import models, transaction
 from django.db.models.query_utils import Q
 from django.db.models.signals import m2m_changed, post_save
 from ordereddict import OrderedDict
+
 from sadiki.conf_settings import MUNICIPALITY_OCATO
 from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.fields import BooleanNextYearField, YearChoiceField, \
     AreaChoiceField, SplitDayMonthField, validate_no_spaces
 from sadiki.core.utils import add_crc, calculate_luhn_digit, \
-    get_current_distribution_year, get_qs_attr, get_user_by_email
+    get_current_distribution_year, get_qs_attr, get_user_by_email, \
+    find_closest_kg
 from sadiki.core.validators import birth_date_validator, \
     registration_date_validator
 from sadiki.settings import REQUESTER_USERNAME_PREFIX
@@ -1244,22 +1246,25 @@ class Requestion(models.Model):
     def save(self, *args, **kwargs):
         u"""
         Осуществляется проверка возможности изменения статуса.
-        Сохраняется дата последнего изменения статуса, дата выделения места и дата зачисления.
-        Если сохраняется в первый раз(добавление заявки), то определяем статус
-        и генерируем номер заявки
+        Сохраняется дата последнего изменения статуса, дата выделения места и
+        дата зачисления. Если сохраняется в первый раз(добавление заявки),
+        то определяем статус и генерируем номер заявки
         """
-#        проверяем изменился ли статус
+        # проверяем изменился ли статус
         if self.id:
-            status = Requestion.objects.get(id=self.id).status
+            requestion = Requestion.objects.get(id=self.id)
+            status = requestion.status
+            old_location = requestion.location
         else:
             status = None
-#            проверяем, что задана категория льгот, если нет, то задаем с наименьшим
-#            приоритетом
+            old_location = None
+            # проверяем, что задана категория льгот, если нет, то задаем с
+            # наименьшим приоритетом
             if not self.benefit_category:
                 self.benefit_category = BenefitCategory.objects.all(
-                    ).order_by('priority')[0]
-#            если возможность зачисления не в приоритетные ДОУ задана вариантом
-#            реализации, то при создании заявки задаем параметр
+                ).order_by('priority')[0]
+            # если возможность зачисления не в приоритетные ДОУ задана вариантом
+            # реализации, то при создании заявки задаем параметр
             if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_ONLY:
                 self.distribute_in_any_sadik = False
             elif settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_ANY:
@@ -1269,24 +1274,27 @@ class Requestion(models.Model):
             from sadiki.core.workflow import workflow
             if self.status not in workflow.available_transition_statuses(status):
                 raise TransitionNotRegistered
-            # если заявке было выделено место или она окончательно зачислена, то сохраняем дату и время
+            # если заявке было выделено место или она окончательно зачислена,
+            # то сохраняем дату и время
             if self.status == STATUS_DECISION:
                 self.decision_datetime = datetime.datetime.now()
             elif self.status == STATUS_DISTRIBUTED:
                 self.distribution_datetime = datetime.datetime.now()
             # сохраняем дату и время последнего изменения статуса
             self.status_change_datetime = datetime.datetime.now()
+        if self.location != old_location:
+            find_closest_kg(self, save=False)
         super(Requestion, self).save(*args, **kwargs)
         if not self.requestion_number:
             self.requestion_number = self.get_requestion_number()
-
             self.save()
 
     def clean(self):
         from django.core.exceptions import ValidationError
         if (self.birth_date and self.registration_datetime and
-            self.birth_date > self.registration_datetime.date()):
-            raise ValidationError(u'Дата регистрации не может быть меньше даты рождения')
+                self.birth_date > self.registration_datetime.date()):
+            raise ValidationError(
+                u"Дата регистрации не может быть меньше даты рождения")
 
     def available_transitions(self):
         from sadiki.core.workflow import workflow
