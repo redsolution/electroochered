@@ -776,7 +776,7 @@ NOT_CONFIRMED_STATUSES = (
     STATUS_REQUESTER_NOT_CONFIRMED,
     STATUS_REMOVE_REGISTRATION,
     STATUS_ARCHIVE,
-    )
+)
 
 DISTRIBUTION_PROCESS_STATUSES = (
     STATUS_DECISION,
@@ -785,7 +785,7 @@ DISTRIBUTION_PROCESS_STATUSES = (
     STATUS_ABSENT_EXPIRE,
     STATUS_NOT_APPEAR,
     STATUS_NOT_APPEAR_EXPIRE,
-    )
+)
 
 DEFAULT_DISTRIBUTION_TYPE = 0
 PERMANENT_DISTRIBUTION_TYPE = 1
@@ -793,7 +793,7 @@ PERMANENT_DISTRIBUTION_TYPE = 1
 DISTRIBUTION_TYPE_CHOICES = (
     (DEFAULT_DISTRIBUTION_TYPE, u'Обычное зачисление'),
     (PERMANENT_DISTRIBUTION_TYPE, u'Зачисление на постоянной основе'),
-    )
+)
 
 
 class RequestionQuerySet(models.query.QuerySet):
@@ -829,10 +829,12 @@ class RequestionQuerySet(models.query.QuerySet):
 
     def provided_places(self):
         u"""
-        Заявки которые занимают место в ДОУ(выделено место, зачислена, не явился(но еще не снят с учета))
+        Заявки которые занимают место в ДОУ(выделено место, зачислена, не явился
+        (но еще не снят с учета))
         """
         return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED,
-                                       STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE))
+                                       STATUS_NOT_APPEAR,
+                                       STATUS_NOT_APPEAR_EXPIRE))
 
     def not_confirmed(self):
         u"""заявки для которых не установлено документальное подтверждение"""
@@ -865,7 +867,8 @@ class RequestionQuerySet(models.query.QuerySet):
         заявкой ``instance`` в выдаче с сортировкой **включая** саму заявку.
         """
         if self.ordered:
-            # copy from django.db.models.sql.compiler method get_ordering of SQLCompiler class
+            # copy from django.db.models.sql.compiler
+            # method get_ordering of SQLCompiler class
             if self.query.extra_order_by:
                 order_fields = self.query.extra_order_by
             elif not self.query.default_ordering:
@@ -916,13 +919,17 @@ class RequestionQuerySet(models.query.QuerySet):
                                        STATUS_NOT_APPEAR_EXPIRE))
 
     def add_related_documents(self):
-#        а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
-#        а как же prefetch_related? пока что используется dj 1.3, так что при случае можно будет заменить
-        requestions_dict = OrderedDict([(requestion.id, requestion) for requestion in self])
-#        и сразу захватим с собой имена возрастных групп
-        documents = EvidienceDocument.objects.filter(object_id__in=self.values_list('id', flat=True
-                ), content_type=ContentType.objects.get_for_model(Requestion)).requestion_identity_documents(
-            ).select_related('template__name')
+        # а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
+        # а как же prefetch_related? пока что используется dj 1.3,
+        # так что при случае можно будет заменить
+        requestions_dict = OrderedDict([(requestion.id, requestion) for
+                                        requestion in self])
+        # и сразу захватим с собой имена возрастных групп
+        documents = EvidienceDocument.objects.filter(
+            object_id__in=self.values_list('id', flat=True),
+            content_type=ContentType.objects.get_for_model(
+                Requestion)).requestion_identity_documents(
+                ).select_related('template__name')
         relation_dict = {}
         for document in documents:
             relation_dict.setdefault(document.object_id, []).append(document)
@@ -1031,16 +1038,17 @@ class Requestion(models.Model):
         unic_number_str = arc.encrypt(id_with_crc_str)
         unic_number = ord(unic_number_str[0]) | ord(unic_number_str[1]) << 8 | ord(unic_number_str[2]) << 16
         luhn_digit = calculate_luhn_digit(unic_number)
-        return u"%s-Б-%s%d" % (MUNICIPALITY_OCATO,
-            str(unic_number).zfill(8), luhn_digit)
+        return u"%s-Б-%s%d" % (MUNICIPALITY_OCATO, str(unic_number).zfill(8),
+                               luhn_digit)
 
     def evidience_documents(self):
         return EvidienceDocument.objects.filter(
-                content_type=ContentType.objects.get_for_model(self.__class__),
-                object_id=self.id)
+            content_type=ContentType.objects.get_for_model(self.__class__),
+            object_id=self.id)
 
     def get_other_ident_documents(self, confirmed=False):
-#        !!!! Bug in empty queryset with values_list return non empty value https://code.djangoproject.com/ticket/17712
+        #!!!! Bug in empty queryset with values_list return non empty value
+        # https://code.djangoproject.com/ticket/17712
         try:
             document = self.evidience_documents().get(
                 template__destination=REQUESTION_IDENTITY)
@@ -1051,8 +1059,8 @@ class Requestion(models.Model):
                 template=document.template,
                 document_number=document.document_number).exclude(
                     object_id=self.id,
-                    content_type=ContentType.objects.get_for_model(self)).exclude(
-                        confirmed=False)
+                    content_type=ContentType.objects.get_for_model(
+                        self)).exclude(confirmed=False)
             if confirmed:
                 documents = documents.confirmed()
             return documents
@@ -1068,7 +1076,7 @@ class Requestion(models.Model):
     def set_ident_document_authentic(self):
         from sadiki.logger.models import Logger
         from sadiki.core.workflow import NOT_CONFIRMED_REMOVE_REGISTRATION
-#        помечаем документ, идентифицирующий заявку, как достоверный
+        # помечаем документ, идентифицирующий заявку, как достоверный
         try:
             document = self.evidience_documents().get(
                 template__destination=REQUESTION_IDENTITY)
@@ -1077,7 +1085,7 @@ class Requestion(models.Model):
         else:
             document.confirmed = True
             document.save()
-    #        остальные документы с таким номером недостоверны
+            # остальные документы с таким номером недостоверны
             other_documents = self.get_other_ident_documents()
             other_requestions = []
             for document in other_documents:
@@ -1087,13 +1095,15 @@ class Requestion(models.Model):
                 other_requestions.append(requestion)
                 requestion.status = STATUS_REMOVE_REGISTRATION
                 requestion.save()
-                Logger.objects.create_for_action(NOT_CONFIRMED_REMOVE_REGISTRATION,
+                Logger.objects.create_for_action(
+                    NOT_CONFIRMED_REMOVE_REGISTRATION,
                     context_dict={'other_requestion': self},
                     extra={'obj': requestion})
             return other_requestions
 
     def set_benefit_documents_authentic(self):
-#        документы для льгот выставляем достоверными(другие док-ты с таким номером не трогаем)
+        # документы для льгот выставляем достоверными
+        # (другие док-ты с таким номером не трогаем)
         self.evidience_documents().filter(
             template__destination=BENEFIT_DOCUMENT).update(confirmed=True)
 
@@ -1115,7 +1125,7 @@ class Requestion(models.Model):
 
     def get_sadik_groups(self, sadik):
         return SadikGroup.objects.appropriate_for_birth_date(
-                    self.birth_date).filter(sadik=sadik)
+            self.birth_date).filter(sadik=sadik)
 
     def age_groups(self, age_groups=None, current_distribution_year=None):
         if not current_distribution_year:
@@ -1144,9 +1154,11 @@ class Requestion(models.Model):
         u"""
         необходимо ли подтверждение местоположения
         """
-        # подтверждение необходимо, если заявка была импортировна или зарегистрирована через госуслуги
-        # и при этом у нее не указано местоположение или указан адрес в виде текста
-        return self.needs_location_confirmation and (not self.location or self.location_properties)
+        # подтверждение необходимо, если заявка была импортировна или
+        # зарегистрирована через госуслуги и при этом у нее не указано
+        # местоположение или указан адрес в виде текста
+        return self.needs_location_confirmation and (
+            not self.location or self.location_properties)
 
     @property
     def needs_location_confirmation(self):
@@ -1182,11 +1194,14 @@ class Requestion(models.Model):
         self.previous_distributed_in_vacancy = self.distributed_in_vacancy
         sadik_groups = self.get_sadik_groups(sadik=sadik)
 
-        assert (Vacancies.objects.filter(sadik_group__in=sadik_groups,
-            status__isnull=True, distribution__status=DISTRIBUTION_STATUS_INITIAL).exists()), u'В садике должны быть путевки'
+        assert (Vacancies.objects.filter(
+            sadik_group__in=sadik_groups, status__isnull=True,
+            distribution__status=DISTRIBUTION_STATUS_INITIAL).exists()), \
+            u'В садике должны быть путевки'
 
-        vacancy = Vacancies.objects.filter(sadik_group__in=sadik_groups,
-            status__isnull=True, distribution__status=DISTRIBUTION_STATUS_INITIAL)[0]
+        vacancy = Vacancies.objects.filter(
+            sadik_group__in=sadik_groups, status__isnull=True,
+            distribution__status=DISTRIBUTION_STATUS_INITIAL)[0]
         self.distributed_in_vacancy = vacancy
         vacancy.status = VACANCY_STATUS_PROVIDED
         sadik_group = vacancy.sadik_group
@@ -1224,8 +1239,8 @@ class Requestion(models.Model):
         u"""
         возвращает путевку в которую временно распределена заявка
         """
-        if self.status in (STATUS_TEMP_DISTRIBUTED,
-                STATUS_ON_TEMP_DISTRIBUTION):
+        if self.status in (
+                STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION):
             return self.distributed_in_vacancy
         elif (self.status in DISTRIBUTION_PROCESS_STATUSES and
                 self.distribution_type == PERMANENT_DISTRIBUTION_TYPE):
@@ -1316,8 +1331,11 @@ class Requestion(models.Model):
         self.location = Point(*coords, srid=4326)
 
     def have_all_benefit_documents(self):
-        documents = set(self.evidience_documents().filter(template__destination=BENEFIT_DOCUMENT).values_list("template", flat=True))
-        required_documents = set(self.benefits.all().values_list('evidience_documents', flat=True))
+        documents = set(self.evidience_documents().filter(
+            template__destination=BENEFIT_DOCUMENT).values_list(
+                "template", flat=True))
+        required_documents = set(self.benefits.all().values_list(
+            'evidience_documents', flat=True))
         return required_documents.issubset(documents)
 
     def all_fields_filled(self):
@@ -1332,8 +1350,8 @@ class Requestion(models.Model):
 
     @property
     def is_fake_identity_documents(self):
-        return self.evidience_documents().filter(fake=True,
-                template__destination=REQUESTION_IDENTITY).exists()
+        return self.evidience_documents().filter(
+            fake=True, template__destination=REQUESTION_IDENTITY).exists()
 
     def __unicode__(self):
         return self.requestion_number
