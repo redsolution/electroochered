@@ -22,7 +22,7 @@ from sadiki.core.models import Requestion, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
-    get_coords_from_address, get_random_token
+    get_coords_from_address, get_random_token, find_closest_kg
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
@@ -241,6 +241,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
             pref_sadiks = form.cleaned_data.get('pref_sadiks')
             benefits_form.instance = requestion
             requestion = benefits_form.save()
+            find_closest_kg(requestion, save=True)
             if formset:
                 formset.instance = requestion
                 benefit_documents = formset.save()
@@ -359,6 +360,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 extra.update({'added_pref_sadiks': added_pref_sadiks})
                 extra.update({'removed_pref_sadiks': removed_pref_sadiks})
             if data_changed:
+                if 'location' in context_dict['changed_data']:
+                    find_closest_kg(requestion, save=True)
                 Logger.objects.create_for_action(self.logger_action,
                     context_dict=context_dict, extra=extra)
                 messages.success(request, u'Изменения в заявке %s сохранены' % requestion)

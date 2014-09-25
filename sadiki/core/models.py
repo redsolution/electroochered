@@ -1301,8 +1301,6 @@ class Requestion(models.Model):
         if not self.requestion_number:
             self.requestion_number = self.get_requestion_number()
             self.save()
-        if self.location != old_location:
-            find_closest_kg(self, save=True)
 
     def clean(self):
         from django.core.exceptions import ValidationError

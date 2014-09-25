@@ -32,7 +32,7 @@ class Command(BaseCommand):
                 print "Calculating {} requestion from {} total".format(n, total)
                 print "Done {:.2f}%".format(n / float(total) * 100)
             if requestion.location:
-                find_closest_kg(requestion)
+                find_closest_kg(requestion, verbose=True)
             n += 1
         print "Done!"
 
