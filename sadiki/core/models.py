@@ -1297,12 +1297,12 @@ class Requestion(models.Model):
                 self.distribution_datetime = datetime.datetime.now()
             # сохраняем дату и время последнего изменения статуса
             self.status_change_datetime = datetime.datetime.now()
-        if self.location != old_location:
-            find_closest_kg(self, save=False)
         super(Requestion, self).save(*args, **kwargs)
         if not self.requestion_number:
             self.requestion_number = self.get_requestion_number()
             self.save()
+        if self.location != old_location:
+            find_closest_kg(self, save=True)
 
     def clean(self):
         from django.core.exceptions import ValidationError

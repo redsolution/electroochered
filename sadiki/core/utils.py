@@ -432,12 +432,16 @@ def get_random_token():
     return str(uuid.uuid4())
 
 
-def find_closest_kg(requestion, save=True):
+def find_closest_kg(requestion, save=True, verbose=False):
     kgs = sadiki.core.models.Sadik.objects.filter(
         area__in=requestion.areas.all(),
         active_registration=True,
         active_distribution=True).select_related('address')
     closest = None
+    if not kgs:
+        if verbose:
+            print "Empty kindergarten set for {}".format(requestion)
+        return None
     for kg in kgs:
         if kg.address.coords:
             distance = measure_distance(requestion.location, kg.address.coords)
