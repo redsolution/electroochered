@@ -382,6 +382,12 @@ table.table.table-bordered tr.highlight td {
     position: relative;
 }
 
+.uniForm #id_birth_date_0,
+.uniForm #id_birth_date_1{
+    width: 24%;
+    float: none;
+}
+
 .uniForm .ctrlHolder.error, .uniForm .ctrlHolder.focused.error {
     position: relative;
 }
