@@ -17,13 +17,13 @@ DEFAULT_HEIGHT = 300
 DEFAULT_LAT = 61.401951
 DEFAULT_LNG = 55.160478
 
-class DeltaDateWidget(MultiWidget):
+class DateRangeWidget(MultiWidget):
     def __init__(self, attrs=None):  
         _widgets = (
             JqueryUIDateWidget(), 
             JqueryUIDateWidget(),
         )
-        super(DeltaDateWidget, self).__init__(_widgets, attrs)
+        super(DateRangeWidget, self).__init__(_widgets, attrs)
 
     def decompress(self, value):
         if value:

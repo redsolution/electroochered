@@ -33,10 +33,10 @@ class QueueOperatorFilterForm(QueueFilterForm):
         self.fields.keyOrder = [
             'requestion_number',
             'status',
-            'birth_date',
-            'benefit_category',
-            'age_group',
             'area',
+            'benefit_category',
+            'age_group',        
+            'birth_date',
             'admission_date',
             'decision_date',
             'without_facilities',
