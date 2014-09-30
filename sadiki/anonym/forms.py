@@ -6,12 +6,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
-from sadiki.core.fields import TemplateFormField
+from sadiki.core.fields import TemplateFormField, DateRangeField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area, \
     STATUS_CHOICES_FILTER
 from sadiki.core.utils import get_unique_username
-from sadiki.core.widgets import JqueryUIDateWidget, DeltaDateWidget
+from sadiki.core.widgets import JqueryUIDateWidget
 from django.core.exceptions import MultipleObjectsReturned
 import re
 
@@ -168,9 +168,9 @@ class QueueFilterForm(forms.Form):
         self.fields.keyOrder = [
             'requestion_number',
             'status',
-            'benefit_category',
-            'age_group',
             'area',
+            'age_group',
+            'benefit_category',
             'admission_date',
             'decision_date',
             'without_facilities',
@@ -185,9 +185,9 @@ class QueueFilterForm(forms.Form):
             Requestion.objects.queue().dates('decision_datetime', 'year')]
         decision_date_choices = [('', '---------'),] + decision_date_choices
         self.fields['decision_date'].choices = decision_date_choices
-    birth_date = forms.CharField(
+        
+    birth_date = DateRangeField(
         label=u"Дата рождениея", required=False,
-        widget=DeltaDateWidget(),
         help_text="При выборе в очереди будут отображаться заявки, относящиеся "
                   "к указанному диапазону дат рождения от/до (включительно)")
     requestion_number = forms.CharField(

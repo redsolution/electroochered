@@ -133,13 +133,8 @@ class Queue(RequirePermissionsMixin, ListView):
 
                 birth_delta = form.cleaned_data.get('birth_date', None)
                 if birth_delta:
-                    birth_date_range = []
-                    birth_date_range.append(datetime.datetime.strptime(
-                        birth_delta[3:13], '%d.%m.%Y').strftime('%Y-%m-%d'))
-                    birth_date_range.append(datetime.datetime.strptime(
-                        birth_delta[18:28], '%d.%m.%Y').strftime('%Y-%m-%d'))
                     queryset = queryset.filter(
-                        birth_date__range=birth_date_range)
+                        birth_date__range=birth_delta)
                 if form.cleaned_data.get('age_group', None):
                     age_group = form.cleaned_data['age_group']
                     queryset = queryset.filter_for_age(
