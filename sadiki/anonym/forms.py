@@ -11,7 +11,7 @@ from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area, \
     STATUS_CHOICES_FILTER
 from sadiki.core.utils import get_unique_username
-from sadiki.core.widgets import JqueryUIDateWidget
+from sadiki.core.widgets import JqueryUIDateWidget, DeltaDateWidget
 from django.core.exceptions import MultipleObjectsReturned
 import re
 
@@ -185,7 +185,11 @@ class QueueFilterForm(forms.Form):
             Requestion.objects.queue().dates('decision_datetime', 'year')]
         decision_date_choices = [('', '---------'),] + decision_date_choices
         self.fields['decision_date'].choices = decision_date_choices
-
+    birth_date = forms.CharField(
+        label=u"Дата рождениея", required=False,
+        widget=DeltaDateWidget(),
+        help_text="При выборе в очереди будут отображаться заявки, относящиеся "
+                  "к указанному диапазону дат рождения от/до (включительно)")
     requestion_number = forms.CharField(
         label=u'Номер заявки в системе', required=False,
         widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}),

@@ -8,7 +8,7 @@ from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
 from sadiki.account.forms import RequestionForm, ChangeRequestionForm
 from sadiki.administrator.admin import SadikAdminForm
-from sadiki.anonym.forms import PublicSearchForm, FormWithDocument
+from sadiki.anonym.forms import PublicSearchForm, FormWithDocument, QueueFilterForm
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
@@ -26,6 +26,21 @@ def select_list_from_qs(queryset, requestion):
         select_list.append((obj.id, u'%d мест %s' % (groups[0].free_places, unicode(obj))))
     return select_list
 
+
+class QueueOperatorFilterForm(QueueFilterForm):
+    def __init__(self, *args, **kwargs):
+        super(QueueFilterForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = [
+            'requestion_number',
+            'status',
+            'birth_date',
+            'benefit_category',
+            'age_group',
+            'area',
+            'admission_date',
+            'decision_date',
+            'without_facilities',
+        ]
 
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""
