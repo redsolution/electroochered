@@ -41,6 +41,16 @@ class QueueOperatorFilterForm(QueueFilterForm):
             'decision_date',
             'without_facilities',
         ]
+        admission_date_choices = [
+            (year, year.year) for year in
+            Requestion.objects.queue().dates('admission_date', 'year')]
+        admission_date_choices = [('', '---------'),] + admission_date_choices
+        self.fields['admission_date'].choices = admission_date_choices
+        decision_date_choices = [
+            (year.year,year.year) for year in
+            Requestion.objects.queue().dates('decision_datetime', 'year')]
+        decision_date_choices = [('', '---------'),] + decision_date_choices
+        self.fields['decision_date'].choices = decision_date_choices
 
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""
