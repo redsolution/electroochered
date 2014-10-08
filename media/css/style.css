@@ -403,12 +403,20 @@ table.table.table-bordered tr.highlight td {
 .uniForm .birth_delta .birth_delta_box{
     float: left;
     text-align: left;
-    width: 50%;
+    width: 49%;
+}
+.uniForm .birth_delta #box_1{ margin: 0 0 0 2%; }
+
+.uniForm .birth_delta .birth_delta_box label,
+.uniForm .birth_delta .birth_delta_box input,
+.uniForm .birth_delta .birth_delta_box img{
+    display: inline;
 }
 
-.uniForm .birth_delta .birth_delta_box input{ width: 88% }
+.uniForm .birth_delta .birth_delta_box label{ margin: 2% 2% 0 0; }
+.uniForm .birth_delta .birth_delta_box input{ width: 80% }
 .uniForm .birth_delta .birth_delta_box img{ margin: 0 0 0 1%; }
-.uniForm .birth_delta .birth_delta_box #box_1{ margin: 0 0 0 2%; }
+
 
 .uniForm .ctrlHolder.error, .uniForm .ctrlHolder.focused.error {
     position: relative;
