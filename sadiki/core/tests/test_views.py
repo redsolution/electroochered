@@ -179,38 +179,38 @@ class CoreViewsTest(TestCase):
         requestion.birth_date = date_max
         requestion.save()
 
-        #фильтр у неавторизовавшихся пользователей должен вывести все записи
-        response = self.client.get(reverse('anonym_queue'),{
-            'birth_date_0': date_min.strftime('%d.%m.%Y'),
-            'birth_date_1': date_max.strftime('%d.%m.%Y')
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context_data['requestions']),
-                         Requestion.objects.queue().count())
-        
         login = self.client.login(
             username=OPERATOR_USERNAME ,
             password=OPERATOR_PASSWORD
         )
         self.assertTrue(login)
+        # проверить значения не входящие в диапазон, либо только наполовину
+        #[ ] |
+        response = self.client.get(reverse('anonym_queue'),{
+            'birth_date_0': '01.09.1939',
+            'birth_date_1': '02.09.1945'
+        })
+        self.assertTrue(response.status_code, 200)
+        self.assertEqual(response.context_data['requestions'].count(), 0)
 
-        # проверить __range в обратном порядке
+        #[  |]
+        response = self.client.get(reverse('anonym_queue'),{
+            'birth_date_0': '01.09.1939',
+            'birth_date_1': date_min.strftime('%d.%m.%Y')
+        })
+        self.assertTrue(response.status_code, 200)
+        print response.context_data['requestions'].count()
+        for v in response.context_data['requestions']:
+            print v.birth_date
+
+        # проверить в обратном порядке
         response = self.client.get(reverse('anonym_queue'),{
             'birth_date_0': date_max.strftime('%d.%m.%Y'),
             'birth_date_1': date_min.strftime('%d.%m.%Y')
         })
-                                
+                                  
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context_data['requestions']), 2)
+        self.assertEqual(response.context_data['requestions'].count(), 2)
         for requestion in response.context_data['requestions']:
             self.assertIn(requestion.birth_date,
                           [date_min, date_max] )
-
-        # проверить фильтр с одним заполненым полем 
-        response = self.client.get(reverse('anonym_queue'),{
-            'birth_date_0': date_max.strftime('%d.%m.%Y'),
-            'birth_date_1': ''
-        })
-                                
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.context_data['requestions']), 0)
