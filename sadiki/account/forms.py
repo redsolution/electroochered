@@ -87,7 +87,8 @@ class ChangeRequestionForm(forms.ModelForm):
 class BenefitsForm(forms.ModelForm):
 
     benefits = forms.ModelMultipleChoiceField(
-        label=u'Льготы для заявки', queryset=Benefit.objects.all(),
+        label=u'Льготы для заявки', 
+        queryset=Benefit.objects.filter(disabled=False),
         widget=SelectMultipleJS(), required=False,
         help_text=u'Выбранные льготы недействительны без документального '
                   u'подтверждения',

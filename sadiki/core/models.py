@@ -291,6 +291,7 @@ class Benefit(models.Model):
     sadik_related = models.ManyToManyField(
         "Sadik", verbose_name=u"ДОУ в которых есть группы", blank=True,
         null=True,)
+    disabled = models.BooleanField(default=False, verbose_name=u"Отключить")
 
     def __unicode__(self):
         return self.name
