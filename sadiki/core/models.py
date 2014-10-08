@@ -270,6 +270,13 @@ BENEFIT_STATUS_CHOICES = (
     (BENEFIT_FEDERAL, u"Федеральная"),
 )
 
+class BenefitMaster(models.Manager):
+    def get_query_set(self):
+        return super(BenefitMaster, self).get_query_set().filter(disabled=False)
+
+    def list(self):
+        u"""Возвращает все Льготы вне зависимости от состояния поля disabled"""
+        return super(BenefitMaster, self).get_query_set()
 
 class Benefit(models.Model):
     u"""Льготы"""
@@ -277,6 +284,8 @@ class Benefit(models.Model):
     class Meta:
         verbose_name = u'Льгота'
         verbose_name_plural = u'Льготы'
+
+    objects = BenefitMaster()
 
     category = models.ForeignKey("BenefitCategory", verbose_name=u'тип льгот')
     status = models.IntegerField(
