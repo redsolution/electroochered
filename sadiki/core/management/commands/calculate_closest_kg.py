@@ -43,6 +43,9 @@ def find_closest_kg(requestion):
         active_registration=True,
         active_distribution=True).select_related('address')
     closest = None
+    if not kgs:
+        print "Empty kindergartens query for {}".format(requestion)
+        return None
     for kg in kgs:
         if kg.address.coords:
             distance = measure_distance(requestion.location, kg.address.coords)
