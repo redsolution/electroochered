@@ -394,11 +394,21 @@ table.table.table-bordered tr.highlight td {
 
 #open_spoiler span.caret.caret-margins{ margin-top: 8px; }
 
-.uniForm #id_birth_date_0,
-.uniForm #id_birth_date_1{
-    width: 24%;
-    float: none;
+.uniForm .birth_delta{
+    float: left;
+    margin: 0px;
+    width: 53%;
 }
+
+.uniForm .birth_delta .birth_delta_box{
+    float: left;
+    text-align: left;
+    width: 50%;
+}
+
+.uniForm .birth_delta .birth_delta_box input{ width: 88% }
+.uniForm .birth_delta .birth_delta_box img{ margin: 0 0 0 1%; }
+.uniForm .birth_delta .birth_delta_box #box_1{ margin: 0 0 0 2%; }
 
 .uniForm .ctrlHolder.error, .uniForm .ctrlHolder.focused.error {
     position: relative;
