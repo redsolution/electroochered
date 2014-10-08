@@ -474,7 +474,7 @@ class BenefitAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = Benefit
     form = BenefitAdminForm
     exclude = ('sadik_related',)
-    list_display = ['name', 'category']
+    list_display = ['name', 'category', 'disabled']
 
     def queryset(self, request):
         return Benefit.objects.list()
