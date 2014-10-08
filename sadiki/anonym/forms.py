@@ -187,7 +187,7 @@ class QueueFilterForm(forms.Form):
         self.fields['decision_date'].choices = decision_date_choices
         
     birth_date = DateRangeField(
-        label=u"Дата рождениея", required=False,
+        label=u"Дата рождения", required=False,
         help_text="При выборе в очереди будут отображаться заявки, относящиеся "
                   "к указанному диапазону дат рождения от/до (включительно)")
     requestion_number = forms.CharField(
