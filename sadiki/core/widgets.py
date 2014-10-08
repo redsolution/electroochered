@@ -31,10 +31,17 @@ class DateRangeWidget(MultiWidget):
         return None, None
 
     def format_output(self, rendered_widgets):
-        rendered_widgets.insert(0, '<div class="birth_delta">\
-                                        <div class="birth_delta_box">')
-        rendered_widgets.append('</div></div>')
-        return u'</div><div class="birth_delta_box">'.join(rendered_widgets)
+        format = u"\
+        <div class=\"birth_delta\">\
+            <div id=\"box_0\" class=\"birth_delta_box\">\
+            <label>От</label>%s \
+            </div>\
+            <div id=\"box_1\" class=\"birth_delta_box\">\
+            <label>До</label>%s\
+            </div>\
+        </div>"%(rendered_widgets[0], rendered_widgets[1])
+
+        return format
 
 
 class JqueryUIDateWidget(DateInput):
