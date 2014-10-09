@@ -476,9 +476,6 @@ class BenefitAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     exclude = ('sadik_related',)
     list_display = ['name', 'category', 'disabled']
 
-    def queryset(self, request):
-        return Benefit.objects.list()
-
 
 class AgeGroupForm(forms.ModelForm):
     sadiks = forms.ModelMultipleChoiceField(label=u"ДОУ в которых есть группа",
