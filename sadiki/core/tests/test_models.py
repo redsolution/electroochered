@@ -127,16 +127,3 @@ class RequestionTestCase(TestCase):
             datetime.timedelta(days=settings.APPEAL_DAYS - 1))
         self.requestion.save()
         self.assertEqual(self.requestion.days_for_appeal(), 1)
-
-
-class BenefitTestCase(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
-
-    @classmethod
-    def setUpClass(cls):
-        management.call_command('update_initial_data')
-
-    @classmethod
-    def tearDownClass(cls):
-        Permission.objects.all().delete()
-        Group.objects.all().delete()

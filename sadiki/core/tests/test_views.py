@@ -184,24 +184,6 @@ class CoreViewsTest(TestCase):
             password=OPERATOR_PASSWORD
         )
         self.assertTrue(login)
-        # проверить значения не входящие в диапазон, либо только наполовину
-        #[ ] |
-        response = self.client.get(reverse('anonym_queue'),{
-            'birth_date_0': '01.09.1939',
-            'birth_date_1': '02.09.1945'
-        })
-        self.assertTrue(response.status_code, 200)
-        self.assertEqual(response.context_data['requestions'].count(), 0)
-
-        #[  |]
-        response = self.client.get(reverse('anonym_queue'),{
-            'birth_date_0': '01.09.1939',
-            'birth_date_1': date_min.strftime('%d.%m.%Y')
-        })
-        self.assertTrue(response.status_code, 200)
-        print response.context_data['requestions'].count()
-        for v in response.context_data['requestions']:
-            print v.birth_date
 
         # проверить в обратном порядке
         response = self.client.get(reverse('anonym_queue'),{
@@ -214,3 +196,6 @@ class CoreViewsTest(TestCase):
         for requestion in response.context_data['requestions']:
             self.assertIn(requestion.birth_date,
                           [date_min, date_max] )
+
+
+
