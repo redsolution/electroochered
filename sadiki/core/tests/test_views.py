@@ -168,8 +168,8 @@ class CoreViewsTest(TestCase):
 
     def test_date_range(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
-        date_max = datetime.date(2014, 01, 01)
-        date_min = datetime.date(2014, 01, 03)
+        date_max = datetime.date(2013, 01, 01)
+        date_min = datetime.date(2013, 01, 03)
 
         requestion = Requestion.objects.order_by('?')[0]
         requestion.birth_date = date_min
@@ -185,17 +185,146 @@ class CoreViewsTest(TestCase):
         )
         self.assertTrue(login)
 
-        # проверить в обратном порядке
-        response = self.client.get(reverse('anonym_queue'),{
+        # проверить дипазон только с минимальным значением
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': date_min.strftime('%d.%m.%Y'),
+            'birth_date_1': ''
+        })
+
+        self.assertEqual(response.status_code, 200)
+        for requestion in response.context_data['requestions']:
+            self.assertGreaterEqual(
+                requestion.birth_date, date_min)
+
+        # проверить диапазон только с максимальным значением
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': '',
+            'birth_date_1': date_max.strftime('%d.%m.%Y')
+        })
+
+        self.assertEqual(response.status_code, 200)
+        for requestion in response.context_data['requestions']:
+            self.assertLessEqual(
+                requestion.birth_date, date_max)
+
+        # проверить диапазоны, выходящие за пределы 
+        # диапазон, располагающийся перед доступным диапазоном 
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': '01.09.1939',
+            'birth_date_1': '02.09.1945'
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(), 
+            Requestion.objects.filter(
+                birth_date__range = [
+                    datetime.date(1939, 9, 01), 
+                    datetime.date(1945, 9, 02)]
+            ).count())
+
+        # диапазон, располагающийся после доступного диапазоном
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': '01.01.3000',
+            'birth_date_1': '01.01.3001'
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [
+                    datetime.date(3000, 01, 01), 
+                    datetime.date(3001, 01, 01)]
+            ).count())
+
+        # проверить диапазоны, частично выходящие за пределы
+        # диапазон, частично располагающийся перед доступным диапазоном
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': '01.09.1939',
+            'birth_date_1': date_min.strftime('%d.%m.%Y')
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [
+                    datetime.date(1939, 9, 01), 
+                    date_min]
+            ).count())
+
+        # диапазон, частично располагающийся после доступным диапазоном
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': date_max.strftime('%d.%m.%Y'),
+            'birth_date_1': '01.01.3001'
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [
+                    date_max, datetime.date(3001, 01, 01)]
+            ).count())
+
+        # проверить диапазон, которйы выходит за границы доступного 
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': '01.09.1939',
+            'birth_date_1': '01.01.3001'
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [
+                    datetime.date(1939, 9, 01), 
+                    datetime.date(3001, 01, 01)]
+            ).count())
+
+        # проверить диапазон с одинаковыми значениями
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': date_min.strftime('%d.%m.%Y'),
+            'birth_date_1': date_min.strftime('%d.%m.%Y')
+        })
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [date_min, date_min]
+            ).count())
+
+        # проверить нормальный диапазон
+        response = self.client.get(reverse('anonym_queue'), {
+            'birth_date_0': date_min.strftime('%d.%m.%Y'),
+            'birth_date_1': date_max.strftime('%d.%m.%Y')
+        })
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [date_min, date_max]
+            ).count())
+
+        # проверить диапазон в обратном порядке
+        response = self.client.get(reverse('anonym_queue'), {
             'birth_date_0': date_max.strftime('%d.%m.%Y'),
             'birth_date_1': date_min.strftime('%d.%m.%Y')
         })
-                                  
+        
+
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context_data['requestions'].count(), 2)
+        self.assertEqual(
+            response.context_data['requestions'].count(),
+            Requestion.objects.filter(
+                birth_date__range = [date_max, date_min]
+            ).count())
         for requestion in response.context_data['requestions']:
             self.assertIn(requestion.birth_date,
-                          [date_min, date_max] )
+                          [date_min, date_max])
 
 
 
