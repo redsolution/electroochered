@@ -14,6 +14,7 @@ from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 
+
 OPERATOR_USERNAME = 'operator'
 OPERATOR_PASSWORD = 'password'
 
@@ -321,3 +322,17 @@ class CoreViewsTest(TestCase):
         for requestion in response.context_data['requestions']:
             self.assertIn(requestion.birth_date,
                           [date_min, date_max])
+
+    def test_operator_visibility(self):
+        Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+        login = self.client.login(
+            username=OPERATOR_USERNAME ,
+            password=OPERATOR_PASSWORD
+        )
+        self.assertTrue(login)
+
+        response = self.client.get('/queue/')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('birth_date',
+            response.context_data['form'].fields)
