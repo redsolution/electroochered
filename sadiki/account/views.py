@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 
+from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -16,7 +17,7 @@ from sadiki.account.forms import RequestionForm, \
     PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 import sadiki.authorisation.views
-from sadiki.core.models import Requestion, \
+from sadiki.core.models import Requestion, Benefit, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
@@ -434,6 +435,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'can_change_benefits': self.can_change_benefits(requestion),
             'can_change_requestion': self.can_change_requestion(requestion),
             'plugin_menu_items': get_plugin_menu_items(),
+            'enabled_benefits': serializers.serialize('json',
+                                                      Benefit.enabled.all()),
         }
 
         context.update(kwargs)
