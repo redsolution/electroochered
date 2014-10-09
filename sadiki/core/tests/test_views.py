@@ -112,7 +112,7 @@ class CoreViewsTest(TestCase):
         self.assertTrue(login)
         operator_response = self.client.get(reverse('anonym_queue'))
         self.assertEqual(operator_response.status_code, 200)
-        self.assertEqual(anonym_response.context_data["requestions"].count(),
+        self.assertEqual(operator_response.context_data["requestions"].count(),
                          Requestion.objects.queue().count())
         self.client.logout()
 
@@ -123,8 +123,8 @@ class CoreViewsTest(TestCase):
         )
         self.assertTrue(login)
         requester_response = self.client.get(reverse('anonym_queue'))
-        self.assertEqual(anonym_response.status_code, 200)
-        self.assertEqual(anonym_response.context_data["requestions"].count(),
+        self.assertEqual(requester_response.status_code, 200)
+        self.assertEqual(requester_response.context_data["requestions"].count(),
                          Requestion.objects.queue().count())
 
     def test_status(self):
@@ -134,13 +134,11 @@ class CoreViewsTest(TestCase):
         response = self.client.get(reverse('anonym_queue'))
 
         self.assertEqual(response.context_data["requestions"].count(),
-                 Requestion.objects.queue().count())
+                         Requestion.objects.queue().count())
         
         for v in response.context_data["requestions"]:
             self.assertIn(v.status,
-                          [STATUS_REQUESTER,
-                           STATUS_REQUESTER_NOT_CONFIRMED]
-                         )
+                [STATUS_REQUESTER,STATUS_REQUESTER_NOT_CONFIRMED])
 
         # Проверям фильтр со статсуом 17( Снят с учёта )
         requestion = Requestion.objects.order_by('?')[0]
@@ -148,11 +146,11 @@ class CoreViewsTest(TestCase):
         requestion.save()
 
         response = self.client.get(reverse('anonym_queue'), 
-                                   data={'status': [17]})
+            data={'status': [17]})
+        
         self.assertEqual(response.context_data["requestions"].count(),
                          Requestion.objects.filter(
-                            status=STATUS_REMOVE_REGISTRATION).count()
-                        )
+                            status=STATUS_REMOVE_REGISTRATION).count())
         for v in response.context_data["requestions"]:
             self.assertEqual(v.status, STATUS_REMOVE_REGISTRATION)                
 
@@ -160,9 +158,7 @@ class CoreViewsTest(TestCase):
         # в случае, если записей с таким фильтром нет,
         # то он вернет все записи
         response = self.client.get(reverse('anonym_queue'),
-                                   data={'status': [STATUS_NOT_APPEAR],
-                                         'Benefit_category': 1}
-                                  )
+            data={'status': [STATUS_NOT_APPEAR],  'Benefit_category': 1})
 
         self.assertFalse(response.context_data['requestions'])
 
@@ -325,6 +321,3 @@ class CoreViewsTest(TestCase):
         for requestion in response.context_data['requestions']:
             self.assertIn(requestion.birth_date,
                           [date_min, date_max])
-
-
-
