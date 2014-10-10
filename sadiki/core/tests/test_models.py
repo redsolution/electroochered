@@ -6,7 +6,7 @@ from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.contrib.auth.models import Permission, Group
 
-from sadiki.core.models import Requestion, BenefitCategory, \
+from sadiki.core.models import Requestion, BenefitCategory, Benefit, \
     Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
     REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup, Address
 from sadiki.core.tests import utils as test_utils
@@ -127,3 +127,41 @@ class RequestionTestCase(TestCase):
             datetime.timedelta(days=settings.APPEAL_DAYS - 1))
         self.requestion.save()
         self.assertEqual(self.requestion.days_for_appeal(), 1)
+
+
+class BenefitTestCase(TestCase):
+    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
+
+    @classmethod
+    def setUpClass(cls):
+        management.call_command('update_initial_data')
+
+    @classmethod
+    def tearDownClass(cls):
+        BenefitCategory.objects.all().delete()
+        Benefit.objects.all().delete()
+
+    def tearDown(self):
+        Benefit.objects.all().delete()
+
+    def test_disabled(self):
+        # все заявки изначально включены.
+        self.assertItemsEqual(Benefit.objects.all(),
+                              Benefit.enabled.all())
+
+        # Отключаем одну льготу.  Проверяем количество всех. 
+        # Проверяем количество включеных и убеждаемся в том, что там ее нет.
+        all_count = Benefit.objects.count()
+        enabled_count = Benefit.enabled.count()
+        benefit = test_utils.disable_random_benefit()
+        self.assertEqual(Benefit.enabled.count(), 
+                         enabled_count - 1)
+        self.assertEqual(Benefit.objects.count(), all_count)
+        self.assertNotIn(benefit, Benefit.enabled.all())
+
+        # Отключаем все заявки. 
+        # Проверяем, что количество включеных = 0
+        # Проверяем, чтобы количество всех заявок не изменилось 
+        test_utils.disable_all_benefits()
+        self.assertEqual(Benefit.enabled.count(), 0)
+        self.assertNotEqual(Benefit.objects.count(), 0)
