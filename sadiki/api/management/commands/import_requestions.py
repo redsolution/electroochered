@@ -70,7 +70,7 @@ def create_profile():
     return Profile.objects.create(user=user)
 
 
-def create_requestion(data):
+def create_requestion(data, create_log=True):
     """
     Создаем заявку по предоставленной информации. Фомат data - словарь:
     {'name': Имя ребенка, без пробелов;
@@ -121,9 +121,10 @@ def create_requestion(data):
     req.areas.add(*[area for area in Area.objects.all()])
     create_document(req, data['birth_doc'], data['birth_doc_type'])
     # создаем запись в логах
-    Logger.objects.create_for_action(
-        REQUESTION_TRANSFER,
-        context_dict={'sender_info': data.get('sender_info'), },
-        extra={'obj': req}
-    )
+    if create_log:
+        Logger.objects.create_for_action(
+            REQUESTION_TRANSFER,
+            context_dict={'sender_info': data.get('sender_info'), },
+            extra={'obj': req}
+        )
     return req
