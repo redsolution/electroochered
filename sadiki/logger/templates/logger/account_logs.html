@@ -11,10 +11,10 @@
     {% endfor %}
     {% for log_dict in plugin_logs %}
         {% for log_header, logs_with_messages in log_dict.items %}
-                {% if logs_with_messages %}
-                    <h2>{{ log_header }}</h2>
-                    {% include "logger/include/include_logs.html" %}
-                {% endif %}
+            {% if logs_with_messages %}
+                <h2>{{ log_header }}</h2>
+                {% include "logger/include/include_logs.html" %}
+            {% endif %}
         {% endfor %}
     {% endfor %}
 {% endblock %}
