@@ -119,6 +119,7 @@ class Queue(RequirePermissionsMixin, ListView):
         if form_data:
             form = self.form(query_dict)
             if form.is_valid():
+                queryset = queryset.queue()
                 # Работа с поиском заявки
                 initial_queryset = queryset
 
