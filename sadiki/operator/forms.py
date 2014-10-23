@@ -8,7 +8,7 @@ from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
 from sadiki.account.forms import RequestionForm, ChangeRequestionForm
 from sadiki.administrator.admin import SadikAdminForm
-from sadiki.anonym.forms import PublicSearchForm, FormWithDocument
+from sadiki.anonym.forms import PublicSearchForm, FormWithDocument, QueueFilterForm
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
@@ -26,6 +26,31 @@ def select_list_from_qs(queryset, requestion):
         select_list.append((obj.id, u'%d мест %s' % (groups[0].free_places, unicode(obj))))
     return select_list
 
+
+class QueueOperatorFilterForm(QueueFilterForm):
+    def __init__(self, *args, **kwargs):
+        super(QueueFilterForm, self).__init__(*args, **kwargs)
+        self.fields.keyOrder = [
+            'requestion_number',
+            'status',
+            'area',
+            'benefit_category',
+            'age_group',        
+            'birth_date',
+            'admission_date',
+            'decision_date',
+            'without_facilities',
+        ]
+        admission_date_choices = [
+            (year, year.year) for year in
+            Requestion.objects.queue().dates('admission_date', 'year')]
+        admission_date_choices = [('', '---------'),] + admission_date_choices
+        self.fields['admission_date'].choices = admission_date_choices
+        decision_date_choices = [
+            (year.year,year.year) for year in
+            Requestion.objects.queue().dates('decision_datetime', 'year')]
+        decision_date_choices = [('', '---------'),] + decision_date_choices
+        self.fields['decision_date'].choices = decision_date_choices
 
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""

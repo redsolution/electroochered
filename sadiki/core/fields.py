@@ -5,12 +5,29 @@ from django.db import models
 from django.utils import formats, dates
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
-from sadiki.core.widgets import BooleanNextYearWidget, AreaWidget
+from sadiki.core.widgets import BooleanNextYearWidget, AreaWidget, DateRangeWidget
 from south.modelsinspector import add_introspection_rules
 from time import strptime
 from widgets import JqSplitDateTimeWidget, YearChoiceDateWigdet
 import datetime
 
+
+class DateRangeField(forms.MultiValueField):
+    widget = DateRangeWidget
+
+    def __init__(self, *args, **kwargs):
+        all_fields = (
+            forms.DateField(),
+            forms.DateField(),
+        )
+        super(DateRangeField, self).__init__(all_fields, *args, **kwargs)
+
+    def compress(self, data_list):
+        if data_list:
+            if not (data_list[0], data_list[1]):
+                raise forms.ValidationError(u"Заданы не все данные")    
+            return data_list[0], data_list[1]
+        return None
 
 class JqSplitDateTimeField(forms.MultiValueField):
     widget = JqSplitDateTimeWidget

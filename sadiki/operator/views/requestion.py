@@ -37,7 +37,7 @@ from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionCheckIdentityMixin
 from django.forms.models import ModelFormMetaclass
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
-from sadiki.operator.forms import ConfirmationForm
+from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
 
 
@@ -51,7 +51,7 @@ class FrontPage(OperatorPermissionMixin, TemplateView):
 class Queue(OperatorPermissionMixin, AnonymQueue):
     u"""Отображение очереди в район для оператора"""
     template_name = 'operator/queue.html'
-
+    form = QueueOperatorFilterForm
     def get(self, *args, **kwds):
         u"""
         ``get`` переопределен для того, чтобы если заявка не нашлась по номеру

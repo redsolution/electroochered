@@ -17,6 +17,32 @@ DEFAULT_HEIGHT = 300
 DEFAULT_LAT = 61.401951
 DEFAULT_LNG = 55.160478
 
+class DateRangeWidget(MultiWidget):
+    def __init__(self, attrs=None):  
+        _widgets = (
+            JqueryUIDateWidget(), 
+            JqueryUIDateWidget(),
+        )
+        super(DateRangeWidget, self).__init__(_widgets, attrs)
+
+    def decompress(self, value):
+        if value:
+            return value.min, value.max
+        return None, None
+
+    def format_output(self, rendered_widgets):
+        format = u"\
+        <div class=\"birth_delta\">\
+            <div id=\"box_0\" class=\"birth_delta_box\">\
+            <label>От</label>%s \
+            </div>\
+            <div id=\"box_1\" class=\"birth_delta_box\">\
+            <label>До</label>%s\
+            </div>\
+        </div>"%(rendered_widgets[0], rendered_widgets[1])
+
+        return format
+
 
 class JqueryUIDateWidget(DateInput):
 

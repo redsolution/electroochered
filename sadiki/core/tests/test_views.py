@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import random
+import datetime
 from django.test import TestCase, Client
 from django.core import management
 from django.contrib.auth.models import User, Group, Permission
@@ -163,4 +164,38 @@ class CoreViewsTest(TestCase):
                                          'Benefit_category': 1}
                                   )
 
-        self.assertFalse(response.context_data["requestions"])  
+        self.assertFalse(response.context_data['requestions'])
+
+    def test_date_range(self):
+        Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+        date_max = datetime.date(2014, 01, 01)
+        date_min = datetime.date(2014, 01, 03)
+
+        requestion = Requestion.objects.order_by('?')[0]
+        requestion.birth_date = date_min
+        requestion.save()
+
+        requestion = Requestion.objects.order_by('?')[1]
+        requestion.birth_date = date_max
+        requestion.save()
+
+        login = self.client.login(
+            username=OPERATOR_USERNAME ,
+            password=OPERATOR_PASSWORD
+        )
+        self.assertTrue(login)
+
+        # проверить в обратном порядке
+        response = self.client.get(reverse('anonym_queue'),{
+            'birth_date_0': date_max.strftime('%d.%m.%Y'),
+            'birth_date_1': date_min.strftime('%d.%m.%Y')
+        })
+                                  
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context_data['requestions'].count(), 2)
+        for requestion in response.context_data['requestions']:
+            self.assertIn(requestion.birth_date,
+                          [date_min, date_max] )
+
+
+
