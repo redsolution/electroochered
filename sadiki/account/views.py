@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
 
-from django.core import serializers
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -435,8 +434,6 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'can_change_benefits': self.can_change_benefits(requestion),
             'can_change_requestion': self.can_change_requestion(requestion),
             'plugin_menu_items': get_plugin_menu_items(),
-            'enabled_benefits': serializers.serialize('json',
-                                                      Benefit.enabled.all()),
         }
 
         context.update(kwargs)
