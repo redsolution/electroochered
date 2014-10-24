@@ -10,7 +10,7 @@ from sadiki.core.geo_field import location_errors
 from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
     Benefit
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
-    JQueryUIAdmissionDateWidget
+    JQueryUIAdmissionDateWidget, SelectMultipleBenefits
 
 
 class RequestionForm(FormWithDocument):
@@ -89,7 +89,7 @@ class BenefitsForm(forms.ModelForm):
     benefits = forms.ModelMultipleChoiceField(
         label=u'Льготы для заявки', 
         queryset=Benefit.objects,
-        widget=SelectMultipleJS(), required=False,
+        widget=SelectMultipleBenefits(), required=False,
         help_text=u'Выбранные льготы недействительны без документального '
                   u'подтверждения',
     )

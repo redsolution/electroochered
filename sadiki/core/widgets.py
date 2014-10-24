@@ -1,21 +1,25 @@
 # -*- coding: utf-8 -*-
+from itertools import chain
 import datetime
+from time import strftime
+
 from django.forms.util import flatatt
 from django.forms.widgets import MultiWidget, DateInput, TextInput
-from time import strftime
 from django import forms
 from django.conf import settings
 from django.template.loader import render_to_string
 from django.templatetags.static import static
 from django.utils.encoding import force_unicode
-from django.utils.html import conditional_escape
+from django.utils.html import conditional_escape, escape
 from django.utils.safestring import mark_safe
+
 
 DEFAULT_WIDTH = 500
 DEFAULT_HEIGHT = 300
 
 DEFAULT_LAT = 61.401951
 DEFAULT_LNG = 55.160478
+
 
 class DateRangeWidget(MultiWidget):
     def __init__(self, attrs=None):  
@@ -245,6 +249,28 @@ class SelectMultipleJS(forms.SelectMultiple):
         else:
             output = mark_safe(output + js)
         return output
+
+
+class SelectMultipleBenefits(SelectMultipleJS):
+    """Виджет для множественного выбора льгот, скрывает отключенные льготы"""
+
+    def render_option(self, selected_choices, option_value, option_label):
+        from sadiki.core.models import Benefit
+        enabled_benefits = Benefit.enabled.values_list('id', flat=True)
+        option_value = force_unicode(option_value)
+        if option_value in selected_choices:
+            selected_html = u' selected="selected"'
+            if not self.allow_multiple_selected:
+                # Only allow for a single selection.
+                selected_choices.remove(option_value)
+        # Don't show disabled benefits
+        elif int(option_value) not in enabled_benefits:
+            return ''
+        else:
+            selected_html = ''
+        return u'<option value="%s"%s>%s</option>' % (
+            escape(option_value), selected_html,
+            conditional_escape(force_unicode(option_label)))
 
 
 class LeafletMap(forms.Textarea):

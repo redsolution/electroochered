@@ -239,8 +239,10 @@ class BenefitCategoryQueryset(models.query.QuerySet):
         return self.exclude(priority__gte=settings.BENEFIT_SYSTEM_MIN)
 
     def category_without_benefits(self):
-        u"""Возврщаем категорию льгот с наименьшим приоритетом(подразумевается, что это категория без льгот)"""
+        u"""Возврщаем категорию льгот с наименьшим приоритетом
+        (подразумевается, что это категория без льгот)"""
         return self.all().order_by('priority')[0]
+
 
 class BenefitCategory(models.Model):
     u"""Типы льгот"""
@@ -250,11 +252,13 @@ class BenefitCategory(models.Model):
         verbose_name_plural = u"Категории льгот"
 
     name = models.CharField(verbose_name=u"Название", max_length=100)
-    description = models.CharField(verbose_name=u"Описание", null=True,
-        max_length=255)
-    priority = models.PositiveIntegerField(verbose_name=u"Приоритетность льготы",
+    description = models.CharField(
+        verbose_name=u"Описание", null=True, max_length=255)
+    priority = models.PositiveIntegerField(
+        verbose_name=u"Приоритетность льготы",
         help_text=u"Чем больше число, тем выше приоритет",
-        validators=[MaxValueValidator(settings.BENEFIT_SYSTEM_MIN - 1)], unique=True)
+        validators=[MaxValueValidator(settings.BENEFIT_SYSTEM_MIN - 1)],
+        unique=True)
     immediately_distribution_active = models.BooleanField(
         verbose_name=u"Учавствует в немедленном зачислении", default=False)
 
@@ -273,9 +277,11 @@ BENEFIT_STATUS_CHOICES = (
 )
 
 
-class BenefitMaster(models.Manager):
+class BenefitsEnabled(models.Manager):
+    """Возвращаем только активные льготы"""
     def get_query_set(self):
-        return super(BenefitMaster, self).get_query_set().filter(disabled=False)
+        return super(BenefitsEnabled, self).get_query_set().filter(
+            disabled=False)
 
 
 class Benefit(models.Model):
@@ -286,7 +292,7 @@ class Benefit(models.Model):
         verbose_name_plural = u'Льготы'
 
     objects = models.Manager()
-    enabled = BenefitMaster()
+    enabled = BenefitsEnabled()
 
     category = models.ForeignKey("BenefitCategory", verbose_name=u'тип льгот')
     status = models.IntegerField(
