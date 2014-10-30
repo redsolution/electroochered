@@ -8,7 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 
 from sadiki.core.models import Distribution, Requestion, Sadik, \
-    EvidienceDocument, REQUESTION_IDENTITY
+    EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
 from sadiki.api.utils import sign_is_valid, make_sign
 
 
@@ -39,7 +39,8 @@ def get_distribution(request):
             id__in=sadiks_ids).distinct().order_by('number'):
         requestions = Requestion.objects.filter(
             distributed_in_vacancy__distribution=dist,
-            distributed_in_vacancy__sadik_group__sadik=sadik).order_by(
+            distributed_in_vacancy__sadik_group__sadik=sadik,
+            status__in=[STATUS_DECISION, STATUS_DISTRIBUTED]).order_by(
                 '-birth_date').select_related('profile').select_related(
                     'distributed_in_vacancy__sadik_group__age_group')
         requestion_ct = ContentType.objects.get_for_model(Requestion)
@@ -49,9 +50,13 @@ def get_distribution(request):
                 birth_cert = EvidienceDocument.objects.filter(
                     template__destination=REQUESTION_IDENTITY,
                     content_type=requestion_ct, object_id=requestion.id)[0]
+                url = request.build_absolute_uri(reverse(
+                    'requestion_logs', args=(requestion.id, )))
                 kg_dict['requestions'].append({
                     'requestion_number': requestion.requestion_number,
                     'name': requestion.name,
+                    'status': requestion.status,
+                    'queue_profile_url': url,
                     'birth_date': calendar.timegm(
                         requestion.birth_date.timetuple()),
                     'birth_cert': birth_cert.document_number})
