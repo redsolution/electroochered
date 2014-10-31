@@ -26,9 +26,13 @@
 
 
 """
+import json
+
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
 from django.contrib import messages
+from django.contrib.auth.models import User
+
 from sadiki.account.forms import RequestionForm
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
@@ -46,7 +50,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
-    workflow, DISTRIBUTION_BY_RESOLUTION, NOT_APPEAR_EXPIRE
+    workflow, DISTRIBUTION_BY_RESOLUTION, NOT_APPEAR_EXPIRE, ES_DISTRIBUTION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
@@ -201,6 +205,7 @@ def after_decision_reject(sender, **kwargs):
     DECISION_DISTRIBUTION,
     NOT_APPEAR_DISTRIBUTED,
     ABSENT_DISTRIBUTED,
+    ES_DISTRIBUTION,
 )
 def after_decision_to_distributed(sender, **kwargs):
     u"""Обработчик переводов №16,19,20 - зачисление в ДОУ"""
@@ -213,12 +218,19 @@ def after_decision_to_distributed(sender, **kwargs):
     requestion.distributed_in_vacancy.save()
     messages.success(request, u'''Заявка %s была зачислена в %s.
             ''' % (requestion.requestion_number,
-                requestion.distributed_in_vacancy.sadik_group.sadik))
-    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
+                   requestion.distributed_in_vacancy.sadik_group.sadik))
+    context_dict = {
+        'status': requestion.get_status_display(),
+        'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
     log_extra = {'user': request.user, 'obj': requestion,
-        'distribution_type': requestion.distribution_type}
-    Logger.objects.create_for_action(transition.index,
-        context_dict=context_dict, extra=log_extra,
+                 'distribution_type': requestion.distribution_type}
+    if transition.index == ES_DISTRIBUTION:
+        data = json.loads(request.body)
+        context_dict.update({'operator': data.get('operator', '')})
+        user, created = User.objects.get_or_create(username='system')
+        log_extra.update({'user': user})
+    Logger.objects.create_for_action(
+        transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
 
 

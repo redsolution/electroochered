@@ -1,15 +1,75 @@
 # -*- coding: utf-8 -*-
 import calendar
+import json
 
 from django.utils import simplejson
 from django.http import HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.utils.decorators import method_decorator
 
+from pygnupgaddon import tools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
 from sadiki.api.utils import sign_is_valid, make_sign
+from sadiki.operator.forms import ConfirmationForm
+from sadiki.core.workflow import workflow
+from sadiki.core.signals import post_status_change, pre_status_change
+
+
+class SignJSONResponseMixin(object):
+    def render_to_response(self, context):
+        return self.get_json_response(self.convert_context_to_json(context))
+
+    def get_json_response(self, content, **kwargs):
+        return HttpResponse(content, mimetype='application/json; charset=utf-8',
+                            **kwargs)
+
+    def convert_context_to_json(self, context):
+        result = tools.get_signed_json(context)
+        return simplejson.dumps(result, ensure_ascii=False)
+
+
+class ChangeRequestionStatus(View, SignJSONResponseMixin):
+    """
+    Реализация метода создания заявки на проверку документов.
+    """
+    form = ConfirmationForm
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(ChangeRequestionStatus, self).dispatch(
+            request, *args, **kwargs)
+
+    def post(self, request):
+        data = json.loads(request.body)
+        requestion = Requestion.objects.get(pk=data['requestion_id'])
+        transition_indexes = workflow.available_transitions(
+            src=requestion.status, dst=int(data['dst_status']))
+        # TODO: Проверка на корректность ДОУ?
+        # sadik = requestion.distributed_in_vacancy.sadik_group.sadik
+        if transition_indexes:
+            transition = workflow.get_transition_by_index(transition_indexes[0])
+            form = self.form(requestion=requestion,
+                             data={'reason': u"Решение оператора ЭС",
+                                   'transition': transition.index,
+                                   'confirm': "yes"},
+                             initial={'transition': transition.index})
+            if form.is_valid():
+                pre_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=transition, form=form)
+                requestion.status = transition.dst
+                requestion.save()
+                post_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=transition, form=form)
+            else:
+                print form.errors
+        # TODO: Обработка ошибок
+        return self.render_to_response(data)
 
 
 def get_distributions(request):

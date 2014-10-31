@@ -55,7 +55,7 @@ STATUS_ON_TEMP_DISTRIBUTION = 51  # На временном комплектов
 STATUS_NOT_APPEAR_EXPIRE = 53  # Сроки на обжалование неявки истекли
 STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутствия истекли
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
-STATUS_DISTRIBUTED_FROM_ES = 55  # Зачислена через систему ЭлектроСад
+STATUS_DISTRIBUTED_FROM_ES = 56  # Зачислена через систему ЭлектроСад
 
 STATUS_CHOICES = (
     (STATUS_WAIT_REVIEW, u'Ожидает рассмотрения'),
@@ -78,6 +78,7 @@ STATUS_CHOICES = (
     (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
+    (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен через систему ЭлектроСад"),
 )
 
 STATUS_CHOICES_FILTER = (
