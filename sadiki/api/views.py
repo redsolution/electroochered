@@ -16,7 +16,12 @@ from sadiki.core.models import Distribution, Requestion, Sadik, \
 from sadiki.api.utils import sign_is_valid, make_sign
 from sadiki.operator.forms import ConfirmationForm
 from sadiki.core.workflow import workflow
+from sadiki.core.utils import make_error_msg
 from sadiki.core.signals import post_status_change, pre_status_change
+
+
+STATUS_OK = 0
+STATUS_ERROR = 1
 
 
 class SignJSONResponseMixin(object):
@@ -44,8 +49,12 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
             request, *args, **kwargs)
 
     def post(self, request):
+        # Начальные значения
+        status_code = STATUS_ERROR
+        err_msg = None
         data = json.loads(request.body)
         requestion = Requestion.objects.get(pk=data['requestion_id'])
+
         transition_indexes = workflow.available_transitions(
             src=requestion.status, dst=int(data['dst_status']))
         # TODO: Проверка на корректность ДОУ?
@@ -66,10 +75,13 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
                 post_status_change.send(
                     sender=Requestion, request=request, requestion=requestion,
                     transition=transition, form=form)
+                status_code = STATUS_OK
             else:
-                print form.errors
-        # TODO: Обработка ошибок
-        return self.render_to_response(data)
+                err_msg = make_error_msg(form.errors)
+        else:
+            err_msg = u"Невозможно изменить статус заявки"
+        result = {'status_code': status_code, 'err_msg': err_msg}
+        return self.render_to_response(result)
 
 
 def get_distributions(request):
