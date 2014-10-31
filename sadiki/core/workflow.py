@@ -129,6 +129,7 @@ REQUESTION_REJECT = 55                  # Истечение сроков на �
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
 DISTRIBUTION_BY_RESOLUTION = 58
+ES_DISTRIBUTION = 59                    # Зачислен через ЭлектроСад
 #отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
@@ -227,6 +228,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
              u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]], check_document=True)
+workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED_FROM_ES, ES_DISTRIBUTION,
+             u'Зачисление через систему ЭлектроСад', check_document=True)
 workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION, u'Зачисление по резолюции Начальника',
              permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 # workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
