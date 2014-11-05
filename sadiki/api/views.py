@@ -2,13 +2,15 @@
 import calendar
 import json
 
-from django.utils import simplejson
-from django.http import HttpResponse, Http404
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import View
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.template import loader
+from django.template.context import RequestContext
+from django.utils import simplejson
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
 
 from pygnupgaddon import tools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
@@ -33,27 +35,43 @@ class SignJSONResponseMixin(object):
                             **kwargs)
 
     def convert_context_to_json(self, context):
-        result = tools.get_signed_json(context)
-        return simplejson.dumps(result, ensure_ascii=False)
+        return tools.get_signed_json(context)
 
 
 class ChangeRequestionStatus(View, SignJSONResponseMixin):
     """
-    Реализация метода создания заявки на проверку документов.
+    Реализация метода api для изменения статуса заявки через запрос от
+    ЭлектроСада
     """
     form = ConfirmationForm
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
+        data = json.loads(request.body)
+        if not tools.check_data_sign(data):
+            return HttpResponseForbidden(loader.render_to_string(
+                '403.html', context_instance=RequestContext(request)))
+        kwargs.update({'data': data['data']})
         return super(ChangeRequestionStatus, self).dispatch(
             request, *args, **kwargs)
 
-    def post(self, request):
+    def post(self, request, *args, **kwargs):
         # Начальные значения
         status_code = STATUS_ERROR
         err_msg = None
-        data = json.loads(request.body)
+        data = kwargs['data']
         requestion = Requestion.objects.get(pk=data['requestion_id'])
+        # параноидальная проверка целостности данных
+        if requestion.requestion_number != data['requestion_number']:
+            err_msg = u"Ошибка проверки данных заявки: номер заявки отличается"\
+                      u"от указанного в профиле"
+            result = {'status_code': STATUS_ERROR, 'err_msg': err_msg}
+            return self.render_to_response(result)
+
+        if requestion.status == STATUS_DISTRIBUTED:
+            err_msg = u"Заявка уже зачислена, изменение невозможно"
+            result = {'status_code': STATUS_OK, 'err_msg': err_msg}
+            return self.render_to_response(result)
 
         transition_indexes = workflow.available_transitions(
             src=requestion.status, dst=int(data['dst_status']))
