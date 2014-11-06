@@ -23,7 +23,8 @@ from sadiki.core.signals import post_status_change, pre_status_change
 
 
 STATUS_OK = 0
-STATUS_ERROR = 1
+STATUS_DATA_ERROR = 1
+STATUS_SYSTEM_ERROR = 2
 
 
 class SignJSONResponseMixin(object):
@@ -47,6 +48,7 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
+        # если данные не проходят gpg проверку, возвращаем 403
         data = json.loads(request.body)
         if not tools.check_data_sign(data):
             return HttpResponseForbidden(loader.render_to_string(
@@ -57,7 +59,7 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
 
     def post(self, request, *args, **kwargs):
         # Начальные значения
-        status_code = STATUS_ERROR
+        status_code = STATUS_DATA_ERROR
         err_msg = None
         data = kwargs['data']
         requestion = Requestion.objects.get(pk=data['requestion_id'])
@@ -65,7 +67,7 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
         if requestion.requestion_number != data['requestion_number']:
             err_msg = u"Ошибка проверки данных заявки: номер заявки отличается"\
                       u"от указанного в профиле"
-            result = {'status_code': STATUS_ERROR, 'err_msg': err_msg}
+            result = {'status_code': STATUS_DATA_ERROR, 'err_msg': err_msg}
             return self.render_to_response(result)
 
         if requestion.status == STATUS_DISTRIBUTED:
@@ -80,7 +82,7 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
         if transition_indexes:
             transition = workflow.get_transition_by_index(transition_indexes[0])
             form = self.form(requestion=requestion,
-                             data={'reason': u"Решение оператора ЭС",
+                             data={'reason': data['reason'],
                                    'transition': transition.index,
                                    'confirm': "yes"},
                              initial={'transition': transition.index})
@@ -97,7 +99,7 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
             else:
                 err_msg = make_error_msg(form.errors)
         else:
-            err_msg = u"Невозможно изменить статус заявки"
+            err_msg = u"Невозможно изменить статус заявки в электроочереди"
         result = {'status_code': status_code, 'err_msg': err_msg}
         return self.render_to_response(result)
 
