@@ -1190,15 +1190,10 @@ class Requestion(models.Model):
 
     @property
     def is_available_for_actions(self):
-        u""" Если есть незавершенное распрелеление и заявке выделено место,
-        то делать с ней ничего нельзя
+        u"""Заявка в статусе "выделено место" - неизменяемая, все дальнейшине
+        изменения статуса происходоят только через ЭлектроСад
         """
-        try:
-            active_distribution = Distribution.objects.get(
-                ~Q(status=DISTRIBUTION_STATUS_END))
-        except ObjectDoesNotExist:
-            active_distribution = None
-        return not (self.status == 6 and active_distribution)
+        return not self.status == STATUS_DECISION
 
     def available_temp_vacancies(self):
         return Vacancies.objects.filter(

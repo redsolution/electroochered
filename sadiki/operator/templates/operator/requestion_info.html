@@ -147,5 +147,7 @@
                 <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
             {% endif %}
         </div>
+    {% else %}
+        <h2 class="page-header">Действия с заявкой недоступны</h2>
     {% endif %}
 {% endblock bottom %}
