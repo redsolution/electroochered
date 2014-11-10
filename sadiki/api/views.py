@@ -22,6 +22,7 @@ from sadiki.core.utils import make_error_msg
 from sadiki.core.signals import post_status_change, pre_status_change
 
 
+STATUS_ALREADY_DISTRIBUTED = -1
 STATUS_OK = 0
 STATUS_DATA_ERROR = 1
 STATUS_SYSTEM_ERROR = 2
@@ -71,8 +72,9 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
             return self.render_to_response(result)
 
         if requestion.status == STATUS_DISTRIBUTED:
-            err_msg = u"Заявка уже зачислена, изменение невозможно"
-            result = {'status_code': STATUS_OK, 'err_msg': err_msg}
+            err_msg = u"Заявка зачислена в Электроочереди, действие невозможно"
+            result = {'status_code': STATUS_ALREADY_DISTRIBUTED,
+                      'err_msg': err_msg}
             return self.render_to_response(result)
 
         transition_indexes = workflow.available_transitions(
