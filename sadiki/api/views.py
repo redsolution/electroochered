@@ -1,15 +1,109 @@
 # -*- coding: utf-8 -*-
 import calendar
+import json
 
-from django.utils import simplejson
-from django.http import HttpResponse, Http404
-from django.views.decorators.csrf import csrf_exempt
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.template import loader
+from django.template.context import RequestContext
+from django.utils import simplejson
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import View
 
+from pygnupgaddon import tools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
 from sadiki.api.utils import sign_is_valid, make_sign
+from sadiki.operator.forms import ConfirmationForm
+from sadiki.core.workflow import workflow
+from sadiki.core.utils import make_error_msg
+from sadiki.core.signals import post_status_change, pre_status_change
+
+
+STATUS_ALREADY_DISTRIBUTED = -1
+STATUS_OK = 0
+STATUS_DATA_ERROR = 1
+STATUS_SYSTEM_ERROR = 2
+
+
+class SignJSONResponseMixin(object):
+    def render_to_response(self, context):
+        return self.get_json_response(self.convert_context_to_json(context))
+
+    def get_json_response(self, content, **kwargs):
+        return HttpResponse(content, mimetype='application/json; charset=utf-8',
+                            **kwargs)
+
+    def convert_context_to_json(self, context):
+        return tools.get_signed_json(context)
+
+
+class ChangeRequestionStatus(View, SignJSONResponseMixin):
+    """
+    Реализация метода api для изменения статуса заявки через запрос от
+    ЭлектроСада
+    """
+    form = ConfirmationForm
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        # если данные не проходят gpg проверку, возвращаем 403
+        data = json.loads(request.body)
+        if not tools.check_data_sign(data):
+            return HttpResponseForbidden(loader.render_to_string(
+                '403.html', context_instance=RequestContext(request)))
+        kwargs.update({'data': data['data']})
+        return super(ChangeRequestionStatus, self).dispatch(
+            request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # Начальные значения
+        status_code = STATUS_DATA_ERROR
+        err_msg = None
+        data = kwargs['data']
+        requestion = Requestion.objects.get(pk=data['requestion_id'])
+        # параноидальная проверка целостности данных
+        if requestion.requestion_number != data['requestion_number']:
+            err_msg = u"Ошибка проверки данных заявки: номер заявки отличается"\
+                      u"от указанного в профиле"
+            result = {'status_code': STATUS_DATA_ERROR, 'err_msg': err_msg}
+            return self.render_to_response(result)
+
+        if requestion.status == STATUS_DISTRIBUTED:
+            err_msg = u"Заявка зачислена в Электроочереди, действие невозможно"
+            result = {'status_code': STATUS_ALREADY_DISTRIBUTED,
+                      'err_msg': err_msg}
+            return self.render_to_response(result)
+
+        transition_indexes = workflow.available_transitions(
+            src=requestion.status, dst=int(data['dst_status']))
+        # TODO: Проверка на корректность ДОУ?
+        # sadik = requestion.distributed_in_vacancy.sadik_group.sadik
+        if transition_indexes:
+            transition = workflow.get_transition_by_index(transition_indexes[0])
+            form = self.form(requestion=requestion,
+                             data={'reason': data['reason'],
+                                   'transition': transition.index,
+                                   'confirm': "yes"},
+                             initial={'transition': transition.index})
+            if form.is_valid():
+                pre_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=transition, form=form)
+                requestion.status = transition.dst
+                requestion.save()
+                post_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=transition, form=form)
+                status_code = STATUS_OK
+            else:
+                err_msg = make_error_msg(form.errors)
+        else:
+            err_msg = u"Невозможно изменить статус заявки в электроочереди"
+        result = {'status_code': status_code, 'err_msg': err_msg}
+        return self.render_to_response(result)
 
 
 def get_distributions(request):

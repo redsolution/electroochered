@@ -129,6 +129,8 @@ REQUESTION_REJECT = 55                  # Истечение сроков на �
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
 DISTRIBUTION_BY_RESOLUTION = 58
+# actions with id 59, 60 already taken
+ES_DISTRIBUTION = 61                    # Зачислен через ЭлектроСад
 #отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
@@ -227,6 +229,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
              u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]], check_document=True)
+workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED_FROM_ES, ES_DISTRIBUTION,
+             u'Зачисление через систему ЭлектроСад', check_document=True)
 workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION, u'Зачисление по резолюции Начальника',
              permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 # workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
@@ -550,8 +554,18 @@ change_documents_account_template = u"""
     """
 
 decision_distribution_anonym = u"""Было завершено зачисление в {{ sadik }}"""
-decision_not_appear_anonym = u"""Заявитель не явился в назначенный срок для зачисления в {{ sadik }}"""
-decision_requster_anonym = u"""Заявитель отказался от выделенного места в {{ sadik }}. Заявка была возвращена в очередь"""
+es_decision_distribution_anonym = u"""
+    По решению оператора {{ operator }} системы ЭлектроСад было завершено
+    зачисление в {{ sadik }}"""
+decision_not_appear_anonym = u"""
+    Заявитель не явился в назначенный срок для зачисления в {{ sadik }}
+    {% if operator %} Неявку отметил оператор ЭлектроСада
+    {{ operator }}.{% endif %}"""
+decision_requster_anonym = u"""
+    Заявитель отказался от выделенного места в {{ sadik }}.
+    Заявка была возвращена в очередь. {% if operator %}
+    Процедуру возврата инициировал оператор ЭлектроСада {{ operator }}.
+    {% endif %}"""
 
 email_verification_template = u"Почтовый адрес {{ email }} успешно подтвержден."
 
@@ -643,6 +657,9 @@ ACTION_TEMPLATES.update({
     },
     DECISION_DISTRIBUTION: {
         ANONYM_LOG: Template(decision_distribution_anonym)
+    },
+    ES_DISTRIBUTION: {
+        ANONYM_LOG: Template(es_decision_distribution_anonym)
     },
     NOT_APPEAR_DISTRIBUTED: {
         ANONYM_LOG: Template(decision_distribution_anonym)
