@@ -124,7 +124,6 @@ PASS_GRANTED_REQUESTER = 47             # Возврат путевки
 RETURN_TEMP_DISTRIBUTED = 48            # Возврат в очередь временно зачисленной заявки
 RETURN_TEMP_PASS_TRANSFER = 49          # Возврат временной путевки
 ABSENT_EXPIRE = 50                      # Истечение сроков обжалования
-NOT_APPEAR_EXPIRE = 51                  # Истечение сроков обжалования
 REQUESTION_REJECT = 55                  # Истечение сроков на подтверждение документов
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
@@ -279,11 +278,11 @@ workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
              u'Истечение сроков на обжалование отсутствия')
 workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
              ABSENT_REMOVE_REGISTRATION,
-             u'Снятие с учёта по истечению срока на установление контакта', permissions=[OPERATOR_PERMISSION[0]])
-workflow.add(STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, NOT_APPEAR_EXPIRE,
-             u'Истечение сроков на обжалование неявки', permissions=[OPERATOR_PERMISSION[0]])
+             u'Снятие с учёта по истечению срока на установление контакта',
+             permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION,
-             NOT_APPEAR_REMOVE_REGISTRATION, u'Снятие с учёта по истечению срока явки',
+             NOT_APPEAR_REMOVE_REGISTRATION,
+             u'Снятие с учёта по истечению срока явки',
              permissions=[OPERATOR_PERMISSION[0]])
 
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_ARCHIVE,
@@ -672,9 +671,6 @@ ACTION_TEMPLATES.update({
     },
     NOT_APPEAR_REMOVE_REGISTRATION: {
         ANONYM_LOG: Template(u"""Снята с учета в связи с неявкой в 30-ти дневный срок""")
-    },
-    NOT_APPEAR_EXPIRE: {
-        ANONYM_LOG: Template(u"""Истек срок обжалования неявки.""")
     },
     DECISION_NOT_APPEAR: {
         ANONYM_LOG: Template(decision_not_appear_anonym)
