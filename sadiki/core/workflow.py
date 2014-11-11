@@ -103,7 +103,6 @@ DECISION_DISTRIBUTION = 16              # Зачислен
 DECISION_ABSENT = 17                    # Невозможно установить контакт
 DECISION_NOT_APPEAR = 18                # Неявка в ДОУ
 ABSENT_DISTRIBUTED = 19                 # Явка в допольнительное время
-NOT_APPEAR_DISTRIBUTED = 20             # Явка в дополнительное время
 PASS_GRANTED = 21                       # Выдача путевки
 PASS_DISTRIBUTED = 22                   # Зачисление по путевке
 PASS_NOT_APPEAR = 23                    # Неявка по путевке
@@ -238,9 +237,6 @@ workflow.add(STATUS_DECISION, STATUS_NOT_APPEAR, DECISION_NOT_APPEAR,
              u'Неявка в ДОУ', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_DISTRIBUTED, ABSENT_DISTRIBUTED,
              u'Явка в дополнительное время отсутствующих', permissions=[DISTRIBUTOR_PERMISSION[0]],
-             check_document=True)
-workflow.add(STATUS_NOT_APPEAR, STATUS_DISTRIBUTED, NOT_APPEAR_DISTRIBUTED,
-             u'Явка в дополнительное время неявившихся', permissions=[DISTRIBUTOR_PERMISSION[0]],
              check_document=True)
 # Путевки
 if ETICKET != ETICKET_NO:
@@ -659,9 +655,6 @@ ACTION_TEMPLATES.update({
     },
     ES_DISTRIBUTION: {
         ANONYM_LOG: Template(es_decision_distribution_anonym)
-    },
-    NOT_APPEAR_DISTRIBUTED: {
-        ANONYM_LOG: Template(decision_distribution_anonym)
     },
     DECISION_REQUESTER: {
         ANONYM_LOG: Template(decision_requster_anonym)

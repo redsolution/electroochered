@@ -47,7 +47,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     TEMP_ABSENT_CANCEL, RETURN_TEMP_DISTRIBUTED, DECISION_REQUESTER, \
     NOT_APPEAR_REQUESTER, ABSENT_REQUESTER, DECISION_TEMP_DISTRIBUTED, \
     NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, \
-    DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, \
+    DECISION_DISTRIBUTION, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
     workflow, DISTRIBUTION_BY_RESOLUTION, ES_DISTRIBUTION
@@ -203,7 +203,6 @@ def after_decision_reject(sender, **kwargs):
 @receiver(post_status_change, sender=Requestion)
 @listen_transitions(
     DECISION_DISTRIBUTION,
-    NOT_APPEAR_DISTRIBUTED,
     ABSENT_DISTRIBUTED,
     ES_DISTRIBUTION,
 )
@@ -487,7 +486,7 @@ def permit_distribution(user, requestion, transition, request=None, form=None):
     return user.perms_for_area(requestion.distributed_in_vacancy.sadik_group.sadik.area)
 
 register_callback(
-    (DECISION_DISTRIBUTION, NOT_APPEAR_DISTRIBUTED, ABSENT_DISTRIBUTED),
+    (DECISION_DISTRIBUTION, ABSENT_DISTRIBUTED),
     permit_distribution)
 
 # Зачисление по резолюции
