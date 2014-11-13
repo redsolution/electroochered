@@ -16,7 +16,8 @@ from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
 from sadiki.api.utils import sign_is_valid, add_requestions_data
 from sadiki.operator.forms import ConfirmationForm
-from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION
+from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
+    REQUESTER_DECISION_BY_RESOLUTION
 from sadiki.core.utils import make_error_msg
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.logger.models import Logger
@@ -38,9 +39,7 @@ class SignJSONResponseMixin(object):
     def dispatch(self, request, *args, **kwargs):
         # если данные не проходят gpg проверку, возвращаем 403
         data = json.loads(request.body)
-        print data
         if not gpgtools.check_data_sign(data):
-            print 'wrong sign'
             return HttpResponseForbidden(loader.render_to_string(
                 '403.html', context_instance=RequestContext(request)))
         kwargs.update({'data': data['data']})
@@ -121,7 +120,8 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
         data = kwargs['data']
         last_import_datetime = dttools.datetime_from_stamp(data['last_import'])
         ridx = Logger.objects.filter(
-            action_flag=DISTRIBUTION_BY_RESOLUTION,
+            action_flag__in=[DISTRIBUTION_BY_RESOLUTION,
+                             REQUESTER_DECISION_BY_RESOLUTION],
             datetime__gte=last_import_datetime
         ).values_list('object_id', flat=True)
         # если зачислений по резолюции за указанные период не было
