@@ -113,7 +113,6 @@ REQUESTER_REMOVE_REGISTRATION = 38      # Снятие с учета подтв�
 NOT_CONFIRMED_REMOVE_REGISTRATION = 39  # Снятие с учета неподтвержденной заявки
 RESTORE_REQUESTION = 40                 # Восстановить заявку
 ABSENT_REMOVE_REGISTRATION = 41         # Снять с учета при невозможности связаться
-NOT_APPEAR_REMOVE_REGISTRATION = 42     # Снять с учета при неявке
 REMOVE_REGISTRATION_ARCHIVE = 43        # Помещение снятой заявки в архив
 DISTRIBUTED_ARCHIVE = 44                # Помещение распределенной заявки в архив
 DECISION_REQUESTER = 46                 # Отказ от места в ДОУ
@@ -275,10 +274,6 @@ workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
 workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
              ABSENT_REMOVE_REGISTRATION,
              u'Снятие с учёта по истечению срока на установление контакта',
-             permissions=[OPERATOR_PERMISSION[0]])
-workflow.add(STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION,
-             NOT_APPEAR_REMOVE_REGISTRATION,
-             u'Снятие с учёта по истечению срока явки',
              permissions=[OPERATOR_PERMISSION[0]])
 
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_ARCHIVE,
@@ -661,9 +656,6 @@ ACTION_TEMPLATES.update({
     },
     NOT_APPEAR_REQUESTER: {
         ANONYM_LOG: Template(decision_requster_anonym)
-    },
-    NOT_APPEAR_REMOVE_REGISTRATION: {
-        ANONYM_LOG: Template(u"""Снята с учета в связи с неявкой в 30-ти дневный срок""")
     },
     DECISION_NOT_APPEAR: {
         ANONYM_LOG: Template(decision_not_appear_anonym)

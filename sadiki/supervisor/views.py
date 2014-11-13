@@ -14,7 +14,7 @@ from sadiki.core.permissions import SUPERVISOR_PERMISSION, \
 from sadiki.core.utils import get_current_distribution_year, \
     get_distribution_year, check_url
 from sadiki.core.workflow import CHANGE_REGISTRATION_DATETIME, CHANGE_BIRTHDATE, \
-    NOT_APPEAR_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
+    ABSENT_REMOVE_REGISTRATION, \
     DECISION_REQUESTER, START_NEW_YEAR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import BaseConfirmationForm
@@ -163,10 +163,6 @@ class StartDistributionYear(SupervisorBases):
 #            необходимо вернуть в очередь или снять с учета все заявки, которые
 #            не были зачислены
             transitions_actions = (
-                {'from': (STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE),
-                    'to': STATUS_REMOVE_REGISTRATION,
-                    'transition': NOT_APPEAR_REMOVE_REGISTRATION,
-                    'requestions_list': []},
                 {'from': (STATUS_ABSENT, STATUS_ABSENT_EXPIRE),
                     'to': STATUS_REMOVE_REGISTRATION,
                     'transition': ABSENT_REMOVE_REGISTRATION,
@@ -182,7 +178,7 @@ class StartDistributionYear(SupervisorBases):
                 for requestion in requestions:
                     log_extra = {'user': request.user, 'obj': requestion}
                     # Если заявитель не явился за путевой, освободить его место в группе
-                    if action['transition'] in (ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION):
+                    if action['transition'] in (ABSENT_REMOVE_REGISTRATION, ):
                         # запишем в логи какой тип распределения производился
                         log_extra.update({'distribution_type': requestion.distribution_type})
 

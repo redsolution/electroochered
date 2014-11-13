@@ -43,7 +43,7 @@ from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
-    NOT_APPEAR_REMOVE_REGISTRATION, CONFIRM_REQUESTION, TEMP_ABSENT, \
+    CONFIRM_REQUESTION, TEMP_ABSENT, \
     TEMP_ABSENT_CANCEL, RETURN_TEMP_DISTRIBUTED, DECISION_REQUESTER, \
     NOT_APPEAR_REQUESTER, ABSENT_REQUESTER, DECISION_TEMP_DISTRIBUTED, \
     NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, \
@@ -79,7 +79,6 @@ def listen_transitions(*transition_indexes):
     REQUESTER_REMOVE_REGISTRATION,
     NOT_CONFIRMED_REMOVE_REGISTRATION,
     ABSENT_REMOVE_REGISTRATION,
-    NOT_APPEAR_REMOVE_REGISTRATION,
 )
 def after_remove_registration(sender, **kwargs):
     u"""Обработчик переводов № 38, 39, 41, 42 - Снятие заявки с учёта"""
@@ -90,7 +89,7 @@ def after_remove_registration(sender, **kwargs):
 
     log_extra = {'user': request.user, 'obj': requestion}
     # Если заявитель не явился за путевой, освободить его место в группе
-    if transition in (ABSENT_REMOVE_REGISTRATION, NOT_APPEAR_REMOVE_REGISTRATION):
+    if transition in (ABSENT_REMOVE_REGISTRATION, ):
 #        запишем в логи какой тип распределения производился
         log_extra.update({'distribution_type': requestion.distribution_type})
     # убрать подтверждение с докумнетов
