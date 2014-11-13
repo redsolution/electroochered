@@ -447,6 +447,8 @@ def find_closest_kg(requestion, save=True, verbose=False):
             distance = measure_distance(requestion.location, kg.address.coords)
             if not closest or closest['distance'] > distance:
                 closest = {'kg': kg, 'distance': distance}
+        else:
+            closest = {'kg': kg, 'distance': 0}
     requestion.closest_kg = closest['kg']
     if save:
         requestion.save()
