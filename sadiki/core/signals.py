@@ -33,12 +33,12 @@ from django.dispatch import Signal, receiver
 from django.contrib import messages
 from django.contrib.auth.models import User
 
-from sadiki.account.forms import RequestionForm
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
     STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
-    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup, Vacancies, BENEFIT_DOCUMENT
+    VACANCY_STATUS_TEMP_DISTRIBUTED, SadikGroup, Vacancies, \
+    VACANCY_STATUS_PROVIDED
 from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
@@ -50,7 +50,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     DECISION_DISTRIBUTION, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
-    workflow, DISTRIBUTION_BY_RESOLUTION, ES_DISTRIBUTION
+    workflow, REQUESTER_DECISION_BY_RESOLUTION, ES_DISTRIBUTION
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
@@ -364,9 +364,9 @@ def after_restore_requestion(sender, **kwargs):
         reason=form.cleaned_data.get('reason'))
 
 
-# Зачисление по резолюции
+# Выделение места по резолюции
 @receiver(post_status_change, sender=Requestion)
-@listen_transitions(DISTRIBUTION_BY_RESOLUTION,)
+@listen_transitions(REQUESTER_DECISION_BY_RESOLUTION,)
 def after_distribution_by_resolution(sender, **kwargs):
     transition = kwargs['transition']
     request = kwargs['request']
@@ -375,12 +375,14 @@ def after_distribution_by_resolution(sender, **kwargs):
     sadik = form.cleaned_data.get('sadik')
     sadik.create_default_sadikgroups()
     sadik_group = requestion.get_sadik_groups(sadik)[0]
-    vacancy = Vacancies.objects.create(sadik_group=sadik_group, status=VACANCY_STATUS_DISTRIBUTED)
+    vacancy = Vacancies.objects.create(
+        sadik_group=sadik_group, status=VACANCY_STATUS_PROVIDED)
     requestion.distributed_in_vacancy = vacancy
     requestion.save()
-    Logger.objects.create_for_action(transition.index, context_dict=form.cleaned_data,
-                                     extra={'user': request.user, 'obj': requestion,},
-                                     reason=form.cleaned_data.get('reason'))
+    Logger.objects.create_for_action(
+        transition.index, context_dict=form.cleaned_data,
+        extra={'user': request.user, 'obj': requestion, },
+        reason=form.cleaned_data.get('reason'))
 
 # ------------------------------------------------------
 # Функции дополнительной проеврки переходов (callback)
@@ -489,7 +491,7 @@ register_callback(
     permit_distribution)
 
 # Зачисление по резолюции
-register_form(DISTRIBUTION_BY_RESOLUTION, DistributionByResolutionForm)
+register_form(REQUESTER_DECISION_BY_RESOLUTION, DistributionByResolutionForm)
 
 #документальное подтверждение заявки
 register_form(CONFIRM_REQUESTION, RequestionConfirmationForm)
