@@ -61,6 +61,8 @@ class CoreViewsTest(TestCase):
         Проверяем корректрость работы ключа token, хранящегося в сессии
         пользователя.
         """
+        management.call_command('generate_sadiks', 10)
+        kgs = Sadik.objects.all()
         form_data = {
             'core-evidiencedocument-content_type-object_id-TOTAL_FORMS': '1',
             'core-evidiencedocument-content_type-object_id-INITIAL_FORMS': '0',
@@ -73,15 +75,16 @@ class CoreViewsTest(TestCase):
         self.assertIsNone(self.client.session.get('token', None))
         # заявка не сохраняется, редирект на страницу добавления заявки
         create_response = self.client.post(
-            reverse('anonym_registration'),
-            {'name': 'Ann',
-             'sex': 'Ж',
-             'birth_date': '07.06.2014',
-             'admission_date': '01.01.2014',
-             'template': '2',
-             'document_number': 'II-ИВ 016809',
-             'areas': '1',
-             'location': 'POINT (60.115814208984375 55.051432600719835)'
+            reverse('anonym_registration'), {
+                'name': 'Ann',
+                'sex': 'Ж',
+                'birth_date': '07.06.2014',
+                'admission_date': '01.01.2014',
+                'template': '2',
+                'document_number': 'II-ИВ 016809',
+                'areas': '1',
+                'location': 'POINT (60.115814208984375 55.051432600719835)',
+                'pref_sadiks': [str(kgs[0].id), str(kgs[1].id)],
             })
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(create_response,
@@ -105,7 +108,8 @@ class CoreViewsTest(TestCase):
              'document_number': 'II-ИВ 016809',
              'areas': '1',
              'location': 'POINT (60.115814208984375 55.051432600719835)',
-             'token': token, }
+             'token': token,
+             'pref_sadiks': [str(kgs[0].id), str(kgs[1].id)], }
         )
         create_response = self.client.post(
             reverse('anonym_registration'), form_data)
