@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import calendar
 import json
 
 from django.contrib.contenttypes.models import ContentType
@@ -12,14 +11,15 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 
-from pygnupgaddon import tools
+from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
-from sadiki.api.utils import sign_is_valid, make_sign
+from sadiki.api.utils import sign_is_valid, add_requestions_data
 from sadiki.operator.forms import ConfirmationForm
-from sadiki.core.workflow import workflow
+from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION
 from sadiki.core.utils import make_error_msg
 from sadiki.core.signals import post_status_change, pre_status_change
+from sadiki.logger.models import Logger
 
 
 STATUS_ALREADY_DISTRIBUTED = -1
@@ -29,6 +29,24 @@ STATUS_SYSTEM_ERROR = 2
 
 
 class SignJSONResponseMixin(object):
+    """
+    Миксин, который выполняет проверку корректности подписи данных входящего
+    запроса и формирует json в ответ
+    """
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        # если данные не проходят gpg проверку, возвращаем 403
+        data = json.loads(request.body)
+        print data
+        if not gpgtools.check_data_sign(data):
+            print 'wrong sign'
+            return HttpResponseForbidden(loader.render_to_string(
+                '403.html', context_instance=RequestContext(request)))
+        kwargs.update({'data': data['data']})
+        return super(SignJSONResponseMixin, self).dispatch(
+            request, *args, **kwargs)
+
     def render_to_response(self, context):
         return self.get_json_response(self.convert_context_to_json(context))
 
@@ -37,7 +55,7 @@ class SignJSONResponseMixin(object):
                             **kwargs)
 
     def convert_context_to_json(self, context):
-        return tools.get_signed_json(context)
+        return gpgtools.get_signed_json(context)
 
 
 class ChangeRequestionStatus(View, SignJSONResponseMixin):
@@ -46,17 +64,6 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
     ЭлектроСада
     """
     form = ConfirmationForm
-
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        # если данные не проходят gpg проверку, возвращаем 403
-        data = json.loads(request.body)
-        if not tools.check_data_sign(data):
-            return HttpResponseForbidden(loader.render_to_string(
-                '403.html', context_instance=RequestContext(request)))
-        kwargs.update({'data': data['data']})
-        return super(ChangeRequestionStatus, self).dispatch(
-            request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         # Начальные значения
@@ -106,6 +113,39 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
         return self.render_to_response(result)
 
 
+class GetRequestionsByResolution(SignJSONResponseMixin, View):
+    """
+    Получаем список заявок, которые были зачислены по резолюции
+    """
+    def post(self, request, *args, **kwargs):
+        data = kwargs['data']
+        last_import_datetime = dttools.datetime_from_stamp(data['last_import'])
+        ridx = Logger.objects.filter(
+            action_flag=DISTRIBUTION_BY_RESOLUTION,
+            datetime__gte=last_import_datetime
+        ).values_list('object_id', flat=True)
+        # если зачислений по резолюции за указанные период не было
+        if not ridx:
+            return self.render_to_response({'status_code': STATUS_OK,
+                                            'data': []})
+        requestions = Requestion.objects.filter(id__in=ridx)
+        sadiks_ids = requestions.distinct().values_list(
+            'distributed_in_vacancy__sadik_group__sadik', flat=True)
+        results = []
+        for sadik in Sadik.objects.filter(
+                id__in=sadiks_ids).distinct().order_by('number'):
+            requestions = Requestion.objects.filter(
+                distributed_in_vacancy__sadik_group__sadik=sadik,
+                status__in=[STATUS_DISTRIBUTED, ]).order_by(
+                    '-birth_date').select_related('profile').select_related(
+                        'distributed_in_vacancy__sadik_group__age_group')
+            if requestions:
+                req_list = add_requestions_data(requestions, request)
+                kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
+                results.append(kg_dict)
+        return self.render_to_response({'status_code': STATUS_OK, 'data': results})
+
+
 def get_distributions(request):
     data = Distribution.objects.all().values_list('id', flat=True)
     return HttpResponse(simplejson.dumps(list(data)), mimetype='text/json')
@@ -137,34 +177,19 @@ def get_distribution(request):
             status__in=[STATUS_DECISION, STATUS_DISTRIBUTED]).order_by(
                 '-birth_date').select_related('profile').select_related(
                     'distributed_in_vacancy__sadik_group__age_group')
-        requestion_ct = ContentType.objects.get_for_model(Requestion)
         if requestions:
-            kg_dict = {'kindergtn': sadik.id, 'requestions': []}
-            for requestion in requestions:
-                birth_cert = EvidienceDocument.objects.filter(
-                    template__destination=REQUESTION_IDENTITY,
-                    content_type=requestion_ct, object_id=requestion.id)[0]
-                url = request.build_absolute_uri(reverse(
-                    'requestion_logs', args=(requestion.id, )))
-                kg_dict['requestions'].append({
-                    'requestion_number': requestion.requestion_number,
-                    'name': requestion.name,
-                    'status': requestion.status,
-                    'queue_profile_url': url,
-                    'birth_date': calendar.timegm(
-                        requestion.birth_date.timetuple()),
-                    'birth_cert': birth_cert.document_number})
-
+            req_list = add_requestions_data(requestions, request)
+            kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
             results.append(kg_dict)
+
     data = [{
         'id': dist.id,
-        'start': calendar.timegm(dist.init_datetime.timetuple()),
-        'end': calendar.timegm(dist.end_datetime.timetuple()),
+        'start': dttools.date_to_stamp(dist.init_datetime),
+        'end': dttools.date_to_stamp(dist.end_datetime),
         'year': dist.year.year,
         'results': results,
     }]
-    response = [{'sign': make_sign(data).data, 'data': data}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+    return HttpResponse(gpgtools.get_signed_json(data), mimetype='text/json')
 
 
 @csrf_exempt
@@ -193,10 +218,10 @@ def get_child(request):
                 'url': url,
             }
             if requestion.distribution_datetime:
-                req_dict['distribution_datetime'] = calendar.timegm(
-                    requestion.distribution_datetime.timetuple())
+                req_dict['distribution_datetime'] = dttools.date_to_stamp(
+                    requestion.distribution_datetime)
             data.append(req_dict)
-        response = [{'sign': make_sign(data).data, 'data': data}]
+        response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
         return HttpResponse(simplejson.dumps(response), mimetype='text/json')
     raise Http404
 
@@ -216,7 +241,8 @@ def api_test(request):
     if not msg:
         status = 'ok'
         msg = "All passed"
-    response = [{'sign': make_sign(msg).data, 'data': msg, 'status': status}]
+    response = [{'sign': gpgtools.sign_data(msg).data,
+                 'data': msg, 'status': status}]
     return HttpResponse(simplejson.dumps(response), mimetype='text/json')
 
 
@@ -233,5 +259,5 @@ def get_kindergartens(request):
             'email': sadik.email,
             'site': sadik.site,
         })
-    response = [{'sign': make_sign(data).data, 'data': data}]
+    response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
     return HttpResponse(simplejson.dumps(response), mimetype='text/json')
