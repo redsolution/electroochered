@@ -38,7 +38,9 @@ class SignJSONResponseMixin(object):
     def dispatch(self, request, *args, **kwargs):
         # если данные не проходят gpg проверку, возвращаем 403
         data = json.loads(request.body)
+        print data
         if not gpgtools.check_data_sign(data):
+            print 'wrong sign'
             return HttpResponseForbidden(loader.render_to_string(
                 '403.html', context_instance=RequestContext(request)))
         kwargs.update({'data': data['data']})
@@ -111,7 +113,7 @@ class ChangeRequestionStatus(View, SignJSONResponseMixin):
         return self.render_to_response(result)
 
 
-class GetRequestionsByResolution(View, SignJSONResponseMixin):
+class GetRequestionsByResolution(SignJSONResponseMixin, View):
     """
     Получаем список заявок, которые были зачислены по резолюции
     """
@@ -141,6 +143,7 @@ class GetRequestionsByResolution(View, SignJSONResponseMixin):
                 req_list = add_requestions_data(requestions, request)
                 kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
                 results.append(kg_dict)
+        return self.render_to_response({'status_code': STATUS_OK, 'data': results})
 
 
 def get_distributions(request):
@@ -186,8 +189,7 @@ def get_distribution(request):
         'year': dist.year.year,
         'results': results,
     }]
-    response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+    return HttpResponse(gpgtools.get_signed_json(data), mimetype='text/json')
 
 
 @csrf_exempt

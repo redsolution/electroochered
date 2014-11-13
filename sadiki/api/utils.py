@@ -40,6 +40,9 @@ def add_requestions_data(requestions, request):
             'requestion_logs', args=(requestion.id, )))
         req_list.append({
             'requestion_number': requestion.requestion_number,
+            'requestion_id': requestion.id,
+            'distribution_datetime': dttools.datetime_to_stamp(
+                requestion.distribution_datetime),
             'name': requestion.name,
             'status': requestion.status,
             'queue_profile_url': url,
