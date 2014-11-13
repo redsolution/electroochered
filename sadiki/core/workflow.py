@@ -199,7 +199,8 @@ workflow.add(STATUS_ON_DISTRIBUTION, STATUS_DECISION, DECISION,
              u'Выделение места в ДОУ')
 workflow.add(STATUS_REQUESTER, STATUS_DECISION,
              REQUESTER_DECISION_BY_RESOLUTION,
-             u'Выделение места в ДОУ по резолюции начальника')
+             u'Выделение места в ДОУ по резолюции начальника',
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, ON_DISTRIBUTION_RETURN,
              u'Возврат в очередь нераспределенных')
 # Немедленное зачисление
@@ -689,10 +690,11 @@ ACTION_TEMPLATES.update({
     DECISION: {
         ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
     },
-    DISTRIBUTION_BY_RESOLUTION: {
+    REQUESTER_DECISION_BY_RESOLUTION: {
         ANONYM_LOG: Template(
-            u"""Зачислен в {{ sadik }}. Должность резолюционера: {{ resolutioner_post }}.
-            ФИО резолюционера: {{ resolutioner_fio }}. Номер документа: {{ resolution_number }}.
+            u"""Выделено место в {{ sadik|safe }}. Должность резолюционера:
+            {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
+            Номер документа: {{ resolution_number }}.
             """)
     },
     EMAIL_VERIFICATION: {
