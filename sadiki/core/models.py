@@ -89,8 +89,6 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
-    (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
-    (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
 )
 
 REQUESTION_MUTABLE_STATUSES = (
