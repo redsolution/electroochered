@@ -137,7 +137,7 @@ class CoreViewsTest(TestCase):
         # Проверям фильтр без указания статуса
         response = self.client.get(reverse('anonym_queue'))
         self.assertEqual(response.context_data["requestions"].count(),
-                         Requestion.objects.queue().count())        
+                         Requestion.objects.queue().count())
         for v in response.context_data["requestions"]:
             self.assertIn(
                 v.status,
@@ -148,13 +148,13 @@ class CoreViewsTest(TestCase):
         requestion.status = STATUS_REMOVE_REGISTRATION
         requestion.save()
 
-        response = self.client.get(reverse('anonym_queue'), 
+        response = self.client.get(reverse('anonym_queue'),
             data={'status': [17]})
         self.assertEqual(response.context_data["requestions"].count(),
                          Requestion.objects.filter(
                             status=STATUS_REMOVE_REGISTRATION).count())
         for v in response.context_data["requestions"]:
-            self.assertEqual(v.status, STATUS_REMOVE_REGISTRATION)                
+            self.assertEqual(v.status, STATUS_REMOVE_REGISTRATION)
 
         # Проверяем фильтр со статусом, отсутсвущем в списке
         # в случае, если записей с таким фильтром нет,
@@ -190,12 +190,12 @@ class CoreViewsTest(TestCase):
         # проверить дипазон только с минимальным значением
         data['birth_date_0'] = date_min.strftime('%d.%m.%Y')
         data['birth_date_1'] = ''
-        response = self.client.get(reverse('anonym_queue'), data) 
+        response = self.client.get(reverse('anonym_queue'), data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context_data['requestions'].count(), 
+        self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__gte=date_min).count())
+                             birth_date__gte=date_min).count())
         for requestion in response.context_data['requestions']:
             self.assertGreaterEqual(requestion.birth_date, date_min)
 
@@ -205,73 +205,73 @@ class CoreViewsTest(TestCase):
         response = self.client.get(reverse('anonym_queue'), data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context_data['requestions'].count(), 
+        self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__lte=date_max).count())
+                             birth_date__lte=date_max).count())
         for requestion in response.context_data['requestions']:
             self.assertLessEqual(requestion.birth_date, date_max)
 
-        # проверить диапазон, располагающийся перед доступным диапазоном 
+        # проверить диапазон, располагающийся перед доступным диапазоном
         data['birth_date_0'] = '01.09.1939'
         data['birth_date_1'] = '02.09.1945'
         response = self.client.get(reverse('anonym_queue'), data)
 
-        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y') 
-        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y') 
+        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y')
+        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context_data['requestions'].count(), 
+        self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
         # проверить диапазон, располагающийся после доступного диапазоном
         data['birth_date_0'] = '01.01.3000'
         data['birth_date_1'] = '01.01.3001'
         response = self.client.get(reverse('anonym_queue'), data)
 
-        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y') 
-        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y') 
+        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y')
+        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
-        # проверить диапазон, частично располагающийся 
+        # проверить диапазон, частично располагающийся
         # перед доступным диапазоном
         data['birth_date_0'] = '01.09.1939'
         data['birth_date_1'] = date_min.strftime('%d.%m.%Y')
         response = self.client.get(reverse('anonym_queue'), data)
 
-        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y')  
+        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y')
         filter_val[1] = date_min
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
-        # проверить диапазон, частично располагающийся 
+        # проверить диапазон, частично располагающийся
         # после доступного диапазона
         data['birth_date_0'] = date_max.strftime('%d.%m.%Y')
         data['birth_date_1'] = '01.01.3001'
         response = self.client.get(reverse('anonym_queue'), data)
 
         filter_val[0] = date_max
-        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y') 
+        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
-        # проверить диапазон, которйы выходит за границы доступного 
+        # проверить диапазон, которйы выходит за границы доступного
         data['birth_date_0'] = '01.09.1939'
         data['birth_date_1'] = '01.01.3001'
         response = self.client.get(reverse('anonym_queue'), data)
 
-        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y') 
-        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y')  
+        filter_val[0] = strptime(data['birth_date_0'], '%d.%m.%Y')
+        filter_val[1] = strptime(data['birth_date_1'], '%d.%m.%Y')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
         # проверить диапазон с одинаковыми значениями
         data['birth_date_0'] = date_min.strftime('%d.%m.%Y')
@@ -282,19 +282,19 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
         # проверить нормальный диапазон
         data['birth_date_0'] = date_min.strftime('%d.%m.%Y')
         data['birth_date_1'] = date_max.strftime('%d.%m.%Y')
         response = self.client.get(reverse('anonym_queue'), data)
-        
+
         filter_val[0] = date_min
         filter_val[1] = date_max
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
 
         # проверить диапазон в обратном порядке
         data['birth_date_0'] = date_max.strftime('%d.%m.%Y'),
@@ -306,9 +306,9 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range=filter_val).count())
+                             birth_date__range=filter_val).count())
         for requestion in response.context_data['requestions']:
-            self.assertIn(requestion.birth_date, 
+            self.assertIn(requestion.birth_date,
                           [date_min, date_max])
 
     def test_operator_visibility(self):
@@ -323,4 +323,4 @@ class CoreViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn('birth_date',
-            response.context_data['form'].fields)
+                      response.context_data['form'].fields)
