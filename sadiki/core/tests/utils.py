@@ -11,12 +11,6 @@ from sadiki.core.models import Requestion, Area, BenefitCategory, \
     Profile, AgeGroup, SadikGroup , Benefit
 
 
-def disable_all_benefits():
-    for benefit in Benefit.objects.all():
-        benefit.disabled = True
-        benefit.save()
-
-
 def disable_random_benefit():
     id_ = random.randrange(Benefit.objects.count())
     benefit = Benefit.objects.all()[id_]
