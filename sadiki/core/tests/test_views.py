@@ -152,14 +152,15 @@ class CoreViewsTest(TestCase):
             data={'status': [17]})
         self.assertEqual(response.context_data["requestions"].count(),
                          Requestion.objects.filter(
-                            status=STATUS_REMOVE_REGISTRATION).count())
+                             status=STATUS_REMOVE_REGISTRATION).count())
         for v in response.context_data["requestions"]:
             self.assertEqual(v.status, STATUS_REMOVE_REGISTRATION)
 
         # Проверяем фильтр со статусом, отсутсвущем в списке
         # в случае, если записей с таким фильтром нет,
         # то он вернет все записи
-        response = self.client.get(reverse('anonym_queue'),
+        response = self.client.get(
+            reverse('anonym_queue'),
             data={'status': [STATUS_NOT_APPEAR],  'Benefit_category': 1})
 
         self.assertFalse(response.context_data['requestions'])
@@ -308,8 +309,7 @@ class CoreViewsTest(TestCase):
                          Requestion.objects.filter(
                              birth_date__range=filter_val).count())
         for requestion in response.context_data['requestions']:
-            self.assertIn(requestion.birth_date,
-                          [date_min, date_max])
+            self.assertIn(requestion.birth_date, [date_min, date_max])
 
     def test_operator_visibility(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
@@ -322,5 +322,4 @@ class CoreViewsTest(TestCase):
         response = self.client.get('/queue/')
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn('birth_date',
-                      response.context_data['form'].fields)
+        self.assertIn('birth_date', response.context_data['form'].fields)
