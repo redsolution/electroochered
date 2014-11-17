@@ -8,11 +8,11 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
-    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address, RequestionQuerySet, \
-    STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, \
-    STATUS_NOT_APPEAR
-from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
-    SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
+    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, \
+    Address, RequestionQuerySet, STATUS_NOT_APPEAR,  STATUS_REQUESTER, \
+    STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION
+from sadiki.core.permissions import OPERATOR_GROUP_NAME, \
+    SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 
 
 OPERATOR_USERNAME = 'operator'
@@ -23,6 +23,7 @@ SUPERVISOR_PASSWORD = 'password'
 
 REQUESTER_USERNAME = 'requester'
 REQUESTER_PASSWORD = '1234'
+
 
 class CoreViewsTest(TestCase):
     fixtures = ['sadiki/core/fixtures/test_initial.json', ]
@@ -49,7 +50,8 @@ class CoreViewsTest(TestCase):
         self.operator.save()
         Profile.objects.create(user=self.operator)
         operator_group = Group.objects.get(name=OPERATOR_GROUP_NAME)
-        sadik_operator_group = Group.objects.get(name=SADIK_OPERATOR_GROUP_NAME)
+        sadik_operator_group = Group.objects.get(
+            name=SADIK_OPERATOR_GROUP_NAME)
         distributor_group = Group.objects.get(name=DISTRIBUTOR_GROUP_NAME)
         self.operator.groups = (operator_group, sadik_operator_group,
                                 distributor_group)
@@ -83,7 +85,7 @@ class CoreViewsTest(TestCase):
         anonym_response = client.get(reverse('anonym_queue'))
         self.assertEqual(anonym_response.status_code, 200)
 
-        login = client.login(username=OPERATOR_USERNAME ,
+        login = client.login(username=OPERATOR_USERNAME,
                              password=OPERATOR_PASSWORD)
         self.assertTrue(login)
         operator_response = client.get(reverse('anonym_queue'))
@@ -107,7 +109,7 @@ class CoreViewsTest(TestCase):
 
         # от оператора
         login = self.client.login(
-            username=OPERATOR_USERNAME ,
+            username=OPERATOR_USERNAME,
             password=OPERATOR_PASSWORD
         )
         self.assertTrue(login)
@@ -125,21 +127,21 @@ class CoreViewsTest(TestCase):
         self.assertTrue(login)
         requester_response = self.client.get(reverse('anonym_queue'))
         self.assertEqual(requester_response.status_code, 200)
-        self.assertEqual(requester_response.context_data["requestions"].count(),
-                         Requestion.objects.queue().count())
+        self.assertEqual(
+            requester_response.context_data["requestions"].count(),
+            Requestion.objects.queue().count())
 
     def test_status(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
 
         # Проверям фильтр без указания статуса
         response = self.client.get(reverse('anonym_queue'))
-
         self.assertEqual(response.context_data["requestions"].count(),
-                         Requestion.objects.queue().count())
-        
+                         Requestion.objects.queue().count())        
         for v in response.context_data["requestions"]:
-            self.assertIn(v.status,
-                [STATUS_REQUESTER,STATUS_REQUESTER_NOT_CONFIRMED])
+            self.assertIn(
+                v.status,
+                [STATUS_REQUESTER, STATUS_REQUESTER_NOT_CONFIRMED])
 
         # Проверям фильтр со статсуом 17( Снят с учёта )
         requestion = Requestion.objects.order_by('?')[0]
@@ -148,7 +150,6 @@ class CoreViewsTest(TestCase):
 
         response = self.client.get(reverse('anonym_queue'), 
             data={'status': [17]})
-        
         self.assertEqual(response.context_data["requestions"].count(),
                          Requestion.objects.filter(
                             status=STATUS_REMOVE_REGISTRATION).count())
@@ -206,7 +207,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(), 
                          Requestion.objects.filter(
-                            birth_date__lte = date_max).count())
+                            birth_date__lte=date_max).count())
         for requestion in response.context_data['requestions']:
             self.assertLessEqual(requestion.birth_date, date_max)
 
@@ -234,7 +235,8 @@ class CoreViewsTest(TestCase):
                          Requestion.objects.filter(
                             birth_date__range=filter_val).count())
 
-        # проверить диапазон, частично располагающийся перед доступным диапазоном
+        # проверить диапазон, частично располагающийся 
+        # перед доступным диапазоном
         data['birth_date_0'] = '01.09.1939'
         data['birth_date_1'] = date_min.strftime('%d.%m.%Y')
         response = self.client.get(reverse('anonym_queue'), data)
@@ -246,7 +248,8 @@ class CoreViewsTest(TestCase):
                          Requestion.objects.filter(
                             birth_date__range=filter_val).count())
 
-        # проверить диапазон, частично располагающийся после доступного диапазона
+        # проверить диапазон, частично располагающийся 
+        # после доступного диапазона
         data['birth_date_0'] = date_max.strftime('%d.%m.%Y')
         data['birth_date_1'] = '01.01.3001'
         response = self.client.get(reverse('anonym_queue'), data)
@@ -256,7 +259,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context_data['requestions'].count(),
                          Requestion.objects.filter(
-                            birth_date__range = filter_val).count())
+                            birth_date__range=filter_val).count())
 
         # проверить диапазон, которйы выходит за границы доступного 
         data['birth_date_0'] = '01.09.1939'
@@ -311,7 +314,7 @@ class CoreViewsTest(TestCase):
     def test_operator_visibility(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
         login = self.client.login(
-            username=OPERATOR_USERNAME ,
+            username=OPERATOR_USERNAME,
             password=OPERATOR_PASSWORD
         )
         self.assertTrue(login)
