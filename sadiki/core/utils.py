@@ -447,6 +447,8 @@ def find_closest_kg(requestion, save=True, verbose=False):
             distance = measure_distance(requestion.location, kg.address.coords)
             if not closest or closest['distance'] > distance:
                 closest = {'kg': kg, 'distance': distance}
+        else:
+            closest = {'kg': kg, 'distance': 0}
     requestion.closest_kg = closest['kg']
     if save:
         requestion.save()
@@ -468,3 +470,19 @@ def measure_distance(coords1, coords2):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
     d = EARTH_RADIUS * c
     return d * 1000  # meters
+
+
+def make_error_msg(errors):
+    """
+    Функция возвращает все ошибки, возникшие при за полнении формы, в виде
+    одной строки.
+
+    Параметр errors - объект form.errors
+    """
+    msg = u""
+    for error in errors:
+        field_errors = u""
+        for field_error in errors[error]:
+            field_errors = field_errors + field_error + ' '
+        msg += u"{}: {}\n".format(error, field_errors)
+    return msg

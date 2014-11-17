@@ -55,6 +55,7 @@ STATUS_ON_TEMP_DISTRIBUTION = 51  # На временном комплектов
 STATUS_NOT_APPEAR_EXPIRE = 53  # Сроки на обжалование неявки истекли
 STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутствия истекли
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
+STATUS_DISTRIBUTED_FROM_ES = 56  # Зачислена через систему ЭлектроСад
 
 STATUS_CHOICES = (
     (STATUS_WAIT_REVIEW, u'Ожидает рассмотрения'),
@@ -77,6 +78,7 @@ STATUS_CHOICES = (
     (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
+    (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен через систему ЭлектроСад"),
 )
 
 STATUS_CHOICES_FILTER = (
@@ -87,8 +89,6 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
-    (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
-    (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
 )
 
 REQUESTION_MUTABLE_STATUSES = (
@@ -529,6 +529,7 @@ class AgeGroup(models.Model):
     def __unicode__(self):
         return self.name
 
+
 class SadikGroupQueryset(models.query.QuerySet):
     def active(self):
         u"""исключаются все группы, принадлежащие к завершившися зачислениям"""
@@ -536,8 +537,9 @@ class SadikGroupQueryset(models.query.QuerySet):
 
     def appropriate_for_birth_date(self, birth_date):
         u"""только те, которые подходят для заданной даты рождения"""
-        return self.filter(min_birth_date__lt=birth_date,
-            max_birth_date__gte=birth_date)
+        return self.filter(
+            min_birth_date__lt=birth_date, max_birth_date__gte=birth_date)
+
 
 class SadikGroup(models.Model):
     class Meta:
@@ -546,16 +548,15 @@ class SadikGroup(models.Model):
         ordering = ['-min_birth_date']
 
     age_group = models.ForeignKey('AgeGroup', blank=True, null=True)
-    other_name = models.CharField(u'Альтернативное имя', max_length=100,
-        blank=True, null=True)
+    other_name = models.CharField(
+        u'Альтернативное имя', max_length=100, blank=True, null=True)
     cast = models.IntegerField(u'тип', choices=SADIK_GROUP_TYPE_CHOICES,
         default=SADIK_GROUP_TYPE_NORMAL)
     sadik = models.ForeignKey(Sadik, null=False, blank=False,
         related_name='groups')
     capacity = models.PositiveIntegerField(u'номинальная вместимость', default=0)
     free_places = models.PositiveIntegerField(u'кол-во свободных мест', default=0)
-    distributions = models.ManyToManyField('Distribution',
-        through='Vacancies')
+    distributions = models.ManyToManyField('Distribution', through='Vacancies')
     # Возрастные параметры
     min_birth_date = models.DateField(verbose_name=u'Наименьший возраст')
     max_birth_date = models.DateField(verbose_name=u'Наибольший возраст')
@@ -566,12 +567,13 @@ class SadikGroup(models.Model):
     objects = query_set_factory(SadikGroupQueryset)
 
     def set_default_age(self, age_group):
-#        вычисляем возрастные ограничения
-        self.min_birth_date = age_group.min_birth_date
-        self.max_birth_date = age_group.max_birth_date
+        # вычисляем возрастные ограничения
+        self.min_birth_date = age_group.min_birth_date()
+        self.max_birth_date = age_group.max_birth_date()
+        self.save()
         
     def appropriate_for_birth_date(self, birth_date):
-        return self.min_birth_date<birth_date and self.max_birth_date>birth_date
+        return self.min_birth_date < birth_date < self.max_birth_date
 
     def __unicode__(self):
         if self.pk:
@@ -580,18 +582,20 @@ class SadikGroup(models.Model):
         else:
             return u"новая группа"
 
+
 def update_vacancies(sender, **kwargs):
     sadik_group = kwargs['instance']
     if not Distribution.objects.active():
-        vacancies = Vacancies.objects.filter(distribution__isnull=True,
-            status__isnull=True, sadik_group=sadik_group)
+        vacancies = Vacancies.objects.filter(
+            distribution__isnull=True, status__isnull=True,
+            sadik_group=sadik_group)
         free_vacancies_number = vacancies.count()
         places_sub = free_vacancies_number - sadik_group.free_places
-#            если кол-во путевок больше свободных мест, то нужно удалить лишние
+        # если кол-во путевок больше свободных мест, то нужно удалить лишние
         if places_sub > 0:
             vacancies_to_delete = vacancies[0:places_sub]
             Vacancies.objects.filter(id__in=vacancies_to_delete).delete()
-#            если кол-во путевок меньше свободных мест, досоздаем
+        # если кол-во путевок меньше свободных мест, досоздаем
         elif places_sub < 0:
             for i in range(abs(places_sub)):
                 Vacancies.objects.create(sadik_group=sadik_group)
@@ -616,7 +620,7 @@ VACANCY_STATUS_CHOICES = (
     (VACANCY_STATUS_TEMP_ABSENT, u"Отсутствует по уважительной причине"),
     (VACANCY_STATUS_TEMP_DISTRIBUTED, u"Временная путевка"),
     (VACANCY_STATUS_NOT_PROVIDED, u"Место не было никому выделено"),
-    )
+)
 
 
 class Vacancies(models.Model):
@@ -672,7 +676,7 @@ DISTRIBUTION_STATUS_CHOICES = (
     (DISTRIBUTION_STATUS_START, u'Комплектация заявок'),
     (DISTRIBUTION_STATUS_ENDING, u'Процесс завершения распределения'),
     (DISTRIBUTION_STATUS_END, u'Распределение завершено'),
-    )
+)
 
 
 class DistributionQuerySet(models.query.QuerySet):
@@ -696,10 +700,10 @@ class Distribution(models.Model):
     start_datetime = models.DateTimeField(
         verbose_name=u'Дата и время начала распределения', blank=True,
         null=True)
-    end_datetime = models.DateTimeField(verbose_name=u'Дата и время окончания',
-        blank=True, null=True)
-    status = models.IntegerField(verbose_name=u'Текущий статус',
-        choices=DISTRIBUTION_STATUS_CHOICES,
+    end_datetime = models.DateTimeField(
+        verbose_name=u'Дата и время окончания', blank=True, null=True)
+    status = models.IntegerField(
+        verbose_name=u'Текущий статус', choices=DISTRIBUTION_STATUS_CHOICES,
         default=DISTRIBUTION_STATUS_INITIAL)
     year = models.DateField(verbose_name=u'Год распределения')
 
@@ -729,12 +733,13 @@ AGENT_TYPE_CHOICES = (
     (AGENT_TYPE_FATHER, u"отец"),
     (AGENT_TYPE_TUTOR, u"опекун"),
     (AGENT_TYPE_OTHER, u"иное"),
-    )
+)
 
 SOCIAL_PUBLIC_CHOICES = (
     (True, 'Отображать в публичной очереди'),
     (False, 'Не отображать в публичной очереди'),
 )
+
 
 class Profile(models.Model):
     u"""Класс профиля пользователя"""
@@ -801,8 +806,6 @@ DISTRIBUTION_PROCESS_STATUSES = (
     STATUS_PASS_GRANTED,
     STATUS_ABSENT,
     STATUS_ABSENT_EXPIRE,
-    STATUS_NOT_APPEAR,
-    STATUS_NOT_APPEAR_EXPIRE,
 )
 
 DEFAULT_DISTRIBUTION_TYPE = 0
@@ -847,12 +850,9 @@ class RequestionQuerySet(models.query.QuerySet):
 
     def provided_places(self):
         u"""
-        Заявки которые занимают место в ДОУ(выделено место, зачислена, не явился
-        (но еще не снят с учета))
+        Заявки которые занимают место в ДОУ(выделено место, зачислена)
         """
-        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED,
-                                       STATUS_NOT_APPEAR,
-                                       STATUS_NOT_APPEAR_EXPIRE))
+        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED))
 
     def not_confirmed(self):
         u"""заявки для которых не установлено документальное подтверждение"""
@@ -933,8 +933,7 @@ class RequestionQuerySet(models.query.QuerySet):
 
     def enrollment_in_progress(self):
         return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT,
-                                       STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
-                                       STATUS_NOT_APPEAR_EXPIRE))
+                                       STATUS_ABSENT_EXPIRE))
 
     def add_related_documents(self):
         # а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
@@ -1188,15 +1187,10 @@ class Requestion(models.Model):
 
     @property
     def is_available_for_actions(self):
-        u""" Если есть незавершенное распрелеление и заявке выделено место,
-        то делать с ней ничего нельзя
+        u"""Заявка в статусе "выделено место" - неизменяемая, все дальнейшине
+        изменения статуса происходоят только через ЭлектроСад
         """
-        try:
-            active_distribution = Distribution.objects.get(
-                ~Q(status=DISTRIBUTION_STATUS_END))
-        except ObjectDoesNotExist:
-            active_distribution = None
-        return not (self.status == 6 and active_distribution)
+        return not self.status == STATUS_DECISION
 
     def available_temp_vacancies(self):
         return Vacancies.objects.filter(
@@ -1287,10 +1281,8 @@ class Requestion(models.Model):
         if self.id:
             requestion = Requestion.objects.get(id=self.id)
             status = requestion.status
-            old_location = requestion.location
         else:
             status = None
-            old_location = None
             # проверяем, что задана категория льгот, если нет, то задаем с
             # наименьшим приоритетом
             if not self.benefit_category:
@@ -1368,6 +1360,17 @@ class Requestion(models.Model):
     def is_fake_identity_documents(self):
         return self.evidience_documents().filter(
             fake=True, template__destination=REQUESTION_IDENTITY).exists()
+
+    def remove_vacancy(self):
+        """
+        Освобождаем выделенное место, отмечам vacancy как не занятую
+        """
+        vacancy = self.distributed_in_vacancy
+        vacancy.status = VACANCY_STATUS_NOT_PROVIDED
+        vacancy.save()
+        self.previous_distributed_in_vacancy = vacancy
+        self.distributed_in_vacancy = None
+        self.save()
 
     def __unicode__(self):
         return self.requestion_number
@@ -1526,8 +1529,8 @@ class UserFunctions:
         # поэтому, если пользователь неактивен - значит он 'administrative'
         if not self.is_active:
             return True
-        return any((self.is_operator(), self.is_sadik_operator(), self.is_administrator(),
-            self.is_supervisor()))
+        return any((self.is_operator(), self.is_sadik_operator(),
+                    self.is_administrator(), self.is_supervisor()))
 
     def perms_for_area(self, areas):
         u"""Есть ли у пользователя права на какую-нибудь из областей"""
@@ -1593,13 +1596,14 @@ class District(models.Model):
 def update_benefit_category(action, instance, **kwargs):
     u"""При изменении льгот у заявки обновляется поле benefit_category"""
     if action in ("post_add", "post_remove", "post_clear"):
-#        получаем список категорий в зависимости от льгот(более приоритетные впереди)
+        # получаем список категорий в зависимости от льгот
+        # (более приоритетные впереди)
         categories = BenefitCategory.objects.filter(
             benefit__requestion=instance).order_by('-priority')
         if categories:
             benefit_category = categories[0]
         else:
-#            если не заданы льготы, то берем наименее приоритетную категорию
+            # если не заданы льготы, то берем наименее приоритетную категорию
             benefit_category = BenefitCategory.objects.category_without_benefits()
         if instance.benefit_category != benefit_category:
             instance.benefit_category = benefit_category

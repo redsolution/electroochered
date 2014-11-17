@@ -86,24 +86,23 @@ class Workflow(object):
             return None
 
 # Изменение статуса заявки()
-REQUESTION_REGISTRATION_BY_OPERATOR = 0             # Регистрация через оператора
+REQUESTION_REGISTRATION_BY_OPERATOR = 0  # Регистрация через оператора
 REQUESTION_IMPORT = 1                   # Импорт заявки
-REQUESTION_ADD_BY_REQUESTER = 2                      # Добавление заявки пользователем
+REQUESTION_ADD_BY_REQUESTER = 2         # Добавление заявки пользователем
 CONFIRM_REQUESTION = 3                  # Документальное подтверждение заявки
 ON_DISTRIBUTION = 5                     # Переход в комплектование
 DECISION = 6                            # Выделено место
 ON_DISTRIBUTION_RETURN = 7              # возврат в очередь нераспределенных
 IMMEDIATELY_DECISION = 8                # Выделено место(немедленное зачисление)
+REQUESTER_DECISION_BY_RESOLUTION = 9    # Выделено место по резолюции
 ON_TEMP_DISTRIBUTION = 12               # Переход в комплектование временно зачисленной заявки
 ON_TEMP_DISTRIBUTION_RETURN = 58        # Возврат в очередь нераспределенной временно зач-й
 PERMANENT_DECISION = 13                 # Выделение места временно зачисленному
 IMMEDIATELY_PERMANENT_DECISION = 14     # Выделение места временно зачисленному(немедленное зач-е)
-IMMEDIATELY_PERMANENT_DECISION = 15     # Выделение места временно зачисленному(немедленное зач-е)
 DECISION_DISTRIBUTION = 16              # Зачислен
 DECISION_ABSENT = 17                    # Невозможно установить контакт
 DECISION_NOT_APPEAR = 18                # Неявка в ДОУ
 ABSENT_DISTRIBUTED = 19                 # Явка в допольнительное время
-NOT_APPEAR_DISTRIBUTED = 20             # Явка в дополнительное время
 PASS_GRANTED = 21                       # Выдача путевки
 PASS_DISTRIBUTED = 22                   # Зачисление по путевке
 PASS_NOT_APPEAR = 23                    # Неявка по путевке
@@ -114,7 +113,6 @@ REQUESTER_REMOVE_REGISTRATION = 38      # Снятие с учета подтв�
 NOT_CONFIRMED_REMOVE_REGISTRATION = 39  # Снятие с учета неподтвержденной заявки
 RESTORE_REQUESTION = 40                 # Восстановить заявку
 ABSENT_REMOVE_REGISTRATION = 41         # Снять с учета при невозможности связаться
-NOT_APPEAR_REMOVE_REGISTRATION = 42     # Снять с учета при неявке
 REMOVE_REGISTRATION_ARCHIVE = 43        # Помещение снятой заявки в архив
 DISTRIBUTED_ARCHIVE = 44                # Помещение распределенной заявки в архив
 DECISION_REQUESTER = 46                 # Отказ от места в ДОУ
@@ -124,11 +122,12 @@ PASS_GRANTED_REQUESTER = 47             # Возврат путевки
 RETURN_TEMP_DISTRIBUTED = 48            # Возврат в очередь временно зачисленной заявки
 RETURN_TEMP_PASS_TRANSFER = 49          # Возврат временной путевки
 ABSENT_EXPIRE = 50                      # Истечение сроков обжалования
-NOT_APPEAR_EXPIRE = 51                  # Истечение сроков обжалования
 REQUESTION_REJECT = 55                  # Истечение сроков на подтверждение документов
 TEMP_ABSENT = 56                        # Длительное отсутствие по уважительной причине
 TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутсвия по уважительной причине
 DISTRIBUTION_BY_RESOLUTION = 58
+# actions with id 59, 60 already taken
+ES_DISTRIBUTION = 61                    # Зачислен через ЭлектроСад
 #отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
@@ -186,8 +185,9 @@ workflow.add(None, STATUS_REQUESTER_NOT_CONFIRMED, REQUESTION_ADD_BY_REQUESTER,
 workflow.add(None, STATUS_REQUESTER, REQUESTION_IMPORT, u'Импорт заявки')
 workflow.add(None, STATUS_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR,
              u'Регистрация через оператора', )
-workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER, CONFIRM_REQUESTION,
-             u'Подтверждение заявки', permissions=[OPERATOR_PERMISSION[0]])
+workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
+             CONFIRM_REQUESTION, u'Подтверждение заявки',
+             permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(None, STATUS_REQUESTER, REQUESTION_TRANSFER,
              u'Перевод из другого муниципалитета',)
 
@@ -197,12 +197,17 @@ workflow.add(STATUS_REQUESTER, STATUS_ON_DISTRIBUTION, ON_DISTRIBUTION,
              u'Перевод в комплектование')
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_DECISION, DECISION,
              u'Выделение места в ДОУ')
+workflow.add(STATUS_REQUESTER, STATUS_DECISION,
+             REQUESTER_DECISION_BY_RESOLUTION,
+             u'Выделение места в ДОУ по резолюции начальника',
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, ON_DISTRIBUTION_RETURN,
              u'Возврат в очередь нераспределенных')
 # Немедленное зачисление
 if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
     workflow.add(STATUS_REQUESTER, STATUS_DECISION, IMMEDIATELY_DECISION,
-                 u'Выделение места в ДОУ (немедленное зачисление)', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Выделение места в ДОУ (немедленное зачисление)',
+                 permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 
 # 2.3) Временное зачисление
@@ -214,50 +219,58 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
                  ON_TEMP_DISTRIBUTION_RETURN,
                  u'Возврат нераспределенных в очередь(временно зачисленные)')
     workflow.add(STATUS_ON_TEMP_DISTRIBUTION, STATUS_DECISION,
-                 PERMANENT_DECISION, u'Выделение места в ДОУ на постоянное основе')
+                 PERMANENT_DECISION,
+                 u'Выделение места в ДОУ на постоянное основе')
     # Немедленное зачисление
     if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
-        workflow.add(STATUS_TEMP_DISTRIBUTED, STATUS_DECISION,
-                     IMMEDIATELY_PERMANENT_DECISION,
-                     u'Выделение места в ДОУ на постоянной основе(немедленное зачисление)',
-                     permissions=[DISTRIBUTOR_PERMISSION[0]])
+        workflow.add(
+            STATUS_TEMP_DISTRIBUTED, STATUS_DECISION,
+            IMMEDIATELY_PERMANENT_DECISION,
+            u'Выделение места в ДОУ на постоянной основе(немедленное зачисление)',
+            permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 
 # 3) Зачисление
 # 3.1) Очередники
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
-             u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]], check_document=True)
-workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION, u'Зачисление по резолюции Начальника',
-             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
+             u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]],
+             check_document=True)
+workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED_FROM_ES, ES_DISTRIBUTION,
+             u'Зачисление через систему ЭлектроСад', check_document=True)
+# workflow.add(STATUS_REQUESTER, STATUS_DISTRIBUTED, DISTRIBUTION_BY_RESOLUTION,
+#              u'Зачисление по резолюции Начальника',
+#              permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 # workflow.add(STATUS_DECISION, STATUS_ABSENT, DECISION_ABSENT,
-#              u'Невозможно установить контакт с заявителем', permissions=[DISTRIBUTOR_PERMISSION[0]])
+#              u'Невозможно установить контакт с заявителем',
+#              permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_DECISION, STATUS_NOT_APPEAR, DECISION_NOT_APPEAR,
              u'Неявка в ДОУ', permissions=[DISTRIBUTOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_DISTRIBUTED, ABSENT_DISTRIBUTED,
-             u'Явка в дополнительное время отсутствующих', permissions=[DISTRIBUTOR_PERMISSION[0]],
-             check_document=True)
-workflow.add(STATUS_NOT_APPEAR, STATUS_DISTRIBUTED, NOT_APPEAR_DISTRIBUTED,
-             u'Явка в дополнительное время неявившихся', permissions=[DISTRIBUTOR_PERMISSION[0]],
-             check_document=True)
+             u'Явка в дополнительное время отсутствующих',
+             permissions=[DISTRIBUTOR_PERMISSION[0]], check_document=True)
 # Путевки
 if ETICKET != ETICKET_NO:
     workflow.add(STATUS_DECISION, STATUS_PASS_GRANTED, PASS_GRANTED,
                  u'Получение путевки', permissions=[DISTRIBUTOR_PERMISSION[0]])
     workflow.add(STATUS_PASS_GRANTED, STATUS_DISTRIBUTED, PASS_DISTRIBUTED,
-                 u'Зачисление по путевке', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Зачисление по путевке',
+                 permissions=[DISTRIBUTOR_PERMISSION[0]])
     workflow.add(STATUS_PASS_GRANTED, STATUS_NOT_APPEAR, PASS_NOT_APPEAR,
-                 u'Неявка в ДОУ с путевкой', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 u'Неявка в ДОУ с путевкой',
+                 permissions=[DISTRIBUTOR_PERMISSION[0]])
 
 # 3.3) Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 #    зачисление на постоянной основе
 #    временное зачисление
     workflow.add(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,
-                 TEMP_DISTRIBUTION_TRANSFER, u'Временное зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                 TEMP_DISTRIBUTION_TRANSFER, u'Временное зачисление',
+                 permissions=[DISTRIBUTOR_PERMISSION[0]])
     # Путевки для временного зачисления
     if ETICKET != ETICKET_NO:
         workflow.add(STATUS_REQUESTER, STATUS_TEMP_PASS_TRANSFER,
-                     TEMP_PASS_TRANSFER, u'Выдача временной путевки', permissions=[DISTRIBUTOR_PERMISSION[0]])
+                     TEMP_PASS_TRANSFER, u'Выдача временной путевки',
+                     permissions=[DISTRIBUTOR_PERMISSION[0]])
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_TEMP_DISTRIBUTED,
                      TEMP_PASS_DISTRIBUTION, u'Временное зачисление по путевке',
                      permissions=[DISTRIBUTOR_PERMISSION[0]])
@@ -265,21 +278,20 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 4) Отказы
 
 workflow.add(STATUS_REQUESTER, STATUS_REMOVE_REGISTRATION,
-             REQUESTER_REMOVE_REGISTRATION, u'Снятие с учёта', permissions=[OPERATOR_PERMISSION[0]])
+             REQUESTER_REMOVE_REGISTRATION, u'Снятие с учёта',
+             permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_REQUESTER,
-             RESTORE_REQUESTION, u'Восстановление в очереди', permissions=[SUPERVISOR_PERMISSION[0]],
+             RESTORE_REQUESTION, u'Восстановление в очереди',
+             permissions=[SUPERVISOR_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION,
-             NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки', permissions=[OPERATOR_PERMISSION[0]])
+             NOT_CONFIRMED_REMOVE_REGISTRATION, u'Отклонение заявки',
+             permissions=[OPERATOR_PERMISSION[0]])
 workflow.add(STATUS_ABSENT, STATUS_ABSENT_EXPIRE, ABSENT_EXPIRE,
              u'Истечение сроков на обжалование отсутствия')
 workflow.add(STATUS_ABSENT_EXPIRE, STATUS_REMOVE_REGISTRATION,
              ABSENT_REMOVE_REGISTRATION,
-             u'Снятие с учёта по истечению срока на установление контакта', permissions=[OPERATOR_PERMISSION[0]])
-workflow.add(STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, NOT_APPEAR_EXPIRE,
-             u'Истечение сроков на обжалование неявки', permissions=[OPERATOR_PERMISSION[0]])
-workflow.add(STATUS_NOT_APPEAR_EXPIRE, STATUS_REMOVE_REGISTRATION,
-             NOT_APPEAR_REMOVE_REGISTRATION, u'Снятие с учёта по истечению срока явки',
+             u'Снятие с учёта по истечению срока на установление контакта',
              permissions=[OPERATOR_PERMISSION[0]])
 
 workflow.add(STATUS_REMOVE_REGISTRATION, STATUS_ARCHIVE,
@@ -288,13 +300,16 @@ workflow.add(STATUS_DISTRIBUTED, STATUS_ARCHIVE, DISTRIBUTED_ARCHIVE,
              u'Архивация зачисленных')
 
 workflow.add(STATUS_DECISION, STATUS_REQUESTER, DECISION_REQUESTER,
-             u'Отказ от места в ДОУ', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+             u'Отказ от места в ДОУ',
+             permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_NOT_APPEAR, STATUS_REQUESTER, NOT_APPEAR_REQUESTER,
-             u'Отказ от места в ДОУ после неявки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+             u'Отказ от места в ДОУ после неявки',
+             permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
-             u'Отказ от места в ДОУ после отсутствия', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
+             u'Отказ от места в ДОУ после отсутствия',
+             permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
              REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
@@ -318,21 +333,26 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # Путевки
 if ETICKET != ETICKET_NO:
     workflow.add(STATUS_PASS_GRANTED, STATUS_REQUESTER, PASS_GRANTED_REQUESTER,
-                 u'Возврат путевки', permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
+                 u'Возврат путевки',
+                 permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]])
 
 # Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     workflow.add(STATUS_DISTRIBUTED, STATUS_TEMP_ABSENT, TEMP_ABSENT,
-                 u"Длительное отсутствие по уважительной причине", permissions=[OPERATOR_PERMISSION[0]])
+                 u"Длительное отсутствие по уважительной причине",
+                 permissions=[OPERATOR_PERMISSION[0]])
     workflow.add(STATUS_TEMP_ABSENT, STATUS_DISTRIBUTED, TEMP_ABSENT_CANCEL,
-                 u"Возврат после отсутствия по уважительной причине", permissions=[OPERATOR_PERMISSION[0]])
+                 u"Возврат после отсутствия по уважительной причине",
+                 permissions=[OPERATOR_PERMISSION[0]])
     workflow.add(STATUS_TEMP_DISTRIBUTED, STATUS_REQUESTER,
-                 RETURN_TEMP_DISTRIBUTED, u'Возвращение в очередь из временно зачисленных',
+                 RETURN_TEMP_DISTRIBUTED,
+                 u'Возвращение в очередь из временно зачисленных',
                  permissions=[OPERATOR_PERMISSION[0]])
     # Путевки
     if ETICKET != ETICKET_NO:
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_REQUESTER,
-                     RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки', permissions=[OPERATOR_PERMISSION[0]])
+                     RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки',
+                     permissions=[OPERATOR_PERMISSION[0]])
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
@@ -363,7 +383,8 @@ ACTION_CHOICES.extend(
      (CREATE_PROFILE_BY_OPERATOR, u"Регистрация профиля оператором"),
      (IMPORT_PROFILE, u"Импорт профиля"),
      (EMBED_REQUESTION_TO_PROFILE, u"Прикрепление заявки к профилю"),
-     (CHANGE_REQUESTION_LOCATION, u"Изменение местоположения заявки во время распределения"),
+     (CHANGE_REQUESTION_LOCATION,
+      u"Изменение местоположения заявки во время распределения"),
      #    Распределения
      (DISTRIBUTION_INIT, u'Начало распределения'),
      (DISTRIBUTION_AUTO, u'Начало автоматического комплектования'),
@@ -550,8 +571,18 @@ change_documents_account_template = u"""
     """
 
 decision_distribution_anonym = u"""Было завершено зачисление в {{ sadik }}"""
-decision_not_appear_anonym = u"""Заявитель не явился в назначенный срок для зачисления в {{ sadik }}"""
-decision_requster_anonym = u"""Заявитель отказался от выделенного места в {{ sadik }}. Заявка была возвращена в очередь"""
+es_decision_distribution_anonym = u"""
+    По решению оператора {{ operator }} системы ЭлектроСад было завершено
+    зачисление в {{ sadik }}"""
+decision_not_appear_anonym = u"""
+    Заявитель не явился в назначенный срок для зачисления в {{ sadik }}
+    {% if operator %} Неявку отметил оператор ЭлектроСада
+    {{ operator }}.{% endif %}"""
+decision_requster_anonym = u"""
+    Заявитель отказался от выделенного места в {{ sadik }}.
+    Заявка была возвращена в очередь. {% if operator %}
+    Процедуру возврата инициировал оператор ЭлектроСада {{ operator }}.
+    {% endif %}"""
 
 email_verification_template = u"Почтовый адрес {{ email }} успешно подтвержден."
 
@@ -644,8 +675,8 @@ ACTION_TEMPLATES.update({
     DECISION_DISTRIBUTION: {
         ANONYM_LOG: Template(decision_distribution_anonym)
     },
-    NOT_APPEAR_DISTRIBUTED: {
-        ANONYM_LOG: Template(decision_distribution_anonym)
+    ES_DISTRIBUTION: {
+        ANONYM_LOG: Template(es_decision_distribution_anonym)
     },
     DECISION_REQUESTER: {
         ANONYM_LOG: Template(decision_requster_anonym)
@@ -653,22 +684,17 @@ ACTION_TEMPLATES.update({
     NOT_APPEAR_REQUESTER: {
         ANONYM_LOG: Template(decision_requster_anonym)
     },
-    NOT_APPEAR_REMOVE_REGISTRATION: {
-        ANONYM_LOG: Template(u"""Снята с учета в связи с неявкой в 30-ти дневный срок""")
-    },
-    NOT_APPEAR_EXPIRE: {
-        ANONYM_LOG: Template(u"""Истек срок обжалования неявки.""")
-    },
     DECISION_NOT_APPEAR: {
         ANONYM_LOG: Template(decision_not_appear_anonym)
     },
     DECISION: {
         ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
     },
-    DISTRIBUTION_BY_RESOLUTION: {
+    REQUESTER_DECISION_BY_RESOLUTION: {
         ANONYM_LOG: Template(
-            u"""Зачислен в {{ sadik }}. Должность резолюционера: {{ resolutioner_post }}.
-            ФИО резолюционера: {{ resolutioner_fio }}. Номер документа: {{ resolution_number }}.
+            u"""Выделено место в {{ sadik|safe }}. Должность резолюционера:
+            {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
+            Номер документа: {{ resolution_number }}.
             """)
     },
     EMAIL_VERIFICATION: {

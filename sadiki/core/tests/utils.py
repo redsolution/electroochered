@@ -8,7 +8,15 @@ from django.contrib.auth.models import User, Permission
 from sadiki.core import utils
 
 from sadiki.core.models import Requestion, Area, BenefitCategory, \
-    Profile, AgeGroup, SadikGroup
+    Profile, AgeGroup, SadikGroup , Benefit
+
+
+def disable_random_benefit():
+    id_ = random.randrange(Benefit.objects.count())
+    benefit = Benefit.objects.all()[id_]
+    benefit.disabled = True
+    benefit.save()
+    return benefit
 
 
 def get_random_string(length, only_letters=False, only_digits=False):

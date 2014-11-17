@@ -33,3 +33,4 @@ lock/*
 secure_static/
 ENV/*
 env/*
+*~

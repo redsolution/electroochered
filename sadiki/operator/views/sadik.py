@@ -124,18 +124,21 @@ class SadikGroupChangePlaces(SadikOperatorSadikMixin, TemplateView):
 
 
 class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
-    u"""список заявок, которым выделены места для выставления статуса зачисления"""
+    u"""список заявок, которым выделены места для выставления
+    статуса зачисления
+    """
     template_name = "operator/requestion_list_distributed.html"
     required_permissions = ["is_operator", "is_sadik_operator"]
 
     def get(self, request, sadik_id):
-#        получаем ДОУ для данного района в которых есть заявки с выделенными местами
+        # получаем ДОУ для данного района в которых есть заявки
+        # с выделенными местами
         profile = request.user.get_profile()
         sadiks_query = Sadik.objects.filter(
             groups__vacancies__requestion__status__in=(
                 STATUS_DECISION, STATUS_ABSENT, STATUS_NOT_APPEAR,
-                STATUS_NOT_APPEAR_EXPIRE, STATUS_ABSENT_EXPIRE)).distinct(
-                    ).filter_for_profile(profile).order_by('number')
+                STATUS_NOT_APPEAR_EXPIRE, STATUS_ABSENT_EXPIRE)
+        ).distinct().filter_for_profile(profile).order_by('number')
         context = {
             'current_area': profile.area,
             'distribution_started': Distribution.objects.filter(
@@ -144,9 +147,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
         if sadik_id:
             sadik = get_object_or_404(Sadik, id=sadik_id)
             form = SadikForm(sadiks_query=sadiks_query)
-            context.update({
-                'form': form,
-            })
+            context.update({'form': form})
         elif sadiks_query.count() == 1:
             sadik = sadiks_query[0]
         else:
@@ -154,32 +155,36 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
             if form.is_valid():
                 sadik = form.cleaned_data.get('sadik')
                 if sadik:
-                    return HttpResponseRedirect(reverse('requestion_list_enroll', kwargs={'sadik_id': sadik.id}))
+                    return HttpResponseRedirect(reverse(
+                        'requestion_list_enroll', kwargs={'sadik_id': sadik.id})
+                    )
             else:
                 form = SadikForm(sadiks_query=sadiks_query)
                 sadik = None
-            context.update({
-                'form': form,
-            })
+            context.update({'form': form})
         if sadik:
             requestions_by_groups = []
             for sadik_group in sadik.groups.all():
                 requestions_for_sadik = Requestion.objects.filter(
-                    status__in=(STATUS_DECISION, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE),
+                    status__in=(STATUS_DECISION, STATUS_NOT_APPEAR,
+                                STATUS_NOT_APPEAR_EXPIRE),
                     distributed_in_vacancy__sadik_group__sadik=sadik
-                    ).select_related('distribute_in_group', 'profile'
-                        ).order_by('-benefit_category__priority', 'registration_datetime', 'id')
+                ).select_related('distribute_in_group', 'profile').order_by(
+                    '-benefit_category__priority',
+                    'registration_datetime', 'id')
                 requestions_for_group = requestions_for_sadik.filter(
                     distributed_in_vacancy__sadik_group=sadik_group)
                 if requestions_for_group:
                     requestions_by_groups.append(
                         (sadik_group, requestions_for_group))
-            context.update({'sadik': sadik,
-                            'appeal_statuses': [STATUS_ABSENT, STATUS_NOT_APPEAR],
-                            'requestions_by_groups': requestions_by_groups,
-                            "STATUS_NOT_APPEAR": STATUS_DISTRIBUTED,
-                            "STATUS_REMOVE_REGISTRATION": STATUS_REMOVE_REGISTRATION,
-                            "STATUS_REQUESTER": STATUS_REQUESTER})
+            context.update({
+                'sadik': sadik,
+                'appeal_statuses': [STATUS_ABSENT, STATUS_NOT_APPEAR],
+                'requestions_by_groups': requestions_by_groups,
+                'STATUS_NOT_APPEAR': STATUS_DISTRIBUTED,
+                'STATUS_REMOVE_REGISTRATION': STATUS_REMOVE_REGISTRATION,
+                'STATUS_REQUESTER': STATUS_REQUESTER
+            })
             return self.render_to_response(context)
         return self.render_to_response(context)
 
