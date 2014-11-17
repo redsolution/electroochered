@@ -162,6 +162,6 @@ class BenefitTestCase(TestCase):
         # Отключаем все заявки. 
         # Проверяем, что количество включеных = 0
         # Проверяем, чтобы количество всех заявок не изменилось 
-        test_utils.disable_all_benefits()
+        Benefit.objects.all().update(disabled=True)
         self.assertEqual(Benefit.enabled.count(), 0)
         self.assertNotEqual(Benefit.objects.count(), 0)
