@@ -243,12 +243,18 @@ def after_decision_not_appear(sender, **kwargs):
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    messages.success(request, u'Для заявки %s была отмечена неявка в ДОУ' % requestion.requestion_number)
-    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
-    Logger.objects.create_for_action(transition.index,
+    messages.success(
+        request, u'Для заявки %s была отмечена неявка в ДОУ'.format(
+            requestion.requestion_number))
+    requestion.remove_vacancy()
+    context_dict = {
+        'status': requestion.get_status_display(),
+        'sadik': requestion.previous_distributed_in_vacancy.sadik_group.sadik}
+    Logger.objects.create_for_action(
+        transition.index,
         context_dict=context_dict,
         extra={'user': request.user, 'obj': requestion,
-            'distribution_type': requestion.distribution_type},
+               'distribution_type': requestion.distribution_type},
         reason=form.cleaned_data.get('reason'))
 
 

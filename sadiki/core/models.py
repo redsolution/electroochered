@@ -806,8 +806,6 @@ DISTRIBUTION_PROCESS_STATUSES = (
     STATUS_PASS_GRANTED,
     STATUS_ABSENT,
     STATUS_ABSENT_EXPIRE,
-    STATUS_NOT_APPEAR,
-    STATUS_NOT_APPEAR_EXPIRE,
 )
 
 DEFAULT_DISTRIBUTION_TYPE = 0
@@ -852,12 +850,9 @@ class RequestionQuerySet(models.query.QuerySet):
 
     def provided_places(self):
         u"""
-        Заявки которые занимают место в ДОУ(выделено место, зачислена, не явился
-        (но еще не снят с учета))
+        Заявки которые занимают место в ДОУ(выделено место, зачислена)
         """
-        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED,
-                                       STATUS_NOT_APPEAR,
-                                       STATUS_NOT_APPEAR_EXPIRE))
+        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED))
 
     def not_confirmed(self):
         u"""заявки для которых не установлено документальное подтверждение"""
@@ -938,8 +933,7 @@ class RequestionQuerySet(models.query.QuerySet):
 
     def enrollment_in_progress(self):
         return self.filter(status__in=(STATUS_DECISION, STATUS_ABSENT,
-                                       STATUS_ABSENT_EXPIRE, STATUS_NOT_APPEAR,
-                                       STATUS_NOT_APPEAR_EXPIRE))
+                                       STATUS_ABSENT_EXPIRE))
 
     def add_related_documents(self):
         # а здесь начинается магия... нам нужно вытянуть M2One sadik_groups
@@ -1366,6 +1360,17 @@ class Requestion(models.Model):
     def is_fake_identity_documents(self):
         return self.evidience_documents().filter(
             fake=True, template__destination=REQUESTION_IDENTITY).exists()
+
+    def remove_vacancy(self):
+        """
+        Освобождаем выделенное место, отмечам vacancy как не занятую
+        """
+        vacancy = self.distributed_in_vacancy
+        vacancy.status = VACANCY_STATUS_NOT_PROVIDED
+        vacancy.save()
+        self.previous_distributed_in_vacancy = vacancy
+        self.distributed_in_vacancy = None
+        self.save()
 
     def __unicode__(self):
         return self.requestion_number
