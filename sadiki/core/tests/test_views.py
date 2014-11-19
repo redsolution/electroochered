@@ -148,8 +148,8 @@ class CoreViewsTest(TestCase):
         requestion.status = STATUS_REMOVE_REGISTRATION
         requestion.save()
 
-        response = self.client.get(reverse('anonym_queue'),
-            data={'status': [17]})
+        response = self.client.get(
+            reverse('anonym_queue'), data={'status': [17]})
         self.assertEqual(response.context_data["requestions"].count(),
                          Requestion.objects.filter(
                              status=STATUS_REMOVE_REGISTRATION).count())
