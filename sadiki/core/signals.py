@@ -192,10 +192,14 @@ def after_decision_reject(sender, **kwargs):
     # Журналирование
     messages.success(request, u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
     context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
-    Logger.objects.create_for_action(transition.index,
+    extra_dict = {'obj': requestion,
+                  'distribution_type': requestion.distribution_type}
+    if request.user.is_authenticated():
+        extra_dict.update({'user': request.user})
+    Logger.objects.create_for_action(
+        transition.index,
         context_dict=context_dict,
-        extra={'user': request.user, 'obj': requestion,
-            'distribution_type': requestion.distribution_type},
+        extra=extra_dict,
         reason=form.cleaned_data.get('reason'))
 
 
