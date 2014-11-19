@@ -57,7 +57,7 @@ class SignJSONResponseMixin(object):
         return gpgtools.get_signed_json(context)
 
 
-class ChangeRequestionStatus(View, SignJSONResponseMixin):
+class ChangeRequestionStatus(SignJSONResponseMixin, View):
     """
     Реализация метода api для изменения статуса заявки через запрос от
     ЭлектроСада
