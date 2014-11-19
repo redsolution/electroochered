@@ -220,8 +220,10 @@ def after_decision_to_distributed(sender, **kwargs):
     context_dict = {
         'status': requestion.get_status_display(),
         'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
-    log_extra = {'user': request.user, 'obj': requestion,
+    log_extra = {'obj': requestion,
                  'distribution_type': requestion.distribution_type}
+    if request.user.is_authenticated():
+        log_extra.update({'user': request.user})
     if transition.index == ES_DISTRIBUTION:
         data = json.loads(request.body)
         context_dict.update({'operator': data.get('operator', '')})
