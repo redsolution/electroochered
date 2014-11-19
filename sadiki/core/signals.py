@@ -225,8 +225,6 @@ def after_decision_to_distributed(sender, **kwargs):
     if transition.index == ES_DISTRIBUTION:
         data = json.loads(request.body)
         context_dict.update({'operator': data.get('operator', '')})
-        user, created = User.objects.get_or_create(username='system')
-        log_extra.update({'user': user})
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
