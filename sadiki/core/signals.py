@@ -158,16 +158,20 @@ def after_cancel_temp_absent(sender, **kwargs):
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-    Logger.objects.create_for_action(transition.index,
-        extra={'user': request.user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
-    messages.success(request, u'''Заявка %s была возвращена в ДОУ после отсутствия.
+    Logger.objects.create_for_action(
+        transition.index,
+        extra={'user': request.user, 'obj': requestion},
+        reason=form.cleaned_data.get('reason'))
+    messages.success(
+        request, u'''Заявка %s была возвращена в ДОУ после отсутствия.
         ''' % requestion.requestion_number)
 
     temp_distributed_requestion = requestion.distributed_in_vacancy.get_distributed_requestion()
     if temp_distributed_requestion:
         temp_distributed_requestion.status = STATUS_REQUESTER
         temp_distributed_requestion.save()
-        Logger.objects.create_for_action(RETURN_TEMP_DISTRIBUTED,
+        Logger.objects.create_for_action(
+            RETURN_TEMP_DISTRIBUTED,
             extra={'user': request.user, 'obj': temp_distributed_requestion})
         messages.success(request, u'''Заявка %s была возвращена в очередь в связи с восстановлением
             временно отсутсвующей''' % requestion.requestion_number)
@@ -180,22 +184,31 @@ def after_cancel_temp_absent(sender, **kwargs):
     ABSENT_TEMP_DISTRIBUTED
 )
 def after_decision_reject(sender, **kwargs):
-    u"""Обработчик переводов №46, 52, 53 - возвращение заявки обратно в очередь"""
+    u"""Обработчик переводов №46, 52, 53 - возвращение заявки обратно в очередь
+    """
     transition = kwargs['transition']
     request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
 
-#    если заявка уже была распределена, то возвращаем путевку на место
+    # если заявка уже была распределена, то возвращаем путевку на место
     if transition.dst == STATUS_TEMP_DISTRIBUTED:
         requestion.distributed_in_vacancy = requestion.previous_distributed_in_vacancy
     # Журналирование
     messages.success(request, u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
-    context_dict = {'status': requestion.get_status_display(), 'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
+    context_dict = {
+        'status': requestion.get_status_display(),
+        'sadik': requestion.distributed_in_vacancy.sadik_group.sadik}
     extra_dict = {'obj': requestion,
                   'distribution_type': requestion.distribution_type}
     if request.user.is_authenticated():
         extra_dict.update({'user': request.user})
+    # если запрос пришел из ЭС, забирам данные оператора
+    try:
+        data = json.loads(request.body)
+        context_dict.update({'operator': data['data'].get('operator', '')})
+    except Exception:
+        pass
     Logger.objects.create_for_action(
         transition.index,
         context_dict=context_dict,
@@ -258,6 +271,12 @@ def after_decision_not_appear(sender, **kwargs):
                   'distribution_type': requestion.distribution_type}
     if request.user.is_authenticated():
         extra_dict.update({'user': request.user})
+    # если запрос пришел из ЭС, забирам данные оператора
+    try:
+        data = json.loads(request.body)
+        context_dict.update({'operator': data['data'].get('operator', '')})
+    except Exception:
+        pass
     Logger.objects.create_for_action(
         transition.index,
         context_dict=context_dict,
@@ -280,9 +299,9 @@ def after_decision_absent(sender, **kwargs):
             связаться с заявителем""" % requestion.requestion_number)
     context_dict = {'status': requestion.get_status_display()}
     log_extra = {'user': request.user, 'obj': requestion,
-        'distribution_type': requestion.distribution_type}
-    Logger.objects.create_for_action(transition.index,
-        context_dict=context_dict, extra=log_extra,
+                 'distribution_type': requestion.distribution_type}
+    Logger.objects.create_for_action(
+        transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
 
 # Временное зачисление
@@ -293,7 +312,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     )
     def after_temp_distribution(sender, **kwargs):
         u"""Обработчик перехода №35 - временное зачисление
-        у данного перевода переопределены форма подтверждения и функция доп. проверки
+        у данного перевода переопределены форма подтверждения и
+        функция доп. проверки
         """
         transition = kwargs['transition']
         form = kwargs['form']
@@ -302,7 +322,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 
         sadik = form.cleaned_data.get("sadik")
 
-        vacancy = requestion.available_temp_vacancies().filter(sadik_group__sadik=sadik)[0]
+        vacancy = requestion.available_temp_vacancies().filter(
+            sadik_group__sadik=sadik)[0]
         vacancy.status = VACANCY_STATUS_TEMP_DISTRIBUTED
         vacancy.save()
         requestion.distributed_in_vacancy = vacancy
@@ -352,8 +373,9 @@ if IMMEDIATELY_DECISION in (IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTI
         vacancy = requestion.distribute_in_sadik(sadik)
         messages.success(request, u'Заявке %s было выделено место в %s.'
             % (requestion.requestion_number, vacancy.sadik_group.sadik))
-        Logger.objects.create_for_action(transition.index,
-            extra={'user': request.user, 'obj': requestion, }, reason=form.cleaned_data.get('reason'))
+        Logger.objects.create_for_action(
+            transition.index, extra={'user': request.user, 'obj': requestion, },
+            reason=form.cleaned_data.get('reason'))
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -371,7 +393,8 @@ def after_restore_requestion(sender, **kwargs):
                     ''' % requestion.requestion_number)
     messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
         ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
-    Logger.objects.create_for_action(transition.index,
+    Logger.objects.create_for_action(
+        transition.index,
         context_dict={'other_requestions': other_requestions_with_document},
         extra={'user': request.user, 'obj': requestion},
         reason=form.cleaned_data.get('reason'))
