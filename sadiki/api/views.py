@@ -134,7 +134,7 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
         results = []
         for sadik in Sadik.objects.filter(
                 id__in=sadiks_ids).distinct().order_by('number'):
-            requestions = Requestion.objects.filter(
+            requestions = requestions.filter(
                 distributed_in_vacancy__sadik_group__sadik=sadik,
                 status__in=[STATUS_DISTRIBUTED, ]).order_by(
                     '-birth_date').select_related('profile').select_related(
