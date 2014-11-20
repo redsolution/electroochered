@@ -573,13 +573,13 @@ change_documents_account_template = u"""
 decision_distribution_anonym = u"""Было завершено зачисление в {{ sadik }}"""
 es_decision_distribution_anonym = u"""
     По решению оператора {{ operator }} системы ЭлектроСад было завершено
-    зачисление в {{ sadik }}"""
+    зачисление в {{ sadik|safe }}"""
 decision_not_appear_anonym = u"""
-    Заявитель не явился в назначенный срок для зачисления в {{ sadik }}
-    {% if operator %} Неявку отметил оператор ЭлектроСада
+    Заявитель не явился в назначенный срок для зачисления в {{ sadik|safe }}
+    {% if operator %}. Неявку отметил оператор ЭлектроСада
     {{ operator }}.{% endif %}"""
 decision_requster_anonym = u"""
-    Заявитель отказался от выделенного места в {{ sadik }}.
+    Заявитель отказался от выделенного места в {{ sadik|safe }}.
     Заявка была возвращена в очередь. {% if operator %}
     Процедуру возврата инициировал оператор ЭлектроСада {{ operator }}.
     {% endif %}"""
