@@ -391,6 +391,7 @@ ACTION_CHOICES.extend(
      # Удаленные статусы
      (NOT_APPEAR_REMOVE_REGISTRATION, u"Снятие с учета по причине неявки"),
      (NOT_APPEAR_EXPIRE, u"Истечение сроков обжалования"),
+     (DISTRIBUTION_BY_RESOLUTION, u"Зачисление по резолюции Начальника"),
 
      #    Распределения
      (DISTRIBUTION_INIT, u'Начало распределения'),
