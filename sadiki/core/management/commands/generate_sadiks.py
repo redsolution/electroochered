@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
+import sys
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import simplejson
 from sadiki.core.models import Area, Sadik, Address, AgeGroup
 from django.conf import settings
 from os.path import join
 from random import choice, randint
-import sys
-
+from optparse import make_option
 
 def progressbar(it, prefix = "", size = 60):
     count = len(it)
@@ -21,16 +21,24 @@ def progressbar(it, prefix = "", size = 60):
         _show(i+1)
     sys.stdout.write("\n")
     sys.stdout.flush()
+    
 
 class Command(BaseCommand):
     help = "Generates sadiks"
+    option_list = BaseCommand.option_list + (
+        make_option('--verbose', action='store_false', default=False,
+            dest='verbose'),)
     args = ['num',]
 
     def handle(self, *args, **options):
         if args:
             names = simplejson.loads(open(join(settings.PROJECT_DIR, 'sadiki','core', 'fixtures', 'names.json'), 'r').read())
-
-            for i in progressbar(xrange(int(args[0]))):
+            
+            if options['verbose']:
+                numbers =  progressbar(xrange(int(args[0])))
+            else:
+                numbers =  xrange(int(args[0]))
+            for i in numbers:
                 # create sadik
                 address, created = Address.objects.get_or_create(
                     postindex=123456,
