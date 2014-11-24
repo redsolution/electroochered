@@ -694,6 +694,7 @@ class Distribution(models.Model):
     class Meta:
         verbose_name = u'Распределение'
         verbose_name_plural = u'Распределения'
+        ordering = ['end_datetime', ]
 
     init_datetime = models.DateTimeField(
         verbose_name=u"Дата и время начала выделения мест", auto_now_add=True)
