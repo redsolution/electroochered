@@ -60,9 +60,6 @@
                                 </td>
                                 <td>
                                     {{ requestion.get_status_display }}
-                                    {% if requestion.status in appeal_statuses %}
-                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p>
-                                    {% endif %}
                                 </td>
                                 <td>
                                     {% if requestion.is_available_for_actions %}
