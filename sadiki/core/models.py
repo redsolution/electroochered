@@ -89,6 +89,7 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
+    (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен через систему ЭлектроСад"),
 )
 
 REQUESTION_MUTABLE_STATUSES = (
@@ -853,7 +854,8 @@ class RequestionQuerySet(models.query.QuerySet):
         u"""
         Заявки которые занимают место в ДОУ(выделено место, зачислена)
         """
-        return self.filter(status__in=(STATUS_DECISION, STATUS_DISTRIBUTED))
+        return self.filter(status__in=(
+            STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES))
 
     def not_confirmed(self):
         u"""заявки для которых не установлено документальное подтверждение"""

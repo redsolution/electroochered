@@ -5,7 +5,6 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import Permission
 from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
-from django.db.models import Q
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
 from django.utils.http import urlquote, urlencode
@@ -17,7 +16,10 @@ from sadiki.anonym.forms import PublicSearchForm, RegistrationForm, \
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.models import Requestion, Sadik, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, STATUS_DECISION, \
-    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES
+    BenefitCategory, Profile, PREFERENCE_IMPORT_FINISHED, Preference, \
+    STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, \
+    STATUS_REQUESTER_NOT_CONFIRMED, DISTRIBUTION_PROCESS_STATUSES, \
+    STATUS_DISTRIBUTED_FROM_ES
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year
 from sadiki.core.workflow import CREATE_PROFILE
@@ -331,7 +333,8 @@ class SadikInfo(RequirePermissionsMixin, TemplateView):
 
     def get(self, request, sadik_id):
         sadik = get_object_or_404(Sadik, id=sadik_id)
-        requestions = Requestion.objects.filter(pref_sadiks=sadik,
+        requestions = Requestion.objects.filter(
+            pref_sadiks=sadik,
             status__in=(STATUS_REQUESTER, STATUS_ON_DISTRIBUTION)
         )
         lowest_category = BenefitCategory.objects.category_without_benefits()
@@ -345,8 +348,11 @@ class SadikInfo(RequirePermissionsMixin, TemplateView):
         current_distribution_year = get_current_distribution_year()
         for group in age_groups:
             requestions_numbers_by_groups.append(requestions.filter_for_age(
-                min_birth_date=group.min_birth_date(current_distribution_year=current_distribution_year),
-                max_birth_date=group.max_birth_date(current_distribution_year=current_distribution_year)).count())
+                min_birth_date=group.min_birth_date(
+                    current_distribution_year=current_distribution_year),
+                max_birth_date=group.max_birth_date(
+                    current_distribution_year=current_distribution_year)
+            ).count())
        # список распределенных заявок с путевками в работающие группы этого ДОУ
         groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
         return self.render_to_response({

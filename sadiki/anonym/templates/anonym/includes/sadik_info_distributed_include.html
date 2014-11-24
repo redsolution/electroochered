@@ -26,7 +26,7 @@
                     {% if requestion.status == STATUS_DECISION %}
                     <i class="icon-home blue"></i>
                     {% else %}
-                        {% if requestion.status == STATUS_DISTRIBUTED %}
+                        {% if requestion.status == STATUS_DISTRIBUTED or requestion.status == STATUS_DISTRIBUTED_FROM_ES %}
                             <i class="icon-home green"></i>
                         {% else %}
                             {% if requestion.status == STATUS_NOT_APPEAR or requestion.status == STATUS_NOT_APPEAR_EXPIRE %}
