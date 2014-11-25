@@ -130,6 +130,7 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'sadiki.core.context_processors.constants',
     'sadiki.core.context_processors.municipality_settings',
     'sadiki.core.context_processors.get_notifier',
+    'sadiki.core.context_processors.get_special_apps',
 )
 
 AUTHENTICATION_BACKENDS = (

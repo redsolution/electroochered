@@ -43,6 +43,11 @@ urlpatterns += patterns(
     url(r'^admin/', include(admin.site.urls)),
 )
 
+if 'smevfms' in settings.INSTALLED_APPS:
+    urlpatterns += patterns(
+        (r'^fms/', include('smevfms.urls')),
+    )
+
 for plugin in plugins:
     if isinstance(plugin, SadikiPlugin):
         try:
