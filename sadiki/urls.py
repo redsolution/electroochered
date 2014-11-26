@@ -22,6 +22,12 @@ if settings.DEBUG:
             {'document_root': settings.MEDIA_ROOT}),
     )
 
+if 'smevfms' in settings.INSTALLED_APPS:
+    print "including fms urls"
+    urlpatterns += patterns('',
+        (r'^fms/', include('smevfms.urls')),
+    )
+
 urlpatterns += patterns(
     '',
     (r'^adm/', include(sadiki_admin_site.urls)),
@@ -42,11 +48,6 @@ urlpatterns += patterns(
     url(r'^vk/', VkontakteFrame.as_view(), name='vk_app'),
     url(r'^admin/', include(admin.site.urls)),
 )
-
-if 'smevfms' in settings.INSTALLED_APPS:
-    urlpatterns += patterns(
-        (r'^fms/', include('smevfms.urls')),
-    )
 
 for plugin in plugins:
     if isinstance(plugin, SadikiPlugin):

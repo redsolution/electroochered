@@ -20,7 +20,7 @@
         {% if 'smevfms' in special_apps and request.user.is_operator %}
             <li class="dropdown">
                 <ul class="dropdown-menu">
-                    <li><a href="{% url logout %}"><i class="icon-file"></i> Запрос в ФМС</a></li>
+                    <li><a href="{% url fms_task_list %}"><i class="icon-file"></i> Запрос в ФМС</a></li>
                 </ul>
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <img class="avatar" src="{{ STATIC_URL }}img/avatar.png"/>
