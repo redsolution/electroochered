@@ -136,9 +136,7 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
                 id__in=sadiks_ids).distinct().order_by('number'):
             requestions = requestions.filter(
                 distributed_in_vacancy__sadik_group__sadik=sadik,
-                status__in=[STATUS_DISTRIBUTED, ]).order_by(
-                    '-birth_date').select_related('profile').select_related(
-                        'distributed_in_vacancy__sadik_group__age_group')
+                status__in=[STATUS_DISTRIBUTED, STATUS_DECISION])
             if requestions:
                 req_list = add_requestions_data(requestions, request)
                 kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}

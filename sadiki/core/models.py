@@ -78,7 +78,7 @@ STATUS_CHOICES = (
     (STATUS_NOT_APPEAR_EXPIRE, u'Сроки на обжалование неявки истекли'),
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
-    (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен через систему ЭлектроСад"),
+    (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен"),
 )
 
 STATUS_CHOICES_FILTER = (
@@ -89,7 +89,6 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
-    (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен через систему ЭлектроСад"),
 )
 
 REQUESTION_MUTABLE_STATUSES = (

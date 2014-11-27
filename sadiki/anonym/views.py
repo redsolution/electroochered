@@ -128,6 +128,8 @@ class Queue(RequirePermissionsMixin, ListView):
                 # Обработка формы вручную
                 if form.cleaned_data.get('status', None):
                     status = form.cleaned_data['status']
+                    if str(STATUS_DISTRIBUTED) in status:
+                        status.append(str(STATUS_DISTRIBUTED_FROM_ES))
                     queryset = self.fullqueryset.filter(status__in=status)
                 decision_date = form.cleaned_data.get('decision_date')
                 if decision_date:
