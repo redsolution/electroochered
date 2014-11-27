@@ -43,7 +43,7 @@ urlpatterns += patterns(
     (r'^statistics/', include('sadiki.statistics.urls')),
     (r'^', include('sadiki.core.urls')),
     (r'^robots.txt$', 'django.views.generic.simple.direct_to_template',
-         {'template': 'robots.txt', 'mimetype': 'text/plain'}),
+        {'template': 'robots.txt', 'mimetype': 'text/plain'}),
     (r'^tinymce/', include('tinymce.urls')),
     url(r'^vk/', VkontakteFrame.as_view(), name='vk_app'),
     url(r'^admin/', include(admin.site.urls)),
