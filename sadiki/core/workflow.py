@@ -306,7 +306,7 @@ workflow.add(STATUS_DECISION, STATUS_REQUESTER, DECISION_REQUESTER,
              permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_NOT_APPEAR, STATUS_REQUESTER, NOT_APPEAR_REQUESTER,
-             u'Отказ от места в ДОУ после неявки',
+             u'Восстановление в очереди после неявки',
              permissions=[OPERATOR_PERMISSION[0], REQUESTER_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
