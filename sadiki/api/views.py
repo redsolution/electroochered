@@ -13,7 +13,8 @@ from django.views.generic import View
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
-    EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
+    EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
+    STATUS_DECISION, STATUS_DISTRIBUTED
 from sadiki.api.utils import sign_is_valid, add_requestions_data
 from sadiki.operator.forms import ConfirmationForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
@@ -87,6 +88,14 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
             src=requestion.status, dst=int(data['dst_status']))
         # TODO: Проверка на корректность ДОУ?
         # sadik = requestion.distributed_in_vacancy.sadik_group.sadik
+        # Если в форме передается свидетельство о рождении и текущий
+        # документ у заявки - временный, меняем
+        if 'birth_cert' in data and requestion.evidience_documents()[0].fake:
+            err_msg = u"{}, {}".format(data['birth_cert'],
+                                       data['birth_cert_type'])
+        result = {'status_code': status_code, 'err_msg': err_msg}
+        return self.render_to_response(result)
+        '''
         if transition_indexes:
             transition = workflow.get_transition_by_index(transition_indexes[0])
             form = self.form(requestion=requestion,
@@ -110,6 +119,7 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
             err_msg = u"Невозможно изменить статус заявки в электроочереди"
         result = {'status_code': status_code, 'err_msg': err_msg}
         return self.render_to_response(result)
+        '''
 
 
 class GetRequestionsByResolution(SignJSONResponseMixin, View):
@@ -259,3 +269,11 @@ def get_kindergartens(request):
         })
     response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
     return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+
+
+def get_evidience_documents(request):
+    documents = EvidienceDocumentTemplate.objects.filter(
+        destination__exact=REQUESTION_IDENTITY
+    ).values('id', 'name', 'regex')
+    return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
+                        mimetype='application/json')
