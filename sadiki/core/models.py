@@ -220,7 +220,7 @@ class EvidienceDocument(models.Model):
     objects = query_set_factory(EvidienceDocumentQueryset)
 
     def make_other_appocryphal(self):
-#        документы для льгот могут быть с совпадающими номерами
+        # документы для льгот могут быть с совпадающими номерами
         if self.template.destination != BENEFIT_DOCUMENT:
             other_documents = EvidienceDocument.objects.filter(
                 document_number=self.document_number,

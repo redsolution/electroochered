@@ -13,12 +13,13 @@ from django.views.generic import View
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
-    EvidienceDocument, REQUESTION_IDENTITY, STATUS_DECISION, STATUS_DISTRIBUTED
+    EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
+    STATUS_DECISION, STATUS_DISTRIBUTED
 from sadiki.api.utils import sign_is_valid, add_requestions_data
-from sadiki.operator.forms import ConfirmationForm
+from sadiki.operator.forms import ConfirmationForm, \
+    RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION
-from sadiki.core.utils import make_error_msg
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.logger.models import Logger
 
@@ -74,19 +75,39 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
         if requestion.requestion_number != data['requestion_number']:
             err_msg = u"Ошибка проверки данных заявки: номер заявки отличается"\
                       u"от указанного в профиле"
-            result = {'status_code': STATUS_DATA_ERROR, 'err_msg': err_msg}
+            result = {'status_code': STATUS_DATA_ERROR, 'err_msg': {
+                '__all__': err_msg,
+            }}
             return self.render_to_response(result)
 
         if requestion.status == STATUS_DISTRIBUTED:
             err_msg = u"Заявка зачислена в Электроочереди, действие невозможно"
             result = {'status_code': STATUS_ALREADY_DISTRIBUTED,
-                      'err_msg': err_msg}
+                      'err_msg': {'__all__': err_msg}}
             return self.render_to_response(result)
 
         transition_indexes = workflow.available_transitions(
             src=requestion.status, dst=int(data['dst_status']))
         # TODO: Проверка на корректность ДОУ?
         # sadik = requestion.distributed_in_vacancy.sadik_group.sadik
+        # Если в форме передается свидетельство о рождении и текущий
+        # документ у заявки - временный, меняем
+        if 'document_number' in data and requestion.evidience_documents()[0].fake:
+            form_data = {
+                'template': data['template'],
+                'document_number': data['document_number'],
+            }
+            form = RequestionIdentityDocumentForm(
+                instance=requestion, data=form_data)
+            if form.is_valid():
+                form.save()
+                requestion.evidience_documents().filter(fake=True).delete()
+            else:
+                err_msg = {}
+                for error in form.errors:
+                    err_msg[error] = form.errors[error]
+                result = {'status_code': status_code, 'err_msg': err_msg}
+                return self.render_to_response(result)
         if transition_indexes:
             transition = workflow.get_transition_by_index(transition_indexes[0])
             form = self.form(requestion=requestion,
@@ -105,9 +126,13 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
                     transition=transition, form=form)
                 status_code = STATUS_OK
             else:
-                err_msg = make_error_msg(form.errors)
+                err_msg = {}
+                for error in form.errors:
+                    err_msg[error] = form.errors[error]
         else:
-            err_msg = u"Невозможно изменить статус заявки в электроочереди"
+            err_msg = {
+                '__all__': u"Невозможно изменить статус заявки в электроочереди"
+            }
         result = {'status_code': status_code, 'err_msg': err_msg}
         return self.render_to_response(result)
 
@@ -141,7 +166,8 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
                 req_list = add_requestions_data(requestions, request)
                 kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
                 results.append(kg_dict)
-        return self.render_to_response({'status_code': STATUS_OK, 'data': results})
+        return self.render_to_response({
+            'status_code': STATUS_OK, 'data': results})
 
 
 def get_distributions(request):
@@ -259,3 +285,11 @@ def get_kindergartens(request):
         })
     response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
     return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+
+
+def get_evidience_documents(request):
+    documents = EvidienceDocumentTemplate.objects.filter(
+        destination__exact=REQUESTION_IDENTITY
+    ).values('id', 'name', 'regex')
+    return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
+                        mimetype='application/json')
