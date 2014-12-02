@@ -1,7 +1,7 @@
 {% load chunks %}
 <!DOCTYPE html>
 <html>
-<head> 
+<head>
     <title>{% block title %}{% endblock %} - Электронная очередь</title>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <link rel="shortcut icon" href="{{ STATIC_URL }}favicon.ico" type="image/x-icon">
@@ -23,7 +23,7 @@
 <div class="header container_12">
 	<div class="logo">
 		<a href="/"><img src="{{ STATIC_URL }}img/login_logo.png" alt="Логотип"/>
-	    		<h2>Электронная очередь</h2> 
+	    		<h2>Электронная очередь</h2>
         		<p>в ДОУ {{ MUNICIPALITY_NAME_GENITIVE }}</p>
 		</a>
 	</div>
@@ -31,15 +31,20 @@
 		{% chunk "contacts" %}
 	</div>
 	<div class="logarea">
-		<a href="/auth/login/">Войти в систему</a>
-		или
-		<a href="/registration/">Зарегистрироваться</a>
+        {% if request.user.is_anonymous %}
+    		<a href="/auth/login/">Войти в систему</a>
+    		или
+    		<a href="/registration/">Зарегистрироваться</a>
+        {% else %}
+            <p class="centered"><span class="lead">{{ user.get_verbose_name }}<span></p>
+            <p class="centered"><a href="{% url logout %}">Выйти</a></p>
+        {% endif %}
 	</div>
     <div class="dou_description">
         {% chunk "dou_description" %}
     </div>
 </div>
-<div class="main-menu"> 
+<div class="main-menu">
     {% include "includes/main_menu.html" %}
 </div>
 <div class="content-main container_12">
