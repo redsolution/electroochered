@@ -196,10 +196,11 @@ def after_decision_reject(sender, **kwargs):
         requestion.distributed_in_vacancy = requestion.previous_distributed_in_vacancy
     # Журналирование
     messages.success(request, u'Заявка %s была возвращена в очередь.' % requestion.requestion_number)
+    vacancy = requestion.distributed_in_vacancy or \
+        requestion.previous_distributed_in_vacancy
     context_dict = {
         'status': requestion.get_status_display(),
-        'sadik': requestion.distributed_in_vacancy.sadik_group.sadik or
-        requestion.previous_distributed_in_vacancy.sadik_group.sadik
+        'sadik': vacancy.sadik_group.sadik
     }
     extra_dict = {'obj': requestion,
                   'distribution_type': requestion.distribution_type}
