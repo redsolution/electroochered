@@ -298,11 +298,22 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         requestion = get_object_or_404(Requestion, id=requestion_id)
 
         redirect_to = request.REQUEST.get('next', '')
-        self.redirect_to = check_url(redirect_to, self.default_redirect_to(requestion))
+        self.redirect_to = check_url(
+            redirect_to, self.default_redirect_to(requestion))
 
-        transition_indexes = workflow.available_transitions(src=requestion.status, dst=int(dst_status))
+        if not requestion.is_available_for_actions:
+            messages.error(
+                request,
+                u"Изменения заявки в статусе '{}' запрещены.".format(
+                    requestion.get_status_display()
+                ))
+            return HttpResponseRedirect(self.redirect_to)
+
+        transition_indexes = workflow.available_transitions(
+            src=requestion.status, dst=int(dst_status))
         if transition_indexes:
-            self.transition = workflow.get_transition_by_index(transition_indexes[0])
+            self.transition = workflow.get_transition_by_index(
+                transition_indexes[0])
         else:
             self.transition = None
 
@@ -320,19 +331,23 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
             else:
                 self.required_permissions = None
 
-            #задаем шаблон в зависимости от типа изменения статуса
+            # задаем шаблон в зависимости от типа изменения статуса
             self.template_name = self.get_custom_template_name() or self.template_name
 
-        response = super(RequestionStatusChange, self).dispatch(request, requestion)
-        # если проверка прав прошла успешно, переход предполагает проверку документов и
-        # у заявки не указан документ, то перенаправляем на страницу указания документа
-        if (isinstance(response, TemplateResponse) and not isinstance(request, FakeWSGIRequest) and
-                self.transition and self.transition.check_document and requestion.is_fake_identity_documents):
+        response = super(RequestionStatusChange, self).dispatch(
+            request, requestion)
+        # если проверка прав прошла успешно, переход предполагает проверку
+        # документов и у заявки не указан документ, то перенаправляем на
+        # страницу указания документа
+        if (isinstance(response, TemplateResponse) and not
+            isinstance(request, FakeWSGIRequest) and self.transition and
+                self.transition.check_document and
+                requestion.is_fake_identity_documents):
             return HttpResponseRedirect(
                 u'%s?next=%s' %
                 (reverse('operator_requestion_set_identity_document',
-                    kwargs={'requestion_id': requestion_id}),
-                    urlquote(request.get_full_path()))
+                         kwargs={'requestion_id': requestion_id}),
+                 urlquote(request.get_full_path()))
                 )
         return response
 
