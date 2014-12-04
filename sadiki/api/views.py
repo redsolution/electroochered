@@ -14,7 +14,7 @@ from django.views.generic import View
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
-    STATUS_DECISION, STATUS_DISTRIBUTED
+    STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
 from sadiki.api.utils import sign_is_valid, add_requestions_data
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
@@ -70,6 +70,7 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
         status_code = STATUS_DATA_ERROR
         err_msg = None
         data = kwargs['data']
+        dst_status = int(data['dst_status'])
         requestion = Requestion.objects.get(pk=data['requestion_id'])
         # параноидальная проверка целостности данных
         if requestion.requestion_number != data['requestion_number']:
@@ -82,12 +83,14 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
 
         if requestion.status == STATUS_DISTRIBUTED:
             err_msg = u"Заявка зачислена в Электроочереди, действие невозможно"
+            if dst_status == STATUS_DISTRIBUTED_FROM_ES:
+                err_msg = u"Заявка уже зачислена в Электроочереди"
             result = {'status_code': STATUS_ALREADY_DISTRIBUTED,
                       'err_msg': {'__all__': err_msg}}
             return self.render_to_response(result)
 
         transition_indexes = workflow.available_transitions(
-            src=requestion.status, dst=int(data['dst_status']))
+            src=requestion.status, dst=dst_status)
         # TODO: Проверка на корректность ДОУ?
         # sadik = requestion.distributed_in_vacancy.sadik_group.sadik
         # Если в форме передается свидетельство о рождении и текущий
