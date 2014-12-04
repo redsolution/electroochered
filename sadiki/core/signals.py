@@ -31,7 +31,7 @@ import json
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.utils import timezone
 
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
@@ -247,6 +247,8 @@ def after_decision_to_distributed(sender, **kwargs):
     if transition.index == ES_DISTRIBUTION:
         data = json.loads(request.body)
         context_dict.update({'operator': data['data'].get('operator', '')})
+        requestion.distribution_datetime = timezone.now()
+        requestion.save()
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
