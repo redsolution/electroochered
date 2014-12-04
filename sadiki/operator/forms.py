@@ -10,7 +10,7 @@ from sadiki.account.forms import RequestionForm, ChangeRequestionForm
 from sadiki.administrator.admin import SadikAdminForm
 from sadiki.anonym.forms import PublicSearchForm, FormWithDocument, QueueFilterForm
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
-from sadiki.core.fields import TemplateFormField
+from sadiki.core.fields import TemplateFormField, DateRangeField
 from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     VACANCY_STATUS_PROVIDED, REQUESTION_IDENTITY, Sadik, \
     STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT, NOT_CONFIRMED_STATUSES
@@ -29,7 +29,7 @@ def select_list_from_qs(queryset, requestion):
 
 class QueueOperatorFilterForm(QueueFilterForm):
     def __init__(self, *args, **kwargs):
-        super(QueueFilterForm, self).__init__(*args, **kwargs)
+        super(QueueOperatorFilterForm, self).__init__(*args, **kwargs)
         self.fields.keyOrder = [
             'requestion_number',
             'status',
@@ -51,6 +51,12 @@ class QueueOperatorFilterForm(QueueFilterForm):
             Requestion.objects.queue().dates('decision_datetime', 'year')]
         decision_date_choices = [('', '---------'),] + decision_date_choices
         self.fields['decision_date'].choices = decision_date_choices
+
+    birth_date = DateRangeField(
+        label=u"Дата рождения", required=False,
+        help_text=u"При выборе в очереди будут отображаться заявки, относящиеся"
+                  u" к указанному диапазону дат рождения от/до (включительно)")
+
 
 class OperatorRequestionForm(RequestionForm):
     u"""Форма регистрации заявки через оператора"""

@@ -311,8 +311,16 @@ class CoreViewsTest(TestCase):
         for requestion in response.context_data['requestions']:
             self.assertIn(requestion.birth_date, [date_min, date_max])
 
-    def test_operator_visibility(self):
+    def test_queue_birth_filter_operator_visibility(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
+        # проверяем отсутствие фильтра для аноноима
+        anonym_response = self.client.get('/queue/')
+        self.assertEqual(anonym_response.status_code, 200)
+        self.assertNotIn(
+            'birth_date', anonym_response.context_data['form'].fields)
+        self.assertNotIn('birth_delta', anonym_response.content)
+
+        # под оператором поле фильтра по дате рождения должно присутствовать
         login = self.client.login(
             username=OPERATOR_USERNAME,
             password=OPERATOR_PASSWORD
@@ -320,6 +328,6 @@ class CoreViewsTest(TestCase):
         self.assertTrue(login)
 
         response = self.client.get('/queue/')
-
         self.assertEqual(response.status_code, 200)
         self.assertIn('birth_date', response.context_data['form'].fields)
+        self.assertIn('birth_delta', response.content)
