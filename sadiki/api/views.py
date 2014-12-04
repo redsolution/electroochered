@@ -162,11 +162,11 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
         results = []
         for sadik in Sadik.objects.filter(
                 id__in=sadiks_ids).distinct().order_by('number'):
-            requestions = requestions.filter(
+            reqs = requestions.filter(
                 distributed_in_vacancy__sadik_group__sadik=sadik,
                 status__in=[STATUS_DISTRIBUTED, STATUS_DECISION])
-            if requestions:
-                req_list = add_requestions_data(requestions, request)
+            if reqs:
+                req_list = add_requestions_data(reqs, request)
                 kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
                 results.append(kg_dict)
         return self.render_to_response({
