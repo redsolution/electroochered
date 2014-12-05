@@ -8,7 +8,8 @@ from django.contrib.auth.models import User, Permission
 from sadiki.core import utils
 
 from sadiki.core.models import Requestion, Area, BenefitCategory, \
-    Profile, AgeGroup, SadikGroup , Benefit
+    Profile, AgeGroup, SadikGroup, Benefit, EvidienceDocumentTemplate, \
+    EvidienceDocument, REQUESTION_IDENTITY
 
 
 def disable_random_benefit():
@@ -96,6 +97,12 @@ def create_requestion(**kwargs):
         requestion.areas.add(Area.objects.all().order_by('?')[0])
     else:
         requestion.areas.add(create_area())
+    requestion_document = EvidienceDocument.objects.create(
+        content_object=requestion,
+        template=EvidienceDocumentTemplate.objects.filter(
+            destination=REQUESTION_IDENTITY)[0],
+        document_number='II-ИВ %06d' % random.randint(0, 99999)
+    )
 
     return requestion
 
@@ -105,9 +112,10 @@ def create_age_groups_for_sadik(kidgdn):
     for age_group in AgeGroup.objects.all():
         group_min_birth_date = age_group.min_birth_date()
         group_max_birth_date = age_group.max_birth_date()
-        SadikGroup.objects.create(free_places=2,
-                                  capacity=2,
-                                  age_group=age_group, sadik=kidgdn,
-                                  year=current_distribution_year,
-                                  min_birth_date=group_min_birth_date,
-                                  max_birth_date=group_max_birth_date)
+        SadikGroup.objects.create(
+            free_places=2,
+            capacity=2,
+            age_group=age_group, sadik=kidgdn,
+            year=current_distribution_year,
+            min_birth_date=group_min_birth_date,
+            max_birth_date=group_max_birth_date)
