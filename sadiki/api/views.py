@@ -81,7 +81,8 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
             }}
             return self.render_to_response(result)
 
-        if requestion.status == STATUS_DISTRIBUTED:
+        if requestion.status in [STATUS_DISTRIBUTED,
+                                 STATUS_DISTRIBUTED_FROM_ES]:
             err_msg = u"Заявка зачислена в Электроочереди, действие невозможно"
             if dst_status == STATUS_DISTRIBUTED_FROM_ES:
                 err_msg = u"Заявка уже зачислена в Электроочереди"
