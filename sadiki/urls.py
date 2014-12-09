@@ -28,6 +28,12 @@ if 'smevfms' in settings.INSTALLED_APPS:
         (r'^fms/', include('smevfms.urls')),
     )
 
+if 'smevzags' in settings.INSTALLED_APPS:
+    urlpatterns += patterns(
+        '',
+        (r'^zags/', include('smevzags.urls')),
+    )
+
 urlpatterns += patterns(
     '',
     (r'^adm/', include(sadiki_admin_site.urls)),

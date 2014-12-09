@@ -96,4 +96,6 @@ def get_special_apps(request):
     special_apps_list = []
     if 'smevfms' in settings.INSTALLED_APPS:
         special_apps_list.append('smevfms')
+    if 'smevzags' in settings.INSTALLED_APPS:
+        special_apps_list.append('smevzags')
     return {'special_apps': special_apps_list}
