@@ -37,7 +37,7 @@ class RequestionTestCase(TestCase):
 
     def test_requestion_creation(self):
         self.assertEqual(self.requestion.name, 'Ann')
-        self.assertFalse(self.requestion.all_fields_filled())
+        self.assertTrue(self.requestion.all_fields_filled())
         self.requestion.sex = u'М'
         self.assertTrue(self.requestion.all_fields_filled())
         self.assertEqual(self.requestion.cast, REQUESTION_TYPE_NORMAL)
@@ -88,7 +88,7 @@ class RequestionTestCase(TestCase):
         kidgdn = Sadik.objects.all()[0]
         test_requestion = test_utils.create_requestion(
             admission_date=datetime.date(datetime.date.today().year + 1, 1, 1),
-            birth_date=datetime.date.today()-datetime.timedelta(days=465)
+            birth_date=datetime.date.today()-datetime.timedelta(days=469)
         )
         test_requestion.areas.add(kidgdn.area)
         test_requestion.save()

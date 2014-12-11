@@ -2,6 +2,9 @@
 import random
 import string
 import datetime
+import os.path
+
+from django.utils import simplejson
 from django.contrib.gis.geos import point
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
@@ -78,10 +81,16 @@ def get_admission_date():
 
 
 def create_requestion(**kwargs):
+    names = simplejson.loads(
+        open(os.path.join(
+            settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures', 'names.json'),
+            'r').read())
     default_birth_date = datetime.date.today()-datetime.timedelta(
         days=random.randint(0, settings.MAX_CHILD_AGE*12*30))
 
     defaults = {
+        'name': random.choice(names['first']),
+        'sex': random.choice([u'М', u'Ж']),
         'admission_date': get_admission_date(),
         'distribute_in_any_sadik': True,
         'birth_date': default_birth_date,
