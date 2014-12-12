@@ -2,13 +2,25 @@
 import random
 import string
 import datetime
+import os.path
+
+from django.utils import simplejson
 from django.contrib.gis.geos import point
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from sadiki.core import utils
 
 from sadiki.core.models import Requestion, Area, BenefitCategory, \
-    Profile, AgeGroup, SadikGroup
+    Profile, AgeGroup, SadikGroup, Benefit, EvidienceDocumentTemplate, \
+    EvidienceDocument, REQUESTION_IDENTITY
+
+
+def disable_random_benefit():
+    id_ = random.randrange(Benefit.objects.count())
+    benefit = Benefit.objects.all()[id_]
+    benefit.disabled = True
+    benefit.save()
+    return benefit
 
 
 def get_random_string(length, only_letters=False, only_digits=False):
@@ -69,10 +81,16 @@ def get_admission_date():
 
 
 def create_requestion(**kwargs):
+    names = simplejson.loads(
+        open(os.path.join(
+            settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures', 'names.json'),
+            'r').read())
     default_birth_date = datetime.date.today()-datetime.timedelta(
         days=random.randint(0, settings.MAX_CHILD_AGE*12*30))
 
     defaults = {
+        'name': random.choice(names['first']),
+        'sex': random.choice([u'М', u'Ж']),
         'admission_date': get_admission_date(),
         'distribute_in_any_sadik': True,
         'birth_date': default_birth_date,
@@ -88,6 +106,12 @@ def create_requestion(**kwargs):
         requestion.areas.add(Area.objects.all().order_by('?')[0])
     else:
         requestion.areas.add(create_area())
+    requestion_document = EvidienceDocument.objects.create(
+        content_object=requestion,
+        template=EvidienceDocumentTemplate.objects.filter(
+            destination=REQUESTION_IDENTITY)[0],
+        document_number='II-ИВ %06d' % random.randint(0, 99999)
+    )
 
     return requestion
 
@@ -97,9 +121,10 @@ def create_age_groups_for_sadik(kidgdn):
     for age_group in AgeGroup.objects.all():
         group_min_birth_date = age_group.min_birth_date()
         group_max_birth_date = age_group.max_birth_date()
-        SadikGroup.objects.create(free_places=2,
-                                  capacity=2,
-                                  age_group=age_group, sadik=kidgdn,
-                                  year=current_distribution_year,
-                                  min_birth_date=group_min_birth_date,
-                                  max_birth_date=group_max_birth_date)
+        SadikGroup.objects.create(
+            free_places=2,
+            capacity=2,
+            age_group=age_group, sadik=kidgdn,
+            year=current_distribution_year,
+            min_birth_date=group_min_birth_date,
+            max_birth_date=group_max_birth_date)

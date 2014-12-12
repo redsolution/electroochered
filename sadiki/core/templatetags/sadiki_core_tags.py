@@ -6,6 +6,7 @@ from classytags.arguments import Argument, MultiKeywordArgument
 from classytags.core import Options, Tag
 from classytags.helpers import InclusionTag
 from django import template
+from django.contrib.messages.storage.fallback import FallbackStorage
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.handlers.wsgi import WSGIRequest
@@ -82,6 +83,11 @@ def check_url_availability(url, user):
         'REQUEST_METHOD': 'HEAD',
         'wsgi.input': FakePayload(''),
     })
+    # fixing bug with fake request and django.message
+    setattr(request, 'session', 'session')
+    messages = FallbackStorage(request)
+    setattr(request, '_messages', messages)
+
     request.user = user
     return func.func(request, *func.args, **func.kwargs)
 

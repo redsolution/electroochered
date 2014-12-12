@@ -382,13 +382,13 @@ table.table.table-bordered tr.highlight td {
     position: relative;
 }
 
-.uniForm #open_spoiler{ 
+.uniForm #open_spoiler{
     padding: 0px 13px 10px;
     font-size: 14px;
 
 }
 
-#open_spoiler span.caret.caret-margins.caret-right{ 
+#open_spoiler span.caret.caret-margins.caret-right{
     margin: 6px 5px 0px 2px;
 }
 
@@ -1334,7 +1334,8 @@ tr.dynamic-form .errorlist {
     width: 60px !important;
 }
 
-.form-disabled .editor, .form-disabled .ui-datepicker-trigger{
+.form-disabled .editor, .form-disabled .ui-datepicker-trigger,
+.form-disabled .documents-form .field-value a{
     display: none;
 }
 

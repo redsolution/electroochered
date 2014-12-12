@@ -60,19 +60,20 @@
                                 </td>
                                 <td>
                                     {{ requestion.get_status_display }}
-                                    {% if requestion.status in appeal_statuses %}
-                                        <p class=" label label-important">{{ requestion.days_for_appeal }} дней до окончания обжалования.</p>
-                                    {% endif %}
                                 </td>
                                 <td>
-                                    {% url operator_requestion_status_change requestion.id STATUS_DISTRIBUTED as decision_to_distributed_url %}
-                                    <p>{% action_button_for_url decision_to_distributed_url get_params next=request.get_full_path options text="Зачислить" %}</p>
-                                    {% url operator_requestion_status_change requestion.id STATUS_REQUESTER as decision_to_requester_url %}
-                                    <p>{% action_button_for_url decision_to_requester_url get_params next=request.get_full_path options text="Вернуть в очередь" %}</p>
-                                    {% url operator_requestion_status_change requestion.id STATUS_NOT_APPEAR as decision_to_not_appear_url %}
-                                    <p>{% action_button_for_url decision_to_not_appear_url get_params next=request.get_full_path options text="Отметить неявку"%}</p>
-                                    {% url operator_requestion_status_change requestion.id STATUS_REMOVE_REGISTRATION as remove_registration_url %}
-                                    <p>{% action_button_for_url remove_registration_url get_params next=request.get_full_path options text="Снять с учета" %}</p>
+                                    {% if requestion.is_available_for_actions %}
+                                        {% url operator_requestion_status_change requestion.id STATUS_DISTRIBUTED as decision_to_distributed_url %}
+                                        <p>{% action_button_for_url decision_to_distributed_url get_params next=request.get_full_path options text="Зачислить" %}</p>
+                                        {% url operator_requestion_status_change requestion.id STATUS_REQUESTER as decision_to_requester_url %}
+                                        <p>{% action_button_for_url decision_to_requester_url get_params next=request.get_full_path options text="Вернуть в очередь" %}</p>
+                                        {% url operator_requestion_status_change requestion.id STATUS_NOT_APPEAR as decision_to_not_appear_url %}
+                                        <p>{% action_button_for_url decision_to_not_appear_url get_params next=request.get_full_path options text="Отметить неявку"%}</p>
+                                        {% url operator_requestion_status_change requestion.id STATUS_REMOVE_REGISTRATION as remove_registration_url %}
+                                        <p>{% action_button_for_url remove_registration_url get_params next=request.get_full_path options text="Снять с учета" %}</p>
+                                    {% else %}
+                                        <p>Действия над заявкой в статусе "{{ requestion.get_status_display }}" запрещены</p>
+                                    {% endif %}
                                 </td>
                         {% endfor %}
                         </tbody>

@@ -5,6 +5,8 @@ import csv
 import getpass
 import urllib2
 
+from django.conf import settings
+
 from sadiki.core import models as core_models
 from sadiki.core.models import Preference, PREFERENCE_SECTION_MUNICIPALITY, PREFERENCE_MUNICIPALITY_PHONE, \
     PREFERENCE_MUNICIPALITY_NAME_GENITIVE
@@ -88,3 +90,12 @@ def get_notifier(request):
         return {'msgs': messages}
     except Exception:
         return {'msgs': messages}
+
+
+def get_special_apps(request):
+    special_apps_list = []
+    if 'smevfms' in settings.INSTALLED_APPS:
+        special_apps_list.append('smevfms')
+    if 'smevzags' in settings.INSTALLED_APPS:
+        special_apps_list.append('smevzags')
+    return {'special_apps': special_apps_list}

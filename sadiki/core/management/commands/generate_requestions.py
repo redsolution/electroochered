@@ -28,11 +28,15 @@ def progressbar(it, prefix = "", size = 60):
     sys.stdout.write("\n")
     sys.stdout.flush()
 
+
 class Command(BaseCommand):
     help = "Generates num random requestions"
     args = ['num',]
     option_list = BaseCommand.option_list + (
-        make_option('--distribute_in_any_sadik', default=False, action="store_true"),)
+        make_option('--distribute_in_any_sadik', default=False, 
+            action="store_true"),
+        make_option('--verbose', action='store_false', default=False,
+            dest='verbose'),)
 
     def handle(self, *args, **options):
         random.seed()
@@ -40,8 +44,12 @@ class Command(BaseCommand):
             names = simplejson.loads(open(join(settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures', 'names.json'), 'r').read())
             max_sadiks = 5
             permission = Permission.objects.get(codename=u'is_requester')
-
-            for i in progressbar(xrange(int(args[0]))):
+            
+            if options['verbose']:
+                numbers = progressbar(xrange(int(args[0])))
+            else:
+                numbers = xrange(int(args[0]))
+            for i in numbers:
                 # create user and profile
                 user = User.objects.create(
                     username='user%15d@mail.ru' % random.randint(0,99999999999999),

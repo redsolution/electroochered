@@ -228,6 +228,8 @@ class CoreViewsTest(TestCase):
         Проверяем корректрость работы ключа token, хранящегося в сессии
         пользователя.
         """
+        management.call_command('generate_sadiks', 10)
+        kgs = Sadik.objects.all()
         form_data = {'name': 'Ann',
                      'sex': 'Ж',
                      'birth_date': '07.06.2014',
@@ -235,7 +237,8 @@ class CoreViewsTest(TestCase):
                      'template': '2',
                      'document_number': 'II-ИВ 016809',
                      'areas': '1',
-                     'location': 'POINT (60.115814208984375 55.051432600719835)'
+                     'location': 'POINT (60.115814208984375 55.051432600719835)',
+                     'pref_sadiks': [str(kgs[0].id), str(kgs[1].id)],
                      }
         self.assertTrue(self.client.login(username=self.requester.username,
                                           password='123456q'))
