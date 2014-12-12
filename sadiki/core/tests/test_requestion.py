@@ -15,7 +15,8 @@ from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 from sadiki.core.workflow import workflow, CONFIRM_REQUESTION, \
-    NOT_CONFIRMED_REMOVE_REGISTRATION, REQUESTION_REJECT
+    NOT_CONFIRMED_REMOVE_REGISTRATION, REQUESTION_REJECT, ON_DISTRIBUTION, \
+    REQUESTER_DECISION_BY_RESOLUTION, REQUESTER_REMOVE_REGISTRATION
 
 
 OPERATOR_USERNAME = 'operator'
@@ -48,6 +49,7 @@ class BaseRequestionTest(TestCase):
         management.call_command('generate_requestions', 25,
                                 distribute_in_any_sadik=True)
 
+        self.kg = Sadik.objects.all()[0]
         self.operator = User(username=OPERATOR_USERNAME)
         self.operator.set_password(OPERATOR_PASSWORD)
         self.operator.save()
@@ -80,10 +82,9 @@ class BaseRequestionTest(TestCase):
         Sadik.objects.all().delete()
         User.objects.all().delete()
 
-    def test_requestion_not_confirmed(self):
-        kg = Sadik.objects.all()[0]
+    def test_operator_requestion_not_confirmed(self):
         requestion = create_requestion()
-        requestion.pref_sadiks.add(kg)
+        requestion.pref_sadiks.add(self.kg)
         requestion.save()
         self.assertEqual(requestion.status, STATUS_REQUESTER_NOT_CONFIRMED)
 
@@ -112,9 +113,9 @@ class BaseRequestionTest(TestCase):
         self.assertEqual(op_response.status_code, 200)
         self.assertEqual(op_response.context['requestion'], requestion)
 
-        # проверяем доступность разрешенных пользователю транзакций
+        # проверяем доступность разрешенных оператору транзакций
         user_allowed_transactions = [
-            t for t in transitions if t.required_permissions]
+            t for t in transitions if 'is_operator' in t.required_permissions]
         for t in user_allowed_transactions:
             url = reverse(
                 'operator_requestion_status_change',
@@ -145,3 +146,70 @@ class BaseRequestionTest(TestCase):
             # проверяем, что кнопка выполнения транзакций отсутствует
             html_button = '<a class="btn" href="{}">'.format(url)
             self.assertNotIn(html_button, op_response.content)
+
+    def test_operator_requestion_confirmed(self):
+        requestion = create_requestion(status=STATUS_REQUESTER)
+        requestion.pref_sadiks.add(self.kg)
+        requestion.set_ident_document_authentic()
+        requestion.save()
+        self.assertEqual(requestion.status, STATUS_REQUESTER)
+
+        # проверяем допустимые переводы для подтвержденной заявки
+        transition_indexes = workflow.available_transitions(
+            src=requestion.status)
+        self.assertEqual(len(transition_indexes), 3)
+        self.assertEqual(transition_indexes.sort(), [
+            ON_DISTRIBUTION,
+            REQUESTER_REMOVE_REGISTRATION,
+            REQUESTER_DECISION_BY_RESOLUTION,
+        ].sort())
+        transitions = requestion.available_transitions()
+        self.assertEqual(transition_indexes.sort(),
+                         [t.index for t in transitions].sort())
+        self.assertTrue(requestion.is_available_for_actions)
+
+        # банальные проверки работы веб-интерфейса
+        login = self.client.login(
+            username=OPERATOR_USERNAME,
+            password=OPERATOR_PASSWORD
+        )
+        self.assertTrue(login)
+        op_response = self.client.get(
+            reverse('operator_requestion_info', args=(requestion.id, )))
+        self.assertEqual(op_response.status_code, 200)
+        self.assertEqual(op_response.context['requestion'], requestion)
+
+        # проверяем доступность разрешенных оператору транзакций
+        operator_allowed_transactions = [
+            t for t in transitions if 'is_operator' in t.required_permissions]
+        for t in operator_allowed_transactions:
+            url = reverse(
+                'operator_requestion_status_change',
+                args=(requestion.id, t.dst)
+            )
+            t_response = self.client.get(url)
+            self.assertEqual(t_response.status_code, 200)
+            # проверяем, что кнопка выполнения транзакций пристутствует
+            html_button = '<a class="btn" href="{}">'.format(url)
+            self.assertIn(html_button, op_response.content)
+
+        # проверяем запрет для пользователя остальных транзакций
+        # формируем список из запрещенных транзаций
+        user_forbidden_transactions = [
+            t for t in transitions if t not in operator_allowed_transactions]
+        allowed_dst = [t.dst for t in transitions]
+        wrong_transitions = [
+            t for t in workflow.transitions if (
+                t.src != requestion.status and t.dst not in allowed_dst)
+        ]
+        for t in wrong_transitions + user_forbidden_transactions:
+            url = reverse(
+                'operator_requestion_status_change',
+                args=(requestion.id, t.dst)
+            )
+            t_response = self.client.get(url)
+            self.assertEqual(t_response.status_code, 403)
+            # проверяем, что кнопка выполнения транзакций отсутствует
+            html_button = '<a class="btn" href="{}">'.format(url)
+            self.assertNotIn(html_button, op_response.content)
+
