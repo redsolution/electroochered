@@ -184,7 +184,8 @@ def get_distribution(request):
     if request.method == 'GET':
         raise Http404
     signed_data = request.POST.get('signed_data')
-    if not (signed_data and gpgtools.check_data_sign(signed_data)):
+    if not (signed_data and gpgtools.check_data_sign(
+            {'data': request.POST.get('id'), 'sign': signed_data})):
         raise Http404
     _id = request.POST.get('id')
     if not _id:
@@ -224,14 +225,12 @@ def get_distribution(request):
 def get_child(request):
     if request.method == 'GET':
         raise Http404
-    doc = request.POST.get('doc')
-    signed_data = request.POST.get('sign')
-    if gpgtools.check_data_sign(signed_data):
+    if gpgtools.check_data_sign(request.POST):
         requestion_ct = ContentType.objects.get_for_model(Requestion)
         requestion_ids = EvidienceDocument.objects.filter(
-            content_type=requestion_ct, document_number=doc,
-            template__destination=REQUESTION_IDENTITY).values_list('object_id',
-                                                                   flat=True)
+            content_type=requestion_ct, document_number=request.POST['data'],
+            template__destination=REQUESTION_IDENTITY
+        ).values_list('object_id', flat=True)
         if not requestion_ids:
             return HttpResponse()
         requestions = Requestion.objects.filter(id__in=requestion_ids)
@@ -248,7 +247,8 @@ def api_test(request):
     if request.method == 'GET':
         msg = "Wrong method, use POST instead of GET"
     signed_data = request.POST.get('signed_data')
-    if not (signed_data and gpgtools.check_data_sign(signed_data)):
+    if not (signed_data and gpgtools.check_data_sign(
+            {'data': request.POST.get('test_string'), 'sign': signed_data})):
         msg = "Sing check error"
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
