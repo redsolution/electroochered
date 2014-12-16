@@ -9,22 +9,6 @@ from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
 
 
-def sign_is_valid(data):
-    gpg = gnupg.GPG()
-    return gpg.verify(data)
-
-
-def make_sign(data):
-    gpg = gnupg.GPG()
-    return gpg.sign(str(data))
-
-
-def decrypt_data(data):
-    gpg = gnupg.GPG()
-    decrypted_data = gpg.decrypt(data)
-    return decrypted_data
-
-
 def add_requestions_data(requestions, request):
     """
     Функция для сбора информации о заявках для дальнейшей конвертации в json.

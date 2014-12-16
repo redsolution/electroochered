@@ -15,7 +15,7 @@ from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
     STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
-from sadiki.api.utils import sign_is_valid, add_requestions_data
+from sadiki.api.utils import add_requestions_data
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
@@ -184,7 +184,7 @@ def get_distribution(request):
     if request.method == 'GET':
         raise Http404
     signed_data = request.POST.get('signed_data')
-    if not (signed_data and sign_is_valid(signed_data)):
+    if not (signed_data and gpgtools.check_data_sign(signed_data)):
         raise Http404
     _id = request.POST.get('id')
     if not _id:
@@ -226,7 +226,7 @@ def get_child(request):
         raise Http404
     doc = request.POST.get('doc')
     signed_data = request.POST.get('sign')
-    if sign_is_valid(signed_data):
+    if gpgtools.check_data_sign(signed_data):
         requestion_ct = ContentType.objects.get_for_model(Requestion)
         requestion_ids = EvidienceDocument.objects.filter(
             content_type=requestion_ct, document_number=doc,
@@ -235,20 +235,7 @@ def get_child(request):
         if not requestion_ids:
             return HttpResponse()
         requestions = Requestion.objects.filter(id__in=requestion_ids)
-        data = []
-        for requestion in requestions:
-            url = request.build_absolute_uri(reverse('requestion_logs',
-                                                     args=(requestion.id, )))
-            req_dict = {
-                'requestion_number': requestion.requestion_number,
-                'status': requestion.status,
-                'id': requestion.id,
-                'url': url,
-            }
-            if requestion.distribution_datetime:
-                req_dict['distribution_datetime'] = dttools.date_to_stamp(
-                    requestion.distribution_datetime)
-            data.append(req_dict)
+        data = add_requestions_data(requestions, request)
         response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
         return HttpResponse(simplejson.dumps(response), mimetype='text/json')
     raise Http404
@@ -261,7 +248,7 @@ def api_test(request):
     if request.method == 'GET':
         msg = "Wrong method, use POST instead of GET"
     signed_data = request.POST.get('signed_data')
-    if not (signed_data and sign_is_valid(signed_data)):
+    if not (signed_data and gpgtools.check_data_sign(signed_data)):
         msg = "Sing check error"
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
