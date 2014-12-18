@@ -8,15 +8,13 @@ from django.core.urlresolvers import reverse
 from django.db.models import Q
 
 from sadiki.core.tests.utils import create_requestion
-from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
-    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, \
-    Address, RequestionQuerySet, STATUS_NOT_APPEAR,  STATUS_REQUESTER, \
-    STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REMOVE_REGISTRATION
+from sadiki.core.models import *
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, \
     SUPERVISOR_GROUP_NAME, SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 from sadiki.core.workflow import workflow, CONFIRM_REQUESTION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, REQUESTION_REJECT, ON_DISTRIBUTION, \
-    REQUESTER_DECISION_BY_RESOLUTION, REQUESTER_REMOVE_REGISTRATION
+    REQUESTER_DECISION_BY_RESOLUTION, REQUESTER_REMOVE_REGISTRATION, \
+    REQUESTER_SHORT_STAY
 
 
 OPERATOR_USERNAME = 'operator'
@@ -157,11 +155,12 @@ class BaseRequestionTest(TestCase):
         # проверяем допустимые переводы для подтвержденной заявки
         transition_indexes = workflow.available_transitions(
             src=requestion.status)
-        self.assertEqual(len(transition_indexes), 3)
+        self.assertEqual(len(transition_indexes), 4)
         self.assertEqual(transition_indexes.sort(), [
             ON_DISTRIBUTION,
             REQUESTER_REMOVE_REGISTRATION,
             REQUESTER_DECISION_BY_RESOLUTION,
+            REQUESTER_SHORT_STAY,
         ].sort())
         transitions = requestion.available_transitions()
         self.assertEqual(transition_indexes.sort(),

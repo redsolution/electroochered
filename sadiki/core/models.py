@@ -56,6 +56,7 @@ STATUS_NOT_APPEAR_EXPIRE = 53  # Сроки на обжалование неяв
 STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутствия истекли
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
 STATUS_DISTRIBUTED_FROM_ES = 56  # Зачислена через систему ЭлектроСад
+STATUS_SHORT_STAY = 57  # Посещает группу кратковременного пребывания
 
 STATUS_CHOICES = (
     (STATUS_WAIT_REVIEW, u'Ожидает рассмотрения'),

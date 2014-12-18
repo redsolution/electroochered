@@ -130,13 +130,13 @@ TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутс
 DISTRIBUTION_BY_RESOLUTION = 58
 # actions with id 59, 60 already taken
 ES_DISTRIBUTION = 61                    # Зачислен через ЭлектроСад
-#отказ от зачилсения на постоянной основе
+# отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
 ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться
 REQUESTION_TRANSFER = 66            # Перевод из другого муниципалитета
 
-#Изменение данных заявки
+# Изменение данных заявки
 CHANGE_REQUESTION = 71
 CHANGE_REQUESTION_BY_OPERATOR = 72
 CHANGE_ADMISSION_DATE = 73
@@ -154,17 +154,17 @@ CHANGE_REQUESTION_LOCATION = 89
 ACCOUNT_CHANGE_REQUESTION = 90
 
 
-#Распределение
+# Распределение
 DISTRIBUTION_INIT = 100
 DISTRIBUTION_AUTO = 103
 DISTRIBUTION_START = 101
 DISTRIBUTION_END = 102
 
-#Изменение данных ДОУ
+# Изменение данных ДОУ
 CHANGE_SADIK_GROUP_PLACES = 104
 CHANGE_SADIK_INFO = 105
 
-#изменение путевки
+# изменение путевки
 VACANCY_DISTRIBUTED = 110
 
 START_NEW_YEAR = 106
@@ -178,6 +178,9 @@ CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
 EMAIL_VERIFICATION = 204
+
+# переходы, связанные с группами кратковременного пребывания
+REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
 
 workflow = Workflow()
 
@@ -355,6 +358,10 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_REQUESTER,
                      RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки',
                      permissions=[OPERATOR_PERMISSION[0]])
+
+# 5. Посещение групп кратковременного пребывания
+workflow.add(STATUS_REQUESTER, STATUS_SHORT_STAY, REQUESTER_SHORT_STAY,
+             u'Перевод в группу кратковременного пребывания')
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
