@@ -182,12 +182,14 @@ EMAIL_VERIFICATION = 204
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
 SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания в комплектование
+SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
 # командами (по расписанию)
 INNER_TRANSITIONS = [
     REQUESTER_SHORT_STAY,
+    SHORT_STAY_REQUESTER,
 ]
 
 workflow = Workflow()
@@ -372,6 +374,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 # 5. Посещение групп кратковременного пребывания
 workflow.add(STATUS_REQUESTER, STATUS_SHORT_STAY, REQUESTER_SHORT_STAY,
              u'Перевод в группу кратковременного пребывания')
+workflow.add(STATUS_SHORT_STAY, STATUS_REQUESTER, SHORT_STAY_REQUESTER,
+             u'Перевод в из группу кратковременного пребывания в очередь')
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
