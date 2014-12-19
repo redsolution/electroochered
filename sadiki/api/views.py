@@ -118,11 +118,8 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
                 if Requestion.objects.filter(
                         id=requestion.id, status=transition.src).update(
                         status=transition.dst):
-                    context_dict = {}
-                    if 'operator' in data:
-                        context_dict.update({'operator': data['operator']})
                     Logger.objects.create_for_action(
-                        transition.index, context_dict=context_dict,
+                        transition.index, context_dict=data,
                         extra={'obj': requestion})
                     status_code = STATUS_OK
                 else:
