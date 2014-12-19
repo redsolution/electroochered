@@ -86,6 +86,7 @@ STATUS_CHOICES = (
 STATUS_CHOICES_FILTER = (
     (STATUS_REQUESTER_NOT_CONFIRMED, u'Очередник - не подтвержден'),
     (STATUS_REQUESTER, u'Очередник'),
+    (STATUS_SHORT_STAY, u'Посещает группу кратковременного пребывания'),
     (STATUS_DECISION, u'Выделено место'),
     (STATUS_DISTRIBUTED, u'Зачислен'),
     (STATUS_NOT_APPEAR, u'Не явился'),
@@ -829,7 +830,7 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
-                        STATUS_DISTRIBUTED,
+                        STATUS_DISTRIBUTED, STATUS_SHORT_STAY,
                         STATUS_TEMP_DISTRIBUTED,
                         STATUS_ON_TEMP_DISTRIBUTION,
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
@@ -840,13 +841,14 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
-                        STATUS_ON_TEMP_DISTRIBUTION))
+                        STATUS_ON_TEMP_DISTRIBUTION, STATUS_SHORT_STAY))
 
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
-            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,)).order_by(
-                '-benefit_category__priority', 'registration_datetime', 'id')
+            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,
+                        STATUS_SHORT_STAY)).order_by(
+            '-benefit_category__priority', 'registration_datetime', 'id')
 
     def decision_requestions(self):
         return self.filter(
