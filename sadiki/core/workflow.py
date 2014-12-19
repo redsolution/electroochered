@@ -181,6 +181,7 @@ EMAIL_VERIFICATION = 204
 
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
+SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания в комплектование
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -207,6 +208,8 @@ workflow.add(None, STATUS_REQUESTER, REQUESTION_TRANSFER,
 # 2.1) Очередники
 workflow.add(STATUS_REQUESTER, STATUS_ON_DISTRIBUTION, ON_DISTRIBUTION,
              u'Перевод в комплектование')
+workflow.add(STATUS_SHORT_STAY, STATUS_ON_DISTRIBUTION, SHORT_STAY_DISTRIBUTION,
+             u'Перевод из временного пребывания в комплектование')
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_DECISION, DECISION,
              u'Выделение места в ДОУ')
 workflow.add(STATUS_REQUESTER, STATUS_DECISION,

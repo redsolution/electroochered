@@ -12,7 +12,7 @@ from sadiki.core.models import Distribution, DISTRIBUTION_STATUS_END, Requestion
     STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, Vacancies, Sadik, \
     DISTRIBUTION_STATUS_INITIAL, DISTRIBUTION_STATUS_ENDING, STATUS_DECISION, \
     SadikGroup, AgeGroup, STATUS_TEMP_DISTRIBUTED, STATUS_ON_TEMP_DISTRIBUTION, \
-    Area, VACANCY_STATUS_NOT_PROVIDED
+    Area, VACANCY_STATUS_NOT_PROVIDED, STATUS_SHORT_STAY
 from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_current_distribution_year, run_command, \
     create_xls_report
@@ -139,16 +139,19 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
 
     def post(self, request):
         if request.POST.get('confirmation') == 'yes':
-#            инициируем зачисление
+            # инициируем зачисление
             distribution = Distribution.objects.create(
                 year=get_current_distribution_year())
             distribution.start_datetime = datetime.datetime.now()
             distribution.save()
-            Vacancies.objects.filter(distribution__isnull=True,
+            Vacancies.objects.filter(
+                distribution__isnull=True,
                 status__isnull=True).update(distribution=distribution)
-            Logger.objects.create_for_action(DISTRIBUTION_INIT,
-                 extra={'user': request.user, 'obj': distribution})
-            Requestion.objects.filter(status=STATUS_REQUESTER).update(
+            Logger.objects.create_for_action(
+                DISTRIBUTION_INIT,
+                extra={'user': request.user, 'obj': distribution})
+            Requestion.objects.filter(status__in=[
+                STATUS_REQUESTER, STATUS_SHORT_STAY]).update(
                 status=STATUS_ON_DISTRIBUTION)
             Requestion.objects.filter(status=STATUS_TEMP_DISTRIBUTED).update(
                 status=STATUS_ON_TEMP_DISTRIBUTION)
