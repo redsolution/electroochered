@@ -19,7 +19,7 @@ from sadiki.api.utils import add_requestions_data
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
-    REQUESTER_DECISION_BY_RESOLUTION
+    REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.logger.models import Logger
 
@@ -114,25 +114,40 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
                 return self.render_to_response(result)
         if transition_indexes:
             transition = workflow.get_transition_by_index(transition_indexes[0])
-            form = self.form(requestion=requestion,
-                             data={'reason': data['reason'],
-                                   'transition': transition.index,
-                                   'confirm': "yes"},
-                             initial={'transition': transition.index})
-            if form.is_valid():
-                pre_status_change.send(
-                    sender=Requestion, request=request, requestion=requestion,
-                    transition=transition, form=form)
-                requestion.status = transition.dst
-                requestion.save()
-                post_status_change.send(
-                    sender=Requestion, request=request, requestion=requestion,
-                    transition=transition, form=form)
-                status_code = STATUS_OK
+            if transition.index in INNER_TRANSITIONS:
+                if Requestion.objects.filter(
+                        id=requestion.id, status=transition.src).update(
+                        status=transition.dst):
+                    context_dict = {}
+                    if 'operator' in data:
+                        context_dict.update({'operator': data['operator']})
+                    Logger.objects.create_for_action(
+                        transition.index, context_dict=context_dict,
+                        extra={'obj': requestion})
+                    status_code = STATUS_OK
+                else:
+                    status_code = STATUS_DATA_ERROR
+                    err_msg = u"Проверьте статус заявки в Электроочереди"
             else:
-                err_msg = {}
-                for error in form.errors:
-                    err_msg[error] = form.errors[error]
+                form = self.form(requestion=requestion,
+                                 data={'reason': data.get('reason'),
+                                       'transition': transition.index,
+                                       'confirm': "yes"},
+                                 initial={'transition': transition.index})
+                if form.is_valid():
+                    pre_status_change.send(
+                        sender=Requestion, request=request,
+                        requestion=requestion, transition=transition, form=form)
+                    requestion.status = transition.dst
+                    requestion.save()
+                    post_status_change.send(
+                        sender=Requestion, request=request,
+                        requestion=requestion, transition=transition, form=form)
+                    status_code = STATUS_OK
+                else:
+                    err_msg = {}
+                    for error in form.errors:
+                        err_msg[error] = form.errors[error]
         else:
             err_msg = {
                 '__all__': u"Невозможно изменить статус заявки в электроочереди"

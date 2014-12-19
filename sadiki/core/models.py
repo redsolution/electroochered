@@ -80,6 +80,7 @@ STATUS_CHOICES = (
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
     (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен"),
+    (STATUS_SHORT_STAY, u"Посещает группу кратковременного пребывания"),
 )
 
 STATUS_CHOICES_FILTER = (
@@ -95,7 +96,9 @@ STATUS_CHOICES_FILTER = (
 REQUESTION_MUTABLE_STATUSES = (
     STATUS_WAIT_REVIEW,
     STATUS_REQUESTER_NOT_CONFIRMED,
-    STATUS_REQUESTER)
+    STATUS_REQUESTER,
+    STATUS_SHORT_STAY,
+)
 
 REQUESTION_REFUSE_STATUSES = (
     STATUS_REJECTED,

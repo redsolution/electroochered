@@ -182,6 +182,13 @@ EMAIL_VERIFICATION = 204
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
 
+# внетренние системные переходы, выполняются по упрощенной схеме
+# недоступны пользователям, инициируются либо извне (по api), либо внутренними
+# командами (по расписанию)
+INNER_TRANSITIONS = [
+    REQUESTER_SHORT_STAY,
+]
+
 workflow = Workflow()
 
 # 1) Подача заявления
@@ -601,6 +608,12 @@ decision_requster_anonym = u"""
 
 email_verification_template = u"Почтовый адрес {{ email }} успешно подтвержден."
 
+requester_short_stay = u"""
+    Заявитель посещает группу кратковременного пребывания в {{ sadik|safe }}.
+    {% if operator %} Посещение подтвердил оператор ЭлектроСада {{ operator }}.
+    {% endif %}"""
+
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -719,7 +732,10 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(u"""
         Заявка перенесена из другого муниципалитета: {{ sender_info }}.
         """)
-    }
+    },
+    REQUESTER_SHORT_STAY: {
+        ANONYM_LOG: Template(requester_short_stay)
+    },
 })
 
 
