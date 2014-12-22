@@ -150,11 +150,12 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
             Logger.objects.create_for_action(
                 DISTRIBUTION_INIT,
                 extra={'user': request.user, 'obj': distribution})
-            Requestion.objects.filter(status__in=[
-                STATUS_REQUESTER, STATUS_SHORT_STAY]).update(
-                status=STATUS_ON_DISTRIBUTION)
-            Requestion.objects.filter(status=STATUS_TEMP_DISTRIBUTED).update(
-                status=STATUS_ON_TEMP_DISTRIBUTION)
+            for requestion in Requestion.objects.filter(status__in=[
+                    STATUS_REQUESTER, STATUS_SHORT_STAY]):
+                requestion.change_status(STATUS_ON_DISTRIBUTION)
+            for requestion in Requestion.objects.filter(
+                    status=STATUS_TEMP_DISTRIBUTED):
+                requestion.change_status(STATUS_ON_TEMP_DISTRIBUTION)
         return HttpResponseRedirect(reverse('decision_manager'))
 
 
