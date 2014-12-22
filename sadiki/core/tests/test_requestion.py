@@ -14,7 +14,7 @@ from sadiki.core.permissions import OPERATOR_GROUP_NAME, \
 from sadiki.core.workflow import workflow, CONFIRM_REQUESTION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, REQUESTION_REJECT, ON_DISTRIBUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, REQUESTER_REMOVE_REGISTRATION, \
-    REQUESTER_SHORT_STAY
+    REQUESTER_SHORT_STAY, SHORT_STAY_REQUESTER, SHORT_STAY_DISTRIBUTION
 
 
 OPERATOR_USERNAME = 'operator'
@@ -224,3 +224,33 @@ class BaseRequestionTest(TestCase):
         transition_indexes = workflow.available_transitions(
             src=requestion.status)
         self.assertEqual(len(transition_indexes), 2)
+        self.assertEqual(transition_indexes.sort(), [
+            SHORT_STAY_DISTRIBUTION, SHORT_STAY_REQUESTER
+        ].sort())
+
+        transitions = requestion.available_transitions()
+        operator_allowed_transactions = [
+            t for t in transitions if 'is_operator' in t.required_permissions]
+        # все транзакции системные, выполняются или через api или manage.py
+        self.assertEqual(len(operator_allowed_transactions), 0)
+
+        login = self.client.login(
+            username=OPERATOR_USERNAME,
+            password=OPERATOR_PASSWORD
+        )
+        self.assertTrue(login)
+        op_response = self.client.get(
+            reverse('operator_requestion_info', args=(requestion.id, )))
+        self.assertEqual(op_response.status_code, 200)
+        self.assertEqual(op_response.context['requestion'], requestion)
+
+        for t in workflow.transitions:
+            url = reverse(
+                'operator_requestion_status_change',
+                args=(requestion.id, t.dst)
+            )
+            t_response = self.client.get(url)
+            self.assertEqual(t_response.status_code, 403)
+            # проверяем, что кнопка выполнения транзакций отсутствует
+            html_button = '<a class="btn" href="{}">'.format(url)
+            self.assertNotIn(html_button, op_response.content)
