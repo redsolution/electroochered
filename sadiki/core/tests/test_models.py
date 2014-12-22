@@ -8,7 +8,8 @@ from django.contrib.auth.models import Permission, Group
 
 from sadiki.core.models import Requestion, BenefitCategory, Benefit, \
     Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
-    REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup, Address
+    REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup, Address, \
+    STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER
 from sadiki.core.tests import utils as test_utils
 
 
@@ -127,6 +128,15 @@ class RequestionTestCase(TestCase):
             datetime.timedelta(days=settings.APPEAL_DAYS - 1))
         self.requestion.save()
         self.assertEqual(self.requestion.days_for_appeal(), 1)
+
+    def test_status_change(self):
+        self.assertIsNone(self.requestion.previous_status)
+        self.assertEqual(self.requestion.status, STATUS_REQUESTER_NOT_CONFIRMED)
+
+        self.requestion.change_status(STATUS_REQUESTER)
+        self.assertEqual(self.requestion.status, STATUS_REQUESTER)
+        self.assertEqual(
+            self.requestion.previous_status, STATUS_REQUESTER_NOT_CONFIRMED)
 
 
 class BenefitTestCase(TestCase):
