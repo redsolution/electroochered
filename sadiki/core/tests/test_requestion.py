@@ -212,3 +212,15 @@ class BaseRequestionTest(TestCase):
             html_button = '<a class="btn" href="{}">'.format(url)
             self.assertNotIn(html_button, op_response.content)
 
+    def test_short_stay_requestion_operator(self):
+        requestion = create_requestion(status=STATUS_REQUESTER)
+        requestion.pref_sadiks.add(self.kg)
+        requestion.set_ident_document_authentic()
+        requestion.status = STATUS_SHORT_STAY
+        requestion.save()
+        self.assertEqual(requestion.status, STATUS_SHORT_STAY)
+
+        # проверяем допустимые переводы для подтвержденной заявки
+        transition_indexes = workflow.available_transitions(
+            src=requestion.status)
+        self.assertEqual(len(transition_indexes), 2)
