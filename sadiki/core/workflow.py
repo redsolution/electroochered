@@ -183,6 +183,7 @@ EMAIL_VERIFICATION = 204
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
 SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания в комплектование
 SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
+DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после комплектования
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -220,6 +221,8 @@ workflow.add(STATUS_REQUESTER, STATUS_DECISION,
              permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, ON_DISTRIBUTION_RETURN,
              u'Возврат в очередь нераспределенных')
+workflow.add(STATUS_ON_DISTRIBUTION, STATUS_SHORT_STAY, DISTRIBUTION_SHORT_STAY,
+             u'Возврат в группы КП нераспределенных')
 # Немедленное зачисление
 if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
     workflow.add(STATUS_REQUESTER, STATUS_DECISION, IMMEDIATELY_DECISION,
