@@ -1013,6 +1013,9 @@ class Requestion(models.Model):
     status = models.IntegerField(
         verbose_name=u'Статус', choices=STATUS_CHOICES,
         null=True, default=STATUS_REQUESTER_NOT_CONFIRMED)
+    previous_status = models.IntegerField(
+        verbose_name=u'Предыдущий статус', choices=STATUS_CHOICES,
+        null=True, blank=True)
     registration_datetime = models.DateTimeField(
         verbose_name=u'Дата и время подачи заявки',
         default=datetime.datetime.now, validators=[registration_date_validator])
@@ -1378,6 +1381,17 @@ class Requestion(models.Model):
         vacancy.save()
         self.previous_distributed_in_vacancy = vacancy
         self.distributed_in_vacancy = None
+        self.save()
+
+    def change_status(self, new_status):
+        """
+        Меняем статус, сохраняя предыдущее значение. Используется для возврата
+        заявок, которым не выделили места, в корректное состояние после
+        комплектования. Очередники возвращаются в очередини, группы КП - в
+        группы КП.
+        """
+        self.previous_status = self.status
+        self.status = new_status
         self.save()
 
     def __unicode__(self):
