@@ -1,28 +1,10 @@
 # -*- coding: utf-8 -*-
-import gnupg
-
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 
 from pysnippets import dttools
 from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
-
-
-def sign_is_valid(data):
-    gpg = gnupg.GPG()
-    return gpg.verify(data)
-
-
-def make_sign(data):
-    gpg = gnupg.GPG()
-    return gpg.sign(str(data))
-
-
-def decrypt_data(data):
-    gpg = gnupg.GPG()
-    decrypted_data = gpg.decrypt(data)
-    return decrypted_data
 
 
 def add_requestions_data(requestions, request):

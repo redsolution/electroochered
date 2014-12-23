@@ -56,6 +56,7 @@ STATUS_NOT_APPEAR_EXPIRE = 53  # Сроки на обжалование неяв
 STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутствия истекли
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
 STATUS_DISTRIBUTED_FROM_ES = 56  # Зачислена через систему ЭлектроСад
+STATUS_SHORT_STAY = 57  # Посещает группу кратковременного пребывания
 
 STATUS_CHOICES = (
     (STATUS_WAIT_REVIEW, u'Ожидает рассмотрения'),
@@ -79,11 +80,13 @@ STATUS_CHOICES = (
     (STATUS_ABSENT_EXPIRE, u'Сроки на обжалование отсутствия истекли'),
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
     (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен"),
+    (STATUS_SHORT_STAY, u"Посещает группу кратковременного пребывания"),
 )
 
 STATUS_CHOICES_FILTER = (
     (STATUS_REQUESTER_NOT_CONFIRMED, u'Очередник - не подтвержден'),
     (STATUS_REQUESTER, u'Очередник'),
+    (STATUS_SHORT_STAY, u'Посещает группу кратковременного пребывания'),
     (STATUS_DECISION, u'Выделено место'),
     (STATUS_DISTRIBUTED, u'Зачислен'),
     (STATUS_NOT_APPEAR, u'Не явился'),
@@ -94,7 +97,9 @@ STATUS_CHOICES_FILTER = (
 REQUESTION_MUTABLE_STATUSES = (
     STATUS_WAIT_REVIEW,
     STATUS_REQUESTER_NOT_CONFIRMED,
-    STATUS_REQUESTER)
+    STATUS_REQUESTER,
+    STATUS_SHORT_STAY,
+)
 
 REQUESTION_REFUSE_STATUSES = (
     STATUS_REJECTED,
@@ -825,7 +830,7 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
-                        STATUS_DISTRIBUTED,
+                        STATUS_DISTRIBUTED, STATUS_SHORT_STAY,
                         STATUS_TEMP_DISTRIBUTED,
                         STATUS_ON_TEMP_DISTRIBUTION,
                         STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE,
@@ -836,13 +841,14 @@ class RequestionQuerySet(models.query.QuerySet):
         return self.filter(
             status__in=(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER,
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
-                        STATUS_ON_TEMP_DISTRIBUTION))
+                        STATUS_ON_TEMP_DISTRIBUTION, STATUS_SHORT_STAY))
 
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
-            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,)).order_by(
-                '-benefit_category__priority', 'registration_datetime', 'id')
+            status__in=(STATUS_REQUESTER, STATUS_TEMP_DISTRIBUTED,
+                        STATUS_SHORT_STAY)).order_by(
+            '-benefit_category__priority', 'registration_datetime', 'id')
 
     def decision_requestions(self):
         return self.filter(
@@ -1007,6 +1013,9 @@ class Requestion(models.Model):
     status = models.IntegerField(
         verbose_name=u'Статус', choices=STATUS_CHOICES,
         null=True, default=STATUS_REQUESTER_NOT_CONFIRMED)
+    previous_status = models.IntegerField(
+        verbose_name=u'Предыдущий статус', choices=STATUS_CHOICES,
+        null=True, blank=True)
     registration_datetime = models.DateTimeField(
         verbose_name=u'Дата и время подачи заявки',
         default=datetime.datetime.now, validators=[registration_date_validator])
@@ -1372,6 +1381,17 @@ class Requestion(models.Model):
         vacancy.save()
         self.previous_distributed_in_vacancy = vacancy
         self.distributed_in_vacancy = None
+        self.save()
+
+    def change_status(self, new_status):
+        """
+        Меняем статус, сохраняя предыдущее значение. Используется для возврата
+        заявок, которым не выделили места, в корректное состояние после
+        комплектования. Очередники возвращаются в очередини, группы КП - в
+        группы КП.
+        """
+        self.previous_status = self.status
+        self.status = new_status
         self.save()
 
     def __unicode__(self):
