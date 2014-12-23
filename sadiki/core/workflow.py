@@ -378,7 +378,7 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 workflow.add(STATUS_REQUESTER, STATUS_SHORT_STAY, REQUESTER_SHORT_STAY,
              u'Перевод в группу кратковременного пребывания')
 workflow.add(STATUS_SHORT_STAY, STATUS_REQUESTER, SHORT_STAY_REQUESTER,
-             u'Перевод в из группу кратковременного пребывания в очередь')
+             u'Перевод из группы кратковременного пребывания в очередь')
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
@@ -623,6 +623,11 @@ requester_short_stay = u"""
     {% if operator %} Посещение подтвердил оператор ЭлектроСада {{ operator }}.
     {% endif %}"""
 
+short_stay_requester = u"""
+    Заявитель выпущен из группы кратковременного пребывания в {{ sadik|safe }}.
+    {% if operator %} Процедуру провел оператор ЭлектроСада {{ operator }}.
+    {% endif %}"""
+
 
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
@@ -746,6 +751,9 @@ ACTION_TEMPLATES.update({
     REQUESTER_SHORT_STAY: {
         ANONYM_LOG: Template(requester_short_stay)
     },
+    SHORT_STAY_REQUESTER: {
+        ANONYM_LOG: Template(short_stay_requester)
+    }
 })
 
 
