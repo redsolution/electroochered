@@ -26,6 +26,7 @@ def add_requestions_data(requestions, request):
             'distribution_datetime': dttools.datetime_to_stamp(
                 requestion.status_change_datetime),
             'name': requestion.name,
+            'sex': requestion.sex,
             'status': requestion.status,
             'queue_profile_url': url,
             'birth_date': dttools.date_to_stamp(requestion.birth_date),
