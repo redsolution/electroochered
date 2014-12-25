@@ -208,7 +208,6 @@ def get_distribution(request):
             status__in=[STATUS_DECISION, STATUS_DISTRIBUTED])
         if options.get('only_decision'):
             requestions = requestions.filter(status=STATUS_DECISION)
-            print len(requestions)
         if requestions:
             req_list = add_requestions_data(requestions, request)
             kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
