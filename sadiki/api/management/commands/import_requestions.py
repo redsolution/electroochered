@@ -9,7 +9,7 @@ from django.contrib.auth.models import User, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 
-from sadiki.api.utils import decrypt_data
+from pysnippets import gpgtools
 from sadiki.logger.models import Logger
 from sadiki.core.workflow import REQUESTION_TRANSFER
 from sadiki.core.models import Requestion, Area, Profile, EvidienceDocument, \
@@ -22,14 +22,14 @@ class Command(BaseCommand):
         if len(sys.argv) > 2:
             for f in sys.argv[2:]:
                 data = open(f, 'r').read()
-                decrypted_data = decrypt_data(data)
+                decrypted_data = gpgtools.decrypt_data(data)
                 data = json.loads(str(decrypted_data))
                 for item in data:
                     req = create_requestion(item)
                     print req
         else:
             data = sys.stdin.read()
-            decrypted_data = decrypt_data(data)
+            decrypted_data = gpgtools.decrypt_data(data)
             data = json.loads(str(decrypted_data))
             for item in data:
                 req = create_requestion(item)
