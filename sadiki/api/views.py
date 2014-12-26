@@ -195,11 +195,12 @@ def get_distributions(request):
 def get_distribution(request):
     if request.method == 'GET':
         raise Http404
-    signed_data = request.POST.get('signed_data')
+    data = json.loads(request.body)
+    signed_data = data.get('signed_data')
     if not (signed_data and gpgtools.check_data_sign(
-            {'data': request.POST.get('id'), 'sign': signed_data})):
+            {'data': data.get('id'), 'sign': signed_data})):
         raise Http404
-    _id = request.POST.get('id')
+    _id = data.get('id')
     if not _id:
         raise Http404
     distribution_qs = Distribution.objects.filter(pk=_id)
@@ -210,14 +211,15 @@ def get_distribution(request):
     sadiks_ids = Requestion.objects.filter(
         distributed_in_vacancy__distribution=dist).distinct().values_list(
             'distributed_in_vacancy__sadik_group__sadik', flat=True)
+    options = data.get('options')
     for sadik in Sadik.objects.filter(
             id__in=sadiks_ids).distinct().order_by('number'):
         requestions = Requestion.objects.filter(
             distributed_in_vacancy__distribution=dist,
             distributed_in_vacancy__sadik_group__sadik=sadik,
-            status__in=[STATUS_DECISION, STATUS_DISTRIBUTED]).order_by(
-                '-birth_date').select_related('profile').select_related(
-                    'distributed_in_vacancy__sadik_group__age_group')
+            status__in=[STATUS_DECISION, STATUS_DISTRIBUTED])
+        if options.get('only_decision'):
+            requestions = requestions.filter(status=STATUS_DECISION)
         if requestions:
             req_list = add_requestions_data(requestions, request)
             kg_dict = {'kindergtn': sadik.id, 'requestions': req_list}
