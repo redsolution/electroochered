@@ -233,7 +233,7 @@ def get_child(request):
     if gpgtools.check_data_sign(data):
         requestion_ct = ContentType.objects.get_for_model(Requestion)
         requestion_ids = EvidienceDocument.objects.filter(
-            content_type=requestion_ct, document_number=data['doc'],
+            content_type=requestion_ct, document_number=data['data'],
             template__destination=REQUESTION_IDENTITY
         ).values_list('object_id', flat=True)
         if not requestion_ids:
