@@ -239,7 +239,9 @@ def get_distribution(request):
 def get_child(request):
     if request.method == 'GET':
         raise Http404
-    data = json.loads(request.body)
+    data = {'data': request.POST.get('doc'), 'sign': request.POST.get('sign')}
+    if not data['data']:
+        return HttpResponse()
     if gpgtools.check_data_sign(data):
         requestion_ct = ContentType.objects.get_for_model(Requestion)
         requestion_ids = EvidienceDocument.objects.filter(
