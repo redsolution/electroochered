@@ -239,7 +239,7 @@ def get_distribution(request):
 def get_child(request):
     if request.method == 'GET':
         raise Http404
-    data = {'data': request.POST.get('doc'), 'sign': request.POST.get('sign')}
+    data = json.loads(request.body)
     if not data['data']:
         return HttpResponse()
     if gpgtools.check_data_sign(data):
