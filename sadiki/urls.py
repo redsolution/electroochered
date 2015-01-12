@@ -34,6 +34,12 @@ if 'smevzags' in settings.INSTALLED_APPS:
         (r'^zags/', include('smevzags.urls')),
     )
 
+if 'electroochered-authesia' in settings.INSTALLED_APPS:
+    urlpatterns += patterns(
+        '',
+        (r'^esia_auth/', include('electroochered-authesia.urls')),
+    )
+
 urlpatterns += patterns(
     '',
     (r'^adm/', include(sadiki_admin_site.urls)),
