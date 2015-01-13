@@ -184,6 +184,7 @@ REQUESTER_SHORT_STAY = 300  # отметка о посещении групп К
 SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания в комплектование
 SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
 DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после комплектования
+SHORT_STAY_DECISION_BY_RESOLUTION = 304  # выделение места по пезолюции
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -217,6 +218,10 @@ workflow.add(STATUS_ON_DISTRIBUTION, STATUS_DECISION, DECISION,
              u'Выделение места в ДОУ')
 workflow.add(STATUS_REQUESTER, STATUS_DECISION,
              REQUESTER_DECISION_BY_RESOLUTION,
+             u'Выделение места в ДОУ по резолюции начальника',
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
+workflow.add(STATUS_SHORT_STAY, STATUS_DECISION,
+             SHORT_STAY_DECISION_BY_RESOLUTION,
              u'Выделение места в ДОУ по резолюции начальника',
              permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, ON_DISTRIBUTION_RETURN,
@@ -628,6 +633,10 @@ short_stay_requester = u"""
     {% if operator %} Процедуру провел оператор ЭлектроСада {{ operator }}.
     {% endif %}"""
 
+decision_by_resolution_anonym = u"""
+    Выделено место в {{ sadik|safe }}. Должность резолюционера:
+    {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
+    Номер документа: {{ resolution_number }}."""
 
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
@@ -734,11 +743,7 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
     },
     REQUESTER_DECISION_BY_RESOLUTION: {
-        ANONYM_LOG: Template(
-            u"""Выделено место в {{ sadik|safe }}. Должность резолюционера:
-            {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
-            Номер документа: {{ resolution_number }}.
-            """)
+        ANONYM_LOG: Template(decision_by_resolution_anonym)
     },
     EMAIL_VERIFICATION: {
         ACCOUNT_LOG: Template(email_verification_template)
@@ -753,7 +758,10 @@ ACTION_TEMPLATES.update({
     },
     SHORT_STAY_REQUESTER: {
         ANONYM_LOG: Template(short_stay_requester)
-    }
+    },
+    SHORT_STAY_DECISION_BY_RESOLUTION: {
+        ANONYM_LOG: Template(decision_by_resolution_anonym)
+    },
 })
 
 

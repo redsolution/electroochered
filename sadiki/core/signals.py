@@ -47,7 +47,7 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     TEMP_ABSENT_CANCEL, RETURN_TEMP_DISTRIBUTED, DECISION_REQUESTER, \
     NOT_APPEAR_REQUESTER, ABSENT_REQUESTER, DECISION_TEMP_DISTRIBUTED, \
     NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, \
-    DECISION_DISTRIBUTION, \
+    DECISION_DISTRIBUTION, SHORT_STAY_DECISION_BY_RESOLUTION, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
     workflow, REQUESTER_DECISION_BY_RESOLUTION, ES_DISTRIBUTION
@@ -407,7 +407,8 @@ def after_restore_requestion(sender, **kwargs):
 
 # Выделение места по резолюции
 @receiver(post_status_change, sender=Requestion)
-@listen_transitions(REQUESTER_DECISION_BY_RESOLUTION,)
+@listen_transitions(REQUESTER_DECISION_BY_RESOLUTION,
+                    SHORT_STAY_DECISION_BY_RESOLUTION)
 def after_distribution_by_resolution(sender, **kwargs):
     transition = kwargs['transition']
     request = kwargs['request']
@@ -428,6 +429,8 @@ def after_distribution_by_resolution(sender, **kwargs):
 # ------------------------------------------------------
 # Функции дополнительной проеврки переходов (callback)
 # ------------------------------------------------------
+
+
 def register_callback(transitions, callback):
     u"""Функция регистрации дополнительной проверки"""
     if not isinstance(transitions, (list, tuple)):
@@ -471,8 +474,8 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         ABSENT_TEMP_DISTRIBUTED), permit_permanent_decision_reject)
 
 # Немедленное зачисление
-if IMMEDIATELY_DISTRIBUTION in (IMMEDIATELY_DISTRIBUTION_YES,
-        IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY):
+if IMMEDIATELY_DISTRIBUTION in (
+        IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY):
     def permit_immediately_decision(user, requestion, transition, request=None, form=None):
         u"""
         Доп проверка к переходу №8 - немедленное зачисление.
@@ -480,7 +483,8 @@ if IMMEDIATELY_DISTRIBUTION in (IMMEDIATELY_DISTRIBUTION_YES,
         # если немедленное распределение распространяется только на отдельные
         # категории льгот, то проверяем, что у заявки нужная категория
         if IMMEDIATELY_DISTRIBUTION == IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY:
-            if not requestion.benefits.filter(category__immediately_distribution_active=True).exists():
+            if not requestion.benefits.filter(
+                    category__immediately_distribution_active=True).exists():
                 return False
         if not requestion.age_groups():
             return False
@@ -512,7 +516,7 @@ if IMMEDIATELY_DISTRIBUTION in (IMMEDIATELY_DISTRIBUTION_YES,
 
 
 def permit_confirm_requestion(user, requestion, transition, request=None, form=None):
-    #проверяем, что у заявки есть все необходимые документы для льгот
+    # проверяем, что у заявки есть все необходимые документы для льгот
     return all([requestion.all_fields_filled(), requestion.have_all_benefit_documents()])
 
 register_callback(CONFIRM_REQUESTION, permit_confirm_requestion)
@@ -533,6 +537,7 @@ register_callback(
 
 # Зачисление по резолюции
 register_form(REQUESTER_DECISION_BY_RESOLUTION, DistributionByResolutionForm)
+register_form(SHORT_STAY_DECISION_BY_RESOLUTION, DistributionByResolutionForm)
 
-#документальное подтверждение заявки
+# документальное подтверждение заявки
 register_form(CONFIRM_REQUESTION, RequestionConfirmationForm)
