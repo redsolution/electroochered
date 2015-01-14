@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.contrib import messages
 from django.core.urlresolvers import reverse
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from django.http import HttpResponseForbidden, HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext, loader
@@ -150,9 +150,16 @@ class DistributionInit(OperatorPermissionMixin, TemplateView):
             Logger.objects.create_for_action(
                 DISTRIBUTION_INIT,
                 extra={'user': request.user, 'obj': distribution})
-            for requestion in Requestion.objects.filter(status__in=[
-                    STATUS_REQUESTER, STATUS_SHORT_STAY]):
-                requestion.change_status(STATUS_ON_DISTRIBUTION)
+
+            # сохраняем изначальный статус
+            Requestion.objects.filter(status__in=[
+                STATUS_REQUESTER, STATUS_SHORT_STAY
+            ]).update(previous_status=F('status'))
+            # обновляем статус на "На распределении"
+            Requestion.objects.filter(status__in=[
+                STATUS_REQUESTER, STATUS_SHORT_STAY
+            ]).update(status=STATUS_ON_DISTRIBUTION)
+
             for requestion in Requestion.objects.filter(
                     status=STATUS_TEMP_DISTRIBUTED):
                 requestion.change_status(STATUS_ON_TEMP_DISTRIBUTION)
