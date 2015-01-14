@@ -19,7 +19,8 @@ from sadiki.api.utils import add_requestions_data
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
-    REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS
+    REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
+    SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.logger.models import Logger
 
@@ -162,7 +163,8 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
         last_import_datetime = dttools.datetime_from_stamp(data['last_import'])
         ridx = Logger.objects.filter(
             action_flag__in=[DISTRIBUTION_BY_RESOLUTION,
-                             REQUESTER_DECISION_BY_RESOLUTION],
+                             REQUESTER_DECISION_BY_RESOLUTION,
+                             SHORT_STAY_DECISION_BY_RESOLUTION, ],
             datetime__gte=last_import_datetime
         ).values_list('object_id', flat=True)
         # если зачислений по резолюции за указанные период не было
