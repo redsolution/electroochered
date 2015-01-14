@@ -14,7 +14,8 @@ from sadiki.core.permissions import OPERATOR_GROUP_NAME, \
 from sadiki.core.workflow import workflow, CONFIRM_REQUESTION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, REQUESTION_REJECT, ON_DISTRIBUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, REQUESTER_REMOVE_REGISTRATION, \
-    REQUESTER_SHORT_STAY, SHORT_STAY_REQUESTER, SHORT_STAY_DISTRIBUTION
+    REQUESTER_SHORT_STAY, SHORT_STAY_REQUESTER, SHORT_STAY_DISTRIBUTION, \
+    SHORT_STAY_DECISION_BY_RESOLUTION
 
 
 OPERATOR_USERNAME = 'operator'
@@ -223,16 +224,23 @@ class BaseRequestionTest(TestCase):
         # проверяем допустимые переводы для подтвержденной заявки
         transition_indexes = workflow.available_transitions(
             src=requestion.status)
-        self.assertEqual(len(transition_indexes), 2)
+        self.assertEqual(len(transition_indexes), 3)
         self.assertEqual(transition_indexes.sort(), [
-            SHORT_STAY_DISTRIBUTION, SHORT_STAY_REQUESTER
+            SHORT_STAY_DISTRIBUTION, SHORT_STAY_REQUESTER,
+            SHORT_STAY_DECISION_BY_RESOLUTION
         ].sort())
 
         transitions = requestion.available_transitions()
+
+        # отсутствуют транзакции, выполняемые оператором
         operator_allowed_transactions = [
             t for t in transitions if 'is_operator' in t.required_permissions]
-        # все транзакции системные, выполняются или через api или manage.py
         self.assertEqual(len(operator_allowed_transactions), 0)
+
+        # одна транзакция, выполняемая администратором
+        supervisor_allowed_transactions = [
+            t for t in transitions if 'is_supervisor' in t.required_permissions]
+        self.assertEqual(len(supervisor_allowed_transactions), 1)
 
         login = self.client.login(
             username=OPERATOR_USERNAME,
