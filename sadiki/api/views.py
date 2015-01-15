@@ -32,7 +32,7 @@ STATUS_SYSTEM_ERROR = 2
 
 
 class SignJSONResponseMixin(object):
-    """
+    u"""
     Миксин, который выполняет проверку корректности подписи данных входящего
     запроса и формирует json в ответ
     """
@@ -60,7 +60,7 @@ class SignJSONResponseMixin(object):
 
 
 class ChangeRequestionStatus(SignJSONResponseMixin, View):
-    """
+    u"""
     Реализация метода api для изменения статуса заявки через запрос от
     ЭлектроСада
     """
@@ -155,7 +155,7 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
 
 
 class GetRequestionsByResolution(SignJSONResponseMixin, View):
-    """
+    u"""
     Получаем список заявок, которые были зачислены по резолюции
     """
     def post(self, request, *args, **kwargs):
