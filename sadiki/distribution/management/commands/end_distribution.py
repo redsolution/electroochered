@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
-import sys, traceback
+import sys
+import traceback
+
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
 from django.core.management.base import BaseCommand
+from django.db.models import F
+
 from sadiki.core.models import Distribution, STATUS_ON_DISTRIBUTION, \
     Requestion, DISTRIBUTION_STATUS_END, STATUS_ON_TEMP_DISTRIBUTION, \
     VACANCY_STATUS_DISTRIBUTED, VACANCY_STATUS_MANUALLY_CHANGED, \
@@ -28,12 +32,11 @@ class Command(BaseCommand):
         else:
             try:
                 # все нераспределенные заявки возвращаются в очередь
-                for requestion in Requestion.objects.filter(
-                        status=STATUS_ON_DISTRIBUTION):
-                    requestion.change_status(requestion.previous_status)
-                for requestion in Requestion.objects.filter(
-                        status=STATUS_ON_TEMP_DISTRIBUTION):
-                    requestion.change_status(requestion.previous_status)
+                Requestion.objects.filter(status=STATUS_ON_DISTRIBUTION).update(
+                    status=F('previous_status'))
+                Requestion.objects.filter(
+                    status=STATUS_ON_TEMP_DISTRIBUTION).update(
+                    status=F('previous_status'))
                 # для всех путевок выставляется статус распределенных
                 for vacancy in distribution.vacancies_set.filter(
                         status__in=(

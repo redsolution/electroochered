@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
+import urllib2
+
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
@@ -176,4 +178,9 @@ def custom_complete(request, backend, type):
     if request.user.is_authenticated():
         return associate_complete(request, backend, type=type)
     else:
-        return complete_process(request, backend, type=type)
+        try:
+            return complete_process(request, backend, type=type)
+        except urllib2.HTTPError:
+            msg = u"Ошибка во время авторизации, попробуйте еще раз"
+            messages.error(request, msg)
+            return HttpResponseRedirect(reverse('login'))

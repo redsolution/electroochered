@@ -89,7 +89,7 @@ class RequestionTestCase(TestCase):
         kidgdn = Sadik.objects.all()[0]
         test_requestion = test_utils.create_requestion(
             admission_date=datetime.date(datetime.date.today().year + 1, 1, 1),
-            birth_date=datetime.date.today()-datetime.timedelta(days=480)
+            birth_date=datetime.date.today()-datetime.timedelta(days=510)
         )
         test_requestion.areas.add(kidgdn.area)
         test_requestion.save()
