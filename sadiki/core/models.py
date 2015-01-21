@@ -843,6 +843,14 @@ class RequestionQuerySet(models.query.QuerySet):
                         STATUS_DECISION, STATUS_ON_DISTRIBUTION,
                         STATUS_ON_TEMP_DISTRIBUTION, STATUS_SHORT_STAY))
 
+    def stat_children(self):
+        u"""Фильтр для использования в модуле статистики, electroochered-statapi
+        Подсчитывает количество детей (подтвержденных заявок) в очереди.
+        """
+        return self.filter(
+            status__in=(STATUS_REQUESTER, STATUS_DECISION,
+                        STATUS_ON_DISTRIBUTION, STATUS_SHORT_STAY))
+
     def not_distributed(self):
         u"""Все заявки, которым можно выделить места"""
         return self.filter(
