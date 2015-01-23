@@ -34,6 +34,7 @@ from django.contrib import messages
 from django.utils import timezone
 
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
+from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
     STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
@@ -114,16 +115,26 @@ def after_set_documental_confirmation(sender, **kwargs):
     request = kwargs['request']
     requestion = kwargs['requestion']
     form = kwargs['form']
-    other_requestions_with_document = requestion.set_ident_document_authentic()
-    requestion.set_benefit_documents_authentic()
-    context_dict = {'other_requestions': other_requestions_with_document}
-    Logger.objects.create_for_action(transition.index,
-        context_dict=context_dict,
-        extra={'user': request.user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
-    messages.success(request, u'Заявка %s была документально подтверждена' % requestion.requestion_number)
-    if other_requestions_with_document:
-        messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
-            ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
+    try:
+        other_requestions_with_document = requestion.set_ident_document_authentic()
+    except TransitionNotRegistered as e:
+        if e.requestion == requestion:
+            messages.error(request, e.message)
+        else:
+            err_msg = u"Ошибка изменения статуса заявки {} с таким же " \
+                      u"идентифицирующим документом".format(e.requestion)
+            messages.error(request, err_msg)
+    else:
+        requestion.set_benefit_documents_authentic()
+        context_dict = {'other_requestions': other_requestions_with_document}
+        Logger.objects.create_for_action(
+            transition.index, context_dict=context_dict,
+            extra={'user': request.user, 'obj': requestion},
+            reason=form.cleaned_data.get('reason'))
+        messages.success(request, u'Заявка %s была документально подтверждена' % requestion.requestion_number)
+        if other_requestions_with_document:
+            messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
+                ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
 
 
 @receiver(post_status_change, sender=Requestion)
