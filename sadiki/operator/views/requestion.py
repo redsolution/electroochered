@@ -5,12 +5,14 @@ from django.contrib import messages
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
+from django.forms.models import ModelFormMetaclass
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
 from django.views.generic import TemplateView, View
+
 from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
     RequestionAdd as AccountRequestionAdd, EmailChange as AccountEmailChange, \
     RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage
@@ -35,7 +37,7 @@ from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
-from django.forms.models import ModelFormMetaclass
+from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
@@ -402,22 +404,31 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
 
         if form.is_valid():
-            pre_status_change.send(sender=Requestion, request=request,
-                requestion=requestion, transition=self.transition, form=form)
+            try:
+                pre_status_change.send(sender=Requestion, request=request,
+                    requestion=requestion, transition=self.transition, form=form)
 
-            # Момент истины
-#            если ModelForm, то сохраняем
-            if isinstance(form.__class__, ModelFormMetaclass):
-                requestion = form.save(commit=False)
-                requestion.status = self.transition.dst
-                requestion.save()
-                form.save_m2m()
-            else:
-                requestion.status = self.transition.dst
-                requestion.save()
+                # Момент истины
+    #            если ModelForm, то сохраняем
+                if isinstance(form.__class__, ModelFormMetaclass):
+                    requestion = form.save(commit=False)
+                    requestion.status = self.transition.dst
+                    requestion.save()
+                    form.save_m2m()
+                else:
+                    requestion.status = self.transition.dst
+                    requestion.save()
 
-            post_status_change.send(sender=Requestion, request=request,
-                requestion=requestion, transition=self.transition, form=form)
+                post_status_change.send(sender=Requestion, request=request,
+                    requestion=requestion, transition=self.transition, form=form)
+            except TransitionNotRegistered as e:
+                if e.requestion == requestion:
+                    messages.error(request, e.message)
+                else:
+                    err_msg = u"Ошибка изменения статуса заявки {} с таким же " \
+                              u"идентифицирующим документом".format(e.requestion)
+                    messages.error(request, err_msg)
+
             return HttpResponseRedirect(self.redirect_to)
         else:
             return self.render_to_response(context)
