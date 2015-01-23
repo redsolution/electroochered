@@ -356,7 +356,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return response
 
     def get_confirm_form(self, transition_index, requestion=None, data=None,
-            initial=None):
+                         initial=None):
         form_class = self.transition.confirmation_form_class
         if not form_class:
             form_class = ConfirmationForm
@@ -368,7 +368,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return form
 
     def get_context_data(self, requestion, **kwargs):
-        form = self.get_confirm_form(self.transition.index,
+        form = self.get_confirm_form(
+            self.transition.index,
             requestion=requestion,
             initial={'transition': self.transition.index})
         return {
@@ -393,12 +394,16 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
     @method_decorator(transaction.commit_manually)
     def post(self, request, requestion, *args, **kwargs):
+        u"""По post-запросу применяем изменение статуса заявки. Autocommit
+        отключаем, чтобы иметь возможность отображаеть сообщение об ошибке,
+        виесто 500-й страницы.
+        """
         if request.POST.get('confirmation') == "no":
             messages.info(request, u"Статус заявки не был изменен")
             return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
-        form = self.get_confirm_form(self.transition.index,
-            requestion=requestion, data=request.POST,
+        form = self.get_confirm_form(
+            self.transition.index, requestion=requestion, data=request.POST,
             initial={'transition': self.transition.index})
         context.update({
             'form': form,
@@ -408,11 +413,11 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
         if form.is_valid():
             try:
-                pre_status_change.send(sender=Requestion, request=request,
-                    requestion=requestion, transition=self.transition, form=form)
+                pre_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=self.transition, form=form)
 
-                # Момент истины
-    #            если ModelForm, то сохраняем
+                # если ModelForm, то сохраняем
                 if isinstance(form.__class__, ModelFormMetaclass):
                     requestion = form.save(commit=False)
                     requestion.status = self.transition.dst
@@ -422,8 +427,11 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                     requestion.status = self.transition.dst
                     requestion.save()
 
-                post_status_change.send(sender=Requestion, request=request,
-                    requestion=requestion, transition=self.transition, form=form)
+                post_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=self.transition, form=form)
+            # если возникли ошибки в ходе изменения статуса заявки - отображаем
+            # и отменяем ранее запланированные изменения
             except TransitionNotRegistered as e:
                 transaction.rollback()
                 if e.requestion == requestion:
@@ -433,6 +441,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u"идентифицирующим документом".format(e.requestion)
                     messages.error(request, err_msg)
             else:
+                # если все прошло без ошибок - сохраняем
                 transaction.commit()
 
             return HttpResponseRedirect(self.redirect_to)
