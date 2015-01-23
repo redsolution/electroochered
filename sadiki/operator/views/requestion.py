@@ -5,12 +5,14 @@ from django.contrib import messages
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
+from django.db import transaction
 from django.forms.models import ModelFormMetaclass
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, View
 
 from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
@@ -389,6 +391,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
         return self.render_to_response(context)
 
+    @method_decorator(transaction.commit_manually)
     def post(self, request, requestion, *args, **kwargs):
         if request.POST.get('confirmation') == "no":
             messages.info(request, u"Статус заявки не был изменен")
@@ -422,12 +425,15 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 post_status_change.send(sender=Requestion, request=request,
                     requestion=requestion, transition=self.transition, form=form)
             except TransitionNotRegistered as e:
+                transaction.rollback()
                 if e.requestion == requestion:
                     messages.error(request, e.message)
                 else:
                     err_msg = u"Ошибка изменения статуса заявки {} с таким же " \
                               u"идентифицирующим документом".format(e.requestion)
                     messages.error(request, err_msg)
+            else:
+                transaction.commit()
 
             return HttpResponseRedirect(self.redirect_to)
         else:
