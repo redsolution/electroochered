@@ -430,6 +430,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 post_status_change.send(
                     sender=Requestion, request=request, requestion=requestion,
                     transition=self.transition, form=form)
+                # если все прошло без ошибок - сохраняем
+                transaction.commit()
             # если возникли ошибки в ходе изменения статуса заявки - отображаем
             # и отменяем ранее запланированные изменения
             except TransitionNotRegistered as e:
@@ -437,12 +439,10 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 if e.requestion == requestion:
                     messages.error(request, e.message)
                 else:
-                    err_msg = u"Ошибка изменения статуса заявки {} с таким же " \
-                              u"идентифицирующим документом".format(e.requestion)
+                    err_msg = u"Ошибка изменения статуса текущей заявки. " \
+                              u"Вызвана заявкой {} с таким же идентифицирующим" \
+                              u" документом".format(e.requestion)
                     messages.error(request, err_msg)
-            else:
-                # если все прошло без ошибок - сохраняем
-                transaction.commit()
 
             return HttpResponseRedirect(self.redirect_to)
         else:
