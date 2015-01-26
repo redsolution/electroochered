@@ -34,10 +34,16 @@ if 'smevzags' in settings.INSTALLED_APPS:
         (r'^zags/', include('smevzags.urls')),
     )
 
-if 'electroochered-authesia' in settings.INSTALLED_APPS:
+if 'electroochered_authesia' in settings.INSTALLED_APPS:
     urlpatterns += patterns(
         '',
-        (r'^esia_auth/', include('electroochered-authesia.urls')),
+        (r'^esia_auth/', include('electroochered_authesia.urls')),
+    )
+
+if 'electrostat' in settings.INSTALLED_APPS:
+    urlpatterns += patterns(
+        '',
+        (r'^api/', include('electrostat.urls')),
     )
 
 urlpatterns += patterns(
