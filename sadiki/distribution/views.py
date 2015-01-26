@@ -303,14 +303,15 @@ class DecisionManager(OperatorPermissionMixin, View):
         queue_info_dict = self.queue_info()
 
         if not queue_info_dict['queue']:
-    #        если очереди нет, то оператор не может работать с заявками
-            return render_to_response('distribution/decision_manager.html',
-                queue_info_dict, context_instance=RequestContext(request),)
+            # если очереди нет, то оператор не может работать с заявками
+            return render_to_response(
+                'distribution/decision_manager.html', queue_info_dict,
+                context_instance=RequestContext(request),)
 
         # Сортировка "остальных" садиков, если у ребенка задан location
-    #    if current_requestion.location:
-    #        from sadiki.templatetags.sadiki_tags import distance_tag
-    #        any_sadiks = sorted(any_sadiks, key=lambda x: distance_tag(current_requestion.location, x.location)['distance'])
+        # if current_requestion.location:
+        #     from sadiki.templatetags.sadiki_tags import distance_tag
+        #     any_sadiks = sorted(any_sadiks, key=lambda x: distance_tag(current_requestion.location, x.location)['distance'])
         current_requestion = queue_info_dict['current_requestion']
         sadiks_info_dict = self.sadiks_for_requestion(current_requestion)
         any_sadiks = sadiks_info_dict['any_sadiks']
@@ -325,8 +326,8 @@ class DecisionManager(OperatorPermissionMixin, View):
         if request.method == 'POST':
             form = SelectSadikForm(
                 current_requestion, data=request.POST,
-                is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query
-            )
+                is_preferred_sadiks=is_preferred_sadiks,
+                sadiks_query=sadiks_query)
 
             if form.is_valid():
                 sadik_id = form.cleaned_data.get('sadik', None)
@@ -343,31 +344,36 @@ class DecisionManager(OperatorPermissionMixin, View):
 
                 if current_requestion.status == STATUS_ON_TEMP_DISTRIBUTION:
                     current_requestion.distribute_in_sadik_from_tempdistr(sadik)
-                    Logger.objects.create_for_action(PERMANENT_DECISION, extra={'user': request.user, 'obj': current_requestion})
+                    Logger.objects.create_for_action(
+                        PERMANENT_DECISION,
+                        extra={'user': request.user, 'obj': current_requestion})
 
                 messages.info(request, u'''
                      Для заявки %s был назначен %s
                      ''' % (current_requestion.requestion_number, sadik))
                 return HttpResponseRedirect(reverse('decision_manager'))
         else:
-            form = SelectSadikForm(current_requestion,
-                is_preferred_sadiks=is_preferred_sadiks, sadiks_query=sadiks_query)
-        queue_info_dict.update({'sadik_list': sadiks_query,
+            form = SelectSadikForm(
+                current_requestion, is_preferred_sadiks=is_preferred_sadiks,
+                sadiks_query=sadiks_query)
+        queue_info_dict.update({
+            'sadik_list': sadiks_query,
             'select_sadik_form': form,
-            "sadiks_coords": json.dumps({sadik.id: {"x": sadik.address.coords.x,
-                                                    "y": sadik.address.coords.y,
-                                                    "s_name": sadik.short_name,
-                                                    "address": sadik.address.text,
-                                                    "phone": sadik.phone,
-                                                    "url": sadik.site, }
-                                   if sadik.address and sadik.address.coords else (sadik.id, {})
-                                   for sadik in sadiks_query}),
+            "sadiks_coords": json.dumps({
+                sadik.id: {"x": sadik.address.coords.x,
+                           "y": sadik.address.coords.y,
+                           "s_name": sadik.short_name,
+                           "address": sadik.address.text,
+                           "phone": sadik.phone,
+                           "url": sadik.site, }
+                if sadik.address and sadik.address.coords else (sadik.id, {})
+                for sadik in sadiks_query}),
             'areas_all': current_requestion.areas.all(),
             'pref_sadiks': current_requestion.pref_sadiks.all(),
         })
-        return render_to_response('distribution/decision_manager.html',
-            queue_info_dict, context_instance=RequestContext(request),
-        )
+        return render_to_response(
+            'distribution/decision_manager.html', queue_info_dict,
+            context_instance=RequestContext(request))
 
     def get(self, *args, **kwargs):
         return self.decision_manager(*args, **kwargs)
@@ -388,8 +394,8 @@ class DistributionEnd(OperatorPermissionMixin, TemplateView):
         except Distribution.DoesNotExist:
             start_distribution = None
         if not all((self.check_permissions(request), start_distribution)):
-            return HttpResponseForbidden(loader.render_to_string('403.html',
-                context_instance=RequestContext(request)))
+            return HttpResponseForbidden(loader.render_to_string(
+                '403.html', context_instance=RequestContext(request)))
 
         return TemplateView.dispatch(self, request, start_distribution)
 
@@ -399,4 +405,6 @@ class DistributionEnd(OperatorPermissionMixin, TemplateView):
             start_distribution.to_datetime = datetime.datetime.now()
             start_distribution.save()
             run_command('end_distribution', request.user.username)
-        return HttpResponseRedirect(reverse('distribution_results', kwargs={'distribution_id': start_distribution.id}))
+        return HttpResponseRedirect(
+            reverse('distribution_results',
+                    kwargs={'distribution_id': start_distribution.id}))
