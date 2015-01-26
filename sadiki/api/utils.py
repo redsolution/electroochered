@@ -7,11 +7,19 @@ from pysnippets import dttools
 from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
 
+try:
+    from personal_data.models import ChildPersData, UserPersData
+    USE_PDATA = True
+except ImportError:
+    USE_PDATA = False
+
 
 def add_requestions_data(requestions, request):
-    """
+    u""" Requestion, HttpRequest -> List of Dict
+
     Функция для сбора информации о заявках для дальнейшей конвертации в json.
     Используется в API вызовах для экспорта зачисленных заявок в ЭС.
+    Возвращает список словарей.
     """
     requestion_ct = ContentType.objects.get_for_model(Requestion)
     req_list = []
@@ -32,7 +40,7 @@ def add_requestions_data(requestions, request):
             'queue_profile_url': url,
             'birth_date': dttools.date_to_stamp(requestion.birth_date),
             'birth_cert': birth_cert.document_number})
-        if 'personal_data' in settings.INSTALLED_APPS:
+        if USE_PDATA and 'personal_data' in settings.INSTALLED_APPS:
             requestion_data.update(get_personal_data(requestion))
         req_list.append(requestion_data)
 
@@ -40,7 +48,10 @@ def add_requestions_data(requestions, request):
 
 
 def get_personal_data(requestion):
-    from personal_data.models import ChildPersData, UserPersData
+    u""" Requestion -> Dict
+    Собираем персональные данные о заявке персональные данные, при наличии.
+    Возвращаем словарь.
+    """
     pdata = {}
     if ChildPersData.objects.filter(application=requestion).exists():
         child_pdata = ChildPersData.objects.get(application=requestion)
