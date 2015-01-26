@@ -9,7 +9,7 @@ from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
 
 try:
     from personal_data.models import ChildPersData, UserPersData
-    USE_PDATA = True
+    USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
 except ImportError:
     USE_PDATA = False
 
@@ -40,7 +40,7 @@ def add_requestions_data(requestions, request):
             'queue_profile_url': url,
             'birth_date': dttools.date_to_stamp(requestion.birth_date),
             'birth_cert': birth_cert.document_number})
-        if USE_PDATA and 'personal_data' in settings.INSTALLED_APPS:
+        if USE_PDATA:
             requestion_data.update(get_personal_data(requestion))
         req_list.append(requestion_data)
 
