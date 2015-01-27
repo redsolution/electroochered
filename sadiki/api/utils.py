@@ -56,14 +56,14 @@ def get_personal_data(requestion):
     if ChildPersData.objects.filter(application=requestion).exists():
         child_pdata = ChildPersData.objects.get(application=requestion)
         pdata.update({
-            'second_name': child_pdata.second_name,
+            'middle_name': child_pdata.second_name,
             'last_name': child_pdata.last_name,
         })
     if UserPersData.objects.filter(profile=requestion.profile).exists():
         user_pdata = UserPersData.objects.get(profile=requestion.profile)
         pdata.update({
             'parent_first_name': user_pdata.first_name,
-            'parent_second_name': user_pdata.second_name,
+            'parent_middle_name': user_pdata.second_name,
             'parent_last_name': user_pdata.last_name,
             'phone': user_pdata.phone,
         })
