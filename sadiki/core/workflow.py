@@ -130,13 +130,13 @@ TEMP_ABSENT_CANCEL = 57                 # Возврат после отсутс
 DISTRIBUTION_BY_RESOLUTION = 58
 # actions with id 59, 60 already taken
 ES_DISTRIBUTION = 61                    # Зачислен через ЭлектроСад
-#отказ от зачилсения на постоянной основе
+# отказ от зачилсения на постоянной основе
 DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
 ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться
 REQUESTION_TRANSFER = 66            # Перевод из другого муниципалитета
 
-#Изменение данных заявки
+# Изменение данных заявки
 CHANGE_REQUESTION = 71
 CHANGE_REQUESTION_BY_OPERATOR = 72
 CHANGE_ADMISSION_DATE = 73
@@ -154,17 +154,17 @@ CHANGE_REQUESTION_LOCATION = 89
 ACCOUNT_CHANGE_REQUESTION = 90
 
 
-#Распределение
+# Распределение
 DISTRIBUTION_INIT = 100
 DISTRIBUTION_AUTO = 103
 DISTRIBUTION_START = 101
 DISTRIBUTION_END = 102
 
-#Изменение данных ДОУ
+# Изменение данных ДОУ
 CHANGE_SADIK_GROUP_PLACES = 104
 CHANGE_SADIK_INFO = 105
 
-#изменение путевки
+# изменение путевки
 VACANCY_DISTRIBUTED = 110
 
 START_NEW_YEAR = 106
@@ -178,6 +178,21 @@ CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
 EMAIL_VERIFICATION = 204
+
+# переходы, связанные с группами кратковременного пребывания
+REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
+SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания в комплектование
+SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
+DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после комплектования
+SHORT_STAY_DECISION_BY_RESOLUTION = 304  # выделение места по пезолюции
+
+# внетренние системные переходы, выполняются по упрощенной схеме
+# недоступны пользователям, инициируются либо извне (по api), либо внутренними
+# командами (по расписанию)
+INNER_TRANSITIONS = [
+    REQUESTER_SHORT_STAY,
+    SHORT_STAY_REQUESTER,
+]
 
 workflow = Workflow()
 
@@ -197,14 +212,22 @@ workflow.add(None, STATUS_REQUESTER, REQUESTION_TRANSFER,
 # 2.1) Очередники
 workflow.add(STATUS_REQUESTER, STATUS_ON_DISTRIBUTION, ON_DISTRIBUTION,
              u'Перевод в комплектование')
+workflow.add(STATUS_SHORT_STAY, STATUS_ON_DISTRIBUTION, SHORT_STAY_DISTRIBUTION,
+             u'Перевод из временного пребывания в комплектование')
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_DECISION, DECISION,
              u'Выделение места в ДОУ')
 workflow.add(STATUS_REQUESTER, STATUS_DECISION,
              REQUESTER_DECISION_BY_RESOLUTION,
              u'Выделение места в ДОУ по резолюции начальника',
              permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
+workflow.add(STATUS_SHORT_STAY, STATUS_DECISION,
+             SHORT_STAY_DECISION_BY_RESOLUTION,
+             u'Выделение места в ДОУ по резолюции начальника',
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True)
 workflow.add(STATUS_ON_DISTRIBUTION, STATUS_REQUESTER, ON_DISTRIBUTION_RETURN,
              u'Возврат в очередь нераспределенных')
+workflow.add(STATUS_ON_DISTRIBUTION, STATUS_SHORT_STAY, DISTRIBUTION_SHORT_STAY,
+             u'Возврат в группы КП нераспределенных')
 # Немедленное зачисление
 if IMMEDIATELY_DISTRIBUTION != IMMEDIATELY_DISTRIBUTION_NO:
     workflow.add(STATUS_REQUESTER, STATUS_DECISION, IMMEDIATELY_DECISION,
@@ -355,6 +378,12 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         workflow.add(STATUS_TEMP_PASS_TRANSFER, STATUS_REQUESTER,
                      RETURN_TEMP_PASS_TRANSFER, u'Возврат временной путевки',
                      permissions=[OPERATOR_PERMISSION[0]])
+
+# 5. Посещение групп кратковременного пребывания
+workflow.add(STATUS_REQUESTER, STATUS_SHORT_STAY, REQUESTER_SHORT_STAY,
+             u'Перевод в группу кратковременного пребывания')
+workflow.add(STATUS_SHORT_STAY, STATUS_REQUESTER, SHORT_STAY_REQUESTER,
+             u'Перевод из группы кратковременного пребывания в очередь')
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
@@ -594,6 +623,21 @@ decision_requster_anonym = u"""
 
 email_verification_template = u"Почтовый адрес {{ email }} успешно подтвержден."
 
+requester_short_stay = u"""
+    Ребенок посещает группу кратковременного пребывания в {{ sadik|safe }}.
+    {% if operator %} Добавил ребенка в группу оператор ЭлектроСада
+    {{ operator }}.{% endif %}"""
+
+short_stay_requester = u"""
+    Ребенок выпущен из группы кратковременного пребывания в {{ sadik|safe }}.
+    {% if operator %} Процедуру провел оператор ЭлектроСада {{ operator }}.
+    {% endif %}"""
+
+decision_by_resolution_anonym = u"""
+    Выделено место в {{ sadik|safe }}. Должность резолюционера:
+    {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
+    Номер документа: {{ resolution_number }}."""
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -699,11 +743,7 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(u"""Было выделено место в {{ sadik }}""")
     },
     REQUESTER_DECISION_BY_RESOLUTION: {
-        ANONYM_LOG: Template(
-            u"""Выделено место в {{ sadik|safe }}. Должность резолюционера:
-            {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
-            Номер документа: {{ resolution_number }}.
-            """)
+        ANONYM_LOG: Template(decision_by_resolution_anonym)
     },
     EMAIL_VERIFICATION: {
         ACCOUNT_LOG: Template(email_verification_template)
@@ -712,7 +752,16 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(u"""
         Заявка перенесена из другого муниципалитета: {{ sender_info }}.
         """)
-    }
+    },
+    REQUESTER_SHORT_STAY: {
+        ANONYM_LOG: Template(requester_short_stay)
+    },
+    SHORT_STAY_REQUESTER: {
+        ANONYM_LOG: Template(short_stay_requester)
+    },
+    SHORT_STAY_DECISION_BY_RESOLUTION: {
+        ANONYM_LOG: Template(decision_by_resolution_anonym)
+    },
 })
 
 

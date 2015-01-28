@@ -414,6 +414,8 @@ class SadikAdmin(ModelAdminWithoutPermissionsMixin, CustomGeoAdmin):
 class EvidienceDocumentTemplateAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
     model = EvidienceDocumentTemplate
     list_display = ['name', 'destination']
+    exclude = ('gives_health_impairment', 'gives_compensating_group',
+               'gives_wellness_group')
 
 
 benefit_category_query = (Q(priority__lt=BENEFIT_SYSTEM_MIN) &

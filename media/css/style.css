@@ -1086,6 +1086,7 @@ tr.dynamic-form .errorlist {
     font-size: 25px;
     min-height: 26px;
     margin-bottom: 0px;
+    line-height: 100%;
 }
 
 .requestion-info .field-value .value{

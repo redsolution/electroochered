@@ -19,7 +19,8 @@ from sadiki.api.utils import add_requestions_data
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
-    REQUESTER_DECISION_BY_RESOLUTION
+    REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
+    SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.logger.models import Logger
 
@@ -31,7 +32,7 @@ STATUS_SYSTEM_ERROR = 2
 
 
 class SignJSONResponseMixin(object):
-    """
+    u"""
     Миксин, который выполняет проверку корректности подписи данных входящего
     запроса и формирует json в ответ
     """
@@ -59,7 +60,7 @@ class SignJSONResponseMixin(object):
 
 
 class ChangeRequestionStatus(SignJSONResponseMixin, View):
-    """
+    u"""
     Реализация метода api для изменения статуса заявки через запрос от
     ЭлектроСада
     """
@@ -114,25 +115,37 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
                 return self.render_to_response(result)
         if transition_indexes:
             transition = workflow.get_transition_by_index(transition_indexes[0])
-            form = self.form(requestion=requestion,
-                             data={'reason': data['reason'],
-                                   'transition': transition.index,
-                                   'confirm': "yes"},
-                             initial={'transition': transition.index})
-            if form.is_valid():
-                pre_status_change.send(
-                    sender=Requestion, request=request, requestion=requestion,
-                    transition=transition, form=form)
-                requestion.status = transition.dst
-                requestion.save()
-                post_status_change.send(
-                    sender=Requestion, request=request, requestion=requestion,
-                    transition=transition, form=form)
-                status_code = STATUS_OK
+            if transition.index in INNER_TRANSITIONS:
+                if Requestion.objects.filter(
+                        id=requestion.id, status=transition.src).update(
+                        status=transition.dst):
+                    Logger.objects.create_for_action(
+                        transition.index, context_dict=data,
+                        extra={'obj': requestion})
+                    status_code = STATUS_OK
+                else:
+                    status_code = STATUS_DATA_ERROR
+                    err_msg = u"Проверьте статус заявки в Электроочереди"
             else:
-                err_msg = {}
-                for error in form.errors:
-                    err_msg[error] = form.errors[error]
+                form = self.form(requestion=requestion,
+                                 data={'reason': data.get('reason'),
+                                       'transition': transition.index,
+                                       'confirm': "yes"},
+                                 initial={'transition': transition.index})
+                if form.is_valid():
+                    pre_status_change.send(
+                        sender=Requestion, request=request,
+                        requestion=requestion, transition=transition, form=form)
+                    requestion.status = transition.dst
+                    requestion.save()
+                    post_status_change.send(
+                        sender=Requestion, request=request,
+                        requestion=requestion, transition=transition, form=form)
+                    status_code = STATUS_OK
+                else:
+                    err_msg = {}
+                    for error in form.errors:
+                        err_msg[error] = form.errors[error]
         else:
             err_msg = {
                 '__all__': u"Невозможно изменить статус заявки в электроочереди"
@@ -142,7 +155,7 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
 
 
 class GetRequestionsByResolution(SignJSONResponseMixin, View):
-    """
+    u"""
     Получаем список заявок, которые были зачислены по резолюции
     """
     def post(self, request, *args, **kwargs):
@@ -150,7 +163,8 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
         last_import_datetime = dttools.datetime_from_stamp(data['last_import'])
         ridx = Logger.objects.filter(
             action_flag__in=[DISTRIBUTION_BY_RESOLUTION,
-                             REQUESTER_DECISION_BY_RESOLUTION],
+                             REQUESTER_DECISION_BY_RESOLUTION,
+                             SHORT_STAY_DECISION_BY_RESOLUTION, ],
             datetime__gte=last_import_datetime
         ).values_list('object_id', flat=True)
         # если зачислений по резолюции за указанные период не было
@@ -227,7 +241,7 @@ def get_distribution(request):
 def get_child(request):
     if request.method == 'GET':
         raise Http404
-    data = {'data': request.POST.get('doc'), 'sign': request.POST.get('sign')}
+    data = json.loads(request.body)
     if not data['data']:
         return HttpResponse()
     if gpgtools.check_data_sign(data):
