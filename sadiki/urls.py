@@ -38,6 +38,7 @@ if 'electroochered-authesia' in settings.INSTALLED_APPS:
     urlpatterns += patterns(
         '',
         (r'^esia_auth/', include('electroochered-authesia.urls')),
+        (r'^auth_resp/', 'electroochered-authesia.views.recv_authnresponse'),
     )
 
 if 'electrostat' in settings.INSTALLED_APPS:
