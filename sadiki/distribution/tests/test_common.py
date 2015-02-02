@@ -214,14 +214,12 @@ class TestAll(TestCase):
             status=STATUS_ON_DISTRIBUTION)))
 
         # все заявки должны перейти в статус, который имели до распределения
-        # предыдущий статус - STATUS_ON_DISTRIBUTION
+        # предыдущий статус не меняем для повышения быстродействия операции
         for requestion in requestions_requester:
             requestion = Requestion.objects.get(pk=requestion.pk)
             self.assertEqual(requestion.status, STATUS_REQUESTER)
-            self.assertEqual(requestion.previous_status, STATUS_ON_DISTRIBUTION)
 
         for requestion in requestions_short_stay:
             requestion = Requestion.objects.get(pk=requestion.pk)
             self.assertEqual(requestion.status, STATUS_SHORT_STAY)
-            self.assertEqual(requestion.previous_status, STATUS_ON_DISTRIBUTION)
 
