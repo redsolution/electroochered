@@ -280,14 +280,18 @@
         <div class="esia-info clearfix">
             {% block esia_info %}
             <div class="block-head">Учётная запись в ЕСИА:</div>
-            {% if 0 %}
-                <p>Здесь будет ссылка на профиль в ЕСИА и(или) будут отображаться основные данные профиля</p>
+            {% if profile.esia_id %}
+                <p>Имя: {{ profile.esia_first_name }}</p>
+                <p>Фамилия: {{ profile.esia_last_name }}</p>
+                <p>E-mail: {{ profile.esia_email }}</p>
+                <p>Номер телефона: {{ profile.esia_phone_number }}</p>
+                <p>[Здесь будет кнопка "отвязать учётную запись"]</p>
             {% else %}
                 <p>К этой учетной записи не привязана учетная запись ЕСИА.
                    Рекомендуем Вам осуществить привязку для возможности входа
                    в Электроочередь с помощью ЕСИА.
                 </p>
-                <p>[здесь будет ссылка "привязать аккаунт"]</p>
+                <p>[Здесь будет ссылка "привязать учётную запись"]</p>
                 <a class="action-link link-with-image" href="{% url socialauth_connect 'vkontakte-oauth2' %}">
                     <img src="{{ STATIC_URL }}img/vkontakte.png"/>
                     Привязать аккаунт
