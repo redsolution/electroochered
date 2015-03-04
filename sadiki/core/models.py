@@ -776,6 +776,8 @@ class Profile(models.Model):
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
+    esia_id = models.CharField(u'Идентификатор учётной записи в ЕСИА',
+        max_length=63, blank=True, null=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
