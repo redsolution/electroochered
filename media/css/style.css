@@ -1104,6 +1104,12 @@ tr.dynamic-form .errorlist {
     border-top: 2px #eeeeee solid;
 }
 
+.esia-info{
+    margin-top: 34px;
+    padding-top: 21px;
+    border-top: 2px #eeeeee solid;
+}
+
 .social-profile-public{
 
 }
@@ -1151,6 +1157,14 @@ tr.dynamic-form .errorlist {
 }
 
 .vkontakte-info p{
+    font-size: 16px;
+}
+
+.esia-info .controls{
+    min-height: 32px;
+}
+
+.esia-info p{
     font-size: 16px;
 }
 

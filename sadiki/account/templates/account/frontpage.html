@@ -277,12 +277,25 @@
             {% endif %}
             {% endblock %}
         </div>
-        {% block profile_additions %}
-            {% for addition in profile_additions %}
-                <div class="split-line"></div>
-                {% include addition %}
-            {% endfor %}
-        {% endblock %}
+        <div class="esia-info clearfix">
+            {% block esia_info %}
+            <div class="block-head">Учётная запись в ЕСИА:</div>
+            {% if 0 %}
+                <p>Здесь будет ссылка на профиль в ЕСИА и(или) будут отображаться основные данные профиля</p>
+            {% else %}
+                <p>К этой учетной записи не привязана учетная запись ЕСИА.
+                   Рекомендуем Вам осуществить привязку для возможности входа
+                   в Электроочередь с помощью ЕСИА.
+                </p>
+                <p>[здесь будет ссылка "привязать аккаунт"]</p>
+                <a class="action-link link-with-image" href="{% url socialauth_connect 'vkontakte-oauth2' %}">
+                    <img src="{{ STATIC_URL }}img/vkontakte.png"/>
+                    Привязать аккаунт
+                </a>
+            {% endif %}
+            {% endblock %}
+        </div>
+        <div class="split-line"></div>
         </div>
     </div>
     <div class="span5">
