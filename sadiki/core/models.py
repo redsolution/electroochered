@@ -778,14 +778,6 @@ class Profile(models.Model):
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
     esia_id = models.CharField(u'Идентификатор учётной записи в ЕСИА',
         max_length=63, blank=True, null=True)
-    esia_first_name = models.CharField(u'Имя (ЕСИА)',
-        max_length=255, null=True, blank=True)
-    esia_last_name = models.CharField(u'Фамилия (ЕСИА)',
-        max_length=255, null=True, blank=True)
-    esia_email = models.CharField(u'E-mail (ЕСИА)',
-        max_length=255, null=True, blank=True)
-    esia_phone_number = models.CharField(u'Номер телефона (ЕСИА)',
-        max_length=255, null=True, blank=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
@@ -795,6 +787,9 @@ class Profile(models.Model):
         return (self.area == sadik.area if self.area else True
                 and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
+
+    def is_password_set():
+        return self.user.password != u'!'
 
     def social_auth_clean_data(self):
         self.phone_number = None
