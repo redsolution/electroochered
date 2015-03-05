@@ -21,7 +21,7 @@
         });
 
     $(document).ready(function(){
-       $('label[for="id_age_group"]').append(' <span id="filter-age" class="icon-question-sign"></span>'); 
+       $('label[for="id_age_group"]').append(' <span id="filter-age" class="icon-question-sign"></span>');
         {% queue_tooltips as tooltips %}
        $("label[for='id_age_group'] .icon-question-sign").popover({
             title: "Возрастные группы в системе",
@@ -85,6 +85,8 @@
             фильтрации возвращал не более 5000 заявок.</p>
             {% endif %}
             <div class="buttonHolder">
+                <a class="primaryAction btn pull-left" href="{% url queue_map %}">
+                  <i class="icon-globe"></i> Отобразить на карте</a>
                 <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
                 {% if request.user.is_administrative_person %}
                 <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>

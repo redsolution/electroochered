@@ -112,6 +112,8 @@
         фильтрации возвращал не более 5000 заявок.</p>
         {% endif %}
         <div class="buttonHolder">
+            <a class="primaryAction btn pull-left" href="{% url anonym_queue %}">
+              <i class="icon-list"></i> Отобразить списком</a>
             <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
             {% if request.user.is_administrative_person %}
             <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
