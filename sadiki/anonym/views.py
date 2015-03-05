@@ -249,6 +249,11 @@ class QueueMap(TemplateView):
     template_name = 'anonym/queuemap.html'
     form = QueueFilterForm
 
+    def get_context_data(self, **kwargs):
+        context = super(QueueMap, self).get_context_data(**kwargs)
+        context['form'] = self.form
+        return context
+
 
 class RequestionSearch(RequirePermissionsMixin, TemplateView):
     u"""Публичный поиск заявок"""

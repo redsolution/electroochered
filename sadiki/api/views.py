@@ -320,5 +320,6 @@ class JSONResponse(HttpResponse):
 @csrf_exempt
 def get_requestions(request):
     requestions = RequestionGeoSerializer(
-        Requestion.objects.active_queue().filter(location__isnull=False), many=True)
+        Requestion.objects.active_queue().filter(location__isnull=False),
+        many=True)
     return JSONResponse(requestions.data)
