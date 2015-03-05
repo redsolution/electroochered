@@ -17,6 +17,7 @@ from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
     STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
 from sadiki.api.utils import add_requestions_data
+from sadiki.anonym.views import Queue
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
@@ -323,3 +324,15 @@ def get_requestions(request):
         Requestion.objects.active_queue().filter(location__isnull=False),
         many=True)
     return JSONResponse(requestions.data)
+
+
+class RequestionsQueue(Queue):
+    paginate_by = None
+
+    def get(self, *args, **kwargs):
+        queryset = self.get_queryset()
+        self.queryset, form = self.process_filter_form(
+            queryset, self.request.GET)
+        requestions = RequestionGeoSerializer(
+            self.queryset.filter(location__isnull=False), many=True)
+        return JSONResponse(requestions.data)

@@ -251,7 +251,6 @@ class QueueMap(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super(QueueMap, self).get_context_data(**kwargs)
-        print self.request.GET
         context['form'] = self.form(self.request.GET)
         return context
 
