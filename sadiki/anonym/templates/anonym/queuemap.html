@@ -12,90 +12,84 @@
     <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
     {% include "includes/leaflet_js.html" %}
     <script type="text/javascript">
-        $(document).ready(function(){
-          var form_data = $('form').serializeArray();
-          console.log(form_data);
-        })
+      // отключаем кнопку после нажатия
+      $('#export_to_excel').click(function() {
+          $(this).addClass("disabled");
+          $(this).prop("disabled", true);
+          $('#xls').val('xls');
+          $('.queue-forms form').submit();
+          $('#xls').val('');
+          return false;
+      });
 
-        // отключаем кнопку после нажатия
-        $('#export_to_excel').click(function() {
-            $(this).addClass("disabled");
-            $(this).prop("disabled", true);
-            $('#xls').val('xls');
-            $('.queue-forms form').submit();
-            $('#xls').val('');
-            return false;
-        });
+      $(".uniForm fieldset")
+          .children().eq(2).nextAll()
+          .wrapAll('<div class="spoiler"></div>');
 
-        $(".uniForm fieldset")
-            .children().eq(2).nextAll()
-            .wrapAll('<div class="spoiler"></div>');
+      $(".spoiler")
+          .hide()
+          .before('<a href="#" id="open_spoiler"> \
+                      Расширенный поиск\
+                      <span class="caret caret-margins caret-right"></span> \
+                   </a>');
 
-        $(".spoiler")
-            .hide()
-            .before('<a href="#" id="open_spoiler"> \
-                        Расширенный поиск\
-                        <span class="caret caret-margins caret-right"></span> \
-                     </a>');
+      $("#open_spoiler").click(function(e){
+          e.preventDefault();
+          $(".spoiler").slideToggle();
+          $(this).children("span").toggleClass("caret-right");
+      });
 
-        $("#open_spoiler").click(function(e){
-            e.preventDefault();
-            $(".spoiler").slideToggle();
-            $(this).children("span").toggleClass("caret-right");
-        });
+      $(function(){
+          var lonlat = [{{ settings.MAP_CENTER }}];
+          lonlat.reverse();
+          var map = new L.Map("map", {
+              center: L.latLng(lonlat),
+              zoom: {{ settings.MAP_ZOOM }}
+          });
+          var requestionIcon = L.icon({
+              iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
 
-        $(function(){
-            var lonlat = [{{ settings.MAP_CENTER }}];
-            lonlat.reverse();
-            var map = new L.Map("map", {
-                center: L.latLng(lonlat),
-                zoom: {{ settings.MAP_ZOOM }}
-            });
-            var requestionIcon = L.icon({
-                iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+              iconSize:     [22, 23], // size of the icon
+              iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+              shadowAnchor: [4, 62]  // the same for the shadow
+          });
+          var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+              subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+              attribution: 'Map data © OpenStreetMap contributors',
+              center: L.latLng(lonlat),
+              zoom: {{ settings.MAP_ZOOM }}
+          });
+          osmLayer.addTo(map);
 
-                iconSize:     [22, 23], // size of the icon
-                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
-                shadowAnchor: [4, 62]  // the same for the shadow
-            });
-            var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
-                subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
-                attribution: 'Map data © OpenStreetMap contributors',
-                center: L.latLng(lonlat),
-                zoom: {{ settings.MAP_ZOOM }}
-            });
-            osmLayer.addTo(map);
+          function renderMarkers(markers, map) {
+              var markersLayer = new L.MarkerClusterGroup({
+                  maxClusterRadius: 30
+              });
+              for (var i=0; i<markers.length; i++) {
+                  var m = L.marker(markers[i].location.reverse(), {
+                  });
+                  markersLayer.addLayer(m);
+              }
+              map.addLayer(markersLayer);
+          }
 
-            function renderMarkers(markers, map) {
-                var markersLayer = new L.MarkerClusterGroup({
-                    maxClusterRadius: 30
-                });
-                for (var i=0; i<markers.length; i++) {
-                    var m = L.marker(markers[i].location.reverse(), {
-                        title: markers[i].requestion_number,
-                    });
-                    m.bindPopup('<b>'+markers[i].requestion_number+'</b>');
-                    markersLayer.addLayer(m);
-                }
-                map.addLayer(markersLayer);
-            }
+          function fetchSadiks(map) {
+              $.ajax({
+                  url: '/api2/get_requestions/',
+                  data: $('form').serializeArray(),
+              })
+              .success(function(data){
+                  renderMarkers(data, map);
+                  $(".loader").fadeOut("slow");
+              });
+          }
 
-            function fetchSadiks(map) {
-                $.ajax({
-                    url: '/api2/get_requestions/',
-                    data: $('form').serializeArray(),
-                })
-                .success(function(data){
-                    renderMarkers(data, map);
-                    $(".loader").fadeOut("slow");
-                });
-            }
-
-            fetchSadiks(map);
-        });
+          fetchSadiks(map);
+      });
 
       $('#queue_button').click(function(){
         location.href = '{% url anonym_queue %}?' + $('form').serialize();
+        return false;
       })
     </script>
 
@@ -111,16 +105,16 @@
         <form action="." method="get" class="uniForm">
         {% izenform form options notag=1 nocsrf=1 %}
         {% if request.user.is_administrative_person %}
-        <input id="xls" type="hidden" name="type" value="" />
-        <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
-        фильтрации возвращал не более 5000 заявок.</p>
+          <input id="xls" type="hidden" name="type" value="" />
+          <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
+          фильтрации возвращал не более 5000 заявок.</p>
         {% endif %}
         <div class="buttonHolder">
             <a class="primaryAction btn pull-left" href="#" id="queue_button">
               <i class="icon-list"></i> Отобразить списком</a>
             <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
             {% if request.user.is_administrative_person %}
-            <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
+              <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
             {% endif %}
         </div>
         </form>
