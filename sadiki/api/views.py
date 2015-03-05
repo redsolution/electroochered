@@ -3,6 +3,7 @@ import json
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.core import serializers
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
 from django.template.context import RequestContext
@@ -303,3 +304,10 @@ def get_evidience_documents(request):
     ).values('id', 'name', 'regex')
     return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
                         mimetype='application/json')
+
+
+def get_requestions(request):
+    requestions = serializers.serialize(
+        'json', Requestion.objects.active_queue(),
+        fields=('requestion_number', 'location'), ensure_ascii=False)
+    return HttpResponse(requestions, mimetype='text/json')

@@ -246,14 +246,14 @@ table.table.table-bordered tr.highlight td {
 
 /* паджинация таблицы*/
 .pagination-page {
-	padding-top: 15px;
-	margin-bottom: 60px;
-	text-align: center;
+  padding-top: 15px;
+  margin-bottom: 60px;
+  text-align: center;
 }
 .pagination-page .page {
-	display: inline-block;
-	text-align: center;
-	border-bottom: grey solid 3px;
+  display: inline-block;
+  text-align: center;
+  border-bottom: grey solid 3px;
     margin: 0 3px;
     width: 36px;
 }
@@ -263,8 +263,8 @@ table.table.table-bordered tr.highlight td {
 }
 
 .pagination-page .page:hover {
-	background: #F0F0F0;
-	border-bottom-color: #333;
+  background: #F0F0F0;
+  border-bottom-color: #333;
 }
 
 .pagination-page .page.arrow {
@@ -272,18 +272,18 @@ table.table.table-bordered tr.highlight td {
 }
 
 .pagination-page  .page *  {
-	display: block;
-	line-height: 36px;
-	color: #666;
-	text-decoration: none !important;
+  display: block;
+  line-height: 36px;
+  color: #666;
+  text-decoration: none !important;
 }
 
 .pagination-page .current-page {
-	width: 36px;
-	line-height: 36px;
-	background: #333;
-	border-bottom-color: #333;
-	/*cursor: default;*/
+  width: 36px;
+  line-height: 36px;
+  background: #333;
+  border-bottom-color: #333;
+  /*cursor: default;*/
 }
 
 .pagination-page  .current-page span {
@@ -291,7 +291,7 @@ table.table.table-bordered tr.highlight td {
 }
 
 .pagination-page  .current-page:hover {
-	background: #333 !important;
+  background: #333 !important;
 }
 
 /*** Подсветка найденной заявки ***/
@@ -1506,18 +1506,18 @@ tr.dynamic-form .errorlist {
 }
 
 .marker-cluster-gray {
-	background-color: rgba(131, 133, 130, 0.6);
-	}
+  background-color: rgba(131, 133, 130, 0.6);
+  }
 .marker-cluster-gray div {
-	background-color: rgba(66, 69, 63, 0.6);
-	}
+  background-color: rgba(66, 69, 63, 0.6);
+  }
 
 .marker-cluster-medium {
-	background-color: rgba(241, 211, 87, 0.6);
-	}
+  background-color: rgba(241, 211, 87, 0.6);
+  }
 .marker-cluster-medium div {
-	background-color: rgba(240, 194, 12, 0.6);
-	}
+  background-color: rgba(240, 194, 12, 0.6);
+  }
 
 h3.icon-map-marker, h3.icon-edit {
     margin-top: -3px;
@@ -1646,4 +1646,8 @@ dl {
 
 #export_to_excel.disabled {
    cursor: default;
+}
+
+#queue_map {
+  margin-top: 20px;
 }

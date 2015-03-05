@@ -1,0 +1,131 @@
+{% extends "anonym/queue_base.html" %}
+{% load sadiki_core_tags zenforms paginate %}
+
+{% block css %}
+    {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+{% endblock %}
+
+{% block bottomjs %}
+  {% load_settings %}
+    {{ block.super }}
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
+    {% include "includes/leaflet_js.html" %}
+    <script type="text/javascript">
+        // отключаем кнопку после нажатия
+        $('#export_to_excel').click(function() {
+            $(this).addClass("disabled");
+            $(this).prop("disabled", true);
+            $('#xls').val('xls');
+            $('.queue-forms form').submit();
+            $('#xls').val('');
+            return false;
+        });
+    </script>
+
+    <script type="text/javascript">
+        $(".uniForm fieldset")
+            .children().eq(2).nextAll()
+            .wrapAll("<div class=\"spoiler\"></div>");
+
+        $(".spoiler")
+            .hide()
+            .before("<a href=\"#\" id=\"open_spoiler\"> \
+                        Расширенный поиск\
+                        <span class=\"caret caret-margins caret-right\"></span> \
+                     </a>");
+
+        $("#open_spoiler").click(function(e){
+            e.preventDefault();
+            $(".spoiler").slideToggle();
+            $(this).children("span").toggleClass("caret-right");
+        });
+
+    </script>
+    <script type="text/javascript">
+        $(function(){
+            var lonlat = [{{ settings.MAP_CENTER }}];
+            lonlat.reverse();
+            var map = new L.Map("map", {
+                center: L.latLng(lonlat),
+                zoom: {{ settings.MAP_ZOOM }}
+            });
+            var activeSadikIcon = L.icon({
+                iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+
+                iconSize:     [22, 23], // size of the icon
+                iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
+                shadowAnchor: [4, 62]  // the same for the shadow
+            });
+            var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+                subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+                attribution: 'Map data © OpenStreetMap contributors',
+                center: L.latLng(lonlat),
+                zoom: {{ settings.MAP_ZOOM }}
+            });
+            osmLayer.addTo(map);
+
+            function renderMarkers(markers, map) {
+                var markersLayer = new L.MarkerClusterGroup({
+                    maxClusterRadius: 30
+                });
+                for (var i=0; i<markers.length; i++) {
+                    var m = L.marker(markers[i].location.reverse(), {
+                        title: markers[i].name,
+                        icon: activeSadikIcon
+                    });
+                    // m.bindPopup('<b>'+markers[i].name+'</b><div>Адрес: '+markers[i].address+'</div><div>Телефон: '+ markers[i].phone +'</div><a href="'+ markers[i].url +'">Перейти к ДОУ</a>');
+                    markersLayer.addLayer(m);
+                }
+                map.addLayer(markersLayer);
+            }
+
+            function fetchSadiks(map) {
+                $.ajax({
+                    type: 'json',
+                    url: '/api/sadiki.json'
+                })
+                .success(function(data){
+                    renderMarkers(data, map);
+                });
+            }
+
+            fetchSadiks(map);
+
+        });
+    </script>
+
+{% endblock %}
+
+{% block content_title %}
+    <h1>{% block title %}Очередь в ДОУ {{ area }}{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+    {{ block.super }}
+    {% if not import_finished %}
+        <div class="alert">
+            Внимание! В очереди не отображаются заявки, поданные до запуска
+            системы, они появятся позднее.
+        </div>
+    {% endif %}
+        <div class="queue-forms clearfix" id="filterForm">
+            <form action="." method="get" class='uniForm'>
+            {% izenform form options notag=1 nocsrf=1 %}
+            {% if request.user.is_administrative_person %}
+            <input id="xls" type="hidden" name="type" value="" />
+            <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
+            фильтрации возвращал не более 5000 заявок.</p>
+            {% endif %}
+            <div class="buttonHolder">
+                <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
+                {% if request.user.is_administrative_person %}
+                <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
+                {% endif %}
+            </div>
+            </form>
+        </div>
+        <div id="queue_map">
+          <div id="map"></div>
+        <div>
+{% endblock %}

@@ -245,6 +245,11 @@ class Queue(RequirePermissionsMixin, ListView):
             return response
 
 
+class QueueMap(TemplateView):
+    template_name = 'anonym/queuemap.html'
+    form = QueueFilterForm
+
+
 class RequestionSearch(RequirePermissionsMixin, TemplateView):
     u"""Публичный поиск заявок"""
     template_name = 'anonym/requestion_search.html'
