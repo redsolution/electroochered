@@ -28,6 +28,10 @@
             content: "{{ tooltips.age_groups_tooltip }}",
             placement: "top", html:true});
     });
+
+    $('#queue_map_button').click(function(){
+      location.href = '{% url queue_map %}?' + $('form').serialize();
+    })
     </script>
 
     <script type="text/javascript">
@@ -77,7 +81,7 @@
         </div>
     {% endif %}
         <div class="queue-forms clearfix" id="filterForm">
-            <form action="." method="get" class='uniForm'>
+            <form action="." method="get" class="uniForm">
             {% izenform form options notag=1 nocsrf=1 %}
             {% if request.user.is_administrative_person %}
             <input id="xls" type="hidden" name="type" value="" />
@@ -85,7 +89,7 @@
             фильтрации возвращал не более 5000 заявок.</p>
             {% endif %}
             <div class="buttonHolder">
-                <a class="primaryAction btn pull-left" href="{% url queue_map %}">
+                <a class="primaryAction btn pull-left" href="#" id="queue_map_button">
                   <i class="icon-globe"></i> Отобразить на карте</a>
                 <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
                 {% if request.user.is_administrative_person %}
