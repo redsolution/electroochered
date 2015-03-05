@@ -5,6 +5,7 @@ from chunks.models import Chunk
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import is_password_usable
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
@@ -788,8 +789,8 @@ class Profile(models.Model):
                 and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
 
-    def is_password_set():
-        return self.user.password != u'!'
+    def is_password_set(self):
+        return is_password_usable(self.user.password)
 
     def social_auth_clean_data(self):
         self.phone_number = None
