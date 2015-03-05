@@ -47,11 +47,11 @@
               zoom: {{ settings.MAP_ZOOM }}
           });
           var requestionIcon = L.icon({
-              iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
+              iconUrl: '{{ STATIC_URL }}img/red_marker.png',
 
-              iconSize:     [22, 23], // size of the icon
-              iconAnchor:   [11, 11], // point of the icon which will correspond to marker's location
-              shadowAnchor: [4, 62]  // the same for the shadow
+              iconSize:     [16, 16], // size of the icon
+              iconAnchor:   [8, 8], // point of the icon which will correspond to marker's location
+              // shadowAnchor: [4, 62]  // the same for the shadow
           });
           var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
               subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
@@ -67,6 +67,7 @@
               });
               for (var i=0; i<markers.length; i++) {
                   var m = L.marker(markers[i].location.reverse(), {
+                        icon: requestionIcon,
                   });
                   markersLayer.addLayer(m);
               }
