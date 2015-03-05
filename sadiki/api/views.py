@@ -3,7 +3,6 @@ import json
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.core import serializers
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
 from django.template.context import RequestContext
@@ -11,6 +10,7 @@ from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+from rest_framework.renderers import UnicodeJSONRenderer
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
@@ -23,6 +23,7 @@ from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
     SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
+from sadiki.core.serializers import RequestionGeoSerializer
 from sadiki.logger.models import Logger
 
 
@@ -306,8 +307,18 @@ def get_evidience_documents(request):
                         mimetype='application/json')
 
 
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = UnicodeJSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
+
+
+@csrf_exempt
 def get_requestions(request):
-    requestions = serializers.serialize(
-        'json', Requestion.objects.active_queue(),
-        fields=('requestion_number', 'location'), ensure_ascii=False)
-    return HttpResponse(requestions, mimetype='text/json')
+    requestions = RequestionGeoSerializer(
+        Requestion.objects.active_queue(), many=True)
+    return JSONResponse(requestions.data)

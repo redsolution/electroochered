@@ -50,7 +50,7 @@
                 center: L.latLng(lonlat),
                 zoom: {{ settings.MAP_ZOOM }}
             });
-            var activeSadikIcon = L.icon({
+            var requestionIcon = L.icon({
                 iconUrl: '{{ STATIC_URL }}img/sadik-icon.png',
 
                 iconSize:     [22, 23], // size of the icon
@@ -71,10 +71,10 @@
                 });
                 for (var i=0; i<markers.length; i++) {
                     var m = L.marker(markers[i].location.reverse(), {
-                        title: markers[i].name,
-                        icon: activeSadikIcon
+                        title: markers[i].requestion_number,
+                        // icon: activeSadikIcon
                     });
-                    // m.bindPopup('<b>'+markers[i].name+'</b><div>Адрес: '+markers[i].address+'</div><div>Телефон: '+ markers[i].phone +'</div><a href="'+ markers[i].url +'">Перейти к ДОУ</a>');
+                    m.bindPopup('<b>'+markers[i].requestion_number+'</b>');
                     markersLayer.addLayer(m);
                 }
                 map.addLayer(markersLayer);
@@ -83,7 +83,7 @@
             function fetchSadiks(map) {
                 $.ajax({
                     type: 'json',
-                    url: '/api/sadiki.json'
+                    url: '/api2/get_requestions/'
                 })
                 .success(function(data){
                     renderMarkers(data, map);
