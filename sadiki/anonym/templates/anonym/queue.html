@@ -29,7 +29,9 @@
             placement: "top", html:true});
     });
 
-    $('#queue_map_button').click(function(){
+    $('label[for="q_map"]').click(function(){
+      $('#q_list').attr('checked', false);
+      $('#q_map').attr('checked', true);
       location.href = '{% url queue_map %}?' + $('form').serialize();
       return false;
     })
@@ -85,8 +87,12 @@
             фильтрации возвращал не более 5000 заявок.</p>
             {% endif %}
             <div class="buttonHolder">
-                <a class="primaryAction btn pull-left" href="#" id="queue_map_button">
-                  <i class="icon-globe"></i> Отобразить на карте</a>
+                <div id="view-switch" class="register-switch pull-left">
+                  <input type="radio" name="view-type" value="L" id="q_list" class="register-switch-input" checked>
+                  <label for="q_list" class="register-switch-label"><i class="icon-list"></i> Список</label>
+                  <input type="radio" name="view-type" value="M" id="q_map" class="register-switch-input">
+                  <label for="q_map" class="register-switch-label"><i class="icon-globe"></i> Карта</label>
+                </div>
                 <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
                 {% if request.user.is_administrative_person %}
                 <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>

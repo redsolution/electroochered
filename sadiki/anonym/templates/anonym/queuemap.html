@@ -87,7 +87,9 @@
           fetchSadiks(map);
       });
 
-      $('#queue_button').click(function(){
+      $('label[for="q_list"]').click(function(){
+        $('#q_map').attr('checked', false);
+        $('#q_list').attr('checked', true);
         location.href = '{% url anonym_queue %}?' + $('form').serialize();
         return false;
       })
@@ -110,8 +112,12 @@
           фильтрации возвращал не более 5000 заявок.</p>
         {% endif %}
         <div class="buttonHolder">
-            <a class="primaryAction btn pull-left" href="#" id="queue_button">
-              <i class="icon-list"></i> Отобразить списком</a>
+            <div id="view-switch" class="register-switch pull-left">
+              <input type="radio" name="view-type" value="L" id="q_list" class="register-switch-input">
+              <label for="q_list" class="register-switch-label"><i class="icon-list"></i> Список</label>
+              <input type="radio" name="view-type" value="M" id="q_map" class="register-switch-input" checked>
+              <label for="q_map" class="register-switch-label"><i class="icon-globe"></i> Карта</label>
+            </div>
             <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
             {% if request.user.is_administrative_person %}
               <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
