@@ -72,7 +72,6 @@
                 for (var i=0; i<markers.length; i++) {
                     var m = L.marker(markers[i].location.reverse(), {
                         title: markers[i].requestion_number,
-                        // icon: activeSadikIcon
                     });
                     m.bindPopup('<b>'+markers[i].requestion_number+'</b>');
                     markersLayer.addLayer(m);
@@ -87,6 +86,7 @@
                 })
                 .success(function(data){
                     renderMarkers(data, map);
+                    $(".loader").fadeOut("slow");
                 });
             }
 
@@ -102,6 +102,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="loader"></div>
     {{ block.super }}
     {% if not import_finished %}
         <div class="alert">
