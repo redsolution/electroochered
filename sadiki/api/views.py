@@ -3,6 +3,7 @@ import json
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.core.cache import cache
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
 from django.template.context import RequestContext
@@ -11,6 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from rest_framework.renderers import UnicodeJSONRenderer
+from django.db.models.query import *
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
@@ -328,6 +330,9 @@ def get_requestions(request):
 
 class RequestionsQueue(Queue):
     paginate_by = None
+    fullqueryset = Requestion.objects.only(
+        'id', 'requestion_number', 'location').order_by('id')
+    queryset = fullqueryset.hide_distributed()
 
     def get(self, *args, **kwargs):
         queryset = self.get_queryset()
@@ -335,4 +340,5 @@ class RequestionsQueue(Queue):
             queryset, self.request.GET)
         requestions = RequestionGeoSerializer(
             self.queryset.filter(location__isnull=False), many=True)
-        return JSONResponse(requestions.data)
+        response = JSONResponse(requestions.data)
+        return response
