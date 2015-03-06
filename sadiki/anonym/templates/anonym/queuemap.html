@@ -12,16 +12,6 @@
     <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
     {% include "includes/leaflet_js.html" %}
     <script type="text/javascript">
-      // отключаем кнопку после нажатия
-      $('#export_to_excel').click(function() {
-          $(this).addClass("disabled");
-          $(this).prop("disabled", true);
-          $('#xls').val('xls');
-          $('.queue-forms form').submit();
-          $('#xls').val('');
-          return false;
-      });
-
       $(".uniForm fieldset")
           .children().eq(2).nextAll()
           .wrapAll('<div class="spoiler"></div>');
@@ -69,6 +59,9 @@
                   var m = L.marker(markers[i].location.reverse(), {
                         icon: requestionIcon,
                   });
+                  {% if request.user.is_operator %}
+                    m.bindPopup('<a href="/operator/request/' + markers[i].id + '/">'+ markers[i].requestion_number + '</a>');
+                  {% endif %}
                   markersLayer.addLayer(m);
               }
               map.addLayer(markersLayer);
@@ -120,9 +113,6 @@
               <label for="q_map" class="register-switch-label"><i class="icon-globe"></i> Карта</label>
             </div>
             <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
-            {% if request.user.is_administrative_person %}
-              <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>
-            {% endif %}
         </div>
         </form>
     </div>
