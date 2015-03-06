@@ -82,6 +82,7 @@
       });
 
       $('label[for="q_list"]').click(function(){
+        $('label[for="q_list"]').off('click');
         $('#q_map').attr('checked', false);
         $('#q_list').attr('checked', true);
         location.href = '{% url anonym_queue %}?' + $('form').serialize();
