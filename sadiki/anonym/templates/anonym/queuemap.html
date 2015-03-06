@@ -60,7 +60,7 @@
                         icon: requestionIcon,
                   });
                   {% if request.user.is_operator %}
-                    m.bindPopup('<a href="/operator/request/' + markers[i].id + '/">'+ markers[i].requestion_number + '</a>');
+                    m.bindPopup('<a href="/operator/request/' + markers[i].id + '/" target="_blank">'+ markers[i].requestion_number + '</a>');
                   {% endif %}
                   markersLayer.addLayer(m);
               }
