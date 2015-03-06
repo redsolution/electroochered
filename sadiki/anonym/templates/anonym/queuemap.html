@@ -49,8 +49,8 @@
           var requestionIcon = L.icon({
               iconUrl: '{{ STATIC_URL }}img/red_marker.png',
 
-              iconSize:     [16, 16], // size of the icon
-              iconAnchor:   [8, 8], // point of the icon which will correspond to marker's location
+              iconSize:     [14, 14], // size of the icon
+              iconAnchor:   [7, 7], // point of the icon which will correspond to marker's location
               // shadowAnchor: [4, 62]  // the same for the shadow
           });
           var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
