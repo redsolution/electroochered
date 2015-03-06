@@ -29,6 +29,12 @@
         </form>
         </div>
         <div class="span5">
+            <h3>Через Единую Систему Идентификации и Аутентификации</h3>
+            <div class="esia-registration">
+                <a class="esia-button" href="{% url esia_authenticate %}">
+                    Вход через ЕСИА
+                </a>
+            </div>
             <h2>Через профиль социальной сети</h2>
             <div class="vkontakte-registration">
                 <a class="social-button" href="{% url socialauth_login_begin 'vkontakte-oauth2' %}">
@@ -36,12 +42,6 @@
                     Вход через ВКонтакте
                 </a>
             </div>
-            <h2>Через Единую Систему Идентификации и Аутентификации</h2>
-            <div class="vkontakte-registration">
-                <a class="social-button" href="/esia_auth/">
-                    Вход через ЕСИА
-                </a>
-            </div>           
         </div>
     </div>
 {% endblock %}
