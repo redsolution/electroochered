@@ -1678,7 +1678,7 @@ dl {
   outline: 0;
 }
 #view-switch.register-switch {
-  height: 32px;
+  height: 28px;
   margin-bottom: 15px;
   padding: 4px;
   width: 230px;
@@ -1699,7 +1699,9 @@ dl {
 #view-switch .register-switch-label {
   float: left;
   width: 50%;
-  line-height: 32px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 28px;
   color: white;
   text-align: center;
   text-shadow: 0 -1px rgba(0, 0, 0, 0.2);
@@ -1707,7 +1709,6 @@ dl {
   margin: 0;
 }
 #view-switch .register-switch-input:checked + .register-switch-label {
-  font-weight: 500;
   color: #434248;
   text-shadow: 0 1px rgba(255, 255, 255, 0.5);
   background: white;
