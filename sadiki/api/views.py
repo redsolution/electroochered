@@ -3,6 +3,7 @@ import json
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
+from django.core.cache import cache
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
 from django.template.context import RequestContext
@@ -10,18 +11,22 @@ from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+from rest_framework.renderers import UnicodeJSONRenderer
+from django.db.models.query import *
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
     STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
 from sadiki.api.utils import add_requestions_data
+from sadiki.anonym.views import Queue
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
     SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
+from sadiki.core.serializers import RequestionGeoSerializer
 from sadiki.logger.models import Logger
 
 
@@ -303,3 +308,37 @@ def get_evidience_documents(request):
     ).values('id', 'name', 'regex')
     return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
                         mimetype='application/json')
+
+
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = UnicodeJSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
+
+
+@csrf_exempt
+def get_requestions(request):
+    requestions = RequestionGeoSerializer(
+        Requestion.objects.active_queue().filter(location__isnull=False),
+        many=True)
+    return JSONResponse(requestions.data)
+
+
+class RequestionsQueue(Queue):
+    paginate_by = None
+    fullqueryset = Requestion.objects.only(
+        'id', 'requestion_number', 'location').order_by('id')
+    queryset = fullqueryset.hide_distributed()
+
+    def get(self, *args, **kwargs):
+        queryset = self.get_queryset()
+        self.queryset, form = self.process_filter_form(
+            queryset, self.request.GET)
+        requestions = RequestionGeoSerializer(
+            self.queryset.filter(location__isnull=False), many=True)
+        response = JSONResponse(requestions.data)
+        return response

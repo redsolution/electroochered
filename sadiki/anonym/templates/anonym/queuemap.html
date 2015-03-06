@@ -1,0 +1,123 @@
+{% extends "anonym/queue_base.html" %}
+{% load sadiki_core_tags zenforms paginate %}
+
+{% block css %}
+    {{ block.super }}
+    {% include "includes/leaflet_css.html" %}
+{% endblock %}
+
+{% block bottomjs %}
+  {% load_settings %}
+    {{ block.super }}
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/libs/bootstrap-popover.js"></script>
+    {% include "includes/leaflet_js.html" %}
+    <script type="text/javascript">
+      $(".uniForm fieldset")
+          .children().eq(2).nextAll()
+          .wrapAll('<div class="spoiler"></div>');
+
+      $(".spoiler")
+          .hide()
+          .before('<a href="#" id="open_spoiler"> \
+                      Расширенный поиск\
+                      <span class="caret caret-margins caret-right"></span> \
+                   </a>');
+
+      $("#open_spoiler").click(function(e){
+          e.preventDefault();
+          $(".spoiler").slideToggle();
+          $(this).children("span").toggleClass("caret-right");
+      });
+
+      $(function(){
+          var lonlat = [{{ settings.MAP_CENTER }}];
+          lonlat.reverse();
+          var map = new L.Map("map", {
+              center: L.latLng(lonlat),
+              zoom: {{ settings.MAP_ZOOM }}
+          });
+          var requestionIcon = L.icon({
+              iconUrl: '{{ STATIC_URL }}img/red_marker.png',
+
+              iconSize:     [14, 14], // size of the icon
+              iconAnchor:   [7, 7], // point of the icon which will correspond to marker's location
+              // shadowAnchor: [4, 62]  // the same for the shadow
+          });
+          var osmLayer = new L.TileLayer("{{ settings.LEAFLET_TILES_URL }}", {
+              subdomains: {{ settings.LEAFLET_TILES_SUBDOMAINS|safe }},
+              attribution: 'Map data © OpenStreetMap contributors',
+              center: L.latLng(lonlat),
+              zoom: {{ settings.MAP_ZOOM }}
+          });
+          osmLayer.addTo(map);
+
+          function renderMarkers(markers, map) {
+              var markersLayer = new L.MarkerClusterGroup({
+                  maxClusterRadius: 30
+              });
+              for (var i=0; i<markers.length; i++) {
+                  var m = L.marker(markers[i].location.reverse(), {
+                        icon: requestionIcon,
+                  });
+                  {% if request.user.is_operator %}
+                    m.bindPopup('<a href="/operator/request/' + markers[i].id + '/" target="_blank">'+ markers[i].requestion_number + '</a>');
+                  {% endif %}
+                  markersLayer.addLayer(m);
+              }
+              map.addLayer(markersLayer);
+          }
+
+          function fetchSadiks(map) {
+              $.ajax({
+                  url: '/api2/get_requestions/',
+                  data: $('form').serializeArray(),
+              })
+              .success(function(data){
+                  renderMarkers(data, map);
+                  $(".loader").fadeOut("slow");
+              });
+          }
+
+          fetchSadiks(map);
+      });
+
+      $('label[for="q_list"]').click(function(){
+        $('label[for="q_list"]').off('click');
+        $('#q_map').attr('checked', false);
+        $('#q_list').attr('checked', true);
+        location.href = '{% url anonym_queue %}?' + $('form').serialize();
+        return false;
+      })
+    </script>
+
+{% endblock %}
+
+{% block content_title %}
+    <h1>{% block title %}Очередь в ДОУ {{ area }}{% endblock %}</h1>
+{% endblock %}
+{% block content %}
+    {{ block.super }}
+    <div class="loader"></div>
+    <div class="queue-forms clearfix" id="filterForm">
+        <form action="." method="get" class="uniForm">
+        {% izenform form options notag=1 nocsrf=1 %}
+        {% if request.user.is_administrative_person %}
+          <input id="xls" type="hidden" name="type" value="" />
+          <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
+          фильтрации возвращал не более 5000 заявок.</p>
+        {% endif %}
+        <div class="buttonHolder">
+            <div id="view-switch" class="register-switch pull-left">
+              <input type="radio" name="view-type" value="L" id="q_list" class="register-switch-input">
+              <label for="q_list" class="register-switch-label"><i class="icon-list"></i> Список</label>
+              <input type="radio" name="view-type" value="M" id="q_map" class="register-switch-input" checked>
+              <label for="q_map" class="register-switch-label"><i class="icon-globe"></i> Карта</label>
+            </div>
+            <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
+        </div>
+        </form>
+    </div>
+    <div id="queue_map">
+      <div id="map"></div>
+    </div>
+{% endblock %}
