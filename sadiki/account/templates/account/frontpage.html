@@ -281,13 +281,6 @@
             {% block esia_info %}
             <div class="block-head">Учетная запись в ЕСИА:</div>
             {% if profile.esia_id %}
-                {% if not profile.is_password_set %}
-                    <p>
-                      Ваша учётная запись в Электроочереди была создана автоматически
-                      Рекомендуем установить пароль и пользоваться ей наравне
-                      с учётной записью ЕСИА
-                    </p>
-                {% endif %}
                 <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>К этой учетной записи привязана учетная запись ЕСИА</p>
                 <a class="action-link" href="{% url esia_unbind_account %}">Отвязать учётную запись</a>
             {% else %}
