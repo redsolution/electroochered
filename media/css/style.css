@@ -1110,6 +1110,16 @@ tr.dynamic-form .errorlist {
     border-top: 2px #eeeeee solid;
 }
 
+.esia-info .action-link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.esia-info .binding-image {
+    margin-right: 10px;
+}
+
 .social-profile-public{
 
 }

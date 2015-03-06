@@ -288,14 +288,14 @@
                       с учётной записью ЕСИА
                     </p>
                 {% endif %}
-                <p><img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>К этой учетной записи привязана учетная запись ЕСИА</p>
-                <a href="{% url esia_unbind_account %}">Отвязать учётную запись</a>
+                <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>К этой учетной записи привязана учетная запись ЕСИА</p>
+                <a class="action-link" href="{% url esia_unbind_account %}">Отвязать учётную запись</a>
             {% else %}
-                <p><img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
                   К этой учетной записи не привязана учетная запись ЕСИА.
                   Вы можете осуществить привязку, пройдя по ссылке ниже.
                 </p>
-                <a href="{% url esia_bind_account %}">Привязать учётную запись</a>
+                <a class="action-link" href="{% url esia_bind_account %}">Привязать учётную запись</a>
             {% endif %}
             {% endblock %}
         </div>
