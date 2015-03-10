@@ -4,6 +4,7 @@ import json
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
 from django.template.context import RequestContext
@@ -330,15 +331,16 @@ def get_requestions(request):
 
 class RequestionsQueue(Queue):
     paginate_by = None
-    fullqueryset = Requestion.objects.only(
-        'id', 'requestion_number', 'location').order_by('id')
+    fullqueryset = Requestion.objects.all()
     queryset = fullqueryset.hide_distributed()
 
     def get(self, *args, **kwargs):
         queryset = self.get_queryset()
-        self.queryset, form = self.process_filter_form(
-            queryset, self.request.GET)
+        try:
+            filtered_queryset, form = self.process_filter_form(
+                queryset, self.request.GET)
+        except ObjectDoesNotExist:
+            filtered_queryset = Requestion.objects.none()
         requestions = RequestionGeoSerializer(
-            self.queryset.filter(location__isnull=False), many=True)
-        response = JSONResponse(requestions.data)
-        return response
+            filtered_queryset.filter(location__isnull=False), many=True)
+        return JSONResponse(requestions.data)

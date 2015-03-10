@@ -36,6 +36,7 @@
               center: L.latLng(lonlat),
               zoom: {{ settings.MAP_ZOOM }}
           });
+          map.zoomControl.setPosition('topright');
           var requestionIcon = L.icon({
               iconUrl: '{{ STATIC_URL }}img/red_marker.png',
 
@@ -65,6 +66,7 @@
                   markersLayer.addLayer(m);
               }
               map.addLayer(markersLayer);
+              $('output').text(markers.length);
           }
 
           function fetchSadiks(map) {
@@ -101,11 +103,6 @@
     <div class="queue-forms clearfix" id="filterForm">
         <form action="." method="get" class="uniForm">
         {% izenform form options notag=1 nocsrf=1 %}
-        {% if request.user.is_administrative_person %}
-          <input id="xls" type="hidden" name="type" value="" />
-          <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
-          фильтрации возвращал не более 5000 заявок.</p>
-        {% endif %}
         <div class="buttonHolder">
             <div id="view-switch" class="register-switch pull-left">
               <input type="radio" name="view-type" value="L" id="q_list" class="register-switch-input">
@@ -117,6 +114,7 @@
         </div>
         </form>
     </div>
+    <div id="requestion_count"><h4>По запросу найдено заявок: <output>...</output></h4></div>
     <div id="queue_map">
       <div id="map"></div>
     </div>

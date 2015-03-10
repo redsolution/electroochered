@@ -1648,8 +1648,8 @@ dl {
    cursor: default;
 }
 
-#queue_map {
-  margin-top: 20px;
+#queue_map, #requestion_count {
+  margin-top: 10px;
 }
 
 .loader {
@@ -1663,20 +1663,6 @@ dl {
   background-color: rgba(249, 249, 249, 0.5);
 }
 
-.register-input {
-  display: block;
-  width: 100%;
-  height: 38px;
-  margin-top: 2px;
-  font-weight: 500;
-  background: none;
-  border: 0;
-  border-bottom: 1px solid #d8d8d8;
-}
-.register-input:focus {
-  border-color: #1e9ce6;
-  outline: 0;
-}
 #view-switch.register-switch {
   height: 28px;
   margin-bottom: 15px;
