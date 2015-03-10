@@ -36,6 +36,7 @@
               center: L.latLng(lonlat),
               zoom: {{ settings.MAP_ZOOM }}
           });
+          map.zoomControl.setPosition('topright');
           var requestionIcon = L.icon({
               iconUrl: '{{ STATIC_URL }}img/red_marker.png',
 
@@ -113,7 +114,7 @@
         </div>
         </form>
     </div>
-    <div id="requestion_count"><h4>По запросу найдено <output>...</output> заявок</h4></div>
+    <div id="requestion_count"><h4>По запросу найдено заявок: <output>...</output></h4></div>
     <div id="queue_map">
       <div id="map"></div>
     </div>
