@@ -65,6 +65,7 @@
                   markersLayer.addLayer(m);
               }
               map.addLayer(markersLayer);
+              $('output').text(markers.length);
           }
 
           function fetchSadiks(map) {
@@ -117,6 +118,7 @@
         </div>
         </form>
     </div>
+    <div id="requestion_count"><h4>По запросу найдено <output>...</output> заявок</h4></div>
     <div id="queue_map">
       <div id="map"></div>
     </div>
