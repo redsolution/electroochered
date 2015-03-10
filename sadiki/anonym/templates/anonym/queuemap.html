@@ -102,11 +102,6 @@
     <div class="queue-forms clearfix" id="filterForm">
         <form action="." method="get" class="uniForm">
         {% izenform form options notag=1 nocsrf=1 %}
-        {% if request.user.is_administrative_person %}
-          <input id="xls" type="hidden" name="type" value="" />
-          <p class="formHint">Для экспорта отфильтрованных заявок в Excel-файл, необходимо чтобы результат
-          фильтрации возвращал не более 5000 заявок.</p>
-        {% endif %}
         <div class="buttonHolder">
             <div id="view-switch" class="register-switch pull-left">
               <input type="radio" name="view-type" value="L" id="q_list" class="register-switch-input">
