@@ -331,8 +331,7 @@ def get_requestions(request):
 
 class RequestionsQueue(Queue):
     paginate_by = None
-    fullqueryset = Requestion.objects.only(
-        'id', 'requestion_number', 'location').order_by('id')
+    fullqueryset = Requestion.objects.all()
     queryset = fullqueryset.hide_distributed()
 
     def get(self, *args, **kwargs):
