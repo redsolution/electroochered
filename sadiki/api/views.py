@@ -334,6 +334,10 @@ def get_requestions(request):
 
 
 class RequestionsQueue(Queue):
+    u"""Возвращает json объект, необходимый для отображения маркеров заявок на
+    карте. Если количество заявок больше 2500, используется multiprocessing.Pool
+    вычисление идет в 4 процесса.
+    """
     paginate_by = None
     fullqueryset = Requestion.objects.all()
     queryset = fullqueryset.hide_distributed()
@@ -351,6 +355,7 @@ class RequestionsQueue(Queue):
             requestions = RequestionGeoSerializer(filtered_queryset, many=True)
             json_response = requestions.data
         else:
+            # распределенно выполняем сериализацию, на 4 процесса
             json_response = []
             processes_number = 4
             pool = Pool(processes=processes_number)
@@ -362,6 +367,7 @@ class RequestionsQueue(Queue):
             result = pool.imap(serialize_requestions, iterable)
             for chunk in result:
                 json_response.extend(chunk)
+            # вручную завершаем все процессы, иначе они заполняют память
             pool.terminate()
             pool.join()
         return JSONResponse(json_response)
