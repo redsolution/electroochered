@@ -282,7 +282,10 @@
             <div class="block-head">Учетная запись в ЕСИА:</div>
             {% if profile.esia_id %}
                 <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>К этой учетной записи привязана учетная запись ЕСИА</p>
-                <a class="action-link" href="{% url esia_unbind_account %}">Отвязать учётную запись</a>
+                <a class="action-link link-with-image" href="{% url esia_unbind_account %}">
+                    <img src="{{ STATIC_URL }}img/esia-small.png"/>    
+                    Отвязать учётную запись
+                </a>
             {% else %}
                 <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
                   К этой учетной записи не привязана учетная запись ЕСИА.
@@ -295,7 +298,6 @@
             {% endif %}
             {% endblock %}
         </div>
-        <div class="split-line"></div>
         </div>
     </div>
     <div class="span5">
