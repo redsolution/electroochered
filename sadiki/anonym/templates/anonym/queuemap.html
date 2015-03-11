@@ -76,6 +76,8 @@
               })
               .done(function(data){
                   renderMarkers(data, map);
+              }).fail(function(){
+                $('output').addClass('red').text("Ошибка обработки запроса");
               }).always(function(){
                   $(".loader").fadeOut("slow");
               });
