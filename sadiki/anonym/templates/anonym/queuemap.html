@@ -69,18 +69,25 @@
               $('output').text(markers.length);
           }
 
-          function fetchSadiks(map) {
+          function fetchRequestions(map) {
               $.ajax({
                   url: '/api2/get_requestions/',
                   data: $('form').serializeArray(),
               })
-              .success(function(data){
+              .done(function(data){
                   renderMarkers(data, map);
+              }).fail(function(){
+                $('output').addClass('red').text("Ошибка обработки запроса");
+              }).always(function(){
                   $(".loader").fadeOut("slow");
               });
           }
 
-          fetchSadiks(map);
+          try {
+            fetchRequestions(map);
+          } catch(e) {
+            console.log(e);
+          }
       });
 
       $('label[for="q_list"]').click(function(){
