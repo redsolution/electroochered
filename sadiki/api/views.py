@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+from multiprocessing import Pool
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
@@ -342,6 +343,26 @@ class RequestionsQueue(Queue):
                 queryset, self.request.GET)
         except (ObjectDoesNotExist, RequestionHidden):
             filtered_queryset = Requestion.objects.none()
-        requestions = RequestionGeoSerializer(
-            filtered_queryset.filter(location__isnull=False), many=True)
-        return JSONResponse(requestions.data)
+        filtered_queryset = filtered_queryset.filter(location__isnull=False)
+        requestions_count = len(filtered_queryset)
+        if requestions_count < 2500:
+            requestions = RequestionGeoSerializer(filtered_queryset, many=True)
+            json_response = requestions.data
+        else:
+            json_response = []
+            processes_number = 4
+            pool = Pool(processes=processes_number)
+            chunk_size = (requestions_count / processes_number) + 1
+            iterable = [filtered_queryset[:chunk_size],
+                        filtered_queryset[chunk_size: chunk_size * 2],
+                        filtered_queryset[chunk_size * 2: chunk_size * 3],
+                        filtered_queryset[chunk_size * 3:]]
+            result = pool.map(serialize_requestions, iterable)
+            for chunk in result:
+                json_response.extend(chunk)
+        return JSONResponse(json_response)
+
+
+def serialize_requestions(queryset):
+    requestions = RequestionGeoSerializer(queryset, many=True)
+    return requestions.data
