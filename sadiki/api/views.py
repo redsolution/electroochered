@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
+import gc
 from multiprocessing import Pool
 
+from django import db
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.core.cache import cache
@@ -360,6 +362,8 @@ class RequestionsQueue(Queue):
             result = pool.map(serialize_requestions, iterable)
             for chunk in result:
                 json_response.extend(chunk)
+            pool.terminate()
+            pool.join()
         return JSONResponse(json_response)
 
 
