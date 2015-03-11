@@ -288,7 +288,10 @@
                   К этой учетной записи не привязана учетная запись ЕСИА.
                   Вы можете осуществить привязку, пройдя по ссылке ниже.
                 </p>
-                <a class="action-link" href="{% url esia_bind_account %}">Привязать учётную запись</a>
+                <a class="action-link link-with-image" href="{% url esia_bind_account %}">
+                    <img src="{{ STATIC_URL }}img/esia-small.png"/>    
+                    Привязать учётную запись
+                </a>
             {% endif %}
             {% endblock %}
         </div>
