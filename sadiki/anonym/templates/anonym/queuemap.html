@@ -74,8 +74,9 @@
                   url: '/api2/get_requestions/',
                   data: $('form').serializeArray(),
               })
-              .success(function(data){
+              .done(function(data){
                   renderMarkers(data, map);
+              }).always(function(){
                   $(".loader").fadeOut("slow");
               });
           }
