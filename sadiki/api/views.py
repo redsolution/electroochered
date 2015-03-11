@@ -23,6 +23,7 @@ from sadiki.api.utils import add_requestions_data
 from sadiki.anonym.views import Queue
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
+from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
     SHORT_STAY_DECISION_BY_RESOLUTION
@@ -339,7 +340,7 @@ class RequestionsQueue(Queue):
         try:
             filtered_queryset, form = self.process_filter_form(
                 queryset, self.request.GET)
-        except ObjectDoesNotExist:
+        except (ObjectDoesNotExist, RequestionHidden):
             filtered_queryset = Requestion.objects.none()
         requestions = RequestionGeoSerializer(
             filtered_queryset.filter(location__isnull=False), many=True)
