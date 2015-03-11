@@ -347,7 +347,7 @@ class RequestionsQueue(Queue):
             filtered_queryset = Requestion.objects.none()
         filtered_queryset = filtered_queryset.filter(location__isnull=False)
         requestions_count = len(filtered_queryset)
-        if requestions_count < 2500:
+        if requestions_count < 200:
             requestions = RequestionGeoSerializer(filtered_queryset, many=True)
             json_response = requestions.data
         else:
@@ -359,7 +359,7 @@ class RequestionsQueue(Queue):
                         filtered_queryset[chunk_size: chunk_size * 2],
                         filtered_queryset[chunk_size * 2: chunk_size * 3],
                         filtered_queryset[chunk_size * 3:]]
-            result = pool.map(serialize_requestions, iterable)
+            result = pool.imap(serialize_requestions, iterable)
             for chunk in result:
                 json_response.extend(chunk)
             pool.terminate()
