@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
-import gc
+from itertools import repeat
 from multiprocessing import Pool
 
-from django import db
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
-from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
@@ -16,7 +13,6 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
 from rest_framework.renderers import UnicodeJSONRenderer
-from django.db.models.query import *
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
@@ -31,7 +27,8 @@ from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
     SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
-from sadiki.core.serializers import RequestionGeoSerializer
+from sadiki.core.serializers import RequestionGeoSerializer, \
+    AnonymRequestionGeoSerializer
 from sadiki.logger.models import Logger
 
 
@@ -344,6 +341,12 @@ class RequestionsQueue(Queue):
 
     def get(self, *args, **kwargs):
         queryset = self.get_queryset()
+        # в зависимости от роли пользователя, выбираем, какие данные показывать
+        if (self.request.user.is_authenticated() and
+                self.request.user.is_operator()):
+            serializer = RequestionGeoSerializer
+        else:
+            serializer = AnonymRequestionGeoSerializer
         try:
             filtered_queryset, form = self.process_filter_form(
                 queryset, self.request.GET)
@@ -351,8 +354,8 @@ class RequestionsQueue(Queue):
             filtered_queryset = Requestion.objects.none()
         filtered_queryset = filtered_queryset.filter(location__isnull=False)
         requestions_count = len(filtered_queryset)
-        if requestions_count < 200:
-            requestions = RequestionGeoSerializer(filtered_queryset, many=True)
+        if requestions_count < 2500:
+            requestions = serializer(filtered_queryset, many=True)
             json_response = requestions.data
         else:
             # распределенно выполняем сериализацию, на 4 процесса
@@ -364,7 +367,8 @@ class RequestionsQueue(Queue):
                         filtered_queryset[chunk_size: chunk_size * 2],
                         filtered_queryset[chunk_size * 2: chunk_size * 3],
                         filtered_queryset[chunk_size * 3:]]
-            result = pool.imap(serialize_requestions, iterable)
+            result = pool.imap(
+                serialize_requestions, zip(iterable, repeat(serializer)))
             for chunk in result:
                 json_response.extend(chunk)
             # вручную завершаем все процессы, иначе они заполняют память
@@ -373,6 +377,6 @@ class RequestionsQueue(Queue):
         return JSONResponse(json_response)
 
 
-def serialize_requestions(queryset):
-    requestions = RequestionGeoSerializer(queryset, many=True)
+def serialize_requestions((queryset, serializer)):
+    requestions = serializer(queryset, many=True)
     return requestions.data
