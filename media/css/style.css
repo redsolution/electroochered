@@ -1029,11 +1029,29 @@ tr.dynamic-form .errorlist {
 }
 
 /* Главная страница оператора */
-.blanks_drafts {
+
+.operator-info .block-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 8px;
+    line-height: normal;
+}
+
+.operator-info .action-link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.operator-info a.link-with-image img{
+    float: left;
+}
+
+.operator-info .blanks_drafts {
     font-size: 13pt;
 }
 
-.blanks_drafts li{
+.operator-info .blanks_drafts li{
     list-style-type: none;
     margin-top: 3pt;
 }
@@ -1433,11 +1451,19 @@ tr.dynamic-form .errorlist {
 }
 
 .esia-login-block{
+    margin-top: 20px;
     margin-bottom: 10px;
+    /*display: inline-block;*/
 }
 
 .esia-registration{
-    margin-top: 20px;
+    /*margin-top: 20px;*/
+}
+
+.esia-registration .hint{
+    margin-top: 5px;
+    color: #909090;
+    text-align: justify;
 }
 
 .esia-registration .esia-button{
