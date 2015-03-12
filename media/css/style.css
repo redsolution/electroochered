@@ -1453,7 +1453,7 @@ tr.dynamic-form .errorlist {
 .esia-login-block{
     margin-top: 20px;
     margin-bottom: 10px;
-    /*display: inline-block;*/
+    display: inline-block;
 }
 
 .esia-registration{

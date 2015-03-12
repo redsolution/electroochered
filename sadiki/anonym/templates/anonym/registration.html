@@ -32,17 +32,22 @@
         </div>
         <div class="span5">
             <h2>Внешние источники</h2>
+
+            <div class="row">
             <div class="esia-login-block">
-                <div>
+                <div class="span3">
                     <img src="{{ STATIC_URL }}img/esia-large.png"/>
                 </div>
-                <div class="esia-registration">
+                <div class="span9 offset3 esia-registration">
                     <a class="esia-button" href="{% url esia_authenticate %}">
                         ЕСИА
                     </a>
-                    <p class="hint">Регистрация через Единую Систему Идентификации и Аутентификации (ЕСИА).</p>
+                    <p>Регистрация через Единую Систему Идентификации и Аутентификации (ЕСИА).</p>
                 </div>
             </div>
+            </div>
+
+
             <div class="vkontakte-login-block">
                 <div class="vkontakte-registration">
                     <a class="social-button" href="{% url socialauth_registration_begin 'vkontakte-oauth2' %}">
@@ -53,6 +58,8 @@
                     Кроме того, в любой момент вы можете отвязать доступ «Электроочереди» от вашего профиля.</p>
                 </div>
             </div>
+
+
         </div>
     </div>
 {% endblock %}
