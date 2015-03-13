@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
 import datetime
+
 from django.contrib import messages
-from django.contrib.auth import get_backends, login
+from django.contrib.auth import get_backends
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
-from django.contrib.auth.views import password_change
+from django.contrib.auth.views import password_change, login
 from django.core.urlresolvers import reverse
-from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
+from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, \
+    MultipleObjectsReturned
 from django.http import HttpResponseRedirect, Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic.base import TemplateView
+
 from sadiki.authorisation.forms import EmailResetForm
 from sadiki.authorisation.models import VerificationKey
 from sadiki.core.utils import get_user_by_email
@@ -55,6 +58,7 @@ class EmailVerification(TemplateView):
 
             return HttpResponseRedirect(reverse('frontpage'))
 
+
 class ResetPasswordRequest(TemplateView):
     template_name = 'authorisation/reset_password_request.html'
 
@@ -80,14 +84,15 @@ class ResetPassword(TemplateView):
     def dispatch(self, request, key):
         verification_key_object = get_object_or_404(VerificationKey, key=key)
         if not verification_key_object.is_valid:
-            return {'message': u'Данная ссылка уже использовалась, попробуйте получить новую.'}
-        return TemplateView.dispatch(self, request,
-            verification_key_object=verification_key_object)
+            msg = u'Данная ссылка уже использовалась, попробуйте получить новую.'
+            return {'message': msg}
+        return TemplateView.dispatch(
+            self, request, verification_key_object=verification_key_object)
 
     def get(self, request, verification_key_object):
         form = SetPasswordForm(verification_key_object.user)
-        return self.render_to_response({'form': form,
-            'username':verification_key_object.user.email})
+        return self.render_to_response({
+            'form': form, 'username': verification_key_object.user.email})
 
     def post(self, request, verification_key_object):
         user = verification_key_object.user
@@ -98,10 +103,10 @@ class ResetPassword(TemplateView):
             verification_key_object.save()
             if user.is_active:
                 backend = get_backends()[1]
-                user.backend = "%s.%s" % (backend.__module__, backend.__class__.__name__)
+                user.backend = "%s.%s" % (backend.__module__,
+                                          backend.__class__.__name__)
                 login(request, user)
-            messages.info(request,
-                u"Пароль пользователя успешно изменён." % user)
+            messages.info(request, u"Пароль пользователя успешно изменён.")
             return HttpResponseRedirect(reverse('frontpage'))
         return self.render_to_response({'form': form, 'username': user.email})
 
@@ -112,8 +117,9 @@ def password_set(request):
     """
     if request.user.password and request.user.has_usable_password():
         raise Http404
-    return password_change(request, template_name=u'authorisation/passwd_set.html',
-                           password_change_form=SetPasswordForm)
+    return password_change(
+        request, template_name=u'authorisation/passwd_set.html',
+        password_change_form=SetPasswordForm)
 
 
 def is_allowed_send_confirm(user):
@@ -151,3 +157,14 @@ def send_confirm_letter(request):
         key.send_email_verification()
         return HttpResponse('ok')
     return HttpResponse('not allowed')
+
+
+def login_with_error_handling(request, **kwargs):
+    try:
+        return login(request, **kwargs)
+    except MultipleObjectsReturned:
+        msg = (u"Авторизация не удалась, так как данный почтовый адрес связан "
+               u"с двумя учетными записями. Обратитесь в управление образования"
+               u" для решения возникшей проблемы.")
+        messages.error(request, msg)
+        return HttpResponseRedirect(reverse('login'))

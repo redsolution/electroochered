@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     'social_auth',
     'attachment',
     'hex_storage',
+    'rest_framework',
 ]
 
 TEMPLATE_LOADERS = (
