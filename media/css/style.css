@@ -1056,6 +1056,23 @@ tr.dynamic-form .errorlist {
     margin-top: 3pt;
 }
 
+.supervisor-info .block-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 8px;
+    line-height: normal;
+}
+
+.supervisor-info .action-link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.supervisor-info a.link-with-image img{
+    float: left;
+}
+
 .confirmation-dialog{
     display: none;
 }
