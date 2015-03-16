@@ -1030,28 +1030,11 @@ tr.dynamic-form .errorlist {
 
 /* Главная страница оператора */
 
-.operator-info .block-head{
-    font-size: 26px;
-    color: #327fbd;
-    margin-bottom: 8px;
-    line-height: normal;
-}
-
-.operator-info .action-link{
-    font-size: 16px;
-    line-height: 32px;
-    margin-left: 8px;
-}
-
-.operator-info a.link-with-image img{
-    float: left;
-}
-
-.operator-info .blanks_drafts {
+.blanks_drafts {
     font-size: 13pt;
 }
 
-.operator-info .blanks_drafts li{
+.blanks_drafts li{
     list-style-type: none;
     margin-top: 3pt;
 }
@@ -1133,26 +1116,39 @@ tr.dynamic-form .errorlist {
     padding-left: 0px;
 }
 
-.vkontakte-info{
+.esia-binding-group{
     margin-top: 34px;
     padding-top: 21px;
     border-top: 2px #eeeeee solid;
 }
 
-.esia-info{
-    margin-top: 34px;
-    padding-top: 21px;
-    border-top: 2px #eeeeee solid;
+.esia-binding-group .group-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 8px;
+    line-height: normal;
 }
 
-.esia-info .action-link{
+.esia-binding-group .binding-info img{
+    float: left;
+    margin-right: 10px;
+}
+
+.esia-binding-group .binding-info p{
     font-size: 16px;
-    line-height: 32px;
+    min-height: 32px;
+    margin-left: 42px;
+}
+
+.esia-binding-group .link-with-img img{
+    float: left;
     margin-left: 8px;
 }
 
-.esia-info .binding-image {
-    margin-right: 10px;
+.esia-binding-group .link-with-img span{
+    font-size: 16px;
+    min-height: 25px;
+    margin-left: 13px;
 }
 
 .social-profile-public{
@@ -1197,19 +1193,17 @@ tr.dynamic-form .errorlist {
     color: #327fbd;
 }
 
+.vkontakte-info{
+    margin-top: 34px;
+    padding-top: 21px;
+    border-top: 2px #eeeeee solid;
+}
+
 .vkontakte-info .controls{
     min-height: 32px;
 }
 
 .vkontakte-info p{
-    font-size: 16px;
-}
-
-.esia-info .controls{
-    min-height: 32px;
-}
-
-.esia-info p{
     font-size: 16px;
 }
 
