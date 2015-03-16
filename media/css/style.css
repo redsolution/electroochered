@@ -1467,80 +1467,35 @@ tr.dynamic-form .errorlist {
     border-bottom: 0px;
 }
 
-.esia-login-block{
+.social-auth-group{
     margin-top: 20px;
     margin-bottom: 10px;
-    display: inline-block;
+    /*display: inline-block;*/
 }
 
-.esia-icon{
+.social-auth-group .service-icon{
     float: left;
-    height: 100%;
-    vertical-align: middle;
+    width: 70px;
 }
 
-.esia-registration{
-    float: left;
-    margin-left: 16px;
-    width: 320px;
-    /*margin-top: 20px;*/
+.social-auth-group .registration{
+    margin-left: 75px;
 }
 
-.esia-registration .hint{
-    margin-top: 5px;
-    color: #909090;
-    text-align: justify;
-}
-
-.esia-registration .esia-button{
+.social-auth-group .registration .auth-link{
     font-size: 18px;
     line-height: 40px;
 }
 
-.esia-registration .esia-button img{
-    float: left;
-    margin-right: 10px;
-}
-
-.vkontakte-login-block{
-    margin-top: 20px;
-    margin-bottom: 10px;
-    display: inline-block;
-}
-
-.vkontakte-icon{
-    float: left;
-    height: 100%;
-    vertical-align: middle;
-}
-
-.vkontakte-registration{
-    float: left;
-    margin-left: 16px;
-    width: 320px;
-    /*margin-top: 20px;*/
-}
-
-.vkontakte-registration .social-button{
-    font-size: 18px;
-    line-height: 60px;
-}
-
-.vkontakte-registration .social-button img{
-    float: left;
-    margin-right: 10px;
+.social-auth-group .registration .hint{
+    color: #909090;
+    margin-top: 10px;
 }
 
 .registrationForm .hint{
     color: #909090;
     margin-top: 20px;
     margin-left: 10px;
-}
-
-.vkontakte-registration .hint{
-    margin-top: 5px;
-    color: #909090;
-    text-align: justify;
 }
 
 .documents-form .original-form{

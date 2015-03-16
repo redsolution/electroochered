@@ -31,24 +31,24 @@
         <div class="span5">
             <h2>Внешние источники</h2>
 
-            <div class="esia-login-block">
-                <div class="esia-icon">
+            <div class="social-auth-group">
+                <div class="service-icon">
                     <img src="{{ STATIC_URL }}img/esia-large.png"/>
                 </div>
-                <div class="esia-registration">
-                    <a class="esia-button" href="{% url esia_authenticate %}">
+                <div class="registration">
+                    <a class="auth-link" href="{% url esia_authenticate %}">
                         ЕСИА
                     </a>
-                    <p class="hint">Регистрация через Единую Систему Идентификации и Аутентификации (ЕСИА). При регистрации будет автоматически создан Ваш профиль в Электроочереди.</p>
+                    <p class="hint">Вход через Единую Систему Идентификации и Аутентификации (ЕСИА). Если Вы впервые входите с помощью ЕСИА, Вам будет автоматически создан профиль в Электроочереди.</p>
                 </div>
             </div>
 
-            <div class="vkontakte-login-block">
-                <div class="vkontakte-icon">
+            <div class="social-auth-group">
+                <div class="service-icon">
                     <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
                 </div>
-                <div class="vkontakte-registration">
-                    <a class="social-button" href="{% url socialauth_login_begin 'vkontakte-oauth2' %}">
+                <div class="registration">
+                    <a class="auth-link" href="{% url socialauth_login_begin 'vkontakte-oauth2' %}">
                         ВКонтакте
                     </a>
                     <p class="hint">Если у вас есть профиль в социальной сети ВКонтакте, вы можете использовать его для регистрации в «Электроочереди». При регистрации ваш аккаунт в социальной сети остается в безопасности. Вам не нужно сообщать «Электроочереди» свой пароль от социальной сети, необходимо только разрешить доступ к самым общим данным о вас.
