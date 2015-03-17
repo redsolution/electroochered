@@ -211,12 +211,18 @@
                 <p>К этой учетной записи не привязан аккаунт ВКонтакте</p>
             {% endif %}
         </div>
-        <div class="esia-info">
-            <div class="block-head">Учетная запись в ЕСИА:</div>
+        <div class="esia-binding-group">
+            <div class="group-head">Учетная запись в ЕСИА:</div>
             {% if profile.esia_id %}
-                <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_approved.fw.png"/>К этой учетной записи привязана учетная запись ЕСИА</p>
+            <div class="binding-info">
+                <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                <p>К этой учетной записи привязана учетная запись ЕСИА</p>
+            </div>
             {% else %}
-                <p><img class="binding-image" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>К этой учетной записи не привязана учетная запись ЕСИА.</p>
+            <div class="binding-info">
+                <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                <p>К этой учетной записи не привязана учетная запись ЕСИА.</p>
+            </div>
             {% endif %}
         </div>
         {% block profile_additions %}
