@@ -1060,6 +1060,19 @@ tr.dynamic-form .errorlist {
     line-height: normal;
 }
 
+/*если не задан пароль, показать яркое предупреждение*/
+.requestion-info .empty-passwd-tip{
+    font-size: 20px;
+    color: #af0000;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.requestion-info .empty-passwd-tip a{
+    color: #327fbd;
+    text-decoration: underline;
+}
+
 .requestion-info .block-head.top-indent{
     margin-top: 10px;
 }

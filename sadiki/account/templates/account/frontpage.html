@@ -163,6 +163,13 @@
         <div class="requestion-info">
             <label class="field-label">Имя пользователя:</label>
             <p class="field-value">{{ profile.user.username }}</p>
+            {% if not profile.is_password_set %}
+            <div class="empty-passwd-tip">
+                Внимание! Пароль для данной учетной записи не задан.
+                Чтобы иметь возможность входить в систему с помощью нее,
+                необходимо <a href="{% url passwd_set %}">задать</a> пароль.
+            </div>
+            {% endif %}
             <form method="POST" id="email_form">
                 {% csrf_token %}
                 <div class="field">
