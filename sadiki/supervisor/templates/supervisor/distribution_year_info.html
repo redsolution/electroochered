@@ -4,11 +4,11 @@
 {% block title %}Информация о учебном годе{% endblock %}
 
 {% block content %}
-    <p>Текущий учебный год: {{ current_distribution_year.year }}. Новый учебный год можно начать только после начала календарного года.</p>
+    <p>Текущий учебный год: {{ current_distribution_year.year }}. Новый учебный год можно начать только после 1 апреля.</p>
     <p>Начало нового учебного года закрывает возрастные группы на текущий год.</p>
     {% if not_distributed_requestions_number %}
         <p><span class="error">Внимание! В системе находится {{ not_distributed_requestions_number }} заяв{{ not_distributed_requestions_number|choose_plural:"ка, ки, ок" }} с незавершенной
-            процедурой комплектования. Эти заявки будут обработаны автоматически.</span></p>
+            процедурой комплектования.</span></p>
     {% endif %}
     <p><span class="error">Внимание! Переход на новый учебный год нельзя будет отменить.</span></p>
     {% url start_distribution_year as start_distribution_year_url %}
