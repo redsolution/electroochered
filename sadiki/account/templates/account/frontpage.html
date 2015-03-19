@@ -165,9 +165,8 @@
             <p class="field-value">{{ profile.user.username }}</p>
             {% if not profile.is_password_set %}
             <div class="empty-passwd-tip">
-                Внимание! Пароль для данной учетной записи не задан.
-                Чтобы иметь возможность входить в систему с помощью нее,
-                необходимо <a href="{% url passwd_set %}">задать</a> пароль.
+                Чтобы использовать для входа в систему это имя пользователя
+                или электронный почтовый адрес, <a href="{% url passwd_set %}">установите</a> пароль.
             </div>
             {% endif %}
             <form method="POST" id="email_form">

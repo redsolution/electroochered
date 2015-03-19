@@ -1,5 +1,5 @@
     <div class="esia-binding-group">
-        <div class="group-head">Учетная запись в ЕСИА:</div>
+        <div class="group-head">Профиль в ЕСИА:</div>
         {% if profile.esia_id %}
         <div class="binding-info">
             <img src="{{ STATIC_URL }}img/esia-small.png"/>
@@ -12,8 +12,7 @@
         {% else %}
         <div class="binding-info">
             <img src="{{ STATIC_URL }}img/esia-small.png"/>
-            <p>К этой учетной записи не привязана учетная запись ЕСИА.
-            Вы можете осуществить привязку, пройдя по ссылке ниже.</p>
+            <p>К этой учетной записи не привязана учетная запись ЕСИА.</p>
         </div>
         <a class="link-with-img" href="{% url esia_bind_account %}">
             <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
