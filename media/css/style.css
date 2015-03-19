@@ -1062,7 +1062,8 @@ tr.dynamic-form .errorlist {
 
 /*если не задан пароль, показать яркое предупреждение*/
 .requestion-info .empty-passwd-tip{
-    font-size: 20px;
+    width: 50%;
+    font-size: 12px;
     color: #af0000;
     margin-top: 10px;
     margin-bottom: 10px;
@@ -1127,15 +1128,20 @@ tr.dynamic-form .errorlist {
 
 .esia-binding-group .binding-info img{
     float: left;
-    margin-right: 10px;
 }
 
 .esia-binding-group .binding-info p{
     font-size: 16px;
-    min-height: 32px;
+    line-height: 32px;
     margin-left: 42px;
 }
 
+.esia-binding-group .link{
+    font-size: 16px;
+    margin-left: 42px;
+}
+
+/*
 .esia-binding-group .link-with-img img{
     float: left;
     margin-left: 8px;
@@ -1146,6 +1152,7 @@ tr.dynamic-form .errorlist {
     min-height: 25px;
     margin-left: 13px;
 }
+*/
 
 .social-profile-public{
 
