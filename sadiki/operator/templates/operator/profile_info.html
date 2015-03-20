@@ -214,15 +214,9 @@
         <div class="esia-binding-group">
             <div class="group-head">Профиль в ЕСИА:</div>
             {% if profile.esia_id %}
-            <div class="binding-info">
-                <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
-                <p>К этой учетной записи привязана учетная запись ЕСИА</p>
-            </div>
+            <p>К этой учетной записи привязана учетная запись ЕСИА</p>
             {% else %}
-            <div class="binding-info">
-                <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
-                <p>К этой учетной записи не привязана учетная запись ЕСИА.</p>
-            </div>
+            <p>К этой учетной записи не привязана учетная запись ЕСИА</p>
             {% endif %}
         </div>
         {% block profile_additions %}

@@ -1119,6 +1119,11 @@ tr.dynamic-form .errorlist {
     border-top: 2px #eeeeee solid;
 }
 
+.esia-binding-group p{
+    font-size: 16px;
+    line-height: normal;
+}
+
 .esia-binding-group .group-head{
     font-size: 26px;
     color: #327fbd;
@@ -1138,7 +1143,12 @@ tr.dynamic-form .errorlist {
 
 .esia-binding-group .link{
     font-size: 16px;
-    margin-left: 42px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.esia-binding-group .link img{
+    float: left;
 }
 
 /*
