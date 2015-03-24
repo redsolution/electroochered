@@ -778,7 +778,7 @@ class Profile(models.Model):
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
     esia_id = models.CharField(u'Идентификатор учётной записи в ЕСИА',
-        max_length=63, blank=True, null=True)
+        max_length=63, null=True, unique=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
@@ -791,6 +791,14 @@ class Profile(models.Model):
 
     def is_password_set(self):
         return is_password_usable(self.user.password)
+
+    def set_esia_id(self, esia_id):
+        self.esia_id = esia_id
+        self.save()
+
+    def unset_esia_id(self):
+        self.esia_id = None
+        self.save()
 
     def social_auth_clean_data(self):
         self.phone_number = None
