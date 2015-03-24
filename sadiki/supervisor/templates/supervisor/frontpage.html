@@ -9,7 +9,9 @@
             Интерфейс суперпользователя предназначен для разрешения исключительных ситуаций. Через форму поиска
             суперпользователь может найти заявку и изменить у нее дату регистрации, дату рождения и вернуть ее в очередь.
         </p>
-        {% include 'includes/esia_binding_area.html' %}
+        {% if 'esia_auth' in special_apps %}
+        {% include 'esia_auth/include/esia_binding_area.html' %}
+        {% endif %}
     </div>
     </div>
 {% endblock %}

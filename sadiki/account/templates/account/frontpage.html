@@ -283,7 +283,9 @@
             {% endif %}
             {% endblock %}
         </div>
-        {% include 'includes/esia_binding_area.html' %}
+        {% if 'esia_auth' in special_apps %}
+        {% include 'esia_auth/include/esia_binding_area.html' %}
+        {% endif %}
         </div>
     </div>
     <div class="span5">

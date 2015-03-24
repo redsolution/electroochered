@@ -31,6 +31,7 @@
         <div class="span5">
             <h2>Внешние источники</h2>
 
+            {% if 'esia_auth' in special_apps %}
             <div class="social-auth-group">
                 <div class="service-icon">
                     <img src="{{ STATIC_URL }}img/esia-large.png"/>
@@ -46,6 +47,7 @@
                     автоматически создан новый профиль в «Электроочереди».</p>
                 </div>
             </div>
+            {% endif %}
 
             <div class="social-auth-group">
                 <div class="service-icon">

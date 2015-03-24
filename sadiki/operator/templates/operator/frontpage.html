@@ -11,7 +11,9 @@
             <li><a target="_blank" href="{{ STATIC_URL }}blanks/snyatie_s_ucheta.odt">Заявление на снятие с учета</a></li>
             <li><a target="_blank" href="{{ STATIC_URL }}blanks/putevka_v_dou.odt">Путевка в ДОУ</a></li>
         </ul>
-        {% include 'includes/esia_binding_area.html' %}
+        {% if 'esia_auth' in special_apps %}
+        {% include 'esia_auth/include/esia_binding_area.html' %}
+        {% endif %}
     </div>
     </div>
 {% endblock %}
