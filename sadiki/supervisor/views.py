@@ -53,42 +53,46 @@ class ChangeRegistrationDateTime(SupervisorBases):
 
     def check_permissions(self, request, requestion):
         return (SupervisorBases.check_permissions(self, request, requestion)
-            and requestion.editable)
+                and requestion.editable)
 
     def dispatch(self, request, requestion_id):
         requestion = get_object_or_404(Requestion, id=requestion_id)
-        return super(ChangeRegistrationDateTime, self).dispatch(request,
-            requestion)
+        return super(ChangeRegistrationDateTime, self).dispatch(
+            request, requestion)
 
     def get(self, request, requestion):
         form = RegistrationDateTimeForm(instance=requestion)
         confirmation_form = BaseConfirmationForm()
-        return self.render_to_response({'form': form, 'confirmation_form': confirmation_form, 'requestion': requestion})
+        return self.render_to_response({
+            'form': form, 'confirmation_form': confirmation_form,
+            'requestion': requestion})
 
     def post(self, request, requestion):
-        form = RegistrationDateTimeForm(instance=requestion,
-            data=request.POST)
+        form = RegistrationDateTimeForm(instance=requestion, data=request.POST)
         confirmation_form = BaseConfirmationForm(data=request.POST)
         if form.is_valid() and confirmation_form.is_valid():
             if form.has_changed():
                 requestion = form.save()
-                messages.info(request, u'Дата регистрации была изменена на %s' %
+                messages.info(
+                    request, u'Дата регистрации была изменена на {}'.format(
                         date_format(requestion.registration_datetime,
-                            "SHORT_DATETIME_FORMAT"))
+                                    "SHORT_DATETIME_FORMAT")))
                 context_dict = {
                     'registration_datetime': requestion.registration_datetime}
-                Logger.objects.create_for_action(CHANGE_REGISTRATION_DATETIME,
-                    context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion}, reason=confirmation_form.cleaned_data.get('reason'))
+                Logger.objects.create_for_action(
+                    CHANGE_REGISTRATION_DATETIME, context_dict=context_dict,
+                    extra={'user': request.user, 'obj': requestion},
+                    reason=confirmation_form.cleaned_data.get('reason'))
             else:
-                messages.info(request,
-                    u'Дата регистрации заявки %s осталась без изменений' %
-                        requestion.requestion_number)
-            return HttpResponseRedirect(reverse('supervisor_requestion_info',
-                kwargs={'requestion_id': requestion.id}))
+                msg = u'Дата регистрации заявки {} осталась без изменений'
+                messages.info(request, msg.format(requestion.requestion_number))
+            return HttpResponseRedirect(
+                reverse('supervisor_requestion_info',
+                        kwargs={'requestion_id': requestion.id}))
         else:
-            return self.render_to_response({'form': form, 'requestion': requestion,
-                                            'confirmation_form': confirmation_form})
+            return self.render_to_response({
+                'form': form, 'requestion': requestion,
+                'confirmation_form': confirmation_form})
 
 
 class ChangeBirthDate(SupervisorBases):
@@ -96,7 +100,7 @@ class ChangeBirthDate(SupervisorBases):
 
     def check_permissions(self, request, requestion):
         return (SupervisorBases.check_permissions(self, request, requestion)
-            and requestion.editable)
+                and requestion.editable)
 
     def dispatch(self, request, requestion_id):
         requestion = get_object_or_404(Requestion, id=requestion_id)
@@ -105,7 +109,9 @@ class ChangeBirthDate(SupervisorBases):
     def get(self, request, requestion):
         form = BirthDateForm(instance=requestion)
         confirmation_form = BaseConfirmationForm()
-        return self.render_to_response({'form': form, 'requestion':requestion, 'confirmation_form': confirmation_form})
+        return self.render_to_response({
+            'form': form, 'requestion': requestion,
+            'confirmation_form': confirmation_form})
 
     def post(self, request, requestion):
         form = BirthDateForm(instance=requestion, data=request.POST)
@@ -113,20 +119,24 @@ class ChangeBirthDate(SupervisorBases):
         if form.is_valid() and confirmation_form.is_valid():
             if form.has_changed():
                 requestion = form.save()
-                messages.info(request,
-                    u'Дата рождения заявки %s была изменена' %
-                        requestion.requestion_number)
+                messages.info(
+                    request, u'Дата рождения заявки {} была изменена'.format(
+                        requestion.requestion_number))
                 context_dict = {'birth_date': requestion.birth_date}
-                Logger.objects.create_for_action(CHANGE_BIRTHDATE,
+                Logger.objects.create_for_action(
+                    CHANGE_BIRTHDATE,
                     context_dict=context_dict,
-                    extra={'user': request.user, 'obj': requestion}, reason=confirmation_form.cleaned_data.get('reason'))
+                    extra={'user': request.user, 'obj': requestion},
+                    reason=confirmation_form.cleaned_data.get('reason'))
             else:
-                messages.info(request,
-                    u'Дата регистрации заявки %s осталась без изменений' %
-                        requestion.requestion_number)
-            return HttpResponseRedirect(reverse('supervisor_requestion_info',
+                msg = u'Дата рождения заявки {} осталась без изменений'
+                messages.info(request, msg.format(requestion.requestion_number))
+            return HttpResponseRedirect(reverse(
+                'supervisor_requestion_info',
                 kwargs={'requestion_id': requestion.id}))
-        return self.render_to_response({'form': form, 'requestion':requestion, 'confirmation_form': confirmation_form})
+        return self.render_to_response({
+            'form': form, 'requestion': requestion,
+            'confirmation_form': confirmation_form})
 
 
 class DistributionYearInfo(SupervisorBases):
@@ -134,8 +144,10 @@ class DistributionYearInfo(SupervisorBases):
 
     def get_context_data(self, **kwargs):
         context = super(DistributionYearInfo, self).get_context_data(**kwargs)
-        context.update({'current_distribution_year': get_current_distribution_year(),
-                        'not_distributed_requestions_number': Requestion.objects.enrollment_in_progress().count()})
+        context.update({
+            'current_distribution_year': get_current_distribution_year(),
+            'not_distributed_requestions_number':
+                Requestion.objects.enrollment_in_progress().count()})
         return context
 
 
@@ -143,7 +155,7 @@ class StartDistributionYear(SupervisorBases):
     template_name = "supervisor/start_distribution_year.html"
 
     def check_permissions(self, request, *args, **kwargs):
-#        проверяем, что начался новый год и нет распределений
+        # проверяем, что начался новый год и нет распределений
         return (super(StartDistributionYear, self).check_permissions(
             request, *args, **kwargs) and
             get_current_distribution_year() != get_distribution_year() and
@@ -155,42 +167,11 @@ class StartDistributionYear(SupervisorBases):
         redirect_to = request.REQUEST.get('next', '')
         redirect_to = check_url(redirect_to, reverse('supervisor_frontpage'))
         return RequirePermissionsMixin.dispatch(self, request,
-            redirect_to=redirect_to)
+                                                redirect_to=redirect_to)
 
     @transaction.commit_manually
     def post(self, request, redirect_to=None):
         if request.POST.get('confirmation') == 'yes':
-#            необходимо вернуть в очередь или снять с учета все заявки, которые
-#            не были зачислены
-            transitions_actions = (
-                {'from': (STATUS_ABSENT, STATUS_ABSENT_EXPIRE),
-                    'to': STATUS_REMOVE_REGISTRATION,
-                    'transition': ABSENT_REMOVE_REGISTRATION,
-                    'requestions_list': []},
-                {'from': (STATUS_DECISION,), 'to': STATUS_REQUESTER,
-                    'transition': DECISION_REQUESTER,
-                    'requestions_list': []},
-                )
-            for action in transitions_actions:
-                requestions = Requestion.objects.filter(
-                    status__in=action['from'])
-                action['requestions_list'] = list(requestions)
-                for requestion in requestions:
-                    log_extra = {'user': request.user, 'obj': requestion}
-                    # Если заявитель не явился за путевой, освободить его место в группе
-                    if action['transition'] in (ABSENT_REMOVE_REGISTRATION, ):
-                        # запишем в логи какой тип распределения производился
-                        log_extra.update({'distribution_type': requestion.distribution_type})
-
-                    context_dict = {'status': requestion.get_status_display()}
-                    if STATUS_DECISION in action['from']:
-                        context_dict.update({'sadik': requestion.distributed_in_vacancy.sadik_group.sadik})
-                    Logger.objects.create_for_action(
-                        action['transition'], context_dict=context_dict, extra=log_extra,
-                        reason=u'Начало нового учебного года')
-
-                requestions.update(status=action['to'])
-
             # закрываем все возрастные группы на текущий год
             SadikGroup.objects.active().update(active=False)
             transaction.commit()
