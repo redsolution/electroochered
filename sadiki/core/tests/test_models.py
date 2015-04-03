@@ -88,8 +88,8 @@ class RequestionTestCase(TestCase):
     def test_all_group_methods(self):
         kidgdn = Sadik.objects.all()[0]
         test_requestion = test_utils.create_requestion(
-            admission_date=datetime.date(datetime.date.today().year + 1, 1, 1),
-            birth_date=datetime.date.today()-datetime.timedelta(days=510)
+            admission_date=datetime.date.today() + datetime.timedelta(days=365),
+            birth_date=datetime.date.today()-datetime.timedelta(days=365)
         )
         test_requestion.areas.add(kidgdn.area)
         test_requestion.save()
