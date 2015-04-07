@@ -107,3 +107,14 @@ DEFAULT_FROM_EMAIL = u'Место в садик ({}) <{}>'.format(
     EO_USER, config.get('core', 'DEFAULT_FROM_EMAIL'))
 ADMINS = ((DATABASE_USER, config.get('core', 'WEBMASTER')), )
 MANAGERS = (config.get('core', 'STUFF'), )
+
+# настройки модуля ЕСИА
+config = RawConfigParser()
+config.read(expanduser(join('~', '.config', 'electroochered', 'esia.conf')))
+
+SP_URL = config.get('esia', 'SP_URL')
+ESIA_IDP_SSO_URL = config.get('esia', 'ESIA_IDP_SSO_URL')
+ESIA_IDP_SLO_URL = config.get('esia', 'ESIA_IDP_SLO_URL')
+EO_PRIVATE_KEY = config.get('esia', 'EO_PRIVATE_KEY')
+EO_CERTIFICATE = config.get('esia', 'EO_CERTIFICATE')
+ESIA_CERTIFICATE = config.get('esia', 'ESIA_CERTIFICATE')
