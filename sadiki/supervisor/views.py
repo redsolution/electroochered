@@ -33,22 +33,6 @@ class SupervisorBases(RequirePermissionsMixin, TemplateView):
 class FrontPage(SupervisorBases):
     template_name = 'supervisor/frontpage.html'
 
-    @method_decorator(login_required)
-    def dispatch(self, request):
-        profile = request.user.get_profile()
-        return super(FrontPage, self).dispatch(request, profile=profile)
-
-    def get_context_data(self, **kwargs):
-        profile = kwargs.get('profile')
-        context = {
-            'params': kwargs,
-            'profile': profile,
-            # 'plugin_menu_items': get_plugin_menu_items(),
-            # 'profile_additions': get_profile_additions(),
-        }
-        return context
-
-
 
 class RequestionSearch(OperatorRequestionSearch):
     template_name = "supervisor/requestion_search.html"
