@@ -1447,6 +1447,28 @@ tr.dynamic-form .errorlist {
     border-bottom: 0px;
 }
 
+.esia-registration-block{
+    margin-bottom: 10px;
+}
+
+.esia-registration{
+    margin-top: 20px;
+}
+
+.esia-registration .esia-button{
+    font-size: 18px;
+    line-height: 60px;
+}
+
+.esia-registration .esia-button img{
+    float: left;
+    margin-right: 10px;
+}
+
+.vkontakte-registration-block{
+    margin-bottom: 10px;
+}
+
 .vkontakte-registration{
     margin-top: 30px;
 }

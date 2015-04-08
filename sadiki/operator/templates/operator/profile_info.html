@@ -208,9 +208,19 @@
                     </p>
                 </div>
             {% else %}
-                <p>К этой учетной записи не привязан аккаунт ВКонтакте</p>
+                <p>Заявитель не привязал к своему профилю аккаунт ВКонтакте</p>
             {% endif %}
         </div>
+        {% if 'esia_auth' in special_apps %}
+        <div class="esia-binding-group">
+            <div class="group-head">Профиль в ЕСИА:</div>
+            {% if profile.esia_id %}
+            <p>К профилю привязана учетная запись ЕСИА</p>
+            {% else %}
+            <p>Заявитель не привязал к своему профилю учетную запись ЕСИА</p>
+            {% endif %}
+        </div>
+        {% endif %}
         {% block profile_additions %}
             {{ block.super }}
         {% endblock %}

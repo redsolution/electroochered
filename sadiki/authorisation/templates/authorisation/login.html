@@ -29,13 +29,43 @@
         </form>
         </div>
         <div class="span5">
-            <h2>Через профиль социальной сети</h2>
-            <div class="vkontakte-registration">
-                <a class="social-button" href="{% url socialauth_login_begin 'vkontakte-oauth2' %}">
-                    <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
-                    Вход через ВКонтакте
-                </a>
+            <h2>Внешние источники</h2>
+
+            {% if 'esia_auth' in special_apps %}
+            <div class="social-auth-group">
+                <div class="service-icon">
+                    <img src="{{ STATIC_URL }}img/esia-large.png"/>
+                </div>
+                <div class="registration">
+                    <a class="auth-link" href="{% url esia_authenticate %}">
+                        ЕСИА
+                    </a>
+                    <p class="hint">Вход через Единую Систему Идентификации и Аутентификации (ЕСИА).
+                    Если у вас уже есть профиль в «Электроочереди», войдите в систему с помощью этих данных
+                    и прикрепите к своему профилю учетную запись в ЕСИА. Если ваша учетная запись в ЕСИА
+                    не привязана ни к одному профилю «Электроочереди», при входе через ЕСИА будет
+                    автоматически создан новый профиль в «Электроочереди».</p>
+                </div>
             </div>
+            {% endif %}
+
+            <div class="social-auth-group">
+                <div class="service-icon">
+                    <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
+                </div>
+                <div class="registration">
+                    <a class="auth-link" href="{% url socialauth_login_begin 'vkontakte-oauth2' %}">
+                        ВКонтакте
+                    </a>
+                    <p class="hint">Вход через ВКонтакте. Если у вас есть профиль в «Электроочереди»,
+                    войдите в систему с помощью этих данных и прикрепите к своему профилю аккаунт ВКонтакте.
+                    После прикрепления вы сможете входить в систему, используя учетную запись ВКонтакте
+                    без дополнительного ввода данных профиля. Вам не нужно сообщать «Электроочереди»
+                    свой пароль от социальной сети, необходимо только разрешить доступ к самым общим данным о вас.
+                    В любой момент вы можете отвязать доступ «Электроочереди» от аккаунта ВКонтакте.</p>
+                </div>
+            </div>
+
         </div>
     </div>
 {% endblock %}

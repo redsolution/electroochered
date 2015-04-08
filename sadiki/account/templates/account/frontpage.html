@@ -163,6 +163,12 @@
         <div class="requestion-info">
             <label class="field-label">Имя пользователя:</label>
             <p class="field-value">{{ profile.user.username }}</p>
+            {% if not profile.is_password_set %}
+            <div class="empty-passwd-tip">
+                Чтобы использовать для входа в систему это имя пользователя
+                или электронный почтовый адрес, <a href="{% url passwd_set %}">установите</a> пароль.
+            </div>
+            {% endif %}
             <form method="POST" id="email_form">
                 {% csrf_token %}
                 <div class="field">
@@ -277,12 +283,24 @@
             {% endif %}
             {% endblock %}
         </div>
-        {% block profile_additions %}
-            {% for addition in profile_additions %}
-                <div class="split-line"></div>
-                {% include addition %}
-            {% endfor %}
-        {% endblock %}
+        {% if 'esia_auth' in special_apps %}
+        <div class="esia-binding-group">
+            <div class="group-head">Профиль в ЕСИА:</div>
+            {% if profile.esia_id %}
+            <p>К этой учетной записи привязана учетная запись ЕСИА</p>
+            <a class="link" href="{% url esia_unbind_account %}">
+                <img src="{{ STATIC_URL }}img/esia-small.png"/>
+                Отвязать учетную запись
+            </a>
+            {% else %}
+            <p>К этой учетной записи не привязана учетная запись ЕСИА</p>
+            <a class="link" href="{% url esia_bind_account %}">
+                <img src="{{ STATIC_URL }}img/esia-small.png"/>
+                Привязать учетную запись
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
         </div>
     </div>
     <div class="span5">

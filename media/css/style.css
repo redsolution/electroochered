@@ -1029,6 +1029,7 @@ tr.dynamic-form .errorlist {
 }
 
 /* Главная страница оператора */
+
 .blanks_drafts {
     font-size: 13pt;
 }
@@ -1057,6 +1058,20 @@ tr.dynamic-form .errorlist {
     color: #327fbd;
     margin-bottom: 8px;
     line-height: normal;
+}
+
+/*если не задан пароль, показать яркое предупреждение*/
+.requestion-info .empty-passwd-tip{
+    width: 50%;
+    font-size: 12px;
+    color: #af0000;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.requestion-info .empty-passwd-tip a{
+    color: #327fbd;
+    text-decoration: underline;
 }
 
 .requestion-info .block-head.top-indent{
@@ -1098,11 +1113,56 @@ tr.dynamic-form .errorlist {
     padding-left: 0px;
 }
 
-.vkontakte-info{
+.esia-binding-group{
     margin-top: 34px;
     padding-top: 21px;
     border-top: 2px #eeeeee solid;
 }
+
+.esia-binding-group p{
+    font-size: 16px;
+    line-height: normal;
+}
+
+.esia-binding-group .group-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 8px;
+    line-height: normal;
+}
+
+.esia-binding-group .binding-info img{
+    float: left;
+}
+
+.esia-binding-group .binding-info p{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 42px;
+}
+
+.esia-binding-group .link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.esia-binding-group .link img{
+    float: left;
+}
+
+/*
+.esia-binding-group .link-with-img img{
+    float: left;
+    margin-left: 8px;
+}
+
+.esia-binding-group .link-with-img span{
+    font-size: 16px;
+    min-height: 25px;
+    margin-left: 13px;
+}
+*/
 
 .social-profile-public{
 
@@ -1144,6 +1204,12 @@ tr.dynamic-form .errorlist {
 
 .requestion-queue .queue-info .number{
     color: #327fbd;
+}
+
+.vkontakte-info{
+    margin-top: 34px;
+    padding-top: 21px;
+    border-top: 2px #eeeeee solid;
 }
 
 .vkontakte-info .controls{
@@ -1408,30 +1474,35 @@ tr.dynamic-form .errorlist {
     border-bottom: 0px;
 }
 
-.vkontakte-registration{
-    margin-top: 30px;
+.social-auth-group{
+    margin-top: 20px;
+    margin-bottom: 10px;
+    /*display: inline-block;*/
 }
 
-.vkontakte-registration .social-button{
-    font-size: 18px;
-    line-height: 60px;
-}
-
-.vkontakte-registration .social-button img{
+.social-auth-group .service-icon{
     float: left;
-    margin-right: 10px;
+    width: 70px;
+}
+
+.social-auth-group .registration{
+    margin-left: 75px;
+}
+
+.social-auth-group .registration .auth-link{
+    font-size: 18px;
+    line-height: 40px;
+}
+
+.social-auth-group .registration .hint{
+    color: #909090;
+    margin-top: 10px;
 }
 
 .registrationForm .hint{
     color: #909090;
     margin-top: 20px;
     margin-left: 10px;
-}
-
-.vkontakte-registration .hint{
-    margin-top: 100px;
-    color: #909090;
-    text-align: justify;
 }
 
 .documents-form .original-form{
