@@ -38,6 +38,16 @@ STATUS_DATA_ERROR = 1
 STATUS_SYSTEM_ERROR = 2
 
 
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = UnicodeJSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
+
+
 class SignJSONResponseMixin(object):
     u"""
     Миксин, который выполняет проверку корректности подписи данных входящего
@@ -284,7 +294,7 @@ def api_test(request):
         msg = "All passed"
     response = [{'sign': gpgtools.sign_data(msg).data,
                  'data': msg, 'status': status}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+    return JSONResponse(response)
 
 
 @csrf_exempt
@@ -310,16 +320,6 @@ def get_evidience_documents(request):
     ).values('id', 'name', 'regex')
     return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
                         mimetype='application/json')
-
-
-class JSONResponse(HttpResponse):
-    """
-    An HttpResponse that renders its content into JSON.
-    """
-    def __init__(self, data, **kwargs):
-        content = UnicodeJSONRenderer().render(data)
-        kwargs['content_type'] = 'application/json'
-        super(JSONResponse, self).__init__(content, **kwargs)
 
 
 @csrf_exempt
