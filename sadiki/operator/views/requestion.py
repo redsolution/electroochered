@@ -353,8 +353,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 )
         return response
 
-    def get_confirm_form(self, transition_index, requestion=None, data=None,
-            initial=None):
+    def get_confirm_form(
+            self, transition_index, requestion=None, data=None, initial=None):
         form_class = self.transition.confirmation_form_class
         if not form_class:
             form_class = ConfirmationForm
@@ -366,7 +366,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return form
 
     def get_context_data(self, requestion, **kwargs):
-        form = self.get_confirm_form(self.transition.index,
+        form = self.get_confirm_form(
+            self.transition.index,
             requestion=requestion,
             initial={'transition': self.transition.index})
         return {
@@ -376,7 +377,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
     def get_custom_template_name(self):
         try:
-            template = loader.get_template('operator/status_change/%s.html' % self.transition.index)
+            template = loader.get_template(
+                'operator/status_change/{}.html'.format(self.transition.index))
             return template.name
         except TemplateDoesNotExist:
             return None
