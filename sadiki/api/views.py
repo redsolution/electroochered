@@ -277,7 +277,7 @@ def get_child(request):
 
 
 @csrf_exempt
-def api_test(request):
+def api_sign_test(request):
     status = 'error'
     msgs = []
     if request.method == 'GET':
@@ -289,19 +289,32 @@ def api_test(request):
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
         msgs.append("wrong test_string")
+    if not msgs:
+        status = 'ok'
+        msgs = ["All passed"]
+    response = {'sign': gpgtools.sign_data(test_string.encode('utf8')).data,
+                 'data': msgs, 'status': status}
+    return JSONResponse(response)
 
-    enc_data = request.POST.get('enc_data')
-    if not enc_data:
+
+@csrf_exempt
+def api_enc_test(request):
+    status = 'error'
+    msgs = []
+    if request.method == 'GET':
+        msgs.append("Wrong method, use POST instead of GET")
+    encrypted_data = request.POST.get('encrypted_data')
+    if not encrypted_data:
         msgs.append("Encrypted data block is absent")
     else:
-        dec_data = gpgtools.decrypt_data(enc_data)
-        msgs.append(u"Decrypted data: {}".format(dec_data).encode('utf8'))
+        dec_data = gpgtools.decrypt_data(encrypted_data)
+        msgs.append(u"Decrypted data: {}".format(
+            dec_data.decode('utf8')).encode('utf8'))
 
     if not msgs:
         status = 'ok'
         msgs = "All passed"
-    response = [{'sign': gpgtools.sign_data(test_string.encode('utf8')).data,
-                 'data': msgs, 'status': status}]
+    response = [{'data': msgs, 'status': status}]
     return JSONResponse(response)
 
 
