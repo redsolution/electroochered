@@ -17,23 +17,29 @@ class Transition(object):
     - ``dst`` - конечный статус заявки
     - ``index`` - номер перехода
     - ``comment`` - комментарий (название) перехода
-    - ``permissions`` - список прав, для кого доступна возможность делать этот переход
-    - ``permission_callback`` - опциональная функция для проверки возможности перехода.
+    - ``permissions`` - список прав, для кого доступна возможность делать этот
+    переход
+    - ``permission_callback`` - опциональная функция для проверки возможности
+    перехода.
 
     Т.к. система не предусматривает прав для анонимных пользователей,
-    для публичной доступности перехода необходимо указать значение ``Transition.ANONYMOUS_PERMISSION``.
+    для публичной доступности перехода необходимо указать значение
+    ``Transition.ANONYMOUS_PERMISSION``.
 
-    В случае, если список ``permissions`` пустой, переход автоматический, никому не доступен.
+    В случае, если список ``permissions`` пустой, переход автоматический,
+    никому не доступен.
 
-    В функцию ``permission_callback`` передаются аргументы: user, requestion, transition,
-    request, form параметры user, request и form не обязательные::
+    В функцию ``permission_callback`` передаются аргументы: user, requestion,
+    transition, request, form. Параметры user, request и form не обязательные::
 
-        def perm_callback(requestion, transition, user=None, request=None, form=None):
+        def perm_callback(requestion, transition, user=None, request=None,
+                          form=None):
     """
 
     ANONYMOUS_PERMISSION = '*'
 
-    def __init__(self, src, dst, transition, comment, permissions, permission_callback=None, check_document=False):
+    def __init__(self, src, dst, transition, comment, permissions,
+                 permission_callback=None, check_document=False):
         self.src = src
         self.dst = dst
         self.index = transition
@@ -49,14 +55,17 @@ class Workflow(object):
         self.transitions = []
         super(Workflow, self).__init__()
 
-    def add(self, src, dst, transition, comment=u'', permissions=None, permission_callback=None, check_document=False):
-        #проверим, что у нас нет повторяющихся id переходов
+    def add(self, src, dst, transition, comment=u'', permissions=None,
+            permission_callback=None, check_document=False):
+        # проверим, что у нас нет повторяющихся id переходов
         if permissions is None:
             permissions = []
         if [tr for tr in self.transitions if tr.index == transition]:
-            raise AttributeError('Transition with id=%d already added' % transition)
-        self.transitions.append(Transition(src, dst, transition, comment, permissions, permission_callback,
-                                           check_document))
+            raise AttributeError(
+                'Transition with id=%d already added' % transition)
+        self.transitions.append(
+            Transition(src, dst, transition, comment, permissions,
+                       permission_callback, check_document))
 
     def available_transition_statuses(self, src):
         u"""
@@ -71,7 +80,8 @@ class Workflow(object):
         """
         transitions = self.transitions
         if src is not None and dst is not None:
-            transitions = filter(lambda t: t.src == src and t.dst == dst, self.transitions)
+            transitions = filter(
+                lambda t: t.src == src and t.dst == dst, self.transitions)
         elif src is not None:
             transitions = filter(lambda t: t.src == src, self.transitions)
         elif dst is not None:
