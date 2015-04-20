@@ -311,7 +311,10 @@ def api_enc_test(request):
         msgs.append(u"Decrypted data: {}".format(
             dec_data.decode('utf8')).encode('utf8'))
         status = 'ok'
-    response = {'data': msgs, 'status': status}
+    key_name = request.get_host().split('.')[0] + '.electrosadik.ru'
+    enc_test_strint = u"Проверка обратного шифрования"
+    enc = gpgtools.encrypt_data(enc_test_strint, key_name)
+    response = {'data': msgs, 'status': status, 'encrypted_data': enc}
     return JSONResponse(response)
 
 
