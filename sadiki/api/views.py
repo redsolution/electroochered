@@ -279,19 +279,20 @@ def get_child(request):
 @csrf_exempt
 def api_test(request):
     status = 'error'
+    msgs = []
     msg = None
     if request.method == 'GET':
-        msg = "Wrong method, use POST instead of GET"
+        msgs.append("Wrong method, use POST instead of GET")
     signed_data = request.POST.get('signed_data')
     if not (signed_data and gpgtools.check_data_sign(
             {'data': request.POST.get('test_string'), 'sign': signed_data})):
-        msg = "Sing check error"
+        msgs.append("Sing check error")
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
-        msg = "wrong test_string"
+        msgs.append("wrong test_string")
     if not msg:
         status = 'ok'
-        msg = "All passed"
+        msgs = "All passed"
     response = [{'sign': gpgtools.sign_data(msg).data,
                  'data': msg, 'status': status}]
     return JSONResponse(response)
