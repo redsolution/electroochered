@@ -38,6 +38,16 @@ STATUS_DATA_ERROR = 1
 STATUS_SYSTEM_ERROR = 2
 
 
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = UnicodeJSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
+
+
 class SignJSONResponseMixin(object):
     u"""
     Миксин, который выполняет проверку корректности подписи данных входящего
@@ -267,24 +277,45 @@ def get_child(request):
 
 
 @csrf_exempt
-def api_test(request):
+def api_sign_test(request):
     status = 'error'
-    msg = None
+    msgs = []
     if request.method == 'GET':
-        msg = "Wrong method, use POST instead of GET"
+        msgs.append("Wrong method, use POST instead of GET")
     signed_data = request.POST.get('signed_data')
     if not (signed_data and gpgtools.check_data_sign(
             {'data': request.POST.get('test_string'), 'sign': signed_data})):
-        msg = "Sing check error"
+        msgs.append("Sing check error")
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
-        msg = "wrong test_string"
-    if not msg:
+        msgs.append("wrong test_string")
+    if not msgs:
         status = 'ok'
-        msg = "All passed"
-    response = [{'sign': gpgtools.sign_data(msg).data,
-                 'data': msg, 'status': status}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+        msgs = ["All passed"]
+    response = {'sign': gpgtools.sign_data(test_string.encode('utf8')).data,
+                'data': msgs, 'status': status}
+    return JSONResponse(response)
+
+
+@csrf_exempt
+def api_enc_test(request):
+    status = 'error'
+    msgs = []
+    if request.method == 'GET':
+        msgs.append("Wrong method, use POST instead of GET")
+    encrypted_data = request.POST.get('encrypted_data')
+    if not encrypted_data:
+        msgs.append("Encrypted data block is absent")
+    else:
+        dec_data = gpgtools.decrypt_data(encrypted_data)
+        msgs.append(u"Decrypted data: {}".format(
+            dec_data.decode('utf8')).encode('utf8'))
+        status = 'ok'
+    key_name = request.get_host().split('.')[0] + '.electrosadik.ru'
+    enc_test_strint = u"Проверка обратного шифрования"
+    enc = gpgtools.encrypt_data(enc_test_strint, key_name)
+    response = {'data': msgs, 'status': status, 'encrypted_data': enc}
+    return JSONResponse(response)
 
 
 @csrf_exempt
@@ -310,16 +341,6 @@ def get_evidience_documents(request):
     ).values('id', 'name', 'regex')
     return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
                         mimetype='application/json')
-
-
-class JSONResponse(HttpResponse):
-    """
-    An HttpResponse that renders its content into JSON.
-    """
-    def __init__(self, data, **kwargs):
-        content = UnicodeJSONRenderer().render(data)
-        kwargs['content_type'] = 'application/json'
-        super(JSONResponse, self).__init__(content, **kwargs)
 
 
 @csrf_exempt
