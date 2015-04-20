@@ -295,13 +295,13 @@ def api_test(request):
         msgs.append("Encrypted data block is absent")
     else:
         dec_data = gpgtools.decrypt_data(enc_data)
+        msgs.append(u"Decrypted data: {}".format(dec_data).encode('utf8'))
 
     if not msgs:
         status = 'ok'
         msgs = "All passed"
-    response = [{'sign': gpgtools.sign_data(test_string).data,
-                 'data': msgs, 'status': status,
-                 'decrypted_data': dec_data}]
+    response = [{'sign': gpgtools.sign_data(test_string.encode('utf8')).data,
+                 'data': msgs, 'status': status}]
     return JSONResponse(response)
 
 
