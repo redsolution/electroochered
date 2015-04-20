@@ -135,6 +135,8 @@ DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
 ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться
 REQUESTION_TRANSFER = 66            # Перевод из другого муниципалитета
+DISTRIBUTED_REQUESTER = 67          # Возврат в очередь после посещения ДОУ
+DISTRIBUTED_ES_REQUESTER = 68       # Возврат в очередь после посещения ДОУ
 
 # Изменение данных заявки
 CHANGE_REQUESTION = 71
@@ -338,6 +340,14 @@ workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
              check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
              REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
+workflow.add(STATUS_DISTRIBUTED, STATUS_REQUESTER,
+             DISTRIBUTED_REQUESTER, u'Восстановление в очереди',
+             permissions=[SUPERVISOR_PERMISSION[0]],
+             check_document=True)
+workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_REQUESTER,
+             DISTRIBUTED_ES_REQUESTER, u'Восстановление в очереди',
+             permissions=[SUPERVISOR_PERMISSION[0]],
+             check_document=True)
 
 
 # отказ от зачисления на постоянной основе
@@ -761,6 +771,12 @@ ACTION_TEMPLATES.update({
     },
     SHORT_STAY_DECISION_BY_RESOLUTION: {
         ANONYM_LOG: Template(decision_by_resolution_anonym)
+    },
+    DISTRIBUTED_REQUESTER: {
+        ANONYM_LOG: Template(u"""Заявка возвращена в очередь.""")
+    },
+    DISTRIBUTED_ES_REQUESTER: {
+        ANONYM_LOG: Template(u"""Заявка возвращена в очередь.""")
     },
 })
 
