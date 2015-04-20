@@ -293,7 +293,7 @@ def api_sign_test(request):
         status = 'ok'
         msgs = ["All passed"]
     response = {'sign': gpgtools.sign_data(test_string.encode('utf8')).data,
-                 'data': msgs, 'status': status}
+                'data': msgs, 'status': status}
     return JSONResponse(response)
 
 
@@ -310,11 +310,8 @@ def api_enc_test(request):
         dec_data = gpgtools.decrypt_data(encrypted_data)
         msgs.append(u"Decrypted data: {}".format(
             dec_data.decode('utf8')).encode('utf8'))
-
-    if not msgs:
         status = 'ok'
-        msgs = "All passed"
-    response = [{'decrypted_data': msgs, 'status': status}]
+    response = {'data': msgs, 'status': status}
     return JSONResponse(response)
 
 
