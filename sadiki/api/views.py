@@ -294,7 +294,7 @@ def api_test(request):
         status = 'ok'
         msgs = "All passed"
     response = [{'sign': gpgtools.sign_data(msg).data,
-                 'data': msg, 'status': status}]
+                 'data': msgs, 'status': status}]
     return JSONResponse(response)
 
 
