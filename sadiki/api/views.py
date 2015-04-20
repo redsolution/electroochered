@@ -280,7 +280,6 @@ def get_child(request):
 def api_test(request):
     status = 'error'
     msgs = []
-    msg = None
     if request.method == 'GET':
         msgs.append("Wrong method, use POST instead of GET")
     signed_data = request.POST.get('signed_data')
@@ -290,11 +289,19 @@ def api_test(request):
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
         msgs.append("wrong test_string")
-    if not msg:
+
+    enc_data = request.POST.get('enc_data')
+    if not enc_data:
+        msgs.append("Encrypted data block is absent")
+    else:
+        dec_data = gpgtools.decrypt_data(enc_data)
+
+    if not msgs:
         status = 'ok'
         msgs = "All passed"
-    response = [{'sign': gpgtools.sign_data(msg).data,
-                 'data': msgs, 'status': status}]
+    response = [{'sign': gpgtools.sign_data(test_string).data,
+                 'data': msgs, 'status': status,
+                 'decrypted_data': dec_data}]
     return JSONResponse(response)
 
 
