@@ -314,7 +314,7 @@ def api_enc_test(request):
     if not msgs:
         status = 'ok'
         msgs = "All passed"
-    response = [{'data': msgs, 'status': status}]
+    response = [{'decrypted_data': msgs, 'status': status}]
     return JSONResponse(response)
 
 
