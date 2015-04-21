@@ -28,11 +28,13 @@
 
 
 """
+import datetime
 import json
 
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
 from django.contrib import messages
+from django.conf import settings
 from django.utils import timezone
 
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
@@ -57,6 +59,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
 from sadiki.supervisor.forms import DistributionByResolutionForm
+from sadiki.core.exceptions import TransitionNotAllowed
 
 
 pre_status_change = Signal(
@@ -321,6 +324,25 @@ def after_decision_absent(sender, **kwargs):
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
+
+
+@receiver(pre_status_change, sender=Requestion)
+@listen_transitions(DISTRIBUTED_ES_REQUESTER, DISTRIBUTED_REQUESTER)
+def before_distributed_requester(sender, **kwargs):
+    u"""
+    Проверки на допустимость возврата в очередь из статуса "Зачислен" или
+    "Зачислен через ЭС"
+    """
+    transition = kwargs['transition']
+    request = kwargs['request']
+    requestion = kwargs['requestion']
+    form = kwargs['form']
+
+    today = datetime.date.today()
+    max_age_allowed = today.replace(year=today.year - settings.MAX_CHILD_AGE)
+    if requestion.birth_date < max_age_allowed:
+        raise TransitionNotAllowed(
+            u"Возраст, указанный в заявке, превышает максимально допустимый")
 
 
 @receiver(post_status_change, sender=Requestion)

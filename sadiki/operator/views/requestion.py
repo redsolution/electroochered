@@ -41,6 +41,7 @@ from django.forms.models import ModelFormMetaclass
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
+from sadiki.core.exceptions import TransitionNotAllowed
 
 
 class FrontPage(OperatorPermissionMixin, TemplateView):
@@ -396,8 +397,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
             messages.info(request, u"Статус заявки не был изменен")
             return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
-        form = self.get_confirm_form(self.transition.index,
-            requestion=requestion, data=request.POST,
+        form = self.get_confirm_form(
+            self.transition.index, requestion=requestion, data=request.POST,
             initial={'transition': self.transition.index})
         context.update({
             'form': form,
@@ -406,11 +407,16 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
 
         if form.is_valid():
-            pre_status_change.send(sender=Requestion, request=request,
-                requestion=requestion, transition=self.transition, form=form)
+            # выполняем проверки на допустимость транзакции
+            try:
+                pre_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=self.transition, form=form)
+            except TransitionNotAllowed as e:
+                messages.error(request, e.message)
+                return HttpResponseRedirect(self.redirect_to)
 
-            # Момент истины
-#            если ModelForm, то сохраняем
+            # Момент истины если ModelForm, то сохраняем
             if isinstance(form.__class__, ModelFormMetaclass):
                 requestion = form.save(commit=False)
                 requestion.status = self.transition.dst
@@ -420,7 +426,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 requestion.status = self.transition.dst
                 requestion.save()
 
-            post_status_change.send(sender=Requestion, request=request,
+            post_status_change.send(
+                sender=Requestion, request=request,
                 requestion=requestion, transition=self.transition, form=form)
             return HttpResponseRedirect(self.redirect_to)
         else:
