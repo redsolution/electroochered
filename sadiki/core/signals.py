@@ -377,7 +377,8 @@ def after_distributed_requester(sender, **kwargs):
 
     requestion.update_registration_datetime()
     messages.success(
-        request, u"Заявка {} успешно возвращена в очередь".format(requestion))
+        request, u"Заявка {} успешно повторно поставлена на учет".format(
+            requestion))
     context_dict = {'requestion': requestion}
     log_extra = {'user': request.user, 'obj': requestion}
     Logger.objects.create_for_action(

@@ -351,11 +351,11 @@ workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
              REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
 workflow.add(STATUS_DISTRIBUTED, STATUS_REQUESTER,
-             DISTRIBUTED_REQUESTER, u'Восстановление в очереди',
+             DISTRIBUTED_REQUESTER, u'Повторная постановка на учет',
              permissions=[SUPERVISOR_PERMISSION[0]],
              check_document=True)
 workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_REQUESTER,
-             DISTRIBUTED_ES_REQUESTER, u'Восстановление в очереди',
+             DISTRIBUTED_ES_REQUESTER, u'Повторная постановка на учет',
              permissions=[SUPERVISOR_PERMISSION[0]],
              check_document=True)
 
@@ -659,7 +659,7 @@ decision_by_resolution_anonym = u"""
     Номер документа: {{ resolution_number }}."""
 
 distributed_requester_template = u"""
-    Заявка возвращена в очередь. Новая дата постановки в очередь:
+    Заявка повторно поставлена на учет. Новая дата постановки в очередь:
     {{ requestion.registration_datetime }}.
     Статус: {{ requestion.get_status_display }}
     """
