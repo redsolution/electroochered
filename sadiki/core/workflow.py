@@ -658,6 +658,12 @@ decision_by_resolution_anonym = u"""
     {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
     Номер документа: {{ resolution_number }}."""
 
+distributed_requester_template = u"""
+    Заявка возвращена в очередь. Новая дата постановки в очередь:
+    {{ requestion.registration_datetime }}.
+    Статус: {{ requestion.get_status_display }}
+    """
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -783,10 +789,10 @@ ACTION_TEMPLATES.update({
         ANONYM_LOG: Template(decision_by_resolution_anonym)
     },
     DISTRIBUTED_REQUESTER: {
-        ANONYM_LOG: Template(u"""Заявка возвращена в очередь.""")
+        ANONYM_LOG: Template(distributed_requester_template)
     },
     DISTRIBUTED_ES_REQUESTER: {
-        ANONYM_LOG: Template(u"""Заявка возвращена в очередь.""")
+        ANONYM_LOG: Template(distributed_requester_template)
     },
 })
 

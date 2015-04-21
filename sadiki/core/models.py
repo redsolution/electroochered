@@ -1406,6 +1406,16 @@ class Requestion(models.Model):
         self.status = new_status
         self.save()
 
+    def update_registration_datetime(self, new_reg_datetime=None):
+        u"""
+        Обновляем дату и время подачи заявления. По умолчанию используются
+        текущее время.
+        """
+        if not new_reg_datetime:
+            new_reg_datetime = datetime.datetime.now()
+        self.registration_datetime = new_reg_datetime
+        self.save()
+
     def __unicode__(self):
         return self.requestion_number
 

@@ -45,10 +45,10 @@ from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
-    CONFIRM_REQUESTION, TEMP_ABSENT, \
+    CONFIRM_REQUESTION, TEMP_ABSENT, DISTRIBUTED_ES_REQUESTER, \
     TEMP_ABSENT_CANCEL, RETURN_TEMP_DISTRIBUTED, DECISION_REQUESTER, \
     NOT_APPEAR_REQUESTER, ABSENT_REQUESTER, DECISION_TEMP_DISTRIBUTED, \
-    NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, \
+    NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, DISTRIBUTED_REQUESTER, \
     DECISION_DISTRIBUTION, SHORT_STAY_DECISION_BY_RESOLUTION, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
@@ -321,6 +321,28 @@ def after_decision_absent(sender, **kwargs):
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
+
+
+@receiver(post_status_change, sender=Requestion)
+@listen_transitions(DISTRIBUTED_ES_REQUESTER, DISTRIBUTED_REQUESTER)
+def after_distributed_requester(sender, **kwargs):
+    u"""
+    Обработчик возврата в очередь из статуса "Зачислен" или "Зачислен через ЭС"
+    """
+    transition = kwargs['transition']
+    request = kwargs['request']
+    requestion = kwargs['requestion']
+    form = kwargs['form']
+
+    requestion.update_registration_datetime()
+    messages.success(
+        request, u"Заявка {} успешно возвращена в очередь".format(requestion))
+    context_dict = {'requestion': requestion}
+    log_extra = {'user': request.user, 'obj': requestion}
+    Logger.objects.create_for_action(
+        transition.index, context_dict=context_dict, extra=log_extra,
+        reason=form.cleaned_data.get('reason'))
+
 
 # Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
