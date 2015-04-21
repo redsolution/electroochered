@@ -1086,6 +1086,18 @@ class Requestion(models.Model):
             content_type=ContentType.objects.get_for_model(self.__class__),
             object_id=self.id)
 
+    def get_birth_cert(self):
+        u"""
+        Метод возвращает свидетельство о рождении, связанное с заявкой.
+        Получаем список документов, связанных с заявкой. Возвращаем один,
+        удостоверяющий заявку.
+        """
+        try:
+            return self.evidience_documents().get(
+                template__destination=REQUESTION_IDENTITY)
+        except ObjectDoesNotExist:
+            return EvidienceDocument.objects.none()
+
     def get_other_ident_documents(self, confirmed=False):
         #!!!! Bug in empty queryset with values_list return non empty value
         # https://code.djangoproject.com/ticket/17712

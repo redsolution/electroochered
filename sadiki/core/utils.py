@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
@@ -18,6 +19,7 @@ from BeautifulSoup import BeautifulStoneSoup
 from django.db.models.aggregates import Min
 from django.utils.safestring import mark_safe
 import sadiki.core.models
+from pysnippets import gpgtools
 
 
 def crc2(value):
@@ -473,7 +475,7 @@ def measure_distance(coords1, coords2):
 
 
 def make_error_msg(errors):
-    """
+    u"""
     Функция возвращает все ошибки, возникшие при за полнении формы, в виде
     одной строки.
 
@@ -486,3 +488,18 @@ def make_error_msg(errors):
             field_errors = field_errors + field_error + ' '
         msg += u"{}: {}\n".format(error, field_errors)
     return msg
+
+
+def get_child_from_es(birth_cert):
+    u"""
+    Получаем по свидетельству о рожденнии данные о ребенке из Электросада.
+    """
+    post_data = gpgtools.get_signed_json({'birth_cert': birth_cert})
+    domain = Site.objects.get_current().domain.split('.')[0]+'.electrosadik.ru'
+    url = "http://{}/api/base/get_child_by_birth_cert/".format(domain)
+
+    req = urllib2.Request(url)
+    req.add_header('Content-Type', 'application/json')
+    response = urllib2.urlopen(req, post_data).read()
+    decrypted_data = gpgtools.decrypt_data(response)
+    return json.loads(decrypted_data)

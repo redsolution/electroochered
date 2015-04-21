@@ -38,6 +38,7 @@ from django.conf import settings
 from django.utils import timezone
 
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
+from sadiki.core.exceptions import TransitionNotAllowed
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
     STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
@@ -45,6 +46,7 @@ from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     VACANCY_STATUS_PROVIDED
 from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
+from sadiki.core.utils import get_child_from_es
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
     CONFIRM_REQUESTION, TEMP_ABSENT, DISTRIBUTED_ES_REQUESTER, \
@@ -59,7 +61,6 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
 from sadiki.supervisor.forms import DistributionByResolutionForm
-from sadiki.core.exceptions import TransitionNotAllowed
 
 
 pre_status_change = Signal(
@@ -333,16 +334,34 @@ def before_distributed_requester(sender, **kwargs):
     Проверки на допустимость возврата в очередь из статуса "Зачислен" или
     "Зачислен через ЭС"
     """
-    transition = kwargs['transition']
-    request = kwargs['request']
     requestion = kwargs['requestion']
-    form = kwargs['form']
 
     today = datetime.date.today()
     max_age_allowed = today.replace(year=today.year - settings.MAX_CHILD_AGE)
+    # проверяем, что возраст ребенка не превышает максимально разрешенный
     if requestion.birth_date < max_age_allowed:
         raise TransitionNotAllowed(
             u"Возраст, указанный в заявке, превышает максимально допустимый")
+    birth_cert = requestion.get_birth_cert()
+    # проверяем, что у заявки есть свидетельство и что оно подтверждено
+    if not (birth_cert and birth_cert.confirmed):
+        raise TransitionNotAllowed(
+            u"Невозможно проверить статус свидетельства о рождении")
+    # пробуем найти ребенка с таким свидтельством в ЭлектроСаде
+    try:
+        child_data = get_child_from_es(birth_cert.document_number)
+    except Exception:
+        raise TransitionNotAllowed(
+            u"Невозможно проверить статус ребенка в Электросаде, "
+            u"попробйте позже")
+    # если импортировать при инициализации, возникает кольцо
+    from sadiki.api.views import STATUS_OK
+    if child_data['status_code'] == STATUS_OK:
+        if child_data['data']['status'] not in [3, 4, 5, 8, 9]:
+            raise TransitionNotAllowed(
+                u"Ребенок с таким свидетельством о рождении числится активным "
+                u"в Электросаде")
+
 
 
 @receiver(post_status_change, sender=Requestion)
