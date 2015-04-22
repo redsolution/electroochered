@@ -341,7 +341,8 @@ def before_distributed_requester(sender, **kwargs):
     # проверяем, что возраст ребенка не превышает максимально разрешенный
     if requestion.birth_date < max_age_allowed:
         raise TransitionNotAllowed(
-            u"Возраст, указанный в заявке, превышает максимально допустимый")
+            u"Невозможно выполнить операцию, так как возраст, "
+            u"указанный в заявке, превышает максимально допустимый")
     birth_cert = requestion.get_birth_cert()
     # проверяем, что у заявки есть свидетельство и что оно подтверждено
     if not (birth_cert and birth_cert.confirmed):
