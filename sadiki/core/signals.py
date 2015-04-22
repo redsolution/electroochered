@@ -378,7 +378,8 @@ def after_distributed_requester(sender, **kwargs):
 
     requestion.update_registration_datetime()
     messages.success(
-        request, u"Заявка {} успешно повторно поставлена на учет".format(
+        request,
+        u'Операция "Повторная постановка на учет" успешено выполнена'.format(
             requestion))
     context_dict = {'requestion': requestion}
     log_extra = {'user': request.user, 'obj': requestion}
