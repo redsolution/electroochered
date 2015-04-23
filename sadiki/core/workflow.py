@@ -17,23 +17,29 @@ class Transition(object):
     - ``dst`` - конечный статус заявки
     - ``index`` - номер перехода
     - ``comment`` - комментарий (название) перехода
-    - ``permissions`` - список прав, для кого доступна возможность делать этот переход
-    - ``permission_callback`` - опциональная функция для проверки возможности перехода.
+    - ``permissions`` - список прав, для кого доступна возможность делать этот
+    переход
+    - ``permission_callback`` - опциональная функция для проверки возможности
+    перехода.
 
     Т.к. система не предусматривает прав для анонимных пользователей,
-    для публичной доступности перехода необходимо указать значение ``Transition.ANONYMOUS_PERMISSION``.
+    для публичной доступности перехода необходимо указать значение
+    ``Transition.ANONYMOUS_PERMISSION``.
 
-    В случае, если список ``permissions`` пустой, переход автоматический, никому не доступен.
+    В случае, если список ``permissions`` пустой, переход автоматический,
+    никому не доступен.
 
-    В функцию ``permission_callback`` передаются аргументы: user, requestion, transition,
-    request, form параметры user, request и form не обязательные::
+    В функцию ``permission_callback`` передаются аргументы: user, requestion,
+    transition, request, form. Параметры user, request и form не обязательные::
 
-        def perm_callback(requestion, transition, user=None, request=None, form=None):
+        def perm_callback(requestion, transition, user=None, request=None,
+                          form=None):
     """
 
     ANONYMOUS_PERMISSION = '*'
 
-    def __init__(self, src, dst, transition, comment, permissions, permission_callback=None, check_document=False):
+    def __init__(self, src, dst, transition, comment, permissions,
+                 permission_callback=None, check_document=False):
         self.src = src
         self.dst = dst
         self.index = transition
@@ -49,14 +55,17 @@ class Workflow(object):
         self.transitions = []
         super(Workflow, self).__init__()
 
-    def add(self, src, dst, transition, comment=u'', permissions=None, permission_callback=None, check_document=False):
-        #проверим, что у нас нет повторяющихся id переходов
+    def add(self, src, dst, transition, comment=u'', permissions=None,
+            permission_callback=None, check_document=False):
+        # проверим, что у нас нет повторяющихся id переходов
         if permissions is None:
             permissions = []
         if [tr for tr in self.transitions if tr.index == transition]:
-            raise AttributeError('Transition with id=%d already added' % transition)
-        self.transitions.append(Transition(src, dst, transition, comment, permissions, permission_callback,
-                                           check_document))
+            raise AttributeError(
+                'Transition with id=%d already added' % transition)
+        self.transitions.append(
+            Transition(src, dst, transition, comment, permissions,
+                       permission_callback, check_document))
 
     def available_transition_statuses(self, src):
         u"""
@@ -71,7 +80,8 @@ class Workflow(object):
         """
         transitions = self.transitions
         if src is not None and dst is not None:
-            transitions = filter(lambda t: t.src == src and t.dst == dst, self.transitions)
+            transitions = filter(
+                lambda t: t.src == src and t.dst == dst, self.transitions)
         elif src is not None:
             transitions = filter(lambda t: t.src == src, self.transitions)
         elif dst is not None:
@@ -135,6 +145,8 @@ DECISION_TEMP_DISTRIBUTED = 62      # Отказ от места в ДОУ
 NOT_APPEAR_TEMP_DISTRIBUTED = 63    # Отказ от места в ДОУ после неявки
 ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ после невозожности связаться
 REQUESTION_TRANSFER = 66            # Перевод из другого муниципалитета
+DISTRIBUTED_REQUESTER = 67          # Возврат в очередь после посещения ДОУ
+DISTRIBUTED_ES_REQUESTER = 68       # Возврат в очередь после посещения ДОУ
 
 # Изменение данных заявки
 CHANGE_REQUESTION = 71
@@ -338,6 +350,14 @@ workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
              check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
              REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
+workflow.add(STATUS_DISTRIBUTED, STATUS_REQUESTER,
+             DISTRIBUTED_REQUESTER, u'Повторная постановка на учет',
+             permissions=[SUPERVISOR_PERMISSION[0]],
+             check_document=True)
+workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_REQUESTER,
+             DISTRIBUTED_ES_REQUESTER, u'Повторная постановка на учет',
+             permissions=[SUPERVISOR_PERMISSION[0]],
+             check_document=True)
 
 
 # отказ от зачисления на постоянной основе
@@ -638,6 +658,12 @@ decision_by_resolution_anonym = u"""
     {{ resolutioner_post }}. ФИО резолюционера: {{ resolutioner_fio }}.
     Номер документа: {{ resolution_number }}."""
 
+distributed_requester_template = u"""
+    Заявка повторно поставлена на учет. Новая дата постановки в очередь:
+    {{ requestion.registration_datetime }}.
+    Статус: {{ requestion.get_status_display }}
+    """
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -761,6 +787,12 @@ ACTION_TEMPLATES.update({
     },
     SHORT_STAY_DECISION_BY_RESOLUTION: {
         ANONYM_LOG: Template(decision_by_resolution_anonym)
+    },
+    DISTRIBUTED_REQUESTER: {
+        ANONYM_LOG: Template(distributed_requester_template)
+    },
+    DISTRIBUTED_ES_REQUESTER: {
+        ANONYM_LOG: Template(distributed_requester_template)
     },
 })
 
