@@ -295,8 +295,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
         return False
 
-    def default_redirect_to(self, requestion):
-        if self.request.user.is_operator:
+    def default_redirect_to(self, request, requestion):
+        if request.user.is_operator:
             return reverse('operator_requestion_info', args=[requestion.id])
         return reverse('frontpage')
 
@@ -308,7 +308,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
         redirect_to = request.REQUEST.get('next', '')
         self.redirect_to = check_url(
-            redirect_to, self.default_redirect_to(requestion))
+            redirect_to, self.default_redirect_to(request, requestion))
 
         if not requestion.is_available_for_actions:
             messages.error(
