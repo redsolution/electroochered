@@ -1,12 +1,34 @@
 {% extends 'operator/base.html' %}
 
 {% block content %}
-    <h3>Образцы заявлений в формате odt</h3>
-    <ul class="blanks_drafts">
-        <li><a target="_blank" href="{{ STATIC_URL }}blanks/registraciya.odt">Заявление на регистрацию</a></li>
-        <li><a target="_blank" href="{{ STATIC_URL }}blanks/izmenenie_dannyh.odt">Заявление на изменение данных</a></li>
-        <li><a target="_blank" href="{{ STATIC_URL }}blanks/izmenenie_dou.odt">Заявление на изменение приориетных ДОУ</a></li>
-        <li><a target="_blank" href="{{ STATIC_URL }}blanks/snyatie_s_ucheta.odt">Заявление на снятие с учета</a></li>
-        <li><a target="_blank" href="{{ STATIC_URL }}blanks/putevka_v_dou.odt">Путевка в ДОУ</a></li>
-    </ul>
+    <div class="row">
+    <div class="span6">
+        <h3>Образцы заявлений в формате odt</h3>
+        <ul class="blanks_drafts">
+            <li><a target="_blank" href="{{ STATIC_URL }}blanks/registraciya.odt">Заявление на регистрацию</a></li>
+            <li><a target="_blank" href="{{ STATIC_URL }}blanks/izmenenie_dannyh.odt">Заявление на изменение данных</a></li>
+            <li><a target="_blank" href="{{ STATIC_URL }}blanks/izmenenie_dou.odt">Заявление на изменение приориетных ДОУ</a></li>
+            <li><a target="_blank" href="{{ STATIC_URL }}blanks/snyatie_s_ucheta.odt">Заявление на снятие с учета</a></li>
+            <li><a target="_blank" href="{{ STATIC_URL }}blanks/putevka_v_dou.odt">Путевка в ДОУ</a></li>
+        </ul>
+        {% if 'esia_auth' in special_apps %}
+        <div class="esia-binding-group">
+            <div class="group-head">Профиль в ЕСИА:</div>
+            {% if profile.esia_id %}
+            <p>К этой учетной записи привязана учетная запись ЕСИА</p>
+            <a class="link" href="{% url esia_unbind_account %}">
+                <img src="{{ STATIC_URL }}img/esia-small.png"/>
+                Отвязать учетную запись
+            </a>
+            {% else %}
+            <p>К этой учетной записи не привязана учетная запись ЕСИА</p>
+            <a class="link" href="{% url esia_bind_account %}">
+                <img src="{{ STATIC_URL }}img/esia-small.png"/>
+                Привязать учетную запись
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    </div>
 {% endblock %}

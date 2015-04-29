@@ -2,6 +2,8 @@
 import json
 from django.conf import settings
 from django.contrib import messages
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
@@ -43,6 +45,7 @@ from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
+from sadiki.core.exceptions import TransitionNotAllowed
 
 
 class FrontPage(OperatorPermissionMixin, TemplateView):
@@ -293,7 +296,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return False
 
     def default_redirect_to(self, requestion):
-        return reverse('operator_requestion_info', args=[requestion.id])
+        if self.request.user.is_operator:
+            return reverse('operator_requestion_info', args=[requestion.id])
+        return reverse('frontpage')
 
     def dispatch(self, request, requestion_id, dst_status):
         u"""
@@ -355,8 +360,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 )
         return response
 
-    def get_confirm_form(self, transition_index, requestion=None, data=None,
-                         initial=None):
+    def get_confirm_form(
+            self, transition_index, requestion=None, data=None, initial=None):
         form_class = self.transition.confirmation_form_class
         if not form_class:
             form_class = ConfirmationForm
@@ -379,7 +384,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
     def get_custom_template_name(self):
         try:
-            template = loader.get_template('operator/status_change/%s.html' % self.transition.index)
+            template = loader.get_template(
+                'operator/status_change/{}.html'.format(self.transition.index))
             return template.name
         except TemplateDoesNotExist:
             return None
@@ -416,7 +422,12 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 pre_status_change.send(
                     sender=Requestion, request=request, requestion=requestion,
                     transition=self.transition, form=form)
+            except TransitionNotAllowed as e:
+                transaction.rollback()
+                messages.error(request, e.message)
+                return HttpResponseRedirect(self.redirect_to)
 
+            try:
                 # если ModelForm, то сохраняем
                 if isinstance(form.__class__, ModelFormMetaclass):
                     requestion = form.save(commit=False)
@@ -443,7 +454,6 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u"Вызвана заявкой {} с таким же идентифицирующим" \
                               u" документом".format(e.requestion)
                     messages.error(request, err_msg)
-
             return HttpResponseRedirect(self.redirect_to)
         else:
             return self.render_to_response(context)

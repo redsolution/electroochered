@@ -17,5 +17,10 @@ class TransitionNotRegistered(Exception):
         return self.message
 
 
+class TransitionNotAllowed(Exception):
+    u"""Условия для успешного изменения статуса не соблюдены"""
+    pass
+
+
 class RequestionHidden(Exception):
     pass

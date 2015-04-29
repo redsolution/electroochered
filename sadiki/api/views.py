@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
+from itertools import repeat
+from multiprocessing import Pool
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.template import loader
 from django.template.context import RequestContext
@@ -10,18 +12,23 @@ from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
+from rest_framework.renderers import UnicodeJSONRenderer
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
     STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
 from sadiki.api.utils import add_requestions_data
+from sadiki.anonym.views import Queue
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
+from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
     SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
+from sadiki.core.serializers import RequestionGeoSerializer, \
+    AnonymRequestionGeoSerializer
 from sadiki.logger.models import Logger
 
 
@@ -29,6 +36,16 @@ STATUS_ALREADY_DISTRIBUTED = -1
 STATUS_OK = 0
 STATUS_DATA_ERROR = 1
 STATUS_SYSTEM_ERROR = 2
+
+
+class JSONResponse(HttpResponse):
+    """
+    An HttpResponse that renders its content into JSON.
+    """
+    def __init__(self, data, **kwargs):
+        content = UnicodeJSONRenderer().render(data)
+        kwargs['content_type'] = 'application/json'
+        super(JSONResponse, self).__init__(content, **kwargs)
 
 
 class SignJSONResponseMixin(object):
@@ -260,24 +277,45 @@ def get_child(request):
 
 
 @csrf_exempt
-def api_test(request):
+def api_sign_test(request):
     status = 'error'
-    msg = None
+    msgs = []
     if request.method == 'GET':
-        msg = "Wrong method, use POST instead of GET"
+        msgs.append("Wrong method, use POST instead of GET")
     signed_data = request.POST.get('signed_data')
     if not (signed_data and gpgtools.check_data_sign(
             {'data': request.POST.get('test_string'), 'sign': signed_data})):
-        msg = "Sing check error"
+        msgs.append("Sing check error")
     test_string = request.POST.get('test_string')
     if not test_string == u"Проверочная строка":
-        msg = "wrong test_string"
-    if not msg:
+        msgs.append("wrong test_string")
+    if not msgs:
         status = 'ok'
-        msg = "All passed"
-    response = [{'sign': gpgtools.sign_data(msg).data,
-                 'data': msg, 'status': status}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+        msgs = ["All passed"]
+    response = {'sign': gpgtools.sign_data(test_string.encode('utf8')).data,
+                'data': msgs, 'status': status}
+    return JSONResponse(response)
+
+
+@csrf_exempt
+def api_enc_test(request):
+    status = 'error'
+    msgs = []
+    if request.method == 'GET':
+        msgs.append("Wrong method, use POST instead of GET")
+    encrypted_data = request.POST.get('encrypted_data')
+    if not encrypted_data:
+        msgs.append("Encrypted data block is absent")
+    else:
+        dec_data = gpgtools.decrypt_data(encrypted_data)
+        msgs.append(u"Decrypted data: {}".format(
+            dec_data.decode('utf8')).encode('utf8'))
+        status = 'ok'
+    key_name = request.get_host().split('.')[0] + '.electrosadik.ru'
+    enc_test_strint = u"Проверка обратного шифрования"
+    enc = gpgtools.encrypt_data(enc_test_strint, key_name)
+    response = {'data': msgs, 'status': status, 'encrypted_data': enc}
+    return JSONResponse(response)
 
 
 @csrf_exempt
@@ -303,3 +341,63 @@ def get_evidience_documents(request):
     ).values('id', 'name', 'regex')
     return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
                         mimetype='application/json')
+
+
+@csrf_exempt
+def get_requestions(request):
+    requestions = RequestionGeoSerializer(
+        Requestion.objects.active_queue().filter(location__isnull=False),
+        many=True)
+    return JSONResponse(requestions.data)
+
+
+class RequestionsQueue(Queue):
+    u"""Возвращает json объект, необходимый для отображения маркеров заявок на
+    карте. Если количество заявок больше 2500, используется multiprocessing.Pool
+    вычисление идет в 4 процесса.
+    """
+    paginate_by = None
+    fullqueryset = Requestion.objects.all()
+    queryset = fullqueryset.hide_distributed()
+
+    def get(self, *args, **kwargs):
+        queryset = self.get_queryset()
+        # в зависимости от роли пользователя, выбираем, какие данные показывать
+        if (self.request.user.is_authenticated() and
+                self.request.user.is_operator()):
+            serializer = RequestionGeoSerializer
+        else:
+            serializer = AnonymRequestionGeoSerializer
+        try:
+            filtered_queryset, form = self.process_filter_form(
+                queryset, self.request.GET)
+        except (ObjectDoesNotExist, RequestionHidden):
+            filtered_queryset = Requestion.objects.none()
+        filtered_queryset = filtered_queryset.filter(location__isnull=False)
+        requestions_count = len(filtered_queryset)
+        if requestions_count < 2500:
+            requestions = serializer(filtered_queryset, many=True)
+            json_response = requestions.data
+        else:
+            # распределенно выполняем сериализацию, на 4 процесса
+            json_response = []
+            processes_number = 4
+            pool = Pool(processes=processes_number)
+            chunk_size = (requestions_count / processes_number) + 1
+            iterable = [filtered_queryset[:chunk_size],
+                        filtered_queryset[chunk_size: chunk_size * 2],
+                        filtered_queryset[chunk_size * 2: chunk_size * 3],
+                        filtered_queryset[chunk_size * 3:]]
+            result = pool.imap(
+                serialize_requestions, zip(iterable, repeat(serializer)))
+            for chunk in result:
+                json_response.extend(chunk)
+            # вручную завершаем все процессы, иначе они заполняют память
+            pool.terminate()
+            pool.join()
+        return JSONResponse(json_response)
+
+
+def serialize_requestions((queryset, serializer)):
+    requestions = serializer(queryset, many=True)
+    return requestions.data

@@ -16,24 +16,29 @@
 при смене статуса. см. ``workflow.py``. Например: ::
 
     # Функция проверки, должна возвращать True или False
-    def permit_remove_registration(requestion, transition, user=None, request=None, form=None):
+    def permit_remove_registration(requestion, transition, user=None,
+                                   request=None, form=None):
         print 'check decision to requester',
         return True
 
     # Подключение проверки к переходу:
-    remove_registration_transition = workflow.get_transition_by_index(REQUESTER_REMOVE_REGISTRATION)
+    remove_registration_transition = workflow.get_transition_by_index(
+        REQUESTER_REMOVE_REGISTRATION)
     remove_registration_transition.permission_cb = permit_remove_registration
 
 
 """
+import datetime
 import json
 
 from django.db.models.aggregates import Sum
 from django.dispatch import Signal, receiver
 from django.contrib import messages
+from django.conf import settings
 from django.utils import timezone
 
 from sadiki.conf_settings import TEMP_DISTRIBUTION, IMMEDIATELY_DISTRIBUTION
+from sadiki.core.exceptions import TransitionNotAllowed
 from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     STATUS_REMOVE_REGISTRATION, VACANCY_STATUS_TEMP_ABSENT, STATUS_REQUESTER, \
     STATUS_TEMP_DISTRIBUTED, VACANCY_STATUS_DISTRIBUTED, \
@@ -41,12 +46,13 @@ from sadiki.core.models import Requestion, PERMANENT_DISTRIBUTION_TYPE, \
     VACANCY_STATUS_PROVIDED
 from sadiki.core.settings import TEMP_DISTRIBUTION_YES, \
     IMMEDIATELY_DISTRIBUTION_YES, IMMEDIATELY_DISTRIBUTION_FACILITIES_ONLY
+from sadiki.core.utils import get_child_from_es
 from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     NOT_CONFIRMED_REMOVE_REGISTRATION, ABSENT_REMOVE_REGISTRATION, \
-    CONFIRM_REQUESTION, TEMP_ABSENT, \
+    CONFIRM_REQUESTION, TEMP_ABSENT, DISTRIBUTED_ES_REQUESTER, \
     TEMP_ABSENT_CANCEL, RETURN_TEMP_DISTRIBUTED, DECISION_REQUESTER, \
     NOT_APPEAR_REQUESTER, ABSENT_REQUESTER, DECISION_TEMP_DISTRIBUTED, \
-    NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, \
+    NOT_APPEAR_TEMP_DISTRIBUTED, ABSENT_TEMP_DISTRIBUTED, DISTRIBUTED_REQUESTER, \
     DECISION_DISTRIBUTION, SHORT_STAY_DECISION_BY_RESOLUTION, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
@@ -57,8 +63,10 @@ from sadiki.operator.forms import TempDistributionConfirmationForm, \
 from sadiki.supervisor.forms import DistributionByResolutionForm
 
 
-pre_status_change = Signal(providing_args=['request', 'requestion', 'transition', 'form'])
-post_status_change = Signal(providing_args=['request', 'requestion', 'transition', 'form'])
+pre_status_change = Signal(
+    providing_args=['request', 'requestion', 'transition', 'form'])
+post_status_change = Signal(
+    providing_args=['request', 'requestion', 'transition', 'form'])
 
 
 def listen_transitions(*transition_indexes):
@@ -90,7 +98,7 @@ def after_remove_registration(sender, **kwargs):
     log_extra = {'user': request.user, 'obj': requestion}
     # Если заявитель не явился за путевой, освободить его место в группе
     if transition in (ABSENT_REMOVE_REGISTRATION, ):
-#        запишем в логи какой тип распределения производился
+        # запишем в логи какой тип распределения производился
         log_extra.update({'distribution_type': requestion.distribution_type})
     # убрать подтверждение с докумнетов
     requestion.status = STATUS_REMOVE_REGISTRATION
@@ -101,7 +109,8 @@ def after_remove_registration(sender, **kwargs):
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
-    messages.success(request, u'Заявка %s была снята с учета' % requestion.requestion_number)
+    messages.success(
+        request, u'Заявка %s была снята с учета' % requestion.requestion_number)
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -118,10 +127,13 @@ def after_set_documental_confirmation(sender, **kwargs):
     requestion.set_benefit_documents_authentic()
     context_dict = {'other_requestions': other_requestions_with_document}
     Logger.objects.create_for_action(
-        transition.index, context_dict=context_dict,
+        transition.index,
+        context_dict=context_dict,
         extra={'user': request.user, 'obj': requestion},
         reason=form.cleaned_data.get('reason'))
-    messages.success(request, u'Заявка %s была документально подтверждена' % requestion.requestion_number)
+    messages.success(
+        request, u'Заявка {} была документально подтверждена'.format(
+            requestion.requestion_number))
     if other_requestions_with_document:
         messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
             ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
@@ -142,10 +154,13 @@ def after_set_temp_absent(sender, **kwargs):
     vacancy = requestion.distributed_in_vacancy
     vacancy.status = VACANCY_STATUS_TEMP_ABSENT
     vacancy.save()
-    Logger.objects.create_for_action(transition.index,
-        extra={'user': request.user, 'obj': requestion}, reason=form.cleaned_data.get('reason'))
-    messages.success(request, u'''Заявка %s переведена
-    в статус отсутствия по уважительной причине''' % requestion.requestion_number)
+    Logger.objects.create_for_action(
+        transition.index,
+        extra={'user': request.user, 'obj': requestion},
+        reason=form.cleaned_data.get('reason'))
+    messages.success(
+        request, u'''Заявка {} переведена в статус отсутствия по
+        уважительной причине'''.format(requestion.requestion_number))
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -164,8 +179,8 @@ def after_cancel_temp_absent(sender, **kwargs):
         extra={'user': request.user, 'obj': requestion},
         reason=form.cleaned_data.get('reason'))
     messages.success(
-        request, u'''Заявка %s была возвращена в ДОУ после отсутствия.
-        ''' % requestion.requestion_number)
+        request, u"Заявка {} была возвращена в ДОУ после отсутствия.".format(
+            requestion.requestion_number))
 
     temp_distributed_requestion = requestion.distributed_in_vacancy.get_distributed_requestion()
     if temp_distributed_requestion:
@@ -174,8 +189,9 @@ def after_cancel_temp_absent(sender, **kwargs):
         Logger.objects.create_for_action(
             RETURN_TEMP_DISTRIBUTED,
             extra={'user': request.user, 'obj': temp_distributed_requestion})
-        messages.success(request, u'''Заявка %s была возвращена в очередь в связи с восстановлением
-            временно отсутсвующей''' % requestion.requestion_number)
+        messages.success(request, u'''Заявка {} была возвращена в очередь
+        в связи с восстановлением временно отсутсвующей'''.format(
+            requestion.requestion_number))
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -310,6 +326,68 @@ def after_decision_absent(sender, **kwargs):
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
 
+
+@receiver(pre_status_change, sender=Requestion)
+@listen_transitions(DISTRIBUTED_ES_REQUESTER, DISTRIBUTED_REQUESTER)
+def before_distributed_requester(sender, **kwargs):
+    u"""
+    Проверки на допустимость возврата в очередь из статуса "Зачислен" или
+    "Зачислен через ЭС"
+    """
+    requestion = kwargs['requestion']
+
+    today = datetime.date.today()
+    max_age_allowed = today.replace(year=today.year - settings.MAX_CHILD_AGE)
+    # проверяем, что возраст ребенка не превышает максимально разрешенный
+    if requestion.birth_date < max_age_allowed:
+        raise TransitionNotAllowed(
+            u"Невозможно выполнить операцию, так как возраст, "
+            u"указанный в заявке, превышает максимально допустимый")
+    birth_cert = requestion.get_birth_cert()
+    # проверяем, что у заявки есть свидетельство и что оно подтверждено
+    if not (birth_cert and birth_cert.confirmed):
+        raise TransitionNotAllowed(
+            u"Невозможно проверить статус свидетельства о рождении")
+    # пробуем найти ребенка с таким свидтельством в ЭлектроСаде
+    try:
+        child_data = get_child_from_es(birth_cert.document_number)
+    except Exception:
+        raise TransitionNotAllowed(
+            u"Невозможно проверить статус ребенка в Электросаде, "
+            u"попробйте позже")
+    # если импортировать при инициализации, возникает кольцо
+    from sadiki.api.views import STATUS_OK
+    if child_data['status_code'] == STATUS_OK:
+        if child_data['data']['status'] not in [3, 4, 5, 8, 9]:
+            raise TransitionNotAllowed(
+                u"Ребенок с таким свидетельством о рождении числится активным "
+                u"в Электросаде")
+
+
+
+@receiver(post_status_change, sender=Requestion)
+@listen_transitions(DISTRIBUTED_ES_REQUESTER, DISTRIBUTED_REQUESTER)
+def after_distributed_requester(sender, **kwargs):
+    u"""
+    Обработчик возврата в очередь из статуса "Зачислен" или "Зачислен через ЭС"
+    """
+    transition = kwargs['transition']
+    request = kwargs['request']
+    requestion = kwargs['requestion']
+    form = kwargs['form']
+
+    requestion.update_registration_datetime()
+    messages.success(
+        request,
+        u'Операция "Повторная постановка на учет" успешено выполнена'.format(
+            requestion))
+    context_dict = {'requestion': requestion}
+    log_extra = {'user': request.user, 'obj': requestion}
+    Logger.objects.create_for_action(
+        transition.index, context_dict=context_dict, extra=log_extra,
+        reason=form.cleaned_data.get('reason'))
+
+
 # Временное зачисление
 if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
     @receiver(post_status_change, sender=Requestion)
@@ -338,8 +416,9 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
         messages.success(request, u'''Заявка %s была временно зачислена в %s.
                 ''' % (requestion.requestion_number, vacancy.sadik_group.sadik))
         log_extra = {'user': request.user, 'obj': requestion, }
-        Logger.objects.create_for_action(transition.index,
-            extra=log_extra, reason=form.cleaned_data.get('reason'))
+        Logger.objects.create_for_action(
+            transition.index, extra=log_extra,
+            reason=form.cleaned_data.get('reason'))
 
     @receiver(post_status_change, sender=Requestion)
     @listen_transitions(

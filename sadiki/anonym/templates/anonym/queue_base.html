@@ -30,10 +30,11 @@
 
 {% block content_menu %}
     {% url anonym_queue as queue_url %}
+    {% url queue_map as queue_map_url %}
     {% url anonym_requestion_search as requestion_search_url %}
     <ul class="content-menu">
         {% if queue_url|check_url_availability:request.user %}
-            <li {% if request.path == queue_url %}class="active"{% endif %}>
+            <li {% if request.path == queue_url or request.path == queue_map_url %}class="active"{% endif %}>
                 <a href="{{ queue_url }}">Очередь</a>
             </li>
         {% endif %}

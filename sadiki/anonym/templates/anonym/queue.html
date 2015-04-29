@@ -2,65 +2,68 @@
 {% load sadiki_core_tags zenforms paginate %}
 
 {% block bottomjs %}
-    {{ block.super }}
-    <script type="text/javascript">
-        $(function(){
-            {% if target_requestion %}
-            $(window).scrollTo('#target', {offset:{top:-$(window).height()/2}, left:0});
-            $('#id_requestion_number').parent('.ctrlHolder').append(' <a href="#target">Перейти к заявке</a>');
-            {% endif %}
+  {{ block.super }}
+  <script type="text/javascript">
+    $(function(){
+        {% if target_requestion %}
+        $(window).scrollTo('#target', {offset:{top:-$(window).height()/2}, left:0});
+        $('#id_requestion_number').parent('.ctrlHolder').append(' <a href="#target">Перейти к заявке</a>');
+        {% endif %}
 
-            $('<div id="up"><i class="icon-arrow-up"></i> Наверх</div>').insertAfter('ul.nav');
-            $('#up').topLink({
-                min: $('ul.nav').height() + $('.header').height(),
-                fadeSpeed: 100
-            }).click(function(e){
-                e.preventDefault();
-                $.scrollTo(0,300);
-            });
+        $('<div id="up"><i class="icon-arrow-up"></i> Наверх</div>').insertAfter('ul.nav');
+        $('#up').topLink({
+            min: $('ul.nav').height() + $('.header').height(),
+            fadeSpeed: 100
+        }).click(function(e){
+            e.preventDefault();
+            $.scrollTo(0,300);
         });
+    });
 
     $(document).ready(function(){
-       $('label[for="id_age_group"]').append(' <span id="filter-age" class="icon-question-sign"></span>'); 
+       $('label[for="id_age_group"]').append(' <span id="filter-age" class="icon-question-sign"></span>');
         {% queue_tooltips as tooltips %}
        $("label[for='id_age_group'] .icon-question-sign").popover({
             title: "Возрастные группы в системе",
             content: "{{ tooltips.age_groups_tooltip }}",
             placement: "top", html:true});
     });
-    </script>
 
-    <script type="text/javascript">
-        // отключаем кнопку после нажатия
-        $('#export_to_excel').click(function() {
-            $(this).addClass("disabled");
-            $(this).prop("disabled", true);
-            $('#xls').val('xls');
-            $('.queue-forms form').submit();
-            $('#xls').val('');
-            return false;
-        });
-    </script>
+    $('label[for="q_map"]').click(function(){
+      $('label[for="q_map"]').off('click');
+      $('#q_list').attr('checked', false);
+      $('#q_map').attr('checked', true);
+      location.href = '{% url queue_map %}?' + $('form').serialize();
+      return false;
+    })
 
-    <script type="text/javascript">
-        $(".uniForm fieldset")
-            .children().eq(2).nextAll()
-            .wrapAll("<div class=\"spoiler\"></div>");
+    // отключаем кнопку после нажатия
+    $('#export_to_excel').click(function() {
+        $(this).addClass("disabled");
+        $(this).prop("disabled", true);
+        $('#xls').val('xls');
+        $('.queue-forms form').submit();
+        $('#xls').val('');
+        return false;
+    });
 
-        $(".spoiler")
-            .hide()
-            .before("<a href=\"#\" id=\"open_spoiler\"> \
-                        Расширенный поиск\
-                        <span class=\"caret caret-margins caret-right\"></span> \
-                     </a>");
+    $(".uniForm fieldset")
+        .children().eq(2).nextAll()
+        .wrapAll("<div class=\"spoiler\"></div>");
 
-        $("#open_spoiler").click(function(e){
-            e.preventDefault();
-            $(".spoiler").slideToggle();
-            $(this).children("span").toggleClass("caret-right");
-        });
+    $(".spoiler")
+        .hide()
+        .before('<a href="#" id="open_spoiler"> \
+                    Расширенный поиск\
+                    <span class="caret caret-margins caret-right"></span> \
+                </a>');
 
-    </script>
+    $("#open_spoiler").click(function(e){
+        e.preventDefault();
+        $(".spoiler").slideToggle();
+        $(this).children("span").toggleClass("caret-right");
+    });
+  </script>
 
 {% endblock %}
 
@@ -77,7 +80,7 @@
         </div>
     {% endif %}
         <div class="queue-forms clearfix" id="filterForm">
-            <form action="." method="get" class='uniForm'>
+            <form action="." method="get" class="uniForm">
             {% izenform form options notag=1 nocsrf=1 %}
             {% if request.user.is_administrative_person %}
             <input id="xls" type="hidden" name="type" value="" />
@@ -85,6 +88,12 @@
             фильтрации возвращал не более 5000 заявок.</p>
             {% endif %}
             <div class="buttonHolder">
+                <div id="view-switch" class="register-switch pull-left">
+                  <input type="radio" name="view-type" value="L" id="q_list" class="register-switch-input" checked>
+                  <label for="q_list" class="register-switch-label"><i class="icon-list"></i> Список</label>
+                  <input type="radio" name="view-type" value="M" id="q_map" class="register-switch-input">
+                  <label for="q_map" class="register-switch-label"><i class="icon-globe"></i> Карта</label>
+                </div>
                 <button class="primaryAction" value="submit"><i class="icon-filter"></i> Применить фильтр</button>
                 {% if request.user.is_administrative_person %}
                 <button id="export_to_excel"><i class="icon-download-alt"></i> Экспорт в Excel</button>

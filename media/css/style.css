@@ -246,14 +246,14 @@ table.table.table-bordered tr.highlight td {
 
 /* паджинация таблицы*/
 .pagination-page {
-	padding-top: 15px;
-	margin-bottom: 60px;
-	text-align: center;
+  padding-top: 15px;
+  margin-bottom: 60px;
+  text-align: center;
 }
 .pagination-page .page {
-	display: inline-block;
-	text-align: center;
-	border-bottom: grey solid 3px;
+  display: inline-block;
+  text-align: center;
+  border-bottom: grey solid 3px;
     margin: 0 3px;
     width: 36px;
 }
@@ -263,8 +263,8 @@ table.table.table-bordered tr.highlight td {
 }
 
 .pagination-page .page:hover {
-	background: #F0F0F0;
-	border-bottom-color: #333;
+  background: #F0F0F0;
+  border-bottom-color: #333;
 }
 
 .pagination-page .page.arrow {
@@ -272,18 +272,18 @@ table.table.table-bordered tr.highlight td {
 }
 
 .pagination-page  .page *  {
-	display: block;
-	line-height: 36px;
-	color: #666;
-	text-decoration: none !important;
+  display: block;
+  line-height: 36px;
+  color: #666;
+  text-decoration: none !important;
 }
 
 .pagination-page .current-page {
-	width: 36px;
-	line-height: 36px;
-	background: #333;
-	border-bottom-color: #333;
-	/*cursor: default;*/
+  width: 36px;
+  line-height: 36px;
+  background: #333;
+  border-bottom-color: #333;
+  /*cursor: default;*/
 }
 
 .pagination-page  .current-page span {
@@ -291,7 +291,7 @@ table.table.table-bordered tr.highlight td {
 }
 
 .pagination-page  .current-page:hover {
-	background: #333 !important;
+  background: #333 !important;
 }
 
 /*** Подсветка найденной заявки ***/
@@ -1029,6 +1029,7 @@ tr.dynamic-form .errorlist {
 }
 
 /* Главная страница оператора */
+
 .blanks_drafts {
     font-size: 13pt;
 }
@@ -1057,6 +1058,20 @@ tr.dynamic-form .errorlist {
     color: #327fbd;
     margin-bottom: 8px;
     line-height: normal;
+}
+
+/*если не задан пароль, показать яркое предупреждение*/
+.requestion-info .empty-passwd-tip{
+    width: 50%;
+    font-size: 12px;
+    color: #af0000;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.requestion-info .empty-passwd-tip a{
+    color: #327fbd;
+    text-decoration: underline;
 }
 
 .requestion-info .block-head.top-indent{
@@ -1098,11 +1113,56 @@ tr.dynamic-form .errorlist {
     padding-left: 0px;
 }
 
-.vkontakte-info{
+.esia-binding-group{
     margin-top: 34px;
     padding-top: 21px;
     border-top: 2px #eeeeee solid;
 }
+
+.esia-binding-group p{
+    font-size: 16px;
+    line-height: normal;
+}
+
+.esia-binding-group .group-head{
+    font-size: 26px;
+    color: #327fbd;
+    margin-bottom: 8px;
+    line-height: normal;
+}
+
+.esia-binding-group .binding-info img{
+    float: left;
+}
+
+.esia-binding-group .binding-info p{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 42px;
+}
+
+.esia-binding-group .link{
+    font-size: 16px;
+    line-height: 32px;
+    margin-left: 8px;
+}
+
+.esia-binding-group .link img{
+    float: left;
+}
+
+/*
+.esia-binding-group .link-with-img img{
+    float: left;
+    margin-left: 8px;
+}
+
+.esia-binding-group .link-with-img span{
+    font-size: 16px;
+    min-height: 25px;
+    margin-left: 13px;
+}
+*/
 
 .social-profile-public{
 
@@ -1144,6 +1204,12 @@ tr.dynamic-form .errorlist {
 
 .requestion-queue .queue-info .number{
     color: #327fbd;
+}
+
+.vkontakte-info{
+    margin-top: 34px;
+    padding-top: 21px;
+    border-top: 2px #eeeeee solid;
 }
 
 .vkontakte-info .controls{
@@ -1408,30 +1474,35 @@ tr.dynamic-form .errorlist {
     border-bottom: 0px;
 }
 
-.vkontakte-registration{
-    margin-top: 30px;
+.social-auth-group{
+    margin-top: 20px;
+    margin-bottom: 10px;
+    /*display: inline-block;*/
 }
 
-.vkontakte-registration .social-button{
-    font-size: 18px;
-    line-height: 60px;
-}
-
-.vkontakte-registration .social-button img{
+.social-auth-group .service-icon{
     float: left;
-    margin-right: 10px;
+    width: 70px;
+}
+
+.social-auth-group .registration{
+    margin-left: 75px;
+}
+
+.social-auth-group .registration .auth-link{
+    font-size: 18px;
+    line-height: 40px;
+}
+
+.social-auth-group .registration .hint{
+    color: #909090;
+    margin-top: 10px;
 }
 
 .registrationForm .hint{
     color: #909090;
     margin-top: 20px;
     margin-left: 10px;
-}
-
-.vkontakte-registration .hint{
-    margin-top: 100px;
-    color: #909090;
-    text-align: justify;
 }
 
 .documents-form .original-form{
@@ -1506,18 +1577,18 @@ tr.dynamic-form .errorlist {
 }
 
 .marker-cluster-gray {
-	background-color: rgba(131, 133, 130, 0.6);
-	}
+  background-color: rgba(131, 133, 130, 0.6);
+  }
 .marker-cluster-gray div {
-	background-color: rgba(66, 69, 63, 0.6);
-	}
+  background-color: rgba(66, 69, 63, 0.6);
+  }
 
 .marker-cluster-medium {
-	background-color: rgba(241, 211, 87, 0.6);
-	}
+  background-color: rgba(241, 211, 87, 0.6);
+  }
 .marker-cluster-medium div {
-	background-color: rgba(240, 194, 12, 0.6);
-	}
+  background-color: rgba(240, 194, 12, 0.6);
+  }
 
 h3.icon-map-marker, h3.icon-edit {
     margin-top: -3px;
@@ -1646,4 +1717,93 @@ dl {
 
 #export_to_excel.disabled {
    cursor: default;
+}
+
+#queue_map, #requestion_count {
+  margin-top: 10px;
+}
+
+.loader {
+  position: fixed;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 9999;
+  background: url('../img/page-loader.gif') 50% 50% no-repeat rgb(249,249,249);
+  background-color: rgba(249, 249, 249, 0.5);
+}
+
+#view-switch.register-switch {
+  height: 28px;
+  margin-bottom: 15px;
+  padding: 4px;
+  width: 230px;
+  background: #163362;
+  border-radius: 4px;
+  background-image: -webkit-linear-gradient(top, #163362, #254a86);
+  background-image: -moz-linear-gradient(top, #163362, #254a86);
+  background-image: -o-linear-gradient(top, #163362, #254a86);
+  background-image: linear-gradient(to bottom, #163362, #254a86);
+  -webkit-box-shadow: inset 0 1px rgba(0, 0, 0, 0.05), inset 1px 0 rgba(0, 0, 0, 0.02), inset -1px 0 rgba(0, 0, 0, 0.02);
+  box-shadow: inset 0 1px rgba(0, 0, 0, 0.05), inset 1px 0 rgba(0, 0, 0, 0.02), inset -1px 0 rgba(0, 0, 0, 0.02);
+}
+
+#view-switch .register-switch-input {
+  display: none;
+}
+
+#view-switch .register-switch-label {
+  float: left;
+  width: 50%;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 28px;
+  color: white;
+  text-align: center;
+  text-shadow: 0 -1px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  margin: 0;
+}
+#view-switch .register-switch-input:checked + .register-switch-label {
+  color: #434248;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.5);
+  background: white;
+  border-radius: 4px;
+  background-image: -webkit-linear-gradient(top, #fefefe, #eeeeee);
+  background-image: -moz-linear-gradient(top, #fefefe, #eeeeee);
+  background-image: -o-linear-gradient(top, #fefefe, #eeeeee);
+  background-image: linear-gradient(to bottom, #fefefe, #eeeeee);
+  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+
+#view-switch i {
+  vertical-align: baseline;
+}
+
+:-moz-placeholder {
+  color: #aaa;
+  font-weight: 300;
+}
+
+::-moz-placeholder {
+  color: #aaa;
+  font-weight: 300;
+  opacity: 1;
+}
+
+::-webkit-input-placeholder {
+  color: #aaa;
+  font-weight: 300;
+}
+
+:-ms-input-placeholder {
+  color: #aaa;
+  font-weight: 300;
+}
+
+::-moz-focus-inner {
+  border: 0;
+  padding: 0;
 }

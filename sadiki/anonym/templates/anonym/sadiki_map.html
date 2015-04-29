@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block content %}
-	<div id="map"></div>
+  <div id="map"></div>
 {% endblock %}
 
 {% block bottomjs %}
@@ -45,7 +45,7 @@
                 zoom: {{ settings.MAP_ZOOM }}
             });
             osmLayer.addTo(map);
-        
+
             function renderMarkers(markers, map) {
                 var markersLayer = new L.MarkerClusterGroup({
                     maxClusterRadius: 30
@@ -60,7 +60,7 @@
                 }
                 map.addLayer(markersLayer);
             }
-        
+
             function fetchSadiks(map) {
                 $.ajax({
                     type: 'json',
@@ -70,9 +70,9 @@
                     renderMarkers(data, map);
                 });
             }
-        
+
             fetchSadiks(map);
-        
+
         });
     </script>
 {% endblock %}

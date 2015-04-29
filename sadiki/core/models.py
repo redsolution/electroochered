@@ -5,6 +5,7 @@ from chunks.models import Chunk
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
+from django.contrib.auth.hashers import is_password_usable
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
@@ -786,6 +787,9 @@ class Profile(models.Model):
                 and self.sadiks.filter(id=sadik.id).exists()
                 if self.sadiks.exists() else True)
 
+    def is_password_set(self):
+        return is_password_usable(self.user.password)
+
     def social_auth_clean_data(self):
         self.phone_number = None
         self.first_name = None
@@ -1081,6 +1085,18 @@ class Requestion(models.Model):
         return EvidienceDocument.objects.filter(
             content_type=ContentType.objects.get_for_model(self.__class__),
             object_id=self.id)
+
+    def get_birth_cert(self):
+        u"""
+        Метод возвращает свидетельство о рождении, связанное с заявкой.
+        Получаем список документов, связанных с заявкой. Возвращаем один,
+        удостоверяющий заявку.
+        """
+        try:
+            return self.evidience_documents().get(
+                template__destination=REQUESTION_IDENTITY)
+        except ObjectDoesNotExist:
+            return EvidienceDocument.objects.none()
 
     def get_other_ident_documents(self, confirmed=False):
         #!!!! Bug in empty queryset with values_list return non empty value
@@ -1400,6 +1416,16 @@ class Requestion(models.Model):
         """
         self.previous_status = self.status
         self.status = new_status
+        self.save()
+
+    def update_registration_datetime(self, new_reg_datetime=None):
+        u"""
+        Обновляем дату и время подачи заявления. По умолчанию используются
+        текущее время.
+        """
+        if not new_reg_datetime:
+            new_reg_datetime = datetime.datetime.now()
+        self.registration_datetime = new_reg_datetime
         self.save()
 
     def __unicode__(self):

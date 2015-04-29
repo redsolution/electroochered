@@ -98,4 +98,6 @@ def get_special_apps(request):
         special_apps_list.append('smevfms')
     if 'smevzags' in settings.INSTALLED_APPS:
         special_apps_list.append('smevzags')
+    if 'electroochered-authesia' in settings.INSTALLED_APPS:
+        special_apps_list.append('esia_auth')
     return {'special_apps': special_apps_list}
