@@ -296,7 +296,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return False
 
     def default_redirect_to(self, request, requestion):
-        if request.user.is_operator:
+        if request.user.is_authenticated() and request.user.is_operator():
             return reverse('operator_requestion_info', args=[requestion.id])
         return reverse('frontpage')
 
@@ -418,6 +418,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
 
         if form.is_valid():
+            # если заявка не прошла pre_status_change - значит не соблюдены
+            # какие-то условия
             try:
                 pre_status_change.send(
                     sender=Requestion, request=request, requestion=requestion,
@@ -427,6 +429,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 messages.error(request, e.message)
                 return HttpResponseRedirect(self.redirect_to)
 
+            # если ошибка возникла во время применения изменений, вероятно
+            # нарушено целостное состояние системы
             try:
                 # если ModelForm, то сохраняем
                 if isinstance(form.__class__, ModelFormMetaclass):
