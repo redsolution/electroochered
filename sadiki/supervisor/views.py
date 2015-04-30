@@ -188,5 +188,7 @@ class StartDistributionYear(SupervisorBases):
 class RequestionStatusChange(OperatorRequestionStatusChange):
     template_name = "supervisor/requestion_status_change.html"
 
-    def default_redirect_to(self, requestion):
-        return reverse('supervisor_requestion_info', args=[requestion.id])
+    def default_redirect_to(self, request, requestion):
+        if request.user.is_authenticated() and request.user.is_supervisor():
+            return reverse('supervisor_requestion_info', args=[requestion.id])
+        return reverse('frontpage')

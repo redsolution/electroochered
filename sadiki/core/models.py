@@ -1333,7 +1333,7 @@ class Requestion(models.Model):
             # Проверка на допустимость изменения статуса
             from sadiki.core.workflow import workflow
             if self.status not in workflow.available_transition_statuses(status):
-                raise TransitionNotRegistered
+                raise TransitionNotRegistered(self, status, self.status)
             # если заявке было выделено место или она окончательно зачислена,
             # то сохраняем дату и время
             if self.status == STATUS_DECISION:
