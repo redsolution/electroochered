@@ -147,6 +147,8 @@ ABSENT_TEMP_DISTRIBUTED = 64        # Отказ от места в ДОУ по�
 REQUESTION_TRANSFER = 66            # Перевод из другого муниципалитета
 DISTRIBUTED_REQUESTER = 67          # Возврат в очередь после посещения ДОУ
 DISTRIBUTED_ES_REQUESTER = 68       # Возврат в очередь после посещения ДОУ
+DISTRIBUTED_KG_LEAVE = 69           # Выпуск из ДОУ
+DISTRIBUTED_ES_KG_LEAVE = 70        # Выпуск из ДОУ
 
 # Изменение данных заявки
 CHANGE_REQUESTION = 71
@@ -269,6 +271,9 @@ if TEMP_DISTRIBUTION == TEMP_DISTRIBUTION_YES:
 
 # 3) Зачисление
 # 3.1) Очередники
+# переход с обычным зачислением остается для обратной совместимости с ранее
+# зачисленными заявками, запрет на это действие накладывается через метод у
+# объекта заявки requestion.is_available_for_actions
 workflow.add(STATUS_DECISION, STATUS_DISTRIBUTED, DECISION_DISTRIBUTION,
              u'Зачисление', permissions=[DISTRIBUTOR_PERMISSION[0]],
              check_document=True)
@@ -404,6 +409,12 @@ workflow.add(STATUS_REQUESTER, STATUS_SHORT_STAY, REQUESTER_SHORT_STAY,
              u'Перевод в группу кратковременного пребывания')
 workflow.add(STATUS_SHORT_STAY, STATUS_REQUESTER, SHORT_STAY_REQUESTER,
              u'Перевод из группы кратковременного пребывания в очередь')
+
+# повторная регистрация после выпуска из ДОУ
+workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_KG_LEAVE,
+             DISTRIBUTED_ES_KG_LEAVE, u"Выпуск из ДОУ")
+workflow.add(STATUS_DISTRIBUTED, STATUS_KG_LEAVE, DISTRIBUTED_KG_LEAVE,
+             u"Выпуск из ДОУ")
 
 DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
 
