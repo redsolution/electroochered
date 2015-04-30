@@ -761,6 +761,8 @@ class Profile(models.Model):
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
     first_name = models.CharField(u'Имя', max_length=255, null=True)
+    middle_name = models.CharField(u'Отчество', max_length=255, null=True)
+    last_name = models.CharField(u'Фамилия', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
@@ -772,6 +774,14 @@ class Profile(models.Model):
     skype = models.CharField(u'Skype',
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
+    home_phone_number = models.CharField(u'Домашний телефон', max_length=255,
+        blank=False, null=True,
+        help_text=u"Номер домашнего телефона")
+    location = models.CharField(
+        max_length=50, verbose_name=u'Населенный пункт', null=True)
+    street = models.CharField(
+        max_length=50, verbose_name=u'Улица', null=True)
+    house = models.CharField(max_length=10, verbose_name=u'Дом', null=True)
     # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
     social_auth_public = models.NullBooleanField(
@@ -1012,10 +1022,12 @@ class Requestion(models.Model):
         u'Дата рождения ребёнка', validators=[birth_date_validator])
     # сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(
-        u'имя ребёнка', max_length=255, null=True,
-        validators=[validate_no_spaces, ],
-        help_text=u"В поле достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не нужно!")
+        u'Имя ребёнка', max_length=255, null=True,
+        validators=[validate_no_spaces, ],)
+    child_middle_name = models.CharField(
+        u'Отчество ребёнка', max_length=50, null=True)
+    child_last_name = models.CharField(
+        u'Фамилия ребёнка', max_length=50, null=True)
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
