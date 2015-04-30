@@ -675,6 +675,10 @@ distributed_requester_template = u"""
     Статус: {{ requestion.get_status_display }}
     """
 
+distributed_kg_leave_template = u"""
+    Ребенок был выпущен из ДОУ оператором {{ operator }}.
+    """
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -804,6 +808,12 @@ ACTION_TEMPLATES.update({
     },
     DISTRIBUTED_ES_REQUESTER: {
         ANONYM_LOG: Template(distributed_requester_template)
+    },
+    DISTRIBUTED_ES_KG_LEAVE: {
+        ANONYM_LOG: Template(distributed_kg_leave_template)
+    },
+    DISTRIBUTED_KG_LEAVE: {
+        ANONYM_LOG: Template(distributed_kg_leave_template)
     },
 })
 
