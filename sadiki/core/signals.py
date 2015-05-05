@@ -277,7 +277,7 @@ def after_decision_to_distributed(sender, **kwargs):
     DISTRIBUTED_ES_KG_LEAVE, DISTRIBUTED_KG_LEAVE
 )
 def after_distributed_to_kg_leave(sender, **kwargs):
-    u"""Обработчик переводов №16,19,20 - зачисление в ДОУ"""
+    u"""Обработчик переводов №69 и 70 - выпуск из ДОУ"""
     transition = kwargs['transition']
     request = kwargs['request']
     requestion = kwargs['requestion']
