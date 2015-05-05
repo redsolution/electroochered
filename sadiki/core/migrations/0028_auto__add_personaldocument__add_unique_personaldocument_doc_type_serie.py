@@ -8,6 +8,21 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding model 'PersonalDocument'
+        db.create_table('core_personaldocument', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('doc_type', self.gf('django.db.models.fields.IntegerField')(default=1)),
+            ('series', self.gf('django.db.models.fields.CharField')(max_length=20, null=True)),
+            ('number', self.gf('django.db.models.fields.CharField')(max_length=50, null=True)),
+            ('issued_date', self.gf('django.db.models.fields.DateField')(null=True)),
+            ('issued_by', self.gf('django.db.models.fields.CharField')(max_length=100, null=True)),
+            ('profile', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Profile'])),
+        ))
+        db.send_create_signal('core', ['PersonalDocument'])
+
+        # Adding unique constraint on 'PersonalDocument', fields ['doc_type', 'series', 'number']
+        db.create_unique('core_personaldocument', ['doc_type', 'series', 'number'])
+
         # Adding field 'Requestion.child_middle_name'
         db.add_column('core_requestion', 'child_middle_name',
                       self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
@@ -15,6 +30,16 @@ class Migration(SchemaMigration):
 
         # Adding field 'Requestion.child_last_name'
         db.add_column('core_requestion', 'child_last_name',
+                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
+                      keep_default=False)
+
+        # Adding field 'Requestion.kinship'
+        db.add_column('core_requestion', 'kinship',
+                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
+                      keep_default=False)
+
+        # Adding field 'Requestion.child_snils'
+        db.add_column('core_requestion', 'child_snils',
                       self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
                       keep_default=False)
 
@@ -28,13 +53,13 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True),
                       keep_default=False)
 
-        # Adding field 'Profile.home_phone_number'
-        db.add_column('core_profile', 'home_phone_number',
-                      self.gf('django.db.models.fields.CharField')(max_length=255, null=True),
+        # Adding field 'Profile.snils'
+        db.add_column('core_profile', 'snils',
+                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
                       keep_default=False)
 
-        # Adding field 'Profile.location'
-        db.add_column('core_profile', 'location',
+        # Adding field 'Profile.town'
+        db.add_column('core_profile', 'town',
                       self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
                       keep_default=False)
 
@@ -50,11 +75,23 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Removing unique constraint on 'PersonalDocument', fields ['doc_type', 'series', 'number']
+        db.delete_unique('core_personaldocument', ['doc_type', 'series', 'number'])
+
+        # Deleting model 'PersonalDocument'
+        db.delete_table('core_personaldocument')
+
         # Deleting field 'Requestion.child_middle_name'
         db.delete_column('core_requestion', 'child_middle_name')
 
         # Deleting field 'Requestion.child_last_name'
         db.delete_column('core_requestion', 'child_last_name')
+
+        # Deleting field 'Requestion.kinship'
+        db.delete_column('core_requestion', 'kinship')
+
+        # Deleting field 'Requestion.child_snils'
+        db.delete_column('core_requestion', 'child_snils')
 
         # Deleting field 'Profile.middle_name'
         db.delete_column('core_profile', 'middle_name')
@@ -62,11 +99,11 @@ class Migration(SchemaMigration):
         # Deleting field 'Profile.last_name'
         db.delete_column('core_profile', 'last_name')
 
-        # Deleting field 'Profile.home_phone_number'
-        db.delete_column('core_profile', 'home_phone_number')
+        # Deleting field 'Profile.snils'
+        db.delete_column('core_profile', 'snils')
 
-        # Deleting field 'Profile.location'
-        db.delete_column('core_profile', 'location')
+        # Deleting field 'Profile.town'
+        db.delete_column('core_profile', 'town')
 
         # Deleting field 'Profile.street'
         db.delete_column('core_profile', 'street')
@@ -199,6 +236,16 @@ class Migration(SchemaMigration):
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
             'regex': ('django.db.models.fields.TextField', [], {})
         },
+        'core.personaldocument': {
+            'Meta': {'unique_together': "(('doc_type', 'series', 'number'),)", 'object_name': 'PersonalDocument'},
+            'doc_type': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'issued_by': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'issued_date': ('django.db.models.fields.DateField', [], {'null': 'True'}),
+            'number': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'profile': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Profile']"}),
+            'series': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True'})
+        },
         'core.preference': {
             'Meta': {'object_name': 'Preference'},
             'datetime': ('django.db.models.fields.DateTimeField', [], {}),
@@ -212,18 +259,18 @@ class Migration(SchemaMigration):
             'area': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Area']", 'null': 'True'}),
             'email_verified': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'first_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'home_phone_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
             'house': ('django.db.models.fields.CharField', [], {'max_length': '10', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'last_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'location': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'middle_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
             'mobile_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
             'sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Sadik']", 'null': 'True', 'symmetrical': 'False'}),
             'skype': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
+            'snils': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'social_auth_public': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'street': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'town': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
         },
         'core.requestion': {
@@ -236,6 +283,7 @@ class Migration(SchemaMigration):
             'cast': ('django.db.models.fields.IntegerField', [], {'default': '3'}),
             'child_last_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'child_middle_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'child_snils': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'closest_kg': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'closest_kg'", 'null': 'True', 'to': "orm['core.Sadik']"}),
             'decision_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'distribute_in_any_sadik': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
@@ -244,6 +292,7 @@ class Migration(SchemaMigration):
             'distribution_type': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'district': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.District']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'kinship': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'location': ('django.contrib.gis.db.models.fields.PointField', [], {'null': 'True', 'blank': 'True'}),
             'location_properties': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),

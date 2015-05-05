@@ -774,10 +774,9 @@ class Profile(models.Model):
     skype = models.CharField(u'Skype',
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
-    home_phone_number = models.CharField(u'Домашний телефон', max_length=255,
-        blank=False, null=True,
-        help_text=u"Номер домашнего телефона")
-    location = models.CharField(
+    snils = models.CharField(
+        u'СНИЛС', max_length=50, null=True)
+    town = models.CharField(
         max_length=50, verbose_name=u'Населенный пункт', null=True)
     street = models.CharField(
         max_length=50, verbose_name=u'Улица', null=True)
@@ -812,6 +811,34 @@ class Profile(models.Model):
 
     def __unicode__(self):
         return self.user.username
+
+
+DOC_TYPE_PASSPORT = 1
+DOC_TYPE_DRIVERLICENSE = 2
+
+DOC_TYPE_CHOICES = (
+    (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
+    (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
+)
+
+class PersonalDocument(models.Model):
+    u"""Документ, удостоверяющий личность заявителя"""
+    class Meta:
+        verbose_name = u'Документ заявителя'
+        verbose_name_plural = u'Документы заявителей'
+        unique_together = (('doc_type', 'series', 'number'),)
+
+    doc_type = models.IntegerField(u'Тип документа',
+        choices=DOC_TYPE_CHOICES, default=DOC_TYPE_PASSPORT)
+    series = models.CharField(u'Серия документа',
+        max_length=20, null=True)
+    number = models.CharField(u'Номер документа',
+        max_length=50, null=True)
+    issued_date = models.DateField(u'Дата выдачи документа', null=True)
+    issued_by = models.CharField(u'Организация, выдавшая документ',
+        max_length=100, null=True)
+    profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
+
 
 NOT_CONFIRMED_STATUSES = (
     STATUS_WAIT_REVIEW,
@@ -1031,6 +1058,10 @@ class Requestion(models.Model):
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
+    kinship = models.CharField(
+        u'Степень родства', max_length=50, null=True)
+    child_snils = models.CharField(
+        u'СНИЛС ребёнка', max_length=50, null=True)
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
