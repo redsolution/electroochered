@@ -17,7 +17,8 @@ from rest_framework.renderers import UnicodeJSONRenderer
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
-    STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
+    STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES, \
+    STATUS_KG_LEAVE
 from sadiki.api.utils import add_requestions_data
 from sadiki.anonym.views import Queue
 from sadiki.operator.forms import ConfirmationForm, \
@@ -99,8 +100,9 @@ class ChangeRequestionStatus(SignJSONResponseMixin, View):
             }}
             return self.render_to_response(result)
 
-        if requestion.status in [STATUS_DISTRIBUTED,
-                                 STATUS_DISTRIBUTED_FROM_ES]:
+        if (requestion.status in
+                [STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES] and
+                dst_status != STATUS_KG_LEAVE):
             err_msg = u"Заявка зачислена в Электроочереди, действие невозможно"
             if dst_status == STATUS_DISTRIBUTED_FROM_ES:
                 err_msg = u"Заявка уже зачислена в Электроочереди"
