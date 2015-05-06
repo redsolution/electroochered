@@ -38,6 +38,11 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
                       keep_default=False)
 
+        # Adding field 'Requestion.birthplace'
+        db.add_column('core_requestion', 'birthplace',
+                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
+                      keep_default=False)
+
         # Adding field 'Requestion.child_snils'
         db.add_column('core_requestion', 'child_snils',
                       self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
@@ -89,6 +94,9 @@ class Migration(SchemaMigration):
 
         # Deleting field 'Requestion.kinship'
         db.delete_column('core_requestion', 'kinship')
+
+        # Deleting field 'Requestion.birthplace'
+        db.delete_column('core_requestion', 'birthplace')
 
         # Deleting field 'Requestion.child_snils'
         db.delete_column('core_requestion', 'child_snils')
@@ -280,6 +288,7 @@ class Migration(SchemaMigration):
             'benefit_category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.BenefitCategory']", 'null': 'True'}),
             'benefits': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Benefit']", 'symmetrical': 'False', 'blank': 'True'}),
             'birth_date': ('django.db.models.fields.DateField', [], {}),
+            'birthplace': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'cast': ('django.db.models.fields.IntegerField', [], {'default': '3'}),
             'child_last_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'child_middle_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),

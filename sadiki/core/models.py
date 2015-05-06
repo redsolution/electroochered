@@ -1060,6 +1060,8 @@ class Requestion(models.Model):
         choices=SEX_CHOICES, null=True)
     kinship = models.CharField(
         u'Степень родства', max_length=50, null=True)
+    birthplace = models.CharField(
+        u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(
         u'СНИЛС ребёнка', max_length=50, null=True)
     cast = models.IntegerField(
