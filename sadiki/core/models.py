@@ -95,6 +95,7 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
+    (STATUS_KG_LEAVE, u"Выпущен из ДОУ"),
 )
 
 REQUESTION_MUTABLE_STATUSES = (
