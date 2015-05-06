@@ -58,6 +58,7 @@ STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутс
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
 STATUS_DISTRIBUTED_FROM_ES = 56  # Зачислена через систему ЭлектроСад
 STATUS_SHORT_STAY = 57  # Посещает группу кратковременного пребывания
+STATUS_KG_LEAVE = 58  # Выпущен из ДОУ
 
 STATUS_CHOICES = (
     (STATUS_WAIT_REVIEW, u'Ожидает рассмотрения'),
@@ -82,6 +83,7 @@ STATUS_CHOICES = (
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
     (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен"),
     (STATUS_SHORT_STAY, u"Посещает группу кратковременного пребывания"),
+    (STATUS_KG_LEAVE, u"Выпущен из ДОУ"),
 )
 
 STATUS_CHOICES_FILTER = (
@@ -93,6 +95,7 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
+    (STATUS_KG_LEAVE, u"Выпущен из ДОУ"),
 )
 
 REQUESTION_MUTABLE_STATUSES = (

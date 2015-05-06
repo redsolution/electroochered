@@ -56,7 +56,8 @@ from sadiki.core.workflow import REQUESTER_REMOVE_REGISTRATION, \
     DECISION_DISTRIBUTION, SHORT_STAY_DECISION_BY_RESOLUTION, \
     ABSENT_DISTRIBUTED, DECISION_NOT_APPEAR, DECISION_ABSENT, \
     TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, RESTORE_REQUESTION, \
-    workflow, REQUESTER_DECISION_BY_RESOLUTION, ES_DISTRIBUTION
+    workflow, REQUESTER_DECISION_BY_RESOLUTION, ES_DISTRIBUTION, \
+    DISTRIBUTED_ES_KG_LEAVE, DISTRIBUTED_KG_LEAVE
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
@@ -266,6 +267,26 @@ def after_decision_to_distributed(sender, **kwargs):
         context_dict.update({'operator': data['data'].get('operator', '')})
         requestion.distribution_datetime = timezone.now()
         requestion.save()
+    Logger.objects.create_for_action(
+        transition.index, context_dict=context_dict, extra=log_extra,
+        reason=form.cleaned_data.get('reason'))
+
+
+@receiver(post_status_change, sender=Requestion)
+@listen_transitions(
+    DISTRIBUTED_ES_KG_LEAVE, DISTRIBUTED_KG_LEAVE
+)
+def after_distributed_to_kg_leave(sender, **kwargs):
+    u"""Обработчик переводов №69 и 70 - выпуск из ДОУ"""
+    transition = kwargs['transition']
+    request = kwargs['request']
+    requestion = kwargs['requestion']
+    form = kwargs['form']
+
+    context_dict = {'status': requestion.get_status_display()}
+    log_extra = {'obj': requestion}
+    data = json.loads(request.body)
+    context_dict.update({'operator': data['data'].get('operator', '')})
     Logger.objects.create_for_action(
         transition.index, context_dict=context_dict, extra=log_extra,
         reason=form.cleaned_data.get('reason'))
