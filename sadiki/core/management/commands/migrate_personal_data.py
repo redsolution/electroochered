@@ -11,7 +11,7 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
     def handle(self, *args, **options):
-        # переносим данные заявителей
+        print u'Переносим данные заявителей'
         users_data = UserPersData.objects.all()
         for user_data in users_data:
             profile = user_data.profile
@@ -23,8 +23,7 @@ class Command(BaseCommand):
             profile.mobile_number = user_data.phone
             profile.first_name = user_data.first_name
             profile.save()
-        
-        # переносим данные заявки
+        print u'Переносим данные заявок'
         reqs_data = ChildPersData.objects.all()
         for req_data in reqs_data:
             requestion = req_data.application
