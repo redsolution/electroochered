@@ -15,7 +15,6 @@ from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     STATUS_CHOICES_FILTER, STATUS_KG_LEAVE
 from sadiki.core.utils import get_unique_username, active_child_exist
 from sadiki.core.widgets import JqueryUIDateWidget
-from sadiki.core.exceptions import TransitionNotAllowed
 
 
 # STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
@@ -25,10 +24,12 @@ class RegistrationForm(forms.ModelForm):
     u"""Форма регистрации для создания пользователя"""
     password1 = forms.CharField(
         label=_("Password"), widget=forms.PasswordInput(
-            attrs={'placeholder': u'Введите пароль для регистрации в электронной очереди'}))
+            attrs={'placeholder':
+                   u"Введите пароль для регистрации в электронной очереди"}))
     password2 = forms.CharField(
-        label=_("Password confirmation"),widget=forms.PasswordInput(
-            attrs={'placeholder': 'Введите тот же пароль, что и выше, для подтверждения'}))
+        label=_("Password confirmation"), widget=forms.PasswordInput(
+            attrs={'placeholder':
+                   u"Введите тот же пароль, что и выше, для подтверждения"}))
 
     class Meta:
         model = User
@@ -55,7 +56,7 @@ class RegistrationForm(forms.ModelForm):
         password1 = self.cleaned_data.get("password1", "")
         password2 = self.cleaned_data["password2"]
         if password1 != password2:
-            raise forms.ValidationError(_("The two password fields didn't match."))
+            raise forms.ValidationError(u"Введенные пароли не совпадают")
         return password2
 
     def save(self, commit=True):
@@ -70,11 +71,12 @@ class RegistrationForm(forms.ModelForm):
 
 
 class FormWithDocument(forms.ModelForm):
-    template = TemplateFormField(destination=PROFILE_IDENTITY,
-        label=u'Тип документа',
+    template = TemplateFormField(
+        destination=PROFILE_IDENTITY, label=u'Тип документа',
         help_text=u"Документ, удостоверяющий личность представителя ребенка")
-    document_number = forms.CharField(label=u'Серия и номер документа',
-        max_length=255, widget=forms.TextInput(attrs={'autocomplete': 'off'}))
+    document_number = forms.CharField(
+        label=u'Серия и номер документа', max_length=255,
+        widget=forms.TextInput(attrs={'autocomplete': 'off'}))
 
     def create_document(self, requestion, commit=True):
         document = EvidienceDocument(
@@ -94,7 +96,7 @@ class FormWithDocument(forms.ModelForm):
         # проверяем, что номер документа соответствует шаблону
         if document_number and template and not re.match(
             template.regex, document_number):
-            self._errors["document_number"] = self.error_class( [u'Неверный формат'])
+            self._errors["document_number"] = self.error_class([u'Неверный формат'])
             del cleaned_data['document_number']
             del cleaned_data['template']
         # проверяем на наличие подтвержденных заявок с таким же документом
@@ -124,18 +126,20 @@ class FormWithDocument(forms.ModelForm):
 
 
 class PublicSearchForm(forms.Form):
-    birth_date = forms.DateField(label=u'Дата рождения ребёнка',
+    birth_date = forms.DateField(
+        label=u'Дата рождения ребёнка',
         widget=JqueryUIDateWidget(), required=True)
-    registration_date = forms.DateField(label=u'Дата регистрации',
-        widget=JqueryUIDateWidget(), required=False)
+    registration_date = forms.DateField(
+        label=u'Дата регистрации', widget=JqueryUIDateWidget(), required=False)
     number_in_old_list = forms.CharField(
         label=u'Номер в списке у заявок, поданных до запуска системы',
         required=False, widget=forms.TextInput())
-    document_number = forms.CharField(label=u'Номер свидетельства о рождении',
-        required=False, widget=forms.TextInput(),
-        help_text=u'Формат: II-ИВ 123456')
-    child_name = forms.CharField(label=u'Имя ребёнка',
-        required=False, widget=forms.TextInput(), help_text=u'Только для заявок, поданных до запуска системы')
+    document_number = forms.CharField(
+        label=u'Номер свидетельства о рождении', required=False,
+        widget=forms.TextInput(), help_text=u'Формат: II-ИВ 123456')
+    child_name = forms.CharField(
+        label=u'Имя ребёнка', required=False, widget=forms.TextInput(),
+        help_text=u'Только для заявок, поданных до запуска системы')
 
     field_map = {
         'birth_date': 'birth_date__exact',
@@ -165,9 +169,11 @@ class PublicSearchForm(forms.Form):
                 filter_kwargs[self.field_map['child_name']] = self.cleaned_data['child_name']
             if 'document_number' in self.changed_data:
                 requestion_ct = ContentType.objects.get_for_model(Requestion)
-                requestion_ids = EvidienceDocument.objects.filter(content_type=requestion_ct,
+                requestion_ids = EvidienceDocument.objects.filter(
+                    content_type=requestion_ct,
                     document_number=self.cleaned_data['document_number'],
-                    template__destination=REQUESTION_IDENTITY).values_list('object_id', flat=True)
+                    template__destination=REQUESTION_IDENTITY
+                ).values_list('object_id', flat=True)
                 filter_kwargs[self.field_map['document_number']] = requestion_ids
             return filter_kwargs
 
