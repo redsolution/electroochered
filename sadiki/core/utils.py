@@ -503,3 +503,18 @@ def get_child_from_es(birth_cert):
     response = urllib2.urlopen(req, post_data).read()
     decrypted_data = gpgtools.decrypt_data(response)
     return json.loads(decrypted_data)
+
+
+def active_child_exist(birth_cert):
+    try:
+        result = get_child_from_es(birth_cert)
+    except Exception:
+        from sadiki.core.exceptions import TransitionNotAllowed
+        raise TransitionNotAllowed(
+            u"Ошибка при проверке номера документа в Электросаде, "
+            u"повторите попытку позднее")
+    if result and 'status' in result:
+        child_status = result['status'] or 2
+        if child_status == 2:
+            return True
+    return False
