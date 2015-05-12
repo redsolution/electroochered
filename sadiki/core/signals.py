@@ -378,12 +378,12 @@ def before_distributed_requester(sender, **kwargs):
             u"попробйте позже")
     # если импортировать при инициализации, возникает кольцо
     from sadiki.api.views import STATUS_OK
+    from sadiki.api.utils import is_active_child_status
     if child_data['status_code'] == STATUS_OK:
-        if child_data['data']['status'] not in [3, 4, 5, 8, 9]:
+        if is_active_child_status(['data']['status']):
             raise TransitionNotAllowed(
                 u"Ребенок с таким свидетельством о рождении числится активным "
                 u"в Электросаде")
-
 
 
 @receiver(post_status_change, sender=Requestion)

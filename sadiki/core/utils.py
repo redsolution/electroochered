@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+import datetime
+import re
 import json
+import uuid
+import urllib
+import urllib2
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
@@ -9,15 +14,10 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-import datetime
-import re
-import uuid
-import urllib
-import urllib2
-from BeautifulSoup import BeautifulStoneSoup
-
 from django.db.models.aggregates import Min
 from django.utils.safestring import mark_safe
+from BeautifulSoup import BeautifulStoneSoup
+
 import sadiki.core.models
 from pysnippets import gpgtools
 
@@ -495,7 +495,10 @@ def get_child_from_es(birth_cert):
     Получаем по свидетельству о рожденнии данные о ребенке из Электросада.
     """
     post_data = gpgtools.get_signed_json({'birth_cert': birth_cert})
-    domain = Site.objects.get_current().domain.split('.')[0]+'.electrosadik.ru'
+    domain = settings.ES_DOMAIN
+    if not domain:
+        site = Site.objects.get_current()
+        domain = site.domain.split('.')[0] + '.electrosadik.ru'
     url = "http://{}/api/base/get_child_by_birth_cert/".format(domain)
 
     req = urllib2.Request(url)
@@ -507,14 +510,15 @@ def get_child_from_es(birth_cert):
 
 def active_child_exist(birth_cert):
     try:
-        result = get_child_from_es(birth_cert)
+        child_data = get_child_from_es(birth_cert)
     except Exception:
         from sadiki.core.exceptions import TransitionNotAllowed
         raise TransitionNotAllowed(
             u"Ошибка при проверке номера документа в Электросаде, "
             u"повторите попытку позднее")
-    if result and 'status' in result:
-        child_status = result['status'] or 2
-        if child_status == 2:
+    from sadiki.api.views import STATUS_OK
+    from sadiki.api.utils import is_active_child_status
+    if child_data['status_code'] == STATUS_OK and 'status' in child_data['data']:
+        if is_active_child_status(child_data['data']['status']):
             return True
     return False
