@@ -9,7 +9,7 @@ from sadiki.conf_settings import REQUESTION_NUMBER_MASK
 from sadiki.core.fields import TemplateFormField, DateRangeField
 from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     EvidienceDocument, REQUESTION_IDENTITY, AgeGroup, BenefitCategory, Area, \
-    STATUS_CHOICES_FILTER
+    STATUS_CHOICES_FILTER, STATUS_KG_LEAVE
 from sadiki.core.utils import get_unique_username
 from sadiki.core.widgets import JqueryUIDateWidget
 from django.core.exceptions import MultipleObjectsReturned
@@ -89,27 +89,28 @@ class FormWithDocument(forms.ModelForm):
         cleaned_data = self.cleaned_data
         document_number = self.cleaned_data.get('document_number')
         template = self.cleaned_data.get('template')
-#        проверяем, что номер документа соответствует шаблону
+        # проверяем, что номер документа соответствует шаблону
         if document_number and template and not re.match(
             template.regex, document_number):
             self._errors["document_number"] = self.error_class(
                 [u'Неверный формат'])
             del cleaned_data['document_number']
             del cleaned_data['template']
+        # проверяем на наличие подтвержденных заявок с таким же документом
         else:
-            try:
-                EvidienceDocument.objects.get(document_number=document_number,
-                    confirmed=True, template=template)
-            except EvidienceDocument.DoesNotExist:
-                pass
-            except MultipleObjectsReturned:
-                self._errors["document_number"] = self.error_class(
-                    [u'Документ с таким номером уже занят'])
-                del cleaned_data['document_number']
-            else:
-                self._errors["document_number"] = self.error_class(
-                    [u'Документ с таким номером уже занят'])
-                del cleaned_data['document_number']
+            documents = EvidienceDocument.objects.filter(
+                document_number=document_number, confirmed=True,
+                template=template)
+            if documents:
+                requestions_ids = documents.values_list('object_id', flat=True)
+                # заявки в статусе "Выпущен из ДОУ" могут сожержать
+                # повторяющиеся номера документов
+                requestions = Requestion.objects.filter(
+                    id__in=requestions_ids).exclude(status=STATUS_KG_LEAVE)
+                if requestions.exists():
+                    self._errors["document_number"] = self.error_class(
+                        [u'Документ с таким номером уже занят'])
+                    del cleaned_data['document_number']
         return cleaned_data
 
 
