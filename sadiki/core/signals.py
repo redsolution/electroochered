@@ -380,7 +380,7 @@ def before_distributed_requester(sender, **kwargs):
     from sadiki.api.views import STATUS_OK
     from sadiki.api.utils import is_active_child_status
     if child_data['status_code'] == STATUS_OK:
-        if is_active_child_status(['data']['status']):
+        if is_active_child_status(child_data['data']['status']):
             raise TransitionNotAllowed(
                 u"Ребенок с таким свидетельством о рождении числится активным "
                 u"в Электросаде")

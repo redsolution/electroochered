@@ -1140,20 +1140,23 @@ class Requestion(models.Model):
         else:
             document.confirmed = True
             document.save()
-            # остальные документы с таким номером недостоверны
+            # помечаем остальные документы с таким же номером недостоверными
+            # соответствующие заявки переводим в статус "отклонена"
             other_documents = self.get_other_ident_documents()
             other_requestions = []
             for document in other_documents:
-                document.confirmed = False
-                document.save()
                 requestion = document.content_object
-                other_requestions.append(requestion)
-                requestion.status = STATUS_REMOVE_REGISTRATION
-                requestion.save()
-                Logger.objects.create_for_action(
-                    NOT_CONFIRMED_REMOVE_REGISTRATION,
-                    context_dict={'other_requestion': self},
-                    extra={'obj': requestion})
+                # заявки в статусе "выпущен из ДОУ" остаются неизменными
+                if requestion.status != STATUS_KG_LEAVE:
+                    document.confirmed = False
+                    document.save()
+                    other_requestions.append(requestion)
+                    requestion.status = STATUS_REMOVE_REGISTRATION
+                    requestion.save()
+                    Logger.objects.create_for_action(
+                        NOT_CONFIRMED_REMOVE_REGISTRATION,
+                        context_dict={'other_requestion': self},
+                        extra={'obj': requestion})
             return other_requestions
 
     def set_benefit_documents_authentic(self):
