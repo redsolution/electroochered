@@ -1124,7 +1124,8 @@ class Requestion(models.Model):
         documents = self.get_other_ident_documents()
         if documents.exists():
             requestions_ids = documents.values_list('object_id', flat=True)
-            return Requestion.objects.filter(id__in=requestions_ids)
+            return Requestion.objects.filter(
+                id__in=requestions_ids).exclude(status=STATUS_KG_LEAVE)
         else:
             return Requestion.objects.none()
 
