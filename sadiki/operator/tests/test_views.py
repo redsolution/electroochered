@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
+from django.conf import settings
 from django.core import management
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
@@ -57,10 +58,11 @@ class CoreViewsTest(TestCase):
         User.objects.all().delete()
 
     def test_requestion_add(self):
-        """
+        u"""
         Проверяем корректрость работы ключа token, хранящегося в сессии
         пользователя.
         """
+        settings.TEST_MODE = True
         management.call_command('generate_sadiks', 10)
         kgs = Sadik.objects.all()
         form_data = {
@@ -158,3 +160,5 @@ class CoreViewsTest(TestCase):
             reverse('anonym_registration'))
         self.assertIsNotNone(self.client.session.get('token'))
         self.assertEqual(len(self.client.session['token']), 3)
+
+        settings.TEST_MODE = False

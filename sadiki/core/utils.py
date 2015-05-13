@@ -494,6 +494,9 @@ def get_child_from_es(birth_cert):
     u"""
     Получаем по свидетельству о рожденнии данные о ребенке из Электросада.
     """
+    # во время тестирования api ЭС недоступно, возвращаем "dummy" объект
+    if settings.TEST_MODE:
+        return []
     post_data = gpgtools.get_signed_json({'birth_cert': birth_cert})
     domain = settings.ES_DOMAIN
     if not domain:
@@ -509,6 +512,12 @@ def get_child_from_es(birth_cert):
 
 
 def active_child_exist(birth_cert):
+    u"""
+    Проверяем, если ли в ЭС активные дети с заданным свидетельством о рождении
+    """
+    # во время тестирования api ЭС недоступно, возвращаем "dummy" объект
+    if settings.TEST_MODE:
+        return False
     try:
         child_data = get_child_from_es(birth_cert)
     except Exception:

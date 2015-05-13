@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.test import TestCase
 from django.core import management
+from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
 
@@ -224,10 +225,13 @@ class CoreViewsTest(TestCase):
         self.assertEqual(op_change.status_code, 405)
 
     def test_requestion_add(self):
-        """
+        u"""
         Проверяем корректрость работы ключа token, хранящегося в сессии
         пользователя.
         """
+        # отключаем запросы к внешним api во время тестирования
+        settings.TEST_MODE = True
+
         management.call_command('generate_sadiks', 10)
         kgs = Sadik.objects.all()
         form_data = {'name': 'Ann',
@@ -309,3 +313,5 @@ class CoreViewsTest(TestCase):
         token = response.context['form']['token'].value()
         self.assertIn(token, self.client.session['token'].keys())
         self.assertIsNone(self.client.session['token'][token])
+
+        settings.TEST_MODE = False
