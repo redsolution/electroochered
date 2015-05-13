@@ -504,7 +504,8 @@ def after_restore_requestion(sender, **kwargs):
         raise TransitionNotAllowed(err_msg)
     # проверяем статус ребенка в ЭС
     if active_child_exist(requestion.get_birth_cert().document_number):
-        raise TransitionNotAllowed(u"Такой ребенок уже посещает ДОУ")
+        raise TransitionNotAllowed(
+            u"Ребенок с таким номером свидетельства о рождении посещает ДОУ")
 
     other_requestions_with_document = requestion.set_ident_document_authentic()
     messages.success(request, u"Заявка {} была возвращена в очередь.".format(
