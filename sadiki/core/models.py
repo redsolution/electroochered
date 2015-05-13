@@ -816,20 +816,20 @@ class Profile(models.Model):
         return self.user.username
 
 
-DOC_TYPE_PASSPORT = 1
-DOC_TYPE_DRIVERLICENSE = 2
-
-DOC_TYPE_CHOICES = (
-    (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
-    (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
-)
-
 class PersonalDocument(models.Model):
     u"""Документ, удостоверяющий личность заявителя"""
     class Meta:
         verbose_name = u'Документ заявителя'
         verbose_name_plural = u'Документы заявителей'
         unique_together = (('doc_type', 'series', 'number'),)
+
+    DOC_TYPE_PASSPORT = 1
+    DOC_TYPE_DRIVERLICENSE = 2
+
+    DOC_TYPE_CHOICES = (
+        (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
+        (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
+    )
 
     doc_type = models.IntegerField(u'Тип документа',
         choices=DOC_TYPE_CHOICES, default=DOC_TYPE_PASSPORT)
