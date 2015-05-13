@@ -507,7 +507,7 @@ def after_restore_requestion(sender, **kwargs):
         raise TransitionNotAllowed(u"Такой ребенок уже посещает ДОУ")
 
     other_requestions_with_document = requestion.set_ident_document_authentic()
-    messages.success(request, u"Заявка %s была возвращена в очередь.".format(
+    messages.success(request, u"Заявка {} была возвращена в очередь.".format(
         requestion.requestion_number))
     messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
         ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))

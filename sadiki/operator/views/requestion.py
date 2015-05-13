@@ -458,6 +458,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u"Вызвана заявкой {} с таким же идентифицирующим" \
                               u" документом".format(e.requestion)
                     messages.error(request, err_msg)
+            except TransitionNotAllowed as e:
+                transaction.rollback()
+                messages.error(request, e.message)
             return HttpResponseRedirect(self.redirect_to)
         else:
             return self.render_to_response(context)
