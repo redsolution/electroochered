@@ -11,23 +11,40 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
     def handle(self, *args, **options):
-        print u'Переносим данные заявителей'
-        users_data = UserPersData.objects.all()
-        for user_data in users_data:
-            profile = user_data.profile
-            profile.town = user_data.settlement
-            profile.street = user_data.street
-            profile.house = user_data.house
-            profile.middle_name = user_data.second_name
-            profile.last_name = user_data.last_name
-            profile.mobile_number = user_data.phone
-            profile.first_name = user_data.first_name
+        print u'Переносим Ф.И.О. заявителей'
+        pdatas = UserPersData.objects.all()
+        for pdata in pdatas:
+            profile = pdata.profile
+            user = profile.user
+            if not user.first_name and pdata.first_name:
+                user.first_name = pdata.first_name
+                user.last_name = pdata.last_name
+                user.save()
+                profile.middle_name = pdata.second_name
+                profile.save()
+        profiles = Profile.objects.all()
+        for profile in profiles:
+            user = profile.user
+            if not user.first_name and profile.first_name:
+                user.first_name = profile.first_name
+                user.save()
+
+        print u'Переносим прочие данные заявителей'
+        pdatas = UserPersData.objects.all()
+        for pdata in pdatas:
+            profile = pdata.profile
+            profile.town = pdata.settlement
+            profile.street = pdata.street
+            profile.house = pdata.house
+            profile.mobile_number = pdata.phone
             profile.save()
+
         print u'Переносим данные заявок'
-        reqs_data = ChildPersData.objects.all()
-        for req_data in reqs_data:
-            requestion = req_data.application
-            requestion.child_middle_name = req_data.second_name
-            requestion.child_last_name = req_data.last_name
-            requestion.name = req_data.first_name
+        reqdatas = ChildPersData.objects.all()
+        for reqdata in reqdatas:
+            requestion = reqdata.application
+            requestion.child_middle_name = reqdata.second_name
+            requestion.child_last_name = reqdata.last_name
+            if not requestion.name:
+                requestion.name = reqdata.first_name
             requestion.save()
