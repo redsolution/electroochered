@@ -7,12 +7,16 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission, User
 from django.contrib.contenttypes.generic import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
+from django.db import transaction
+from django.forms.models import ModelFormMetaclass
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse, Http404
 from django.shortcuts import get_object_or_404
 from django.template import TemplateDoesNotExist, loader
 from django.template.response import TemplateResponse
 from django.utils.http import urlquote
+from django.utils.decorators import method_decorator
 from django.views.generic import TemplateView, View
+
 from sadiki.account.views import SocialProfilePublic as AccountSocialProfilePublic, \
     RequestionAdd as AccountRequestionAdd, EmailChange as AccountEmailChange, \
     RequestionInfo as AccountRequestionInfo,get_json_sadiks_location_data, AccountFrontPage
@@ -37,10 +41,11 @@ from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator
 from sadiki.operator.views.base import OperatorPermissionMixin, \
     OperatorRequestionMixin, OperatorRequestionEditMixin, \
     OperatorRequestionCheckIdentityMixin
-from django.forms.models import ModelFormMetaclass
+from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
+from sadiki.core.exceptions import TransitionNotAllowed
 
 
 class FrontPage(OperatorPermissionMixin, TemplateView):
@@ -290,8 +295,10 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
         return False
 
-    def default_redirect_to(self, requestion):
-        return reverse('operator_requestion_info', args=[requestion.id])
+    def default_redirect_to(self, request, requestion):
+        if request.user.is_authenticated() and request.user.is_operator():
+            return reverse('operator_requestion_info', args=[requestion.id])
+        return reverse('frontpage')
 
     def dispatch(self, request, requestion_id, dst_status):
         u"""
@@ -301,7 +308,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
         redirect_to = request.REQUEST.get('next', '')
         self.redirect_to = check_url(
-            redirect_to, self.default_redirect_to(requestion))
+            redirect_to, self.default_redirect_to(request, requestion))
 
         if not requestion.is_available_for_actions:
             messages.error(
@@ -353,8 +360,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 )
         return response
 
-    def get_confirm_form(self, transition_index, requestion=None, data=None,
-            initial=None):
+    def get_confirm_form(
+            self, transition_index, requestion=None, data=None, initial=None):
         form_class = self.transition.confirmation_form_class
         if not form_class:
             form_class = ConfirmationForm
@@ -366,7 +373,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         return form
 
     def get_context_data(self, requestion, **kwargs):
-        form = self.get_confirm_form(self.transition.index,
+        form = self.get_confirm_form(
+            self.transition.index,
             requestion=requestion,
             initial={'transition': self.transition.index})
         return {
@@ -376,7 +384,8 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
 
     def get_custom_template_name(self):
         try:
-            template = loader.get_template('operator/status_change/%s.html' % self.transition.index)
+            template = loader.get_template(
+                'operator/status_change/{}.html'.format(self.transition.index))
             return template.name
         except TemplateDoesNotExist:
             return None
@@ -389,13 +398,18 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
         return self.render_to_response(context)
 
+    @method_decorator(transaction.commit_manually)
     def post(self, request, requestion, *args, **kwargs):
+        u"""По post-запросу применяем изменение статуса заявки. Autocommit
+        отключаем, чтобы иметь возможность отображаеть сообщение об ошибке,
+        виесто 500-й страницы.
+        """
         if request.POST.get('confirmation') == "no":
             messages.info(request, u"Статус заявки не был изменен")
             return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
-        form = self.get_confirm_form(self.transition.index,
-            requestion=requestion, data=request.POST,
+        form = self.get_confirm_form(
+            self.transition.index, requestion=requestion, data=request.POST,
             initial={'transition': self.transition.index})
         context.update({
             'form': form,
@@ -404,22 +418,46 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
 
         if form.is_valid():
-            pre_status_change.send(sender=Requestion, request=request,
-                requestion=requestion, transition=self.transition, form=form)
+            # если заявка не прошла pre_status_change - значит не соблюдены
+            # какие-то условия
+            try:
+                pre_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=self.transition, form=form)
+            except TransitionNotAllowed as e:
+                transaction.rollback()
+                messages.error(request, e.message)
+                return HttpResponseRedirect(self.redirect_to)
 
-            # Момент истины
-#            если ModelForm, то сохраняем
-            if isinstance(form.__class__, ModelFormMetaclass):
-                requestion = form.save(commit=False)
-                requestion.status = self.transition.dst
-                requestion.save()
-                form.save_m2m()
-            else:
-                requestion.status = self.transition.dst
-                requestion.save()
+            # если ошибка возникла во время применения изменений, вероятно
+            # нарушено целостное состояние системы
+            try:
+                # если ModelForm, то сохраняем
+                if isinstance(form.__class__, ModelFormMetaclass):
+                    requestion = form.save(commit=False)
+                    requestion.status = self.transition.dst
+                    requestion.save()
+                    form.save_m2m()
+                else:
+                    requestion.status = self.transition.dst
+                    requestion.save()
 
-            post_status_change.send(sender=Requestion, request=request,
-                requestion=requestion, transition=self.transition, form=form)
+                post_status_change.send(
+                    sender=Requestion, request=request, requestion=requestion,
+                    transition=self.transition, form=form)
+                # если все прошло без ошибок - сохраняем
+                transaction.commit()
+            # если возникли ошибки в ходе изменения статуса заявки - отображаем
+            # и отменяем ранее запланированные изменения
+            except TransitionNotRegistered as e:
+                transaction.rollback()
+                if e.requestion == requestion:
+                    messages.error(request, e.message)
+                else:
+                    err_msg = u"Ошибка изменения статуса текущей заявки. " \
+                              u"Вызвана заявкой {} с таким же идентифицирующим" \
+                              u" документом".format(e.requestion)
+                    messages.error(request, err_msg)
             return HttpResponseRedirect(self.redirect_to)
         else:
             return self.render_to_response(context)

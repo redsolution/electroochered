@@ -58,6 +58,7 @@ STATUS_ABSENT_EXPIRE = 54  # Сроки на обжалование отсутс
 STATUS_TEMP_ABSENT = 55  # Длительное отсутсвие по уважительной причине
 STATUS_DISTRIBUTED_FROM_ES = 56  # Зачислена через систему ЭлектроСад
 STATUS_SHORT_STAY = 57  # Посещает группу кратковременного пребывания
+STATUS_KG_LEAVE = 58  # Выпущен из ДОУ
 
 STATUS_CHOICES = (
     (STATUS_WAIT_REVIEW, u'Ожидает рассмотрения'),
@@ -82,6 +83,7 @@ STATUS_CHOICES = (
     (STATUS_TEMP_ABSENT, u'Длительное отсутсвие по уважительной причине'),
     (STATUS_DISTRIBUTED_FROM_ES, u"Зачислен"),
     (STATUS_SHORT_STAY, u"Посещает группу кратковременного пребывания"),
+    (STATUS_KG_LEAVE, u"Выпущен из ДОУ"),
 )
 
 STATUS_CHOICES_FILTER = (
@@ -93,6 +95,7 @@ STATUS_CHOICES_FILTER = (
     (STATUS_NOT_APPEAR, u'Не явился'),
     (STATUS_REMOVE_REGISTRATION, u'Снят с учёта'),
     (STATUS_ON_DISTRIBUTION, u'На комплектовании'),
+    (STATUS_KG_LEAVE, u"Выпущен из ДОУ"),
 )
 
 REQUESTION_MUTABLE_STATUSES = (
@@ -1131,6 +1134,18 @@ class Requestion(models.Model):
             content_type=ContentType.objects.get_for_model(self.__class__),
             object_id=self.id)
 
+    def get_birth_cert(self):
+        u"""
+        Метод возвращает свидетельство о рождении, связанное с заявкой.
+        Получаем список документов, связанных с заявкой. Возвращаем один,
+        удостоверяющий заявку.
+        """
+        try:
+            return self.evidience_documents().get(
+                template__destination=REQUESTION_IDENTITY)
+        except ObjectDoesNotExist:
+            return EvidienceDocument.objects.none()
+
     def get_other_ident_documents(self, confirmed=False):
         #!!!! Bug in empty queryset with values_list return non empty value
         # https://code.djangoproject.com/ticket/17712
@@ -1366,7 +1381,7 @@ class Requestion(models.Model):
             # Проверка на допустимость изменения статуса
             from sadiki.core.workflow import workflow
             if self.status not in workflow.available_transition_statuses(status):
-                raise TransitionNotRegistered
+                raise TransitionNotRegistered(self, status, self.status)
             # если заявке было выделено место или она окончательно зачислена,
             # то сохраняем дату и время
             if self.status == STATUS_DECISION:
@@ -1449,6 +1464,16 @@ class Requestion(models.Model):
         """
         self.previous_status = self.status
         self.status = new_status
+        self.save()
+
+    def update_registration_datetime(self, new_reg_datetime=None):
+        u"""
+        Обновляем дату и время подачи заявления. По умолчанию используются
+        текущее время.
+        """
+        if not new_reg_datetime:
+            new_reg_datetime = datetime.datetime.now()
+        self.registration_datetime = new_reg_datetime
         self.save()
 
     def __unicode__(self):
