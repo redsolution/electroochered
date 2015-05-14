@@ -406,6 +406,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         """
         if request.POST.get('confirmation') == "no":
             messages.info(request, u"Статус заявки не был изменен")
+            transaction.rollback()
             return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
         form = self.get_confirm_form(
@@ -428,6 +429,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                 transaction.rollback()
                 messages.error(request, e.message)
                 return HttpResponseRedirect(self.redirect_to)
+            except Exception:
+                transaction.rollback()
+                raise
 
             # если ошибка возникла во время применения изменений, вероятно
             # нарушено целостное состояние системы
@@ -458,8 +462,12 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u"Вызвана заявкой {} с таким же идентифицирующим" \
                               u" документом".format(e.requestion)
                     messages.error(request, err_msg)
+            except Exception:
+                transaction.rollback()
+                raise
             return HttpResponseRedirect(self.redirect_to)
         else:
+            transaction.rollback()
             return self.render_to_response(context)
 
 
