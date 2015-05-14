@@ -68,6 +68,6 @@ class TestSupervisorViews(TestCase):
         response = self.client.get(req_url)
         self.assertEqual(response.status_code, 200)
         btn_code = u'<a class="btn" href="{}">Повторная постановка на учет</a>'
-        self.assertIn(btn_code.format(
+        self.assertNotIn(btn_code.format(
             req_action_url), response.content.decode('utf8'))
 

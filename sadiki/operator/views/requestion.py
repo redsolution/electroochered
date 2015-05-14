@@ -323,6 +323,10 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         if transition_indexes:
             self.transition = workflow.get_transition_by_index(
                 transition_indexes[0])
+            if not self.transition.enabled:
+                messages.error(
+                    request, u"Недопустимое изменение статуса заявки")
+                return HttpResponseRedirect(self.redirect_to)
         else:
             self.transition = None
 
