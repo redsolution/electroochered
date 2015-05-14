@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
-from django.core.validators import MaxValueValidator
+from django.core.validators import MaxValueValidator, RegexValidator
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models.query_utils import Q
@@ -785,7 +785,12 @@ class Profile(models.Model):
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
     snils = models.CharField(
-        u'СНИЛС', max_length=50, null=True)
+        u'СНИЛС', max_length=50, null=True,
+        validators=[RegexValidator(
+            '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
+            message=u'СНИЛС должен иметь формат xxx-xxx-xxx xx'
+        ), ]
+    )
     town = models.CharField(
         max_length=50, verbose_name=u'Населенный пункт', null=True)
     street = models.CharField(
