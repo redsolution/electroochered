@@ -12,19 +12,11 @@ from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME, 
 
 
 class CoreViewsTest(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
-
-    @classmethod
-    def setUpClass(cls):
-        management.call_command('update_initial_data')
-
-    @classmethod
-    def tearDownClass(cls):
-        Permission.objects.all().delete()
-        Group.objects.all().delete()
-        BenefitCategory.objects.all().delete()
-        Sadik.objects.all().delete()
-        Address.objects.all().delete()
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+        ]
 
     def setUp(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
@@ -63,8 +55,10 @@ class CoreViewsTest(TestCase):
         пользователя.
         """
         settings.TEST_MODE = True
+
         management.call_command('generate_sadiks', 10)
         kgs = Sadik.objects.all()
+        url = reverse('anonym_registration')
         form_data = {
             'core-evidiencedocument-content_type-object_id-TOTAL_FORMS': '1',
             'core-evidiencedocument-content_type-object_id-INITIAL_FORMS': '0',
@@ -77,7 +71,7 @@ class CoreViewsTest(TestCase):
         self.assertIsNone(self.client.session.get('token', None))
         # заявка не сохраняется, редирект на страницу добавления заявки
         create_response = self.client.post(
-            reverse('anonym_registration'), {
+            url, {
                 'name': 'Ann',
                 'sex': 'Ж',
                 'birth_date': '07.06.2014',
@@ -89,12 +83,11 @@ class CoreViewsTest(TestCase):
                 'pref_sadiks': [str(kgs[0].id), str(kgs[1].id)],
             })
         self.assertEqual(create_response.status_code, 302)
-        self.assertRedirects(create_response,
-                             reverse('anonym_registration'))
+        self.assertRedirects(create_response, url)
         self.assertIsNotNone(self.client.session.get('token'))
 
         # зашли на страницу с формой, токен появился
-        response = self.client.get(reverse('anonym_registration'))
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         token = response.context['form']['token'].value()
         self.assertIsNotNone(self.client.session.get('token'))
@@ -113,8 +106,7 @@ class CoreViewsTest(TestCase):
              'token': token,
              'pref_sadiks': [str(kgs[0].id), str(kgs[1].id)], }
         )
-        create_response = self.client.post(
-            reverse('anonym_registration'), form_data)
+        create_response = self.client.post(url, form_data)
         requestion = create_response.context['requestion']
         self.assertEqual(create_response.status_code, 302)
         self.assertRedirects(
@@ -133,8 +125,7 @@ class CoreViewsTest(TestCase):
              'areas': '2',
              'token': token, }
         )
-        create_response = self.client.post(
-            reverse('anonym_registration'), form_data)
+        create_response = self.client.post(url, form_data)
         self.assertEqual(create_response.status_code, 302)
         token_req_num = self.client.session['token'][token]
         self.assertRedirects(
@@ -152,12 +143,9 @@ class CoreViewsTest(TestCase):
              'areas': '2',
              'token': 'some-wrong-token', }
         )
-        create_response = self.client.post(
-            reverse('anonym_registration'), form_data)
+        create_response = self.client.post(url, form_data)
         self.assertEqual(create_response.status_code, 302)
-        self.assertRedirects(
-            create_response,
-            reverse('anonym_registration'))
+        self.assertRedirects(create_response, url)
         self.assertIsNotNone(self.client.session.get('token'))
         self.assertEqual(len(self.client.session['token']), 3)
 

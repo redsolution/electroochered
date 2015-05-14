@@ -21,10 +21,13 @@ SUPERVISOR_PASSWORD = "password"
 
 
 class TestSupervisorViews(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+    ]
 
     def setUp(self):
-        management.call_command('update_initial_data')
         management.call_command('generate_sadiks', 1)
 
         address = Address.objects.create(
