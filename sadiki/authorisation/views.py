@@ -115,6 +115,8 @@ def password_set(request):
     u"""
     Если у пользователя не задан пароль, то не нужно запрашивать его
     """
+    if request.user.is_anonymous():
+        return HttpResponseRedirect(reverse('login'))
     if request.user.password and request.user.has_usable_password():
         raise Http404
     return password_change(

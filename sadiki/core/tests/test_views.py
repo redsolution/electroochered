@@ -174,11 +174,11 @@ class CoreViewsTest(TestCase):
         date_max = datetime.date(2013, 01, 01)
         date_min = datetime.date(2013, 01, 03)
 
-        requestion = Requestion.objects.order_by('?')[0]
+        requestion = Requestion.objects.all()[0]
         requestion.birth_date = date_min
         requestion.save()
 
-        requestion = Requestion.objects.order_by('?')[1]
+        requestion = Requestion.objects.all()[1]
         requestion.birth_date = date_max
         requestion.save()
 
