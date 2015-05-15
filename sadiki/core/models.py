@@ -788,9 +788,8 @@ class Profile(models.Model):
         u'СНИЛС', max_length=50, null=True,
         validators=[RegexValidator(
             '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
-            message=u'СНИЛС должен иметь формат xxx-xxx-xxx xx'
-        ), ]
-    )
+            message=u'СНИЛС должен быть записан в формате xxx-xxx-xxx xx'
+        ), ])
     town = models.CharField(
         max_length=50, verbose_name=u'Населенный пункт', null=True)
     street = models.CharField(
@@ -1078,7 +1077,11 @@ class Requestion(models.Model):
     birthplace = models.CharField(
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(
-        u'СНИЛС ребёнка', max_length=50, null=True)
+        u'СНИЛС ребёнка', max_length=50, null=True,
+        validators=[RegexValidator(
+            '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
+            message=u'СНИЛС должен быть записан в формате xxx-xxx-xxx xx'
+        ), ])
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
