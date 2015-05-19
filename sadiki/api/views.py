@@ -18,7 +18,7 @@ from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
     STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES, \
-    STATUS_KG_LEAVE
+    STATUS_KG_LEAVE, AgeGroup
 from sadiki.api.utils import add_requestions_data
 from sadiki.anonym.views import Queue
 from sadiki.operator.forms import ConfirmationForm, \
@@ -29,7 +29,7 @@ from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.serializers import RequestionGeoSerializer, \
-    AnonymRequestionGeoSerializer, SadikSerializer
+    AnonymRequestionGeoSerializer, SadikSerializer, AgeGroupSerializer
 from sadiki.logger.models import Logger
 
 
@@ -408,3 +408,11 @@ def serialize_requestions((queryset, serializer)):
 def get_simple_kindergtns(request):
     kgs = Sadik.objects.prefetch_related('age_groups').all()
     return JSONResponse(SadikSerializer(kgs, many=True).data)
+
+
+def get_age_groups(request):
+    u"""
+    Возвращает просто json-массив со всеми возрастными группами
+    """
+    age_groups = AgeGroup.objects.all()
+    return JSONResponse(AgeGroupSerializer(age_groups, many=True).data)
