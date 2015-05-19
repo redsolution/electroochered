@@ -4,7 +4,7 @@ from django.conf.urls import patterns, url, include
 from sadiki.api.views import get_distributions, get_distribution, get_child, \
     api_sign_test, get_kindergartens, ChangeRequestionStatus, \
     GetRequestionsByResolution, get_evidience_documents, get_requestions, \
-    RequestionsQueue, api_enc_test
+    RequestionsQueue, api_enc_test, get_simple_kindergtns
 
 urlpatterns = patterns('',
     url(r'^get_distributions/$', get_distributions),
@@ -17,4 +17,5 @@ urlpatterns = patterns('',
     url(r'^change_requestion_status/', ChangeRequestionStatus.as_view()),
     url(r'^requestions_by_resolution/', GetRequestionsByResolution.as_view()),
     url(r'^get_requestions/', RequestionsQueue.as_view()),
+    url(r'^get_simple_kg_info/', get_simple_kindergtns),
 )

@@ -29,7 +29,7 @@ from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     SHORT_STAY_DECISION_BY_RESOLUTION
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.serializers import RequestionGeoSerializer, \
-    AnonymRequestionGeoSerializer
+    AnonymRequestionGeoSerializer, SadikSerializer
 from sadiki.logger.models import Logger
 
 
@@ -403,3 +403,8 @@ class RequestionsQueue(Queue):
 def serialize_requestions((queryset, serializer)):
     requestions = serializer(queryset, many=True)
     return requestions.data
+
+
+def get_simple_kindergtns(request):
+    kgs = Sadik.objects.prefetch_related('age_groups').all()
+    return JSONResponse(SadikSerializer(kgs, many=True).data)
