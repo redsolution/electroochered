@@ -19,10 +19,13 @@ import random
 
 
 class TestAll(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+        ]
 
     def setUp(self):
-        management.call_command('update_initial_data')
         address = Address.objects.create(postindex=123456, street=u'ул.Кирова',
                                          building_number=17, )
         # Area.objects.create(name='test', ocato='123456')  # , address=address)

@@ -68,3 +68,10 @@ def get_personal_data(requestion):
             'phone': user_pdata.phone,
         })
     return pdata
+
+
+def is_active_child_status(status):
+    u"""
+    Проверяем числится ребенок активным в ЭС, или же выпущен
+    """
+    return status not in [3, 4, 5, 8, 9]

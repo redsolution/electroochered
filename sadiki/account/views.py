@@ -11,11 +11,13 @@ from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
+
 from sadiki.account.forms import RequestionForm, \
     BenefitsForm, ChangeRequestionForm,\
     PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 import sadiki.authorisation.views
+from sadiki.core.exceptions import TransitionNotAllowed
 from sadiki.core.models import Requestion, Benefit, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
@@ -233,8 +235,17 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
                     template__destination=BENEFIT_DOCUMENT))
         else:
             formset = None
-        if all((form.is_valid(), benefits_form.is_valid(),
-                (not formset or formset.is_valid()))):
+        try:
+            forms_valid = all((form.is_valid(), benefits_form.is_valid(),
+                               (not formset or formset.is_valid())))
+        except TransitionNotAllowed as e:
+            messages.error(request, e.message)
+            context.update({'form': form, 'benefits_form': benefits_form,
+                            'formset': formset,
+                            'openlayers_js': get_openlayers_js()})
+            return self.render_to_response(context)
+
+        if forms_valid:
             if not profile:
                 profile = self.create_profile()
             requestion = form.save(profile=profile)

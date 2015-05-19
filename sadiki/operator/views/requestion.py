@@ -323,6 +323,10 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         if transition_indexes:
             self.transition = workflow.get_transition_by_index(
                 transition_indexes[0])
+            if not self.transition.enabled:
+                messages.error(
+                    request, u"Недопустимое изменение статуса заявки")
+                return HttpResponseRedirect(self.redirect_to)
         else:
             self.transition = None
 
@@ -462,6 +466,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u"Вызвана заявкой {} с таким же идентифицирующим" \
                               u" документом".format(e.requestion)
                     messages.error(request, err_msg)
+            except TransitionNotAllowed as e:
+                transaction.rollback()
+                messages.error(request, e.message)
             except Exception:
                 transaction.rollback()
                 raise

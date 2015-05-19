@@ -46,6 +46,12 @@
 .imgicon.cert {background-position: -128px -128px;}
 .imgicon.wand {background-position: -192px -128px;}
 
+a.disabled {
+  pointer-events: none;
+  cursor: default;
+  color: gray;
+}
+
 
 /* Clear Floated Elements
 ----------------------------------------------------------------------------------------------------*/

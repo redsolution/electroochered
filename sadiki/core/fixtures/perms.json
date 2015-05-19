@@ -1,0 +1,56 @@
+[
+  {
+    "pk": 123,
+    "model": "auth.permission",
+    "fields": {
+      "codename": "is_administrator",
+      "name": "\u0410\u0434\u043c\u0438\u043d\u0438\u0441\u0442\u0440\u0430\u0442\u043e\u0440 \u0441\u0438\u0441\u0442\u0435\u043c\u044b",
+      "content_type": 3
+    }
+  },
+  {
+    "pk": 124,
+    "model": "auth.permission",
+    "fields": {
+      "codename": "is_distributor",
+      "name": "\u041e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439 \u0437\u0430 \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435",
+      "content_type": 3
+    }
+  },
+  {
+    "pk": 121,
+    "model": "auth.permission",
+    "fields": {
+      "codename": "is_operator",
+      "name": "\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440 \u0442\u0435\u0440\u0440\u0438\u0442\u043e\u0440\u0438\u0430\u043b\u044c\u043d\u043e\u0439 \u043e\u0431\u043b\u0430\u0441\u0442\u0438",
+      "content_type": 3
+    }
+  },
+  {
+    "pk": 122,
+    "model": "auth.permission",
+    "fields": {
+      "codename": "is_requester",
+      "name": "\u041f\u0440\u0435\u0434\u0441\u0442\u0430\u0432\u0438\u0442\u0435\u043b\u044c \u0440\u0435\u0431\u0435\u043d\u043a\u0430",
+      "content_type": 3
+    }
+  },
+  {
+    "pk": 126,
+    "model": "auth.permission",
+    "fields": {
+      "codename": "is_sadik_operator",
+      "name": "\u041e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439 \u0437\u0430 \u0432\u043d\u0435\u0448\u0442\u0430\u0442\u043d\u044b\u0435 \u0441\u0438\u0442\u0443\u0430\u0446\u0438\u0438",
+      "content_type": 3
+    }
+  },
+  {
+    "pk": 125,
+    "model": "auth.permission",
+    "fields": {
+      "codename": "is_supervisor",
+      "name": "\u041e\u0442\u0432\u0435\u0442\u0441\u0442\u0432\u0435\u043d\u043d\u044b\u0439 \u0437\u0430 \u0432\u043d\u0435\u0448\u0442\u0430\u0442\u043d\u044b\u0435 \u0441\u0438\u0442\u0443\u0430\u0446\u0438\u0438",
+      "content_type": 3
+    }
+  }
+]

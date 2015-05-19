@@ -11,6 +11,10 @@ SITE_ID = 1
 DEFAULT_FROM_EMAIL = 'noreply@example.com'
 SERVER_EMAIL = 'sadiki3'
 
+# Флаг, используемый для отключения запросов ко внешним api-сервисам во время
+# тестирования
+TEST_MODE = False
+
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
 USE_I18N = True
