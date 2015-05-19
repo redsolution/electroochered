@@ -49,6 +49,11 @@ class SadikListWithGroups(SadikOperatorPermissionMixin, TemplateView):
         return self.render_to_response(context)
 
 
+class SadikListWithGroupsJS(SadikOperatorPermissionMixin, TemplateView):
+    u"""для текущего распределения отображение списка ДОУ"""
+    template_name = 'operator/sadik_list_with_groups_js.html'
+
+
 class SadikInfoChange(SadikOperatorSadikMixin, TemplateView):
     u"""изменение информации о ДОУ"""
     template_name = "operator/sadik_info_change.html"
