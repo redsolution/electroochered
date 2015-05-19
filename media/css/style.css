@@ -1813,3 +1813,13 @@ dl {
   border: 0;
   padding: 0;
 }
+
+.fast-filter {
+  margin: 0 0 10px 0;
+  padding-left: 5px;
+  font-size: 14px;
+}
+  .fast-filter input {
+    width: 50%;
+    height: 20px;
+  }
