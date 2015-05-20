@@ -35,9 +35,8 @@ function KgListViewModel() {
   this.getAgeGroups = function(kg) {
     kg.ageGroups.removeAll();
     kg.ageGroupsIds().forEach(function(val) {
-      var val = val;
       var ageGroup = ko.utils.arrayFirst(self.ageGroups(), function(item) {
-        return val === item.id();;
+        return val === item.id();
       });
       kg.ageGroups.push(ageGroup);
     });
@@ -48,7 +47,7 @@ function KgListViewModel() {
     $.each(data, function(key, val) {
       self.KinderGtnList.push(new KinderGtn(val));
     });
-  }).error(function(e){
+  }).error(function(e) {
     console.log('error while downloading kindergtns list');
   });
 
@@ -57,7 +56,7 @@ function KgListViewModel() {
     $.each(data, function(key, val) {
       self.ageGroups.push(new AgeGroup(val));
     });
-  }).error(function(e){
+  }).error(function(e) {
     console.log('error while downloading agegroups list');
   });
 }
@@ -65,16 +64,25 @@ function KgListViewModel() {
 ko.applyBindings(new KgListViewModel());
 
 ko.bindingHandlers.highlightedText = {
-    update: function(element, valueAccessor) {
-        var options = valueAccessor();
-        var value = ko.utils.unwrapObservable(options.text);
-        var search = ko.utils.unwrapObservable(options.highlight);
-        if (options.sanitize) {
-            value = $('<div/>').text(value).html(); //could do this or something similar to escape HTML before replacement, if there is a risk of HTML injection in this value
-        }
-        // var replacement = '<span class="highlight">' + search + '</span>';
-        // element.innerHTML = value.replace(new RegExp(search, 'g'), replacement);
-        $(element).unhighlight();
-        $(element).highlight(search);
+  update: function(element, valueAccessor) {
+    var options = valueAccessor();
+    var value = ko.utils.unwrapObservable(options.text);
+    var search = ko.utils.unwrapObservable(options.highlight);
+    // remove previous highlight, if no filter value present
+    if (search.length === 0) {
+      element.innerHTML = value;
+      return;
     }
+    //could do this or something similar to escape HTML before replacement, if there is a risk of HTML injection in this value
+    if (options.sanitize) {
+      value = $('<div/>').text(value).html();
+    }
+    var re = new RegExp(search, 'ig');
+    // if found matches - highlighting them
+    var match = value.match(re);
+    if (match) {
+      var replacement = '<span class="highlight">' + match[0] + '</span>';
+      element.innerHTML = value.replace(re, replacement);
+    }
+  }
 };
