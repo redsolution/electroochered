@@ -1823,3 +1823,7 @@ dl {
     width: 50%;
     height: 20px;
   }
+
+.highlight {
+  background-color: #FFFC00;
+}

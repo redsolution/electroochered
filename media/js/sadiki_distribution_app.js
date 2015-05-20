@@ -63,3 +63,18 @@ function KgListViewModel() {
 }
 
 ko.applyBindings(new KgListViewModel());
+
+ko.bindingHandlers.highlightedText = {
+    update: function(element, valueAccessor) {
+        var options = valueAccessor();
+        var value = ko.utils.unwrapObservable(options.text);
+        var search = ko.utils.unwrapObservable(options.highlight);
+        if (options.sanitize) {
+            value = $('<div/>').text(value).html(); //could do this or something similar to escape HTML before replacement, if there is a risk of HTML injection in this value
+        }
+        // var replacement = '<span class="highlight">' + search + '</span>';
+        // element.innerHTML = value.replace(new RegExp(search, 'g'), replacement);
+        $(element).unhighlight();
+        $(element).highlight(search);
+    }
+};

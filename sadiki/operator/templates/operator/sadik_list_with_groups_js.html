@@ -14,7 +14,7 @@
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse"
          data-parent="#kindergtn-list-accordion"
-         data-bind="text: shortName, attr: {href: '#kindergtn_' + id()}, click: $parent.getAgeGroups"
+         data-bind="text: shortName, attr: {href: '#kindergtn_' + id()}, click: $parent.getAgeGroups, highlightedText: { text: shortName, highlight: $parent.filterText}"
          href=""></a>
     </div>
     <div id="" class="accordion-body collapse" data-bind="attr: {id: 'kindergtn_' + id()}">
@@ -43,6 +43,7 @@
 
 {% block bottomjs %}
   {{ block.super }}
+  <script type='text/javascript' src='{{ STATIC_URL }}js/jquery.highlight.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout-3.3.0.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/sadiki_distribution_app.js'></script>
 {% endblock bottomjs %}
