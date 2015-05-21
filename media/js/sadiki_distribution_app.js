@@ -3,7 +3,11 @@ function KinderGtn(data) {
   this.id = ko.observable(data.id);
   this.shortName = ko.observable(data.short_name);
   this.ageGroupsIds = ko.observable(data.age_groups);
-  this.ageGroups = ko.observableArray([]);
+  this.ageGroups = ko.observableArray();
+
+  this.addAgeGroup = function(data) {
+    this.ageGroups.push(new AgeGroup(data));
+  };
 }
 
 function AgeGroup(data) {
@@ -16,10 +20,10 @@ function AgeGroup(data) {
 
 function KgListViewModel() {
   var self = this;
-  this.KinderGtnList = ko.observableArray([]);
+  this.KinderGtnList = ko.observableArray();
   this.filterText = ko.observable('');
 
-  this.ageGroups = ko.observableArray([]);
+  this.ageGroups = ko.observableArray();
 
   // selecting kindergartens to show on the page, filtering them
   this.kindergtnsToShow = ko.pureComputed(function() {
@@ -33,13 +37,15 @@ function KgListViewModel() {
   }, this);
 
   this.getAgeGroups = function(kg) {
-    kg.ageGroups.removeAll();
-    kg.ageGroupsIds().forEach(function(val) {
-      var ageGroup = ko.utils.arrayFirst(self.ageGroups(), function(item) {
-        return val === item.id();
+    if (kg.ageGroups().length != kg.ageGroupsIds().length) {
+      kg.ageGroups.removeAll();
+      var filteredAgeGroups = ko.mapping.toJS(ko.utils.arrayFilter(self.ageGroups(), function(item) {
+        return kg.ageGroupsIds().indexOf(item.id()) > -1;
+      }));
+      filteredAgeGroups.forEach(function(data) {
+        kg.addAgeGroup(data);
       });
-      kg.ageGroups.push(ageGroup);
-    });
+    }
   };
 
   // downloading json of kindergartens objects
@@ -73,7 +79,8 @@ ko.bindingHandlers.highlightedText = {
       element.innerHTML = value;
       return;
     }
-    //could do this or something similar to escape HTML before replacement, if there is a risk of HTML injection in this value
+    // could do this or something similar to escape HTML before replacement,
+    // if there is a risk of HTML injection in this value
     if (options.sanitize) {
       value = $('<div/>').text(value).html();
     }
