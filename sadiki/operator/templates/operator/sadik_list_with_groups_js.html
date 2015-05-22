@@ -14,27 +14,34 @@
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse"
          data-parent="#kindergtn-list-accordion"
-         data-bind="text: shortName, attr: {href: '#kindergtn_' + id()}, click: $parent.getAgeGroups, highlightedText: { text: shortName, highlight: $parent.filterText}"
+         data-bind="text: shortName, attr: {href: '#kindergtn_' + id()}, click: $parent.getSadikGroups, highlightedText: { text: shortName, highlight: $parent.filterText}"
          href=""></a>
     </div>
     <div id="" class="accordion-body collapse" data-bind="attr: {id: 'kindergtn_' + id()}">
       <div class="accordion-inner">
-        <table class="table table-striped table-bordered table-condensed places-table">
-          <thead>
-            <tr>
-              <th>Возрастная категория</th>
-              <th class="capacity">Выделено мест</th>
-              <th class="free-places">Свободных мест</th>
-            </tr>
-          </thead>
-          <tbody data-bind="foreach: ageGroups">
-            <tr>
-              <td data-bind="text: name"></td>
-              <td>0</td>
-              <td>0</td>
-            </tr>
-          </tbody>
-        </table>
+        <!-- ko if: display -->
+          <table class="table table-striped table-bordered table-condensed places-table">
+            <thead>
+              <tr>
+                <th>Возрастная категория</th>
+                <th class="capacity">Выделено мест</th>
+                <th class="free-places">Свободных мест</th>
+              </tr>
+            </thead>
+            <tbody data-bind="foreach: sadikGroups">
+              <tr>
+                <td data-bind="text: name"></td>
+                <td data-bind="text: freePlaces"></td>
+                <td data-bind="text: capacity"></td>
+              </tr>
+            </tbody>
+          </table>
+        <!-- /ko -->
+        <!-- ko ifnot: display -->
+          <div class="alert">
+            <strong>Ошибка!</strong> <span data-bind="text: errMsg"></span>
+          </div>
+        <!-- /ko -->
       </div>
     </div>
   </div>

@@ -4,13 +4,15 @@ from django.conf.urls import patterns, url, include
 from sadiki.api.views import get_distributions, get_distribution, get_child, \
     api_sign_test, get_kindergartens, ChangeRequestionStatus, \
     GetRequestionsByResolution, get_evidience_documents, get_requestions, \
-    RequestionsQueue, api_enc_test, get_simple_kindergtns, get_age_groups
+    RequestionsQueue, api_enc_test, get_simple_kindergtns, get_age_groups, \
+    get_groups_for_sadik
 
 urlpatterns = patterns(
     '',
     # ДОУ
     url(r'^get_kg_info/', get_kindergartens),
-    url(r'^get_simple_kg_info/', get_simple_kindergtns),
+    url(r'^sadik/simple_info/', get_simple_kindergtns),
+    url(r'^sadik/(?P<sadik_id>\d{1,7})/groups/', get_groups_for_sadik),
 
     # Заявки
     url(r'^get_child/', get_child),

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from rest_framework import serializers
 
-from sadiki.core.models import Requestion, Sadik, AgeGroup
+from sadiki.core.models import Requestion, Sadik, AgeGroup, SadikGroup
 
 
 class RequestionGeoSerializer(serializers.ModelSerializer):
@@ -36,3 +36,9 @@ class AgeGroupSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'short_name', 'max_birth_date',
                   'min_birth_date')
         read_only_fields = ('id', 'name', 'short_name')
+
+
+class SadikGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SadikGroup
+        fields = ('id', 'age_group', 'capacity', 'free_places')

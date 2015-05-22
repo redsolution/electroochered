@@ -1,13 +1,19 @@
 // model function for kindergtn
 function KinderGtn(data) {
+  var self = this;
   this.id = ko.observable(data.id);
+  this.display = ko.observable(true);
+  this.errMsg = ko.observable('');
   this.shortName = ko.observable(data.short_name);
   this.ageGroupsIds = ko.observable(data.age_groups);
-  this.ageGroups = ko.observableArray();
+  this.sadikGroups = ko.observableArray();
 
-  this.addAgeGroup = function(data) {
-    this.ageGroups.push(new AgeGroup(data));
+  this.addSadikGroup = function(data, ageGroups) {
+    var sadikGroup = new SadikGroup(data, ageGroups);
+    this.sadikGroups.push(sadikGroup);
+    return sadikGroup;
   };
+
 }
 
 function AgeGroup(data) {
@@ -17,6 +23,27 @@ function AgeGroup(data) {
   this.minBirthDate = ko.observable(data.min_birth_date);
   this.maxBirthDate = ko.observable(data.max_birth_date);
 }
+
+function SadikGroup(data, ageGroups) {
+  self = this;
+  this.id = ko.observable(data.id || '');
+  this.capacity = ko.observable(data.capacity || 0);
+  this.freePlaces = ko.observable(data.free_places || 0);
+  this.ageGroup = ko.observable(data.age_group);
+  this.renderName = ko.observable();
+
+  this.ageGroups = ageGroups;
+
+  this.name = ko.pureComputed(function() {
+    var ageGroupId = self.ageGroup();
+    var ageGroup = ko.utils.arrayFirst(self.ageGroups(), function(item) {
+      return item.id() === ageGroupId;
+    });
+    return ageGroup.name();
+  }, this);
+}
+
+
 
 function KgListViewModel() {
   var self = this;
@@ -36,9 +63,9 @@ function KgListViewModel() {
     return this.KinderGtnList();
   }, this);
 
-  this.getAgeGroups = function(kg) {
-    if (kg.ageGroups().length != kg.ageGroupsIds().length) {
-      kg.ageGroups.removeAll();
+  this.renderSadikGroups = function(kg) {
+    if (!kg.sadikGroups().length) {
+      self.getSadikGroups(kg);
       var filteredAgeGroups = ko.mapping.toJS(ko.utils.arrayFilter(self.ageGroups(), function(item) {
         return kg.ageGroupsIds().indexOf(item.id()) > -1;
       }));
@@ -48,8 +75,41 @@ function KgListViewModel() {
     }
   };
 
+  this.getSadikGroups = function(kg, event) {
+    // block default slidup untill we get all groups
+    event.stopPropagation();
+    var el = $(event.target).parents('.accordion-group').find('.accordion-body');
+    if (kg.sadikGroups().length || !kg.display()) {
+      el.collapse('toggle');
+      return;
+    }
+
+    $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
+      $.each(kg.ageGroupsIds(), function(key, val) {
+        // ищем подходящую группу среди полученных активных групп в садике
+        sadikGroup = data.filter(function(item) {
+          return item.age_group == val;
+        });
+        // если такая группа есть и она одна - используем её данные
+        if (sadikGroup.length == 1) {
+          kg.addSadikGroup(sadikGroup[0], self.ageGroups);
+          // если таких групп несколько - ошибка, запрещаем работу с ДОУ
+        } else if (sadikGroup.length > 1) {
+          kg.display(false);
+          kg.errMsg('Данный ДОУ содержит более одной активной группы для определенного возраста. Сообщите о проблеме в техническую поддержку.')
+            // если такой группы нет - создаем новую
+        } else {
+          kg.addSadikGroup({'age_group': val}, self.ageGroups);
+        }
+      });
+      el.collapse('show');
+    }).error(function(e) {
+      console.log('error while downloading sadikgroups list');
+    });
+  };
+
   // downloading json of kindergartens objects
-  $.getJSON('/api2/get_simple_kg_info/', function(data) {
+  $.getJSON('/api2/sadik/simple_info/', function(data) {
     $.each(data, function(key, val) {
       self.KinderGtnList.push(new KinderGtn(val));
     });
