@@ -21,7 +21,7 @@ function KinderGtn(data) {
     if (self.allowedStatus.indexOf(status) > -1) {
       self.status(status);
     }
-  }
+  };
 
   this.isInitial = ko.pureComputed(function() {
     return self.status() == 'initial';
@@ -103,7 +103,7 @@ function KgListViewModel() {
           // если таких групп несколько - ошибка, запрещаем работу с ДОУ
         } else if (sadikGroup.length > 1) {
           kg.display(false);
-          kg.errMsg('Данный ДОУ содержит более одной активной группы для определенного возраста. Сообщите о проблеме в техническую поддержку.')
+          kg.errMsg('Данный ДОУ содержит более одной активной группы для определенного возраста. Сообщите о проблеме в техническую поддержку.');
             // если такой группы нет - создаем новую
         } else {
           kg.addSadikGroup({'age_group': val}, self.ageGroups);
@@ -111,7 +111,7 @@ function KgListViewModel() {
       });
     }).error(function(e) {
       kg.display(false);
-      kg.errMsg('Ошибка при попытке загрузить данные о доступных для зачисления группах. Обновите страницу и попробуйте еще раз')
+      kg.errMsg('Ошибка при попытке загрузить данные о доступных для зачисления группах. Обновите страницу и попробуйте еще раз');
       console.log('error while downloading sadikgroups list');
     }).always(function() {
       kg.setStatus('ready');
@@ -165,8 +165,8 @@ ko.bindingHandlers.highlightedText = {
 };
 
 /** Binding to make content appear with 'fade' effect */
-ko.bindingHandlers['fadeIn'] = {
-    'update': function(element, valueAccessor) {
+ko.bindingHandlers.fadeIn = {
+    update: function(element, valueAccessor) {
         var options = valueAccessor();
         if(options() === true)
           $(element).hide().slideDown('slow');
