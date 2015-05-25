@@ -23,7 +23,8 @@ class AnonymRequestionGeoSerializer(serializers.ModelSerializer):
 class SadikSerializer(serializers.ModelSerializer):
     class Meta:
         model = Sadik
-        fields = ('id', 'short_name', 'age_groups')
+        fields = ('id', 'short_name', 'age_groups',
+                  'active_registration', 'active_distribution')
         read_only_fields = fields
 
 

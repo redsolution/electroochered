@@ -10,6 +10,7 @@ function KinderGtn(data) {
   this.shortName = ko.observable(data.short_name);
   this.ageGroupsIds = ko.observable(data.age_groups);
   this.sadikGroups = ko.observableArray();
+  this.activeDistribution = ko.observable(data.active_distribution || false);
 
   this.addSadikGroup = function(data, ageGroups) {
     var sadikGroup = new SadikGroup(data, ageGroups);
@@ -34,6 +35,14 @@ function KinderGtn(data) {
 
   this.isReady = ko.pureComputed(function() {
     return self.status() == 'ready';
+  }, this);
+
+  this.fullName = ko.pureComputed(function() {
+    if (self.activeDistribution()) {
+      return self.shortName();
+    } else {
+      return self.shortName() + ' - Этот ДОУ не принимает участия в респеделении';
+    }
   }, this);
 
 }
@@ -73,6 +82,14 @@ function KgListViewModel() {
   this.filterText = ko.observable('');
 
   this.ageGroups = ko.observableArray();
+  this.viewStatus = ko.observable();
+
+  self.init = function() {
+    this.viewStatus("Загружается список ДОУ и данные возрастных групп...");
+    var kgxhr = self.loadKinderGtns();
+    var agxhr = self.loadAgeGroups();
+    $.when(kgxhr, agxhr).done(function() {self.viewStatus('');});
+  }
 
   // selecting kindergartens to show on the page, filtering them
   this.kindergtnsToShow = ko.pureComputed(function() {
@@ -119,25 +136,34 @@ function KgListViewModel() {
   };
 
   // downloading json of kindergartens objects
-  $.getJSON('/api2/sadik/simple_info/', function(data) {
-    $.each(data, function(key, val) {
-      self.KinderGtnList.push(new KinderGtn(val));
+  self.loadKinderGtns = function() {
+    var xhr = $.getJSON('/api2/sadik/simple_info/', function(data) {
+      $.each(data, function(key, val) {
+        self.KinderGtnList.push(new KinderGtn(val));
+      });
+    }).error(function(e) {
+      console.log('error while downloading kindergtns list');
     });
-  }).error(function(e) {
-    console.log('error while downloading kindergtns list');
-  });
+    return xhr;
+  };
 
-  // downloading json of agegroups objects
-  $.getJSON('/api2/age_groups/', function(data) {
-    $.each(data, function(key, val) {
-      self.ageGroups.push(new AgeGroup(val));
+  self.loadAgeGroups = function() {
+    // downloading json of agegroups objects
+    var xhr = $.getJSON('/api2/age_groups/', function(data) {
+      $.each(data, function(key, val) {
+        self.ageGroups.push(new AgeGroup(val));
+      });
+    }).error(function(e) {
+      console.log('error while downloading agegroups list');
     });
-  }).error(function(e) {
-    console.log('error while downloading agegroups list');
-  });
+    return xhr;
+  };
 }
 
-ko.applyBindings(new KgListViewModel());
+vm = new KgListViewModel();
+ko.applyBindings(vm);
+
+vm.init();
 
 ko.bindingHandlers.highlightedText = {
   update: function(element, valueAccessor) {
