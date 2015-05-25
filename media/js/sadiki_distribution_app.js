@@ -1,9 +1,12 @@
 // model function for kindergtn
 function KinderGtn(data) {
   var self = this;
-  this.id = ko.observable(data.id);
   this.display = ko.observable(true);
+  this.status = ko.observable('initial');
   this.errMsg = ko.observable('');
+  this.allowedStatus = ['initial', 'processing', 'ready'];
+
+  this.id = ko.observable(data.id);
   this.shortName = ko.observable(data.short_name);
   this.ageGroupsIds = ko.observable(data.age_groups);
   this.sadikGroups = ko.observableArray();
@@ -13,6 +16,25 @@ function KinderGtn(data) {
     this.sadikGroups.push(sadikGroup);
     return sadikGroup;
   };
+
+  this.setStatus = function(status) {
+    if (self.allowedStatus.indexOf(status) > -1) {
+      self.status(status);
+    }
+  }
+
+  this.isInitial = ko.pureComputed(function() {
+    return self.status() == 'initial';
+  }, this);
+
+  this.isProcessing = ko.pureComputed(function() {
+    return self.status() == 'processing';
+  }, this);
+
+
+  this.isReady = ko.pureComputed(function() {
+    return self.status() == 'ready';
+  }, this);
 
 }
 
@@ -63,27 +85,12 @@ function KgListViewModel() {
     return this.KinderGtnList();
   }, this);
 
-  this.renderSadikGroups = function(kg) {
-    if (!kg.sadikGroups().length) {
-      self.getSadikGroups(kg);
-      var filteredAgeGroups = ko.mapping.toJS(ko.utils.arrayFilter(self.ageGroups(), function(item) {
-        return kg.ageGroupsIds().indexOf(item.id()) > -1;
-      }));
-      filteredAgeGroups.forEach(function(data) {
-        kg.addAgeGroup(data);
-      });
-    }
-  };
-
-  this.getSadikGroups = function(kg, event) {
-    // block default slidup untill we get all groups
-    event.stopPropagation();
-    var el = $(event.target).parents('.accordion-group').find('.accordion-body');
-    if (kg.sadikGroups().length || !kg.display()) {
-      el.collapse('toggle');
+  this.getSadikGroups = function(kg) {
+    if (kg.isProcessing() || kg.isReady()) {
       return;
     }
 
+    kg.setStatus('processing');
     $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
       $.each(kg.ageGroupsIds(), function(key, val) {
         // ищем подходящую группу среди полученных активных групп в садике
@@ -102,9 +109,12 @@ function KgListViewModel() {
           kg.addSadikGroup({'age_group': val}, self.ageGroups);
         }
       });
-      el.collapse('show');
     }).error(function(e) {
+      kg.display(false);
+      kg.errMsg('Ошибка при попытке загрузить данные о доступных для зачисления группах. Обновите страницу и попробуйте еще раз')
       console.log('error while downloading sadikgroups list');
+    }).always(function() {
+      kg.setStatus('ready');
     });
   };
 
@@ -152,4 +162,14 @@ ko.bindingHandlers.highlightedText = {
       element.innerHTML = value.replace(re, replacement);
     }
   }
+};
+
+/** Binding to make content appear with 'fade' effect */
+ko.bindingHandlers['fadeIn'] = {
+    'update': function(element, valueAccessor) {
+        var options = valueAccessor();
+        if(options() === true)
+          $(element).hide().slideDown('slow');
+          // $(element).fadeIn('slow');
+    }
 };
