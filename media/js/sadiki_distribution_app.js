@@ -12,8 +12,8 @@ function KinderGtn(data) {
   this.sadikGroups = ko.observableArray();
   this.activeDistribution = ko.observable(data.active_distribution || false);
 
-  this.addSadikGroup = function(data, ageGroups) {
-    var sadikGroup = new SadikGroup(data, ageGroups);
+  this.addSadikGroup = function(data) {
+    var sadikGroup = new SadikGroup(data);
     this.sadikGroups.push(sadikGroup);
     return sadikGroup;
   };
@@ -22,6 +22,10 @@ function KinderGtn(data) {
     if (self.allowedStatus.indexOf(status) > -1) {
       self.status(status);
     }
+  };
+
+  this.saveSadikGroups = function() {
+    console.log(ko.toJSON(self.sadikGroups()));
   };
 
   this.isInitial = ko.pureComputed(function() {
@@ -55,23 +59,21 @@ function AgeGroup(data) {
   this.maxBirthDate = ko.observable(data.max_birth_date);
 }
 
-function SadikGroup(data, ageGroups) {
+function SadikGroup(data) {
   self = this;
   this.id = ko.observable(data.id || '');
   this.capacity = ko.observable(data.capacity || 0);
   this.freePlaces = ko.observable(data.free_places || 0);
   this.ageGroup = ko.observable(data.age_group);
-  this.renderName = ko.observable();
+  this.name = ko.observable();
 
-  this.ageGroups = ageGroups;
-
-  this.name = ko.pureComputed(function() {
+  this.setName = function(ageGroups) {
     var ageGroupId = self.ageGroup();
-    var ageGroup = ko.utils.arrayFirst(self.ageGroups(), function(item) {
+    var ageGroup = ko.utils.arrayFirst(ageGroups(), function(item) {
       return item.id() === ageGroupId;
     });
-    return ageGroup.name();
-  }, this);
+    self.name(ageGroup.name());
+  };
 }
 
 
@@ -116,14 +118,16 @@ function KgListViewModel() {
         });
         // если такая группа есть и она одна - используем её данные
         if (sadikGroup.length == 1) {
-          kg.addSadikGroup(sadikGroup[0], self.ageGroups);
+          var sg = kg.addSadikGroup(sadikGroup[0]);
+          sg.setName(self.ageGroups);
           // если таких групп несколько - ошибка, запрещаем работу с ДОУ
         } else if (sadikGroup.length > 1) {
           kg.display(false);
           kg.errMsg('Данный ДОУ содержит более одной активной группы для определенного возраста. Сообщите о проблеме в техническую поддержку.');
             // если такой группы нет - создаем новую
         } else {
-          kg.addSadikGroup({'age_group': val}, self.ageGroups);
+          var sg = kg.addSadikGroup({'age_group': val}, self.ageGroups);
+          sg.setName(self.ageGroups);
         }
       });
     }).error(function(e) {
