@@ -3,7 +3,7 @@ function KinderGtn(data) {
   var self = this;
   this.display = ko.observable(true);
   this.status = ko.observable('initial');
-  this.errMsg = ko.observable('');
+  this.disabled = ko.observable(false);
   this.messages = ko.observableArray();
   this.allowedStatus = ['initial', 'processing', 'ready'];
 
@@ -60,7 +60,7 @@ function SadikGroup(data) {
   self = this;
   this.id = ko.observable(data.id || null);
   this.capacity = ko.observable(data.capacity || 0);
-  this.freePlaces = ko.observable(data.free_places || 0);
+  this.freePlaces = ko.observable(data.free_places || 0).extend({trackChange: true});
   this.ageGroup = ko.observable(data.age_group);
   this.name = ko.observable();
 
@@ -163,16 +163,23 @@ function KgListViewModel() {
   };
 
   this.saveSadikGroups = function(kg) {
-    if (kg.isProcessing()) {
+    if (kg.disabled()) {
       return;
     }
-    var data = ko.toJSON(kg.sadikGroups());
-    $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
-      kg.sadikGroups.removeAll();
-      self.addGroupsToKindergtn(kg, returnedData);
-      kg.messages.push(new Message({'class': 'alert-success', 'message': 'Данные успешно сохранены'}));
-    }).always(function() {
-    });
+    var rawData = kg.sadikGroups().filter(function(item){return item.freePlaces.isChanged()});
+    if (rawData.length) {
+      kg.disabled(true);
+      var data = ko.toJSON(rawData);
+      $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
+        kg.sadikGroups.removeAll();
+        self.addGroupsToKindergtn(kg, returnedData);
+        kg.messages.push(new Message({'class': 'alert-success', 'message': 'Данные успешно сохранены'}));
+      }).always(function() {
+        kg.disabled(false);
+      });
+    } else {
+      kg.messages.push(new Message({'class': 'alert-info', 'message': 'Данные не изменялись'}));
+    }
   };
 
   // downloading json of kindergartens objects
@@ -239,6 +246,19 @@ ko.bindingHandlers.fadeIn = {
           // $(element).fadeIn('slow');
     }
 };
+
+ko.extenders.trackChange = function (target, track) {
+    if (track) {
+        target.isChanged = ko.observable(false);
+        target.originalValue = target();
+        target.subscribe(function (newValue) {
+            // use != not !== so numbers will equate naturally
+            target.isChanged(newValue != target.originalValue);
+        });
+    }
+    return target;
+};
+
 
 
 // This function gets cookie with a given name
