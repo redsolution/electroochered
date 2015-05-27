@@ -46,7 +46,7 @@
             </table>
             <div class="button-block">
               <button class="btn btn-primary" data-toggle="collapse" data-bind="attr: {'data-target': '#kindergtn_' + id()}">Закрыть</button>
-              <button class="btn btn-primary" data-bind="click: saveSadikGroups, disable: $root.distributionIsActive" type="submit">Сохранить</button>
+              <button class="btn btn-primary" data-bind="click: $parent.saveSadikGroups, disable: $root.distributionIsActive " type="submit">Сохранить</button>
             </div>
           </div>
           <div class="alert inside-accordion" data-bind="visible: !display()">

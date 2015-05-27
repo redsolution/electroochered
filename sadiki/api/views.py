@@ -6,6 +6,7 @@ from multiprocessing import Pool
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.template.context import RequestContext
 from django.utils import simplejson
@@ -31,6 +32,7 @@ from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.serializers import RequestionGeoSerializer, \
     AnonymRequestionGeoSerializer, SadikSerializer, AgeGroupSerializer, \
     SadikGroupSerializer
+from sadiki.core.utils import get_current_distribution_year
 from sadiki.logger.models import Logger
 
 
@@ -420,5 +422,23 @@ def get_age_groups(request):
 
 
 def get_groups_for_sadik(request, sadik_id):
+    kg = get_object_or_404(Sadik, pk=sadik_id)
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        year = get_current_distribution_year()
+        for sg_data in data:
+            age_group = AgeGroup.objects.get(pk=sg_data['ageGroup'])
+            if sg_data['id']:
+                sadik_group = SadikGroup.objects.get(pk=sg_data['id'])
+            else:
+                try:
+                    sadik_group = SadikGroup.objects.get(
+                        sadik=kg, active=True, age_group=age_group)
+                except ObjectDoesNotExist:
+                    sadik_group = SadikGroup(
+                        sadik=kg, active=True, age_group=age_group, year=year)
+                    sadik_group.set_default_age(age_group)
+            sadik_group.free_places = int(sg_data["freePlaces"])
+            sadik_group.save()
     sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
     return JSONResponse(SadikGroupSerializer(sgs, many=True).data)

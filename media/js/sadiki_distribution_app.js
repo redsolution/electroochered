@@ -24,10 +24,6 @@ function KinderGtn(data) {
     }
   };
 
-  this.saveSadikGroups = function() {
-    console.log(ko.toJSON(self.sadikGroups()));
-  };
-
   this.isInitial = ko.pureComputed(function() {
     return self.status() == 'initial';
   }, this);
@@ -61,7 +57,7 @@ function AgeGroup(data) {
 
 function SadikGroup(data) {
   self = this;
-  this.id = ko.observable(data.id || '');
+  this.id = ko.observable(data.id || null);
   this.capacity = ko.observable(data.capacity || 0);
   this.freePlaces = ko.observable(data.free_places || 0);
   this.ageGroup = ko.observable(data.age_group);
@@ -104,38 +100,61 @@ function KgListViewModel() {
     return this.KinderGtnList();
   }, this);
 
+  this.addGroupsToKindergtn = function(kg, data) {
+    /* Add groups to kindergtn according to it's array of allowed age groups.
+     * First - lookup for proper group data object in passed data array.
+     * If no group data for given age group foud, group generated
+     * automatically, with default values.
+     */
+
+    $.each(kg.ageGroupsIds(), function(key, val) {
+      // ищем подходящую группу среди активных возрастных групп в садике
+      sadikGroup = data.filter(function(item) {
+        return item.age_group == val;
+      });
+      // если такая группа есть и она одна - используем её данные
+      if (sadikGroup.length == 1) {
+        var sg = kg.addSadikGroup(sadikGroup[0]);
+        sg.setName(self.ageGroups);
+      // если таких групп несколько - ошибка, запрещаем работу с ДОУ
+      } else if (sadikGroup.length > 1) {
+        kg.display(false);
+        kg.errMsg('Данный ДОУ содержит более одной активной группы для определенного возраста. Сообщите о проблеме в техническую поддержку.');
+      // если такой группы нет - создаем новую
+      } else {
+        var sg = kg.addSadikGroup({'age_group': val}, self.ageGroups);
+        sg.setName(self.ageGroups);
+      }
+    });
+  }
+
   this.getSadikGroups = function(kg) {
     if (kg.isProcessing() || kg.isReady()) {
       return;
     }
 
     kg.setStatus('processing');
+
     $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
-      $.each(kg.ageGroupsIds(), function(key, val) {
-        // ищем подходящую группу среди полученных активных групп в садике
-        sadikGroup = data.filter(function(item) {
-          return item.age_group == val;
-        });
-        // если такая группа есть и она одна - используем её данные
-        if (sadikGroup.length == 1) {
-          var sg = kg.addSadikGroup(sadikGroup[0]);
-          sg.setName(self.ageGroups);
-          // если таких групп несколько - ошибка, запрещаем работу с ДОУ
-        } else if (sadikGroup.length > 1) {
-          kg.display(false);
-          kg.errMsg('Данный ДОУ содержит более одной активной группы для определенного возраста. Сообщите о проблеме в техническую поддержку.');
-            // если такой группы нет - создаем новую
-        } else {
-          var sg = kg.addSadikGroup({'age_group': val}, self.ageGroups);
-          sg.setName(self.ageGroups);
-        }
-      });
+      self.addGroupsToKindergtn(kg, data);
     }).error(function(e) {
       kg.display(false);
       kg.errMsg('Ошибка при попытке загрузить данные о доступных для зачисления группах. Обновите страницу и попробуйте еще раз');
       console.log('error while downloading sadikgroups list');
     }).always(function() {
       kg.setStatus('ready');
+    });
+  };
+
+  this.saveSadikGroups = function(kg) {
+    if (kg.isProcessing()) {
+      return;
+    }
+    var data = ko.toJSON(kg.sadikGroups())
+    $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
+      kg.sadikGroups.removeAll();
+      self.addGroupsToKindergtn(kg, returnedData);
+    }).always(function() {
     });
   };
 
@@ -203,3 +222,55 @@ ko.bindingHandlers.fadeIn = {
           // $(element).fadeIn('slow');
     }
 };
+
+
+// This function gets cookie with a given name
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');
+
+/*
+The functions below will create a header with csrftoken
+*/
+
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+function sameOrigin(url) {
+    // test that a given url is a same-origin URL
+    // url could be relative or scheme relative or absolute
+    var host = document.location.host; // host + port
+    var protocol = document.location.protocol;
+    var sr_origin = '//' + host;
+    var origin = protocol + sr_origin;
+    // Allow absolute or scheme relative URLs to same origin
+    return (url == origin || url.slice(0, origin.length + 1) == origin + '/') ||
+        (url == sr_origin || url.slice(0, sr_origin.length + 1) == sr_origin + '/') ||
+        // or any other URL that isn't scheme relative or absolute i.e relative.
+        !(/^(\/\/|http:|https:).*/.test(url));
+}
+
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && sameOrigin(settings.url)) {
+            // Send the token to same-origin, relative URLs only.
+            // Send the token only if the method warrants CSRF protection
+            // Using the CSRFToken value acquired earlier
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
