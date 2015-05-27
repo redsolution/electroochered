@@ -75,7 +75,6 @@ function SadikGroup(data, ageGroups) {
 }
 
 
-
 function KgListViewModel() {
   var self = this;
   this.KinderGtnList = ko.observableArray();
@@ -83,6 +82,7 @@ function KgListViewModel() {
 
   this.ageGroups = ko.observableArray();
   this.viewStatus = ko.observable();
+  this.distributionIsActive = ko.observable(distribution_is_active);
 
   self.init = function() {
     this.viewStatus("Загружается список ДОУ и данные возрастных групп...");

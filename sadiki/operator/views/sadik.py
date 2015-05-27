@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 from django.contrib import messages
 from django.core.urlresolvers import reverse
 from django.forms.models import inlineformset_factory
@@ -52,6 +54,12 @@ class SadikListWithGroups(SadikOperatorPermissionMixin, TemplateView):
 class SadikListWithGroupsJS(SadikOperatorPermissionMixin, TemplateView):
     u"""для текущего распределения отображение списка ДОУ"""
     template_name = 'operator/sadik_list_with_groups_js.html'
+
+    def get_context_data(self, **kwargs):
+        context = super(SadikListWithGroupsJS, self).get_context_data(**kwargs)
+        distribution = Distribution.objects.active()
+        context['distribution_is_active'] = json.dumps(bool(distribution))
+        return context
 
 
 class SadikInfoChange(SadikOperatorSadikMixin, TemplateView):
