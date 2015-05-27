@@ -27,6 +27,12 @@
     <div id="" class="accordion-body collapse" data-bind="attr: {id: 'kindergtn_' + id()}">
       <div class="accordion-inner">
         <div data-bind="visible: isReady(), fadeIn: isReady">
+          <!-- ko foreach: { data: messages, afterAdd: $root.showMessage } -->
+            <div class="alert" data-bind="css: msgClass, afterAdd: fadeIn">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              <span data-bind="text: message"></span>
+            </div>
+          <!-- /ko -->
           <div data-bind="visible: display()">
             <table class="table table-striped table-bordered table-condensed places-table inside-accordion">
               <thead>
@@ -48,9 +54,6 @@
               <button class="btn btn-primary" data-toggle="collapse" data-bind="attr: {'data-target': '#kindergtn_' + id()}">Закрыть</button>
               <button class="btn btn-primary" data-bind="click: $parent.saveSadikGroups, disable: $root.distributionIsActive " type="submit">Сохранить</button>
             </div>
-          </div>
-          <div class="alert inside-accordion" data-bind="visible: !display()">
-            <strong>Ошибка!</strong> <span data-bind="text: errMsg"></span>
           </div>
         </div>
       </div>
