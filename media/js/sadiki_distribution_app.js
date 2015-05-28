@@ -1,7 +1,7 @@
 // model function for kindergtn
 function KinderGtn(data) {
   var self = this;
-  this.display = ko.observable(true);
+  this.display = ko.observable(false);
   this.status = ko.observable('initial');
   this.disabled = ko.observable(false);
   this.messages = ko.observableArray();
@@ -105,7 +105,11 @@ function KgListViewModel() {
     return this.KinderGtnList();
   }, this);
 
-  this.showMessage = function(elem) { if (elem.nodeType === 1) $(elem).hide().slideDown(); };
+  this.showMessage = function(elem) {
+    if (elem.nodeType === 1) {
+      $(elem).hide().slideDown();
+    }
+  };
 
   this.addGroupsToKindergtn = function(kg, data) {
     /* Add groups to kindergtn according to it's array of allowed age groups.
@@ -114,6 +118,7 @@ function KgListViewModel() {
      * automatically, with default values.
      */
 
+    var errFlag = false;
     $.each(kg.ageGroupsIds(), function(key, val) {
       // ищем подходящую группу среди активных возрастных групп в садике
       sadikGroup = data.filter(function(item) {
@@ -126,7 +131,8 @@ function KgListViewModel() {
         sg.setName(self.ageGroups);
       // если таких групп несколько - ошибка, запрещаем работу с ДОУ
       } else if (sadikGroup.length > 1) {
-        kg.display(false);
+        // kg.display(false);
+        errFlag = true;
         kg.messages.push(new Message({
           'class': 'alert',
           'message': 'Данный ДОУ содержит более одной активной группы для ' +
@@ -138,6 +144,8 @@ function KgListViewModel() {
         sg.setName(self.ageGroups);
       }
     });
+
+    kg.display(!errFlag);
   };
 
   this.getSadikGroups = function(kg) {
@@ -166,6 +174,7 @@ function KgListViewModel() {
     if (kg.disabled()) {
       return;
     }
+    // chek if data changed
     var rawData = kg.sadikGroups().filter(function(item){return item.freePlaces.isChanged()});
     if (rawData.length) {
       kg.disabled(true);
@@ -237,13 +246,15 @@ ko.bindingHandlers.highlightedText = {
   }
 };
 
-/** Binding to make content appear with 'fade' effect */
-ko.bindingHandlers.fadeIn = {
+/** Binding to make content appear with 'slide' effect */
+ko.bindingHandlers.slideOn = {
     update: function(element, valueAccessor) {
         var options = valueAccessor();
-        if(options() === true)
+        if(options() === true) {
           $(element).hide().slideDown('slow');
-          // $(element).fadeIn('slow');
+        } else {
+          $(element).hide();
+        }
     }
 };
 
