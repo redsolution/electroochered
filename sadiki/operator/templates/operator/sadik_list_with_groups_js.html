@@ -44,14 +44,13 @@
               <tbody data-bind="foreach: sadikGroups">
                 <tr>
                   <td data-bind="text: name"></td>
-                  <td data-bind="text: capacity"></td>
-                  <td><input type="text" data-bind="value: freePlaces,
+                  <td><input type="text" data-bind="value: capacity,
                                                     disable: $root.distributionIsActive || disabled()" /></td>
+                  <td data-bind="text: freePlaces"></td>
                 </tr>
               </tbody>
             </table>
             <div class="button-block">
-              <button class="btn btn-primary" data-toggle="collapse" data-bind="attr: {'data-target': '#kindergtn_' + id()}">Закрыть</button>
               <button class="btn btn-primary" data-bind="click: $parent.saveSadikGroups,
                                                          disable: $root.distributionIsActive() || disabled()" type="submit">Сохранить</button>
             </div>

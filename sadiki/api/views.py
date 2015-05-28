@@ -28,7 +28,7 @@ from sadiki.operator.forms import ConfirmationForm, \
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
-    SHORT_STAY_DECISION_BY_RESOLUTION
+    SHORT_STAY_DECISION_BY_RESOLUTION, CHANGE_SADIK_GROUP_PLACES
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.serializers import RequestionGeoSerializer, \
     AnonymRequestionGeoSerializer, SadikSerializer, AgeGroupSerializer, \
@@ -444,7 +444,17 @@ class GroupsForSadikView(SadikOperatorPermissionMixin, View):
                     sadik_group = SadikGroup(
                         sadik=kg, active=True, age_group=age_group, year=year)
                     sadik_group.set_default_age(age_group)
-            sadik_group.free_places = int(sg_data["freePlaces"])
+            places = int(sg_data["capacity"])
+            sadik_group.free_places = places
+            sadik_group.capacity = places
             sadik_group.save()
+            Logger.objects.create_for_action(
+                CHANGE_SADIK_GROUP_PLACES,
+                context_dict={'sadik_group': sadik_group},
+                extra={
+                    'user': request.user,
+                    'obj': sadik_group,
+                    'age_group': sadik_group.age_group
+                })
         sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
         return JSONResponse(SadikGroupSerializer(sgs, many=True).data)

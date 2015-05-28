@@ -33,7 +33,6 @@ function KinderGtn(data) {
     return self.status() == 'processing';
   }, this);
 
-
   this.isReady = ko.pureComputed(function() {
     return self.status() == 'ready';
   }, this);
@@ -59,8 +58,8 @@ function AgeGroup(data) {
 function SadikGroup(data) {
   self = this;
   this.id = ko.observable(data.id || null);
-  this.capacity = ko.observable(data.capacity || 0);
-  this.freePlaces = ko.observable(data.free_places || 0).extend({trackChange: true});
+  this.capacity = ko.observable(data.capacity || 0).extend({trackChange: true});
+  this.freePlaces = ko.observable(data.free_places || 0);
   this.ageGroup = ko.observable(data.age_group);
   this.name = ko.observable();
 
@@ -175,7 +174,7 @@ function KgListViewModel() {
       return;
     }
     // chek if data changed
-    var rawData = kg.sadikGroups().filter(function(item){return item.freePlaces.isChanged()});
+    var rawData = kg.sadikGroups().filter(function(item){return item.capacity.isChanged()});
     if (rawData.length) {
       kg.disabled(true);
       var data = ko.toJSON(rawData);
