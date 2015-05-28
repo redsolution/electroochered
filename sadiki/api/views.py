@@ -22,6 +22,7 @@ from sadiki.core.models import Distribution, Requestion, Sadik, \
     STATUS_KG_LEAVE, AgeGroup, SadikGroup
 from sadiki.api.utils import add_requestions_data
 from sadiki.anonym.views import Queue
+from sadiki.operator.views.sadik import SadikOperatorPermissionMixin
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.exceptions import RequestionHidden
@@ -421,11 +422,16 @@ def get_age_groups(request):
     return JSONResponse(AgeGroupSerializer(age_groups, many=True).data)
 
 
-def get_groups_for_sadik(request, sadik_id):
-    kg = get_object_or_404(Sadik, pk=sadik_id)
-    if request.method == 'POST':
+class GroupsForSadikView(SadikOperatorPermissionMixin, View):
+
+    def get(self, request, sadik_id):
+        sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
+        return JSONResponse(SadikGroupSerializer(sgs, many=True).data)
+
+    def post(self, request, sadik_id):
         data = json.loads(request.body)
         year = get_current_distribution_year()
+        kg = get_object_or_404(Sadik, pk=sadik_id)
         for sg_data in data:
             age_group = AgeGroup.objects.get(pk=sg_data['ageGroup'])
             if sg_data['id']:
@@ -440,5 +446,5 @@ def get_groups_for_sadik(request, sadik_id):
                     sadik_group.set_default_age(age_group)
             sadik_group.free_places = int(sg_data["freePlaces"])
             sadik_group.save()
-    sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
-    return JSONResponse(SadikGroupSerializer(sgs, many=True).data)
+        sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
+        return JSONResponse(SadikGroupSerializer(sgs, many=True).data)
