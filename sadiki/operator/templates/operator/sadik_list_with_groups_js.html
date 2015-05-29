@@ -20,7 +20,7 @@
          data-parent="#kindergtn-list-accordion"
          data-bind="text: fullName, attr: {href: '#kindergtn_' + id()},
                     click: $parent.getSadikGroups,
-                    highlightedText: { text: fullName, highlight: $parent.filterText},
+                    highlightHideText: { text: fullName, highlight: $parent.filterText},
                     css: {disabled: !activeDistribution()}"
          href=""></a>
     </div>
@@ -44,9 +44,10 @@
               <tbody data-bind="foreach: sadikGroups">
                 <tr>
                   <td data-bind="text: name"></td>
-                  <td><input type="text" data-bind="value: capacity,
-                                                    valueUpdate: 'keyup',
-                                                    disable: $root.distributionIsActive() || $parent.disabled()" /></td>
+                  <td><input class="text-right table-input" type="text"
+                             data-bind="value: capacity,
+                                        valueUpdate: 'keyup',
+                                        disable: $root.distributionIsActive() || $parent.disabled()" /></td>
                   <td data-bind="text: freePlaces"></td>
                 </tr>
               </tbody>

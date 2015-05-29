@@ -1,232 +1,233 @@
-// model function for kindergtn
-function KinderGtn(data) {
-  var self = this;
-  this.display = ko.observable(false);
-  this.status = ko.observable('initial');
-  this.disabled = ko.observable(false);
-  this.messages = ko.observableArray();
-  this.allowedStatus = ['initial', 'processing', 'ready'];
+(function() {
+  function KinderGtn(data) {
+    var self = this;
+    this.display = ko.observable(false);
+    this.status = ko.observable('initial');
+    this.disabled = ko.observable(false);
+    this.messages = ko.observableArray();
+    this.allowedStatus = ['initial', 'processing', 'ready'];
 
-  this.id = ko.observable(data.id);
-  this.shortName = ko.observable(data.short_name);
-  this.ageGroupsIds = ko.observable(data.age_groups);
-  this.sadikGroups = ko.observableArray();
-  this.activeDistribution = ko.observable(data.active_distribution || false);
+    this.id = ko.observable(data.id);
+    this.shortName = ko.observable(data.short_name);
+    this.ageGroupsIds = ko.observable(data.age_groups);
+    this.sadikGroups = ko.observableArray();
+    this.activeDistribution = ko.observable(data.active_distribution || false);
 
-  this.addSadikGroup = function(data) {
-    var sadikGroup = new SadikGroup(data);
-    this.sadikGroups.push(sadikGroup);
-    return sadikGroup;
-  };
+    this.addSadikGroup = function(data) {
+      var sadikGroup = new SadikGroup(data);
+      this.sadikGroups.push(sadikGroup);
+      return sadikGroup;
+    };
 
-  this.setStatus = function(status) {
-    if (self.allowedStatus.indexOf(status) > -1) {
-      self.status(status);
-    }
-  };
+    this.setStatus = function(status) {
+      if (self.allowedStatus.indexOf(status) > -1) {
+        self.status(status);
+      }
+    };
 
-  this.isInitial = ko.pureComputed(function() {
-    return self.status() == 'initial';
-  }, this);
+    this.isInitial = ko.pureComputed(function() {
+      return self.status() == 'initial';
+    }, this);
 
-  this.isProcessing = ko.pureComputed(function() {
-    return self.status() == 'processing';
-  }, this);
+    this.isProcessing = ko.pureComputed(function() {
+      return self.status() == 'processing';
+    }, this);
 
-  this.isReady = ko.pureComputed(function() {
-    return self.status() == 'ready';
-  }, this);
+    this.isReady = ko.pureComputed(function() {
+      return self.status() == 'ready';
+    }, this);
 
-  this.fullName = ko.pureComputed(function() {
-    if (self.activeDistribution()) {
-      return self.shortName();
-    } else {
-      return self.shortName() + ' - Этот ДОУ не принимает участия в распределении';
-    }
-  }, this);
+    this.fullName = ko.pureComputed(function() {
+      if (self.activeDistribution()) {
+        return self.shortName();
+      } else {
+        return self.shortName() + ' - Этот ДОУ не принимает участия в распределении';
+      }
+    }, this);
 
-}
+  }
 
-function AgeGroup(data) {
-  this.id = ko.observable(data.id);
-  this.name = ko.observable(data.name);
-  this.shortName = ko.observable(data.short_name);
-  this.minBirthDate = ko.observable(data.min_birth_date);
-  this.maxBirthDate = ko.observable(data.max_birth_date);
-}
+  function AgeGroup(data) {
+    this.id = ko.observable(data.id);
+    this.name = ko.observable(data.name);
+    this.shortName = ko.observable(data.short_name);
+    this.minBirthDate = ko.observable(data.min_birth_date);
+    this.maxBirthDate = ko.observable(data.max_birth_date);
+  }
 
-function SadikGroup(data) {
-  self = this;
-  this.id = ko.observable(data.id || null);
-  this.capacity = ko.observable(data.capacity || 0).extend({
-    trackChange: true, zeroInt: true});
-  this.freePlaces = ko.observable(data.free_places || 0);
-  this.ageGroup = ko.observable(data.age_group);
-  this.name = ko.observable();
+  function SadikGroup(data) {
+    self = this;
+    this.id = ko.observable(data.id || null);
+    this.capacity = ko.observable(data.capacity || 0).extend({
+      trackChange: true, zeroInt: true});
+    this.freePlaces = ko.observable(data.free_places || 0);
+    this.ageGroup = ko.observable(data.age_group);
+    this.name = ko.observable();
 
-  this.setName = function(ageGroups) {
-    var ageGroupId = self.ageGroup();
-    var ageGroup = ko.utils.arrayFirst(ageGroups(), function(item) {
-      return item.id() === ageGroupId;
-    });
-    self.name(ageGroup.name());
-  };
-}
-
-function Message(data) {
-  this.msgClass = ko.observable(data.class || 'alert');
-  this.message = ko.observable(data.message || '');
-}
-
-function KgListViewModel() {
-  var self = this;
-  this.KinderGtnList = ko.observableArray();
-  this.filterText = ko.observable('');
-
-  this.ageGroups = ko.observableArray();
-  this.viewStatus = ko.observable();
-  this.distributionIsActive = ko.observable(distribution_is_active);
-
-  self.init = function() {
-    this.viewStatus("Загружается список ДОУ и данные возрастных групп...");
-    var kgxhr = self.loadKinderGtns();
-    var agxhr = self.loadAgeGroups();
-    $.when(kgxhr, agxhr).done(function() {self.viewStatus('');});
-  };
-
-  // selecting kindergartens to show on the page, filtering them
-  this.kindergtnsToShow = ko.pureComputed(function() {
-    var text = this.filterText().toLowerCase();
-    if (text) {
-      return ko.utils.arrayFilter(this.KinderGtnList(), function(kg) {
-        return kg.shortName().toLowerCase().indexOf(text) > -1;
+    this.setName = function(ageGroups) {
+      var ageGroupId = self.ageGroup();
+      var ageGroup = ko.utils.arrayFirst(ageGroups(), function(item) {
+        return item.id() === ageGroupId;
       });
-    }
-    return this.KinderGtnList();
-  }, this);
+      self.name(ageGroup.name());
+    };
+  }
 
-  this.showMessage = function(elem) {
-    if (elem.nodeType === 1) {
-      $(elem).hide().slideDown();
-    }
-  };
+  function Message(data) {
+    this.msgClass = ko.observable(data.class || 'alert');
+    this.message = ko.observable(data.message || '');
+  }
 
-  this.addGroupsToKindergtn = function(kg, data) {
-    /* Add groups to kindergtn according to it's array of allowed age groups.
-     * First - lookup for proper group data object in passed data array.
-     * If no group data for given age group foud, group generated
-     * automatically, with default values.
-     */
+  function KgListViewModel() {
+    var self = this;
+    this.KinderGtnList = ko.observableArray();
+    this.filterText = ko.observable('');
 
-    var errFlag = false;
-    $.each(kg.ageGroupsIds(), function(key, val) {
-      // ищем подходящую группу среди активных возрастных групп в садике
-      sadikGroup = data.filter(function(item) {
-        return item.age_group == val;
+    this.ageGroups = ko.observableArray();
+    this.viewStatus = ko.observable();
+    this.distributionIsActive = ko.observable(distribution_is_active);
+
+    self.init = function() {
+      this.viewStatus("Загружается список ДОУ и данные возрастных групп...");
+      var kgxhr = self.loadKinderGtns();
+      var agxhr = self.loadAgeGroups();
+      $.when(kgxhr, agxhr).done(function() {self.viewStatus('');});
+    };
+
+    // selecting kindergartens to show on the page, filtering them
+    this.kindergtnsToShow = ko.pureComputed(function() {
+      var text = this.filterText().toLowerCase();
+      if (text) {
+        return ko.utils.arrayFilter(this.KinderGtnList(), function(kg) {
+          return kg.shortName().toLowerCase().indexOf(text) > -1;
+        });
+      }
+      return this.KinderGtnList();
+    }, this);
+
+    this.showMessage = function(elem) {
+      if (elem.nodeType === 1) {
+        $(elem).hide().slideDown();
+      }
+    };
+
+    this.addGroupsToKindergtn = function(kg, data) {
+      /* Add groups to kindergtn according to it's array of allowed age groups.
+       * First - lookup for proper group data object in passed data array.
+       * If no group data for given age group foud, group generated
+       * automatically, with default values.
+       */
+
+      var errFlag = false;
+      $.each(kg.ageGroupsIds(), function(key, val) {
+        // ищем подходящую группу среди активных возрастных групп в садике
+        sadikGroup = data.filter(function(item) {
+          return item.age_group == val;
+        });
+        // если такая группа есть и она одна - используем её данные
+        var sg;
+        if (sadikGroup.length == 1) {
+          sg = kg.addSadikGroup(sadikGroup[0]);
+          sg.setName(self.ageGroups);
+        // если таких групп несколько - ошибка, запрещаем работу с ДОУ
+        } else if (sadikGroup.length > 1) {
+          // kg.display(false);
+          errFlag = true;
+          kg.messages.push(new Message({
+            'class': 'alert',
+            'message': 'Данный ДОУ содержит более одной активной группы для ' +
+            'определенного возраста. Сообщите о проблеме в техническую поддержку.'
+          }));
+        // если такой группы нет - создаем новую
+        } else {
+          sg = kg.addSadikGroup({'age_group': val}, self.ageGroups);
+          sg.setName(self.ageGroups);
+        }
       });
-      // если такая группа есть и она одна - используем её данные
-      var sg;
-      if (sadikGroup.length == 1) {
-        sg = kg.addSadikGroup(sadikGroup[0]);
-        sg.setName(self.ageGroups);
-      // если таких групп несколько - ошибка, запрещаем работу с ДОУ
-      } else if (sadikGroup.length > 1) {
-        // kg.display(false);
-        errFlag = true;
+
+      kg.display(!errFlag);
+    };
+
+    this.getSadikGroups = function(kg) {
+      if (kg.isProcessing()) {
+        return;
+      }
+
+      kg.setStatus('processing');
+
+      $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
+        kg.sadikGroups.removeAll();
+        self.addGroupsToKindergtn(kg, data);
+      }).error(function(e) {
+        kg.display(false);
         kg.messages.push(new Message({
           'class': 'alert',
-          'message': 'Данный ДОУ содержит более одной активной группы для ' +
-          'определенного возраста. Сообщите о проблеме в техническую поддержку.'
+          'message': 'Ошибка при попытке загрузить данные о доступных для ' +
+                     'зачисления группах. Обновите страницу и попробуйте еще раз'
         }));
-      // если такой группы нет - создаем новую
-      } else {
-        sg = kg.addSadikGroup({'age_group': val}, self.ageGroups);
-        sg.setName(self.ageGroups);
-      }
-    });
-
-    kg.display(!errFlag);
-  };
-
-  this.getSadikGroups = function(kg) {
-    if (kg.isProcessing()) {
-      return;
-    }
-
-    kg.setStatus('processing');
-
-    $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
-      kg.sadikGroups.removeAll();
-      self.addGroupsToKindergtn(kg, data);
-    }).error(function(e) {
-      kg.display(false);
-      kg.messages.push(new Message({
-        'class': 'alert',
-        'message': 'Ошибка при попытке загрузить данные о доступных для ' +
-                   'зачисления группах. Обновите страницу и попробуйте еще раз'
-      }));
-      console.log('error while downloading sadikgroups list');
-    }).always(function() {
-      kg.setStatus('ready');
-    });
-  };
-
-  this.saveSadikGroups = function(kg) {
-    if (kg.disabled()) {
-      return;
-    }
-    // chek if data changed
-    var rawData = kg.sadikGroups().filter(function(item){return item.capacity.isChanged(); });
-    var invalidData = kg.sadikGroups().filter(function(item){return !item.capacity.isValid(); });
-
-    if (invalidData.length) {
-      kg.messages.push(new Message({'class': 'alert', 'message': 'Исправьте ошибки заполнения данных'}));
-    } else if (rawData.length) {
-      kg.disabled(true);
-      var data = ko.toJSON(rawData);
-      $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
-        kg.sadikGroups.removeAll();
-        self.addGroupsToKindergtn(kg, returnedData);
-        kg.messages.push(new Message({'class': 'alert-success', 'message': 'Данные успешно сохранены'}));
-      }).error(function() {
-        kg.messages.push(new Message({'class': 'alert-danger', 'message': 'Ошибка во время сохранения данных'}));
+        console.log('error while downloading sadikgroups list');
       }).always(function() {
-        kg.disabled(false);
+        kg.setStatus('ready');
       });
-    } else {
-      kg.messages.push(new Message({'class': 'alert-info', 'message': 'Данные не изменялись'}));
-    }
-  };
+    };
 
-  // downloading json of kindergartens objects
-  self.loadKinderGtns = function() {
-    var xhr = $.getJSON('/api2/sadik/simple_info/', function(data) {
-      $.each(data, function(key, val) {
-        self.KinderGtnList.push(new KinderGtn(val));
+    this.saveSadikGroups = function(kg) {
+      if (kg.disabled()) {
+        return;
+      }
+      // chek if data changed
+      var rawData = kg.sadikGroups().filter(function(item){return item.capacity.isChanged(); });
+      var invalidData = kg.sadikGroups().filter(function(item){return !item.capacity.isValid(); });
+
+      if (invalidData.length) {
+        kg.messages.push(new Message({'class': 'alert', 'message': 'Исправьте ошибки заполнения данных'}));
+      } else if (rawData.length) {
+        kg.disabled(true);
+        var data = ko.toJSON(rawData);
+        $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
+          kg.sadikGroups.removeAll();
+          self.addGroupsToKindergtn(kg, returnedData);
+          kg.messages.push(new Message({'class': 'alert-success', 'message': 'Данные успешно сохранены'}));
+        }).error(function() {
+          kg.messages.push(new Message({'class': 'alert-danger', 'message': 'Ошибка во время сохранения данных'}));
+        }).always(function() {
+          kg.disabled(false);
+        });
+      } else {
+        kg.messages.push(new Message({'class': 'alert-info', 'message': 'Данные не изменялись'}));
+      }
+    };
+
+    // downloading json of kindergartens objects
+    self.loadKinderGtns = function() {
+      var xhr = $.getJSON('/api2/sadik/simple_info/', function(data) {
+        $.each(data, function(key, val) {
+          self.KinderGtnList.push(new KinderGtn(val));
+        });
+      }).error(function(e) {
+        console.log('error while downloading kindergtns list');
       });
-    }).error(function(e) {
-      console.log('error while downloading kindergtns list');
-    });
-    return xhr;
-  };
+      return xhr;
+    };
 
-  self.loadAgeGroups = function() {
-    // downloading json of agegroups objects
-    var xhr = $.getJSON('/api2/age_groups/', function(data) {
-      $.each(data, function(key, val) {
-        self.ageGroups.push(new AgeGroup(val));
+    self.loadAgeGroups = function() {
+      // downloading json of agegroups objects
+      var xhr = $.getJSON('/api2/age_groups/', function(data) {
+        $.each(data, function(key, val) {
+          self.ageGroups.push(new AgeGroup(val));
+        });
+      }).error(function(e) {
+        console.log('error while downloading agegroups list');
       });
-    }).error(function(e) {
-      console.log('error while downloading agegroups list');
-    });
-    return xhr;
-  };
-}
+      return xhr;
+    };
+  }
 
-vm = new KgListViewModel();
-ko.applyBindings(vm);
+  vm = new KgListViewModel();
+  ko.applyBindings(vm);
 
-vm.init();
+  vm.init();
+})();
 
 ko.validation.rules['zeroInt'] = {
   validator: function (val, validate) {
@@ -240,7 +241,7 @@ ko.validation.init({
   'decorateInputElement': true,
 }, true);
 
-ko.bindingHandlers.highlightedText = {
+ko.bindingHandlers.highlightHideText = {
   update: function(element, valueAccessor) {
     var options = valueAccessor();
     var value = ko.utils.unwrapObservable(options.text);

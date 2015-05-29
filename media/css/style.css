@@ -1895,3 +1895,11 @@ span.error {
     bottom: 30px;
   }
 }
+
+.text-right {
+  text-align: right;
+}
+
+.table-input {
+  width: 50%;
+}
