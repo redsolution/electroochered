@@ -248,6 +248,7 @@ ko.bindingHandlers.highlightedText = {
     // remove previous highlight, if no filter value present
     if (search.length === 0) {
       element.innerHTML = value;
+      $(element).parent().parent().show();
       return;
     }
     // could do this or something similar to escape HTML before replacement,
@@ -261,6 +262,9 @@ ko.bindingHandlers.highlightedText = {
     if (match) {
       var replacement = '<span class="highlight">' + match[0] + '</span>';
       element.innerHTML = value.replace(re, replacement);
+      $(element).parent().parent().show();
+    } else {
+      $(element).parent().parent().hide();
     }
   }
 };
