@@ -6,11 +6,19 @@
 <div class="alert" data-bind="visible: distributionIsActive">
   Имеется активное распределение, выделение мест невозможно.
 </div>
-<div class="fast-filter">
+<div class="info-block">
   <span class="add-on">Быстрый поиск: </span>
   <input id="kg-list-filter" type="search"
          data-bind="value: filterText, valueUpdate: 'keyup'"
          placeholder="Начните вводить название ДОУ">
+</div>
+<div class="info-block row">
+  <div class="info-inside span3">
+    Выделено мест: <span data-bind="text: totalCapacity"></span>
+  </div>
+  <div class="info-inside span3">
+    Свободных мест: <span data-bind="text: totalFreePlaces"></span>
+  </div>
 </div>
 <div class="alert alert-info" data-bind="text: viewStatus, visible: viewStatus"></div>
 <div class="accordion" id="kindergtn-list-accordion" data-bind='foreach: KinderGtnList'>

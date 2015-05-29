@@ -82,6 +82,8 @@
     var self = this;
     this.KinderGtnList = ko.observableArray();
     this.filterText = ko.observable('');
+    this.totalFreePlaces = ko.observable();
+    this.totalCapacity = ko.observable();
 
     this.ageGroups = ko.observableArray();
     this.viewStatus = ko.observable();
@@ -91,6 +93,7 @@
       this.viewStatus("Загружается список ДОУ и данные возрастных групп...");
       var kgxhr = self.loadKinderGtns();
       var agxhr = self.loadAgeGroups();
+      self.loadPlaces();
       $.when(kgxhr, agxhr).done(function() {self.viewStatus('');});
     };
 
@@ -220,6 +223,19 @@
         console.log('error while downloading agegroups list');
       });
       return xhr;
+    };
+
+    self.loadPlaces = function() {
+      var xhr = $.getJSON('/api2/distributions/places/total/', function(data) {
+        console.log(data);
+        console.log(data.total_capacity);
+        self.totalCapacity(data.total_capacity);
+        self.totalFreePlaces(data.total_free_places);
+      }).error(function(e) {
+        console.log('error while downloading places info');
+      });
+      return xhr;
+
     };
   }
 

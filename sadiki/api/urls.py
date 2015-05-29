@@ -5,7 +5,7 @@ from sadiki.api.views import get_distributions, get_distribution, get_child, \
     api_sign_test, get_kindergartens, ChangeRequestionStatus, \
     GetRequestionsByResolution, get_evidience_documents, get_requestions, \
     RequestionsQueue, api_enc_test, get_simple_kindergtns, get_age_groups, \
-    GroupsForSadikView
+    GroupsForSadikView, PlacesCount
 
 urlpatterns = patterns(
     '',
@@ -23,6 +23,7 @@ urlpatterns = patterns(
     # Распределения
     url(r'^get_distributions/$', get_distributions),
     url(r'^get_distribution/', get_distribution),
+    url(r'^distributions/places/total/', PlacesCount.as_view()),
 
     # остальное
     url(r'^sign_test/', api_sign_test),

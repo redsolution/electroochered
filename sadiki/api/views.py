@@ -5,6 +5,7 @@ from multiprocessing import Pool
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.template import loader
@@ -458,3 +459,14 @@ class GroupsForSadikView(SadikOperatorPermissionMixin, View):
                 })
         sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
         return JSONResponse(SadikGroupSerializer(sgs, many=True).data)
+
+
+class PlacesCount(SadikOperatorPermissionMixin, View):
+    def get(self, request):
+        groups = SadikGroup.objects.filter(active=True)
+        total_free_places = groups.aggregate(total_free_places=Sum('free_places'))
+        total_capacity = groups.aggregate(total_capacity=Sum('capacity'))
+        total_places = total_free_places
+        print type(total_places)
+        total_places.update(total_capacity)
+        return JSONResponse(total_places)
