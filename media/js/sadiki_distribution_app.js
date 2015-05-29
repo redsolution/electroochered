@@ -149,7 +149,11 @@ function KgListViewModel() {
   };
 
   this.getSadikGroups = function(kg) {
-    if (kg.isProcessing() || kg.isReady()) {
+    if (kg.isProcessing()) {
+      return;
+    } else if (kg.isReady()) {
+      kg.setStatus('initial');
+      kg.sadikGroups.removeAll();
       return;
     }
 
@@ -175,8 +179,8 @@ function KgListViewModel() {
       return;
     }
     // chek if data changed
-    var rawData = kg.sadikGroups().filter(function(item){return item.capacity.isChanged()});
-    var invalidData = kg.sadikGroups().filter(function(item){return !item.capacity.isValid()});
+    var rawData = kg.sadikGroups().filter(function(item){return item.capacity.isChanged(); });
+    var invalidData = kg.sadikGroups().filter(function(item){return !item.capacity.isValid(); });
 
     if (invalidData.length) {
       kg.messages.push(new Message({'class': 'alert', 'message': 'Исправьте ошибки заполнения данных'}));
