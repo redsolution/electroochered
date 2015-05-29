@@ -194,6 +194,7 @@
         }).error(function() {
           kg.messages.push(new Message({'class': 'alert-danger', 'message': 'Ошибка во время сохранения данных'}));
         }).always(function() {
+          self.loadPlaces();
           kg.disabled(false);
         });
       } else {
@@ -227,8 +228,6 @@
 
     self.loadPlaces = function() {
       var xhr = $.getJSON('/api2/distributions/places/total/', function(data) {
-        console.log(data);
-        console.log(data.total_capacity);
         self.totalCapacity(data.total_capacity);
         self.totalFreePlaces(data.total_free_places);
       }).error(function(e) {
