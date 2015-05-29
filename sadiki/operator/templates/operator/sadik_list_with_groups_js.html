@@ -3,7 +3,7 @@
 {% block title %}Выделение мест{% endblock %}
 
 {% block content %}
-<div class="alert" data-bind="visible: distributionIsActive">
+<div class="alert" data-bind="visible: distributionIsActive" style="display: none;">
   Имеется активное распределение, выделение мест невозможно.
 </div>
 <div class="info-block">
@@ -20,7 +20,7 @@
     Свободных мест: <span data-bind="text: totalFreePlaces"></span>
   </div>
 </div>
-<div class="alert alert-info" data-bind="text: viewStatus, visible: viewStatus"></div>
+<div class="alert alert-info" data-bind="text: viewStatus, visible: viewStatus" style="display: none;"></div>
 <div class="accordion" id="kindergtn-list-accordion" data-bind='foreach: KinderGtnList'>
   <div class="accordion-group">
     <div class="accordion-heading">
