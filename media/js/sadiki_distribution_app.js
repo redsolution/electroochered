@@ -151,15 +151,12 @@ function KgListViewModel() {
   this.getSadikGroups = function(kg) {
     if (kg.isProcessing()) {
       return;
-    } else if (kg.isReady()) {
-      kg.setStatus('initial');
-      kg.sadikGroups.removeAll();
-      return;
     }
 
     kg.setStatus('processing');
 
     $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
+      kg.sadikGroups.removeAll();
       self.addGroupsToKindergtn(kg, data);
     }).error(function(e) {
       kg.display(false);
