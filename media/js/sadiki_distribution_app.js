@@ -41,7 +41,7 @@ function KinderGtn(data) {
     if (self.activeDistribution()) {
       return self.shortName();
     } else {
-      return self.shortName() + ' - Этот ДОУ не принимает участия в респеделении';
+      return self.shortName() + ' - Этот ДОУ не принимает участия в распределении';
     }
   }, this);
 
@@ -58,7 +58,8 @@ function AgeGroup(data) {
 function SadikGroup(data) {
   self = this;
   this.id = ko.observable(data.id || null);
-  this.capacity = ko.observable(data.capacity || 0).extend({trackChange: true});
+  this.capacity = ko.observable(data.capacity || 0).extend({
+    trackChange: true, zeroInt: true});
   this.freePlaces = ko.observable(data.free_places || 0);
   this.ageGroup = ko.observable(data.age_group);
   this.name = ko.observable();
@@ -175,13 +176,19 @@ function KgListViewModel() {
     }
     // chek if data changed
     var rawData = kg.sadikGroups().filter(function(item){return item.capacity.isChanged()});
-    if (rawData.length) {
+    var invalidData = kg.sadikGroups().filter(function(item){return !item.capacity.isValid()});
+
+    if (invalidData.length) {
+      kg.messages.push(new Message({'class': 'alert', 'message': 'Исправьте ошибки заполнения данных'}));
+    } else if (rawData.length) {
       kg.disabled(true);
       var data = ko.toJSON(rawData);
       $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
         kg.sadikGroups.removeAll();
         self.addGroupsToKindergtn(kg, returnedData);
         kg.messages.push(new Message({'class': 'alert-success', 'message': 'Данные успешно сохранены'}));
+      }).error(function() {
+        kg.messages.push(new Message({'class': 'alert-danger', 'message': 'Ошибка во время сохранения данных'}));
       }).always(function() {
         kg.disabled(false);
       });
@@ -219,6 +226,18 @@ vm = new KgListViewModel();
 ko.applyBindings(vm);
 
 vm.init();
+
+ko.validation.rules['zeroInt'] = {
+  validator: function (val, validate) {
+        return validate && /^([0-9]\d*)*$/.test(val.toString());
+    },
+    message: 'Укажите целое число больше нуля'
+};
+ko.validation.registerExtenders();
+ko.validation.init({
+  'errorClass': 'error',
+  'decorateInputElement': true,
+}, true);
 
 ko.bindingHandlers.highlightedText = {
   update: function(element, valueAccessor) {

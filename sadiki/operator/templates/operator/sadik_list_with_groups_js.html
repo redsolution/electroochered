@@ -45,7 +45,8 @@
                 <tr>
                   <td data-bind="text: name"></td>
                   <td><input type="text" data-bind="value: capacity,
-                                                    disable: $root.distributionIsActive || disabled()" /></td>
+                                                    valueUpdate: 'keyup',
+                                                    disable: $root.distributionIsActive() || $parent.disabled()" /></td>
                   <td data-bind="text: freePlaces"></td>
                 </tr>
               </tbody>
@@ -68,5 +69,6 @@
   </script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout-3.3.0.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout.mapping-latest.js'></script>
+  <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout.validation.min.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/sadiki_distribution_app.js'></script>
 {% endblock bottomjs %}

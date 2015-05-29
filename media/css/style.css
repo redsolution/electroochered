@@ -1836,3 +1836,7 @@ dl {
   float: right;
   margin: 10px 0 10px 0;
 }
+
+span.error {
+  display: block;
+}
