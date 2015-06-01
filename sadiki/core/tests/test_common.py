@@ -24,10 +24,13 @@ import random
 
 
 class TestAll(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+    ]
 
     def setUp(self):
-        management.call_command('update_initial_data')
         address = Address.objects.create(postindex=123456, street=u'ул.Кирова',
                                          building_number=17, )
         # Area.objects.create(name='test', ocato='123456')  # , address=address)
@@ -75,8 +78,10 @@ class TestAll(TestCase):
             if not Preference.objects.filter(key=PREFERENCE_IMPORT_FINISHED).exists():
                 Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
             r_code = client.get(url).status_code
-            self.assertEqual(r_code, 200,
-                             "URL {} for anonymous returns {} instead of 200".format(url, r_code))
+            self.assertEqual(
+                r_code, 200,
+                "URL {} for anonymous returns {} instead of 200".format(
+                    url, r_code))
 
         # интерфейс оператора
         client.login(username=self.operator.username, password="password")

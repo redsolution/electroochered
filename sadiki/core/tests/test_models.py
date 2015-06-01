@@ -14,12 +14,15 @@ from sadiki.core.tests import utils as test_utils
 
 
 class RequestionTestCase(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+    ]
 
     @classmethod
     def setUpClass(cls):
         test_utils.create_objects(test_utils.create_area, 5)
-        management.call_command('update_initial_data')
         management.call_command('generate_sadiks', 10)
 
     @classmethod

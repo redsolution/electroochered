@@ -26,18 +26,21 @@ def progressbar(it, prefix = "", size = 60):
 class Command(BaseCommand):
     help = "Generates sadiks"
     option_list = BaseCommand.option_list + (
-        make_option('--verbose', action='store_false', default=False,
-            dest='verbose'),)
-    args = ['num',]
+        make_option(
+            '--verbose', action='store_false', default=False, dest='verbose'),
+    )
+    args = ['num', ]
 
     def handle(self, *args, **options):
         if args:
-            names = simplejson.loads(open(join(settings.PROJECT_DIR, 'sadiki','core', 'fixtures', 'names.json'), 'r').read())
+            names = simplejson.loads(open(join(
+                settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures',
+                'names.json'), 'r').read())
             
             if options['verbose']:
-                numbers =  progressbar(xrange(int(args[0])))
+                numbers = progressbar(xrange(int(args[0])))
             else:
-                numbers =  xrange(int(args[0]))
+                numbers = xrange(int(args[0]))
             for i in numbers:
                 # create sadik
                 address, created = Address.objects.get_or_create(
@@ -53,8 +56,8 @@ class Command(BaseCommand):
                     address=address,
                     email=u"sadik_%d@example.com" % i,
                     site=u"example.com",
-                    head_name = u"%s %s %s" % (choice(names['last']), choice(names['first']), choice(names['patronymic'])),
-                    phone='+7351%07d' % randint(0,999999),
+                    head_name=u"%s %s %s" % (choice(names['last']), choice(names['first']), choice(names['patronymic'])),
+                    phone='+7351%07d' % randint(0, 999999),
                     cast=u' ',
                 )
                 sadik.age_groups = AgeGroup.objects.all()

@@ -98,6 +98,11 @@ VK_API_SECRET = config.get('vkontakte', 'VK_API_SECRET')
 
 USE_DISTRICTS = config.getint('core', 'USE_DISTRICTS')
 
+if config.has_option('core', 'ES_DOMAIN'):
+    ES_DOMAIN = config.get('core', 'ES_DOMAIN')
+else:
+    ES_DOMAIN = None
+
 # [email]
 EO_USER = REGION_NAME.split(',')[-1].strip()
 SERVER_EMAIL = u'Место в садик ({}) <{}>'.format(

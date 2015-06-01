@@ -21,6 +21,7 @@ class Transition(object):
     переход
     - ``permission_callback`` - опциональная функция для проверки возможности
     перехода.
+    - ``enabled`` - используется для отключения определенных переходов
 
     Т.к. система не предусматривает прав для анонимных пользователей,
     для публичной доступности перехода необходимо указать значение
@@ -39,7 +40,7 @@ class Transition(object):
     ANONYMOUS_PERMISSION = '*'
 
     def __init__(self, src, dst, transition, comment, permissions,
-                 permission_callback=None, check_document=False):
+                 permission_callback=None, check_document=False, enabled=True):
         self.src = src
         self.dst = dst
         self.index = transition
@@ -48,6 +49,7 @@ class Transition(object):
         self.permission_cb = permission_callback
         self.confirmation_form_class = None
         self.check_document = check_document
+        self.enabled = enabled
 
 
 class Workflow(object):
@@ -56,7 +58,7 @@ class Workflow(object):
         super(Workflow, self).__init__()
 
     def add(self, src, dst, transition, comment=u'', permissions=None,
-            permission_callback=None, check_document=False):
+            permission_callback=None, check_document=False, enabled=True):
         # проверим, что у нас нет повторяющихся id переходов
         if permissions is None:
             permissions = []
@@ -65,14 +67,14 @@ class Workflow(object):
                 'Transition with id=%d already added' % transition)
         self.transitions.append(
             Transition(src, dst, transition, comment, permissions,
-                       permission_callback, check_document))
+                       permission_callback, check_document, enabled))
 
     def available_transition_statuses(self, src):
         u"""
         Возвращает коды статусов, в которые можно перейти из указанного
         """
         transitions = filter(lambda t: t.src == src, self.transitions)
-        return [t.dst for t in transitions]
+        return [t.dst for t in transitions if t.enabled]
 
     def available_transitions(self, src=None, dst=None):
         u"""
@@ -86,7 +88,7 @@ class Workflow(object):
             transitions = filter(lambda t: t.src == src, self.transitions)
         elif dst is not None:
             transitions = filter(lambda t: t.dst == dst, transitions)
-        return [t.index for t in transitions]
+        return [t.index for t in transitions if t.enabled]
 
     def get_transition_by_index(self, index):
         transitions = filter(lambda t: t.index == index, self.transitions)
@@ -355,14 +357,17 @@ workflow.add(STATUS_ABSENT, STATUS_REQUESTER, ABSENT_REQUESTER,
              check_document=True)
 workflow.add(STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REJECTED,
              REQUESTION_REJECT, u'Истечение сроков на подтверждение документов')
+
+# транзакции не используются, но для сохранения корректного отображения в логах
+# заявок, остаются в системе
 workflow.add(STATUS_DISTRIBUTED, STATUS_REQUESTER,
              DISTRIBUTED_REQUESTER, u'Повторная постановка на учет',
-             permissions=[SUPERVISOR_PERMISSION[0]],
-             check_document=True)
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True,
+             enabled=False)
 workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_REQUESTER,
              DISTRIBUTED_ES_REQUESTER, u'Повторная постановка на учет',
-             permissions=[SUPERVISOR_PERMISSION[0]],
-             check_document=True)
+             permissions=[SUPERVISOR_PERMISSION[0]], check_document=True,
+             enabled=False)
 
 
 # отказ от зачисления на постоянной основе

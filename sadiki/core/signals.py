@@ -62,6 +62,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
 from sadiki.supervisor.forms import DistributionByResolutionForm
+from sadiki.core.utils import active_child_exist
 
 
 pre_status_change = Signal(
@@ -378,12 +379,12 @@ def before_distributed_requester(sender, **kwargs):
             u"попробйте позже")
     # если импортировать при инициализации, возникает кольцо
     from sadiki.api.views import STATUS_OK
+    from sadiki.api.utils import is_active_child_status
     if child_data['status_code'] == STATUS_OK:
-        if child_data['data']['status'] not in [3, 4, 5, 8, 9]:
+        if is_active_child_status(child_data['data']['status']):
             raise TransitionNotAllowed(
                 u"Ребенок с таким свидетельством о рождении числится активным "
                 u"в Электросаде")
-
 
 
 @receiver(post_status_change, sender=Requestion)
@@ -494,9 +495,21 @@ def after_restore_requestion(sender, **kwargs):
     requestion = kwargs['requestion']
     form = kwargs['form']
 
+    # проверяем наличие заявок с таким же подтвержденным документом
+    confirmed_requestions = requestion.other_requestions_with_ident_document()
+    if confirmed_requestions:
+        req_list = ";".join([unicode(req) for req in confirmed_requestions])
+        err_msg = u"Такой же идентифицирующий документ уже подтвежден у " \
+                  u"следующих заявок: {} операция невозможна".format(req_list)
+        raise TransitionNotAllowed(err_msg)
+    # проверяем статус ребенка в ЭС
+    if active_child_exist(requestion.get_birth_cert().document_number):
+        raise TransitionNotAllowed(
+            u"Ребенок с таким номером свидетельства о рождении посещает ДОУ")
+
     other_requestions_with_document = requestion.set_ident_document_authentic()
-    messages.success(request, u'''Заявка %s была возвращена в очередь.
-                    ''' % requestion.requestion_number)
+    messages.success(request, u"Заявка {} была возвращена в очередь.".format(
+        requestion.requestion_number))
     messages.success(request, u'Следующие заявки имели такой же идентифицирующий документ и были сняты с учета: %s' %
         ";".join([unicode(other_requestion) for other_requestion in other_requestions_with_document]))
     Logger.objects.create_for_action(

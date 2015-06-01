@@ -32,6 +32,7 @@
     * redsolutioncms.django-tinymce-attachment >=0.4, <0.5
     * django-social-auth ==0.7.23
     * redsolutioncms.django-hex-storage >=0.1, <0.2
+    * djangorestframework ==2.4
 
 1. Подготовка
 -------------------
