@@ -21,10 +21,13 @@ SUPERVISOR_PASSWORD = "password"
 
 
 class TestSupervisorViews(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json', ]
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+    ]
 
     def setUp(self):
-        management.call_command('update_initial_data')
         management.call_command('generate_sadiks', 1)
 
         address = Address.objects.create(
@@ -68,6 +71,6 @@ class TestSupervisorViews(TestCase):
         response = self.client.get(req_url)
         self.assertEqual(response.status_code, 200)
         btn_code = u'<a class="btn" href="{}">Повторная постановка на учет</a>'
-        self.assertIn(btn_code.format(
+        self.assertNotIn(btn_code.format(
             req_action_url), response.content.decode('utf8'))
 
