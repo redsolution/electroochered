@@ -89,6 +89,9 @@
     this.viewStatus = ko.observable();
     this.distributionIsActive = ko.observable(distribution_is_active);
 
+    this.kgListCollapsed = ko.observable(true);
+    this.collapseButtonText = ko.observable('Развернуть все');
+
     self.init = function() {
       this.viewStatus("Загружается список ДОУ и данные возрастных групп...");
       var kgxhr = self.loadKinderGtns();
@@ -107,6 +110,18 @@
       }
       return this.KinderGtnList();
     }, this);
+
+    this.toggleCollapseStatus = function () {
+      self.kgListCollapsed(!self.kgListCollapsed());
+      self.kgListCollapsed() ? self.collapseButtonText('Развернуть все') : self.collapseButtonText('Свернуть все');
+      if (!self.kgListCollapsed()) {
+        ko.utils.arrayFilter(self.KinderGtnList(), function(kg) {
+          return kg.activeDistribution;
+        }).forEach(function(kg) {
+          self.getSadikGroups(kg);
+        });
+      }
+    };
 
     this.showMessage = function(elem) {
       if (elem.nodeType === 1) {
@@ -296,6 +311,19 @@ ko.bindingHandlers.slideOn = {
         }
     }
 };
+
+ko.bindingHandlers.toggleCollapse = {
+  update: function(element, valueAccessor) {
+    var value = valueAccessor();
+    var valueUnwrapped = ko.unwrap(value);
+    if (valueUnwrapped) {
+      $(element).collapse('hide');
+    } else {
+      $(element).collapse('show');
+    }
+  }
+};
+
 
 ko.extenders.trackChange = function (target, track) {
     if (track) {
