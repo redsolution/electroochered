@@ -6,11 +6,17 @@
 <div class="alert" data-bind="visible: distributionIsActive" style="display: none;">
   Имеется активное распределение, выделение мест невозможно.
 </div>
-<div class="info-block">
-  <span class="add-on">Быстрый поиск: </span>
-  <input id="kg-list-filter" type="search"
-         data-bind="value: filterText, valueUpdate: 'keyup'"
-         placeholder="Начните вводить название ДОУ">
+<div class="info-block row">
+  <div class="info-inside span5">
+    <span class="add-on">Быстрый поиск: </span>
+    <input id="kg-list-filter" type="search"
+           data-bind="value: filterText, valueUpdate: 'keyup'"
+           placeholder="Начните вводить название ДОУ">
+  </div>
+  <div class="span3 offset3">
+    <button class="btn">Открыть все</btn>
+    <button class="btn">Свернуть все</btn>
+  </div>
 </div>
 <div class="info-block row">
   <div class="info-inside span3">
@@ -69,7 +75,6 @@
     </div>
   </div>
 </div>
-<a href="#0" class="cd-top">Top</a>
 {% endblock %}
 
 {% block bottomjs %}
@@ -83,34 +88,15 @@
   <script type='text/javascript' src='{{ STATIC_URL }}js/sadiki_distribution_app.js?0.3dev'></script>
   <script type="text/javascript">
     jQuery(document).ready(function($){
-      // browser window scroll (in pixels) after which the "back to top" link is shown
-      var offset = 300,
-        //browser window scroll (in pixels) after which the "back to top" link opacity is reduced
-        offset_opacity = 1200,
-        //duration of the top scrolling animation (in ms)
-        scroll_top_duration = 700,
-        //grab the "back to top" link
-        $back_to_top = $('.cd-top');
-
-      //hide or show the "back to top" link
-      $(window).scroll(function(){
-        ( $(this).scrollTop() > offset ) ? $back_to_top.addClass('cd-is-visible') : $back_to_top.removeClass('cd-is-visible cd-fade-out');
-        if( $(this).scrollTop() > offset_opacity ) {
-          $back_to_top.addClass('cd-fade-out');
-        }
+      $('<div id="up"><i class="icon-arrow-up"></i> Наверх</div>').insertAfter('ul.nav');
+      $('#up').topLink({
+          min: $('ul.nav').height() + $('.header').height(),
+          fadeSpeed: 100
+      }).click(function(e){
+          e.preventDefault();
+          $.scrollTo(0,300);
       });
-
-      //smooth scroll to top
-      $back_to_top.on('click', function(event){
-        event.preventDefault();
-        $('body,html').animate({
-          scrollTop: 0 ,
-           }, scroll_top_duration
-        );
-      });
-
     });
-
   </script>
 
 {% endblock bottomjs %}

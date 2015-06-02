@@ -467,6 +467,5 @@ class PlacesCount(SadikOperatorPermissionMixin, View):
         total_free_places = groups.aggregate(total_free_places=Sum('free_places'))
         total_capacity = groups.aggregate(total_capacity=Sum('capacity'))
         total_places = total_free_places
-        print type(total_places)
         total_places.update(total_capacity)
         return JSONResponse(total_places)
