@@ -763,16 +763,9 @@ class Profile(models.Model):
     # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-
-    @property
-    def first_name(self):
-        return self.user.first_name
-
-    @property
-    def last_name(self):
-        return self.user.last_name
-
+    first_name = models.CharField(u'Имя', max_length=255, null=True)
     middle_name = models.CharField(u'Отчество', max_length=255, null=True)
+    last_name = models.CharField(u'Фамилия', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
