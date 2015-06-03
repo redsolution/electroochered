@@ -305,10 +305,17 @@ ko.bindingHandlers.slideOn = {
 ko.bindingHandlers.toggleCollapse = {
   update: function(element, valueAccessor) {
     var valueUnwrapped = ko.unwrap(valueAccessor());
+    var $element = $(element);
     if (valueUnwrapped) {
-      $(element).removeClass('in');
+      if ($element.hasClass('in')) {
+        $element.removeClass('in');
+        $element.css('height', '0');
+      }
     } else {
-      $(element).addClass('in');
+      if (!$element.hasClass('in')) {
+        $element.addClass('in');
+        $element.css('height', 'auto');
+      }
     }
   }
 };
