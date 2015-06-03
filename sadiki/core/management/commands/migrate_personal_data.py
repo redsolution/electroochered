@@ -11,6 +11,40 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
     def handle(self, *args, **options):
+        all_users = User.objects.select_related().all()
+        for user in all_users:
+            if hasattr(user, 'profile'):
+                profile = user.profile
+                if hasattr(profile, 'pdata'):
+                    pdata = profile.pdata
+                    if not user.first_name and not user.last_name:
+                        user.first_name = pdata.first_name
+                        user.last_name = pdata.last_name
+                        profile.middle_name = pdata.second_name
+                        user.save()
+                    profile.town = pdata.settlement
+                    profile.street = pdata.street
+                    profile.house = pdata.house
+                    profile.mobile_number = pdata.phone
+                    profile.save()
+                if (not user.first_name and not user.last_name
+                                and profile.first_name):
+                    user.first_name = profile.first_name
+                    user.save()
+
+        all_child_personal_data = ChildPersData.objects.all()
+        for pdata in all_child_personal_data:
+            requestion = pdata.application
+            requestion.child_middle_name = pdata.second_name
+            requestion.child_last_name = pdata.last_name
+            if not requestion.name:
+                requestion.name = pdata.first_name
+            requestion.save()            
+            
+
+
+
+'''
         print u'Переносим Ф.И.О. заявителей'
         pdatas = UserPersData.objects.all()
         for pdata in pdatas:
@@ -48,3 +82,4 @@ class Command(BaseCommand):
             if not requestion.name:
                 requestion.name = reqdata.first_name
             requestion.save()
+'''
