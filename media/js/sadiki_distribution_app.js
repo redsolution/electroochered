@@ -87,7 +87,7 @@
 
     this.viewStatus = ko.observable();
     this.filterText = ko.observable('');
-    this.activeKinderGtn = ko.observable();
+    this.activeKinderGtn = null;
 
     this.kgListCollapsed = ko.observable(true);
     this.collapseButtonText = ko.observable('Развернуть все');
@@ -153,11 +153,12 @@
     };
 
     this.getSadikGroups = function(kg) {
-      if (kg.isProcessing()) {
+      if (kg.isProcessing() || self.activeKinderGtn == kg) {
         return;
       }
 
       kg.setStatus('processing');
+      self.activeKinderGtn = kg;
 
       $.getJSON('/api2/sadik/' + kg.id + '/groups/', function(data) {
         kg.sadikGroups.removeAll();
