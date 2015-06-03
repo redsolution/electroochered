@@ -80,37 +80,33 @@
   function KgListViewModel() {
     var self = this;
     this.KinderGtnList = ko.observableArray();
-    this.filterText = ko.observable('');
     this.totalFreePlaces = ko.observable();
     this.totalCapacity = ko.observable();
-
     this.ageGroups = ko.observableArray();
-    this.viewStatus = ko.observable();
     this.distributionIsActive = ko.observable(distribution_is_active);
+
+    this.viewStatus = ko.observable();
+    this.filterText = ko.observable('');
+    this.activeKinderGtn = ko.observable();
 
     this.kgListCollapsed = ko.observable(true);
     this.collapseButtonText = ko.observable('Развернуть все');
 
     self.init = function() {
-      this.viewStatus("Загружается список ДОУ и данные возрастных групп...");
-      var kgxhr = self.loadKinderGtns();
+      self.viewStatus("Загружается список возрастных групп...");
       var agxhr = self.loadAgeGroups();
+      $.when(agxhr).done(function() {
+        self.viewStatus("Загружается список ДОУ...");
+        var kgxhr = self.loadKinderGtns();
+        $.when(kgxhr).done(function(){self.viewStatus('');});
+      });
+
       self.loadPlaces();
-      $.when(kgxhr, agxhr).done(function() {self.viewStatus('');});
     };
 
     this.toggleCollapseStatus = function () {
       self.kgListCollapsed(!self.kgListCollapsed());
       self.kgListCollapsed() ? self.collapseButtonText('Развернуть все') : self.collapseButtonText('Свернуть все');
-      /*
-      if (!self.kgListCollapsed()) {
-        ko.utils.arrayFilter(self.KinderGtnList(), function(kg) {
-          return kg.activeDistribution;
-        }).forEach(function(kg) {
-          self.getSadikGroups(kg);
-        });
-      }
-      */
     };
 
     this.showMessage = function(elem) {
@@ -211,7 +207,11 @@
     self.loadKinderGtns = function() {
       var xhr = $.getJSON('/api2/sadik/simple_info/', function(data) {
         $.each(data, function(key, val) {
-          self.KinderGtnList.push(new KinderGtn(val));
+          var kg = new KinderGtn(val);
+          self.KinderGtnList.push(kg);
+          if (val.groups.length) {
+            self.addGroupsToKindergtn(kg, val.groups.filter(function(group) {return group.active}));
+          }
         });
       }).error(function(e) {
         console.log('error while downloading kindergtns list');
@@ -219,8 +219,8 @@
       return xhr;
     };
 
+    // downloading json of agegroups objects
     self.loadAgeGroups = function() {
-      // downloading json of agegroups objects
       var xhr = $.getJSON('/api2/age_groups/', function(data) {
         $.each(data, function(key, val) {
           self.ageGroups.push(new AgeGroup(val));
@@ -231,6 +231,7 @@
       return xhr;
     };
 
+    // downloading json of places to kindergartens
     self.loadPlaces = function() {
       var xhr = $.getJSON('/api2/distributions/places/total/', function(data) {
         self.totalCapacity(data.total_capacity);

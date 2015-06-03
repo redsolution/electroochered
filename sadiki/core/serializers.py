@@ -20,14 +20,6 @@ class AnonymRequestionGeoSerializer(serializers.ModelSerializer):
         fields = ('location', )
 
 
-class SadikSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Sadik
-        fields = ('id', 'short_name', 'age_groups',
-                  'active_registration', 'active_distribution')
-        read_only_fields = fields
-
-
 class AgeGroupSerializer(serializers.ModelSerializer):
     max_birth_date = serializers.Field(source='max_birth_date')
     min_birth_date = serializers.Field(source='min_birth_date')
@@ -42,4 +34,21 @@ class AgeGroupSerializer(serializers.ModelSerializer):
 class SadikGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SadikGroup
-        fields = ('id', 'age_group', 'capacity', 'free_places')
+        fields = ('id', 'age_group', 'capacity', 'free_places', 'active')
+
+
+class SadikSerializer(serializers.ModelSerializer):
+    groups = SadikGroupSerializer(read_only=True, required=False, many=True)
+    # groups = serializers.SerializerMethodField('active_groups')
+
+    class Meta:
+        model = Sadik
+        fields = ('id', 'short_name', 'age_groups',
+                  'active_registration', 'active_distribution', 'groups')
+        read_only_fields = (
+            'id', 'short_name', 'age_groups', 'active_registration',
+            'active_distribution')
+
+    def active_groups(self, obj):
+        groups_qs = obj.groups.active()
+        return SadikGroupSerializer(groups_qs, many=True).data

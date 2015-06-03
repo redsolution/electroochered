@@ -411,7 +411,7 @@ def serialize_requestions((queryset, serializer)):
 
 
 def get_simple_kindergtns(request):
-    kgs = Sadik.objects.prefetch_related('age_groups').all()
+    kgs = Sadik.objects.prefetch_related('age_groups', 'groups').all()
     return JSONResponse(SadikSerializer(kgs, many=True).data)
 
 
