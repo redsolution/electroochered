@@ -7,11 +7,11 @@
     this.messages = ko.observableArray();
     this.allowedStatus = ['initial', 'processing', 'ready'];
 
-    this.id = ko.observable(data.id);
-    this.shortName = ko.observable(data.short_name);
+    this.id = data.id;
+    this.shortName = data.short_name;
     this.ageGroupsIds = ko.observable(data.age_groups);
     this.sadikGroups = ko.observableArray();
-    this.activeDistribution = ko.observable(data.active_distribution || false);
+    this.activeDistribution = data.active_distribution || false;
 
     this.addSadikGroup = function(data) {
       var sadikGroup = new SadikGroup(data);
@@ -38,17 +38,17 @@
     }, this);
 
     this.fullName = ko.pureComputed(function() {
-      if (self.activeDistribution()) {
-        return self.shortName();
+      if (self.activeDistribution) {
+        return self.shortName;
       } else {
-        return self.shortName() + ' - Этот ДОУ не принимает участия в распределении';
+        return self.shortName + ' - Этот ДОУ не принимает участия в распределении';
       }
     }, this);
 
   }
 
   function AgeGroup(data) {
-    this.id = ko.observable(data.id);
+    this.id = data.id;
     this.name = ko.observable(data.name);
     this.shortName = ko.observable(data.short_name);
     this.minBirthDate = ko.observable(data.min_birth_date);
@@ -57,17 +57,16 @@
 
   function SadikGroup(data) {
     self = this;
-    this.id = ko.observable(data.id || null);
+    this.id = data.id || null;
     this.capacity = ko.observable(data.capacity || 0).extend({
       trackChange: true, zeroInt: true});
     this.freePlaces = ko.observable(data.free_places || 0);
-    this.ageGroup = ko.observable(data.age_group);
+    this.ageGroupId = data.age_group;
     this.name = ko.observable();
 
     this.setName = function(ageGroups) {
-      var ageGroupId = self.ageGroup();
       var ageGroup = ko.utils.arrayFirst(ageGroups(), function(item) {
-        return item.id() === ageGroupId;
+        return item.id === self.ageGroupId;
       });
       self.name(ageGroup.name());
     };
@@ -100,20 +99,10 @@
       $.when(kgxhr, agxhr).done(function() {self.viewStatus('');});
     };
 
-    // selecting kindergartens to show on the page, filtering them
-    this.kindergtnsToShow = ko.pureComputed(function() {
-      var text = this.filterText().toLowerCase();
-      if (text) {
-        return ko.utils.arrayFilter(this.KinderGtnList(), function(kg) {
-          return kg.shortName().toLowerCase().indexOf(text) > -1;
-        });
-      }
-      return this.KinderGtnList();
-    }, this);
-
     this.toggleCollapseStatus = function () {
       self.kgListCollapsed(!self.kgListCollapsed());
       self.kgListCollapsed() ? self.collapseButtonText('Развернуть все') : self.collapseButtonText('Свернуть все');
+      /*
       if (!self.kgListCollapsed()) {
         ko.utils.arrayFilter(self.KinderGtnList(), function(kg) {
           return kg.activeDistribution;
@@ -121,6 +110,7 @@
           self.getSadikGroups(kg);
         });
       }
+      */
     };
 
     this.showMessage = function(elem) {
@@ -173,7 +163,7 @@
 
       kg.setStatus('processing');
 
-      $.getJSON('/api2/sadik/' + kg.id() + '/groups/', function(data) {
+      $.getJSON('/api2/sadik/' + kg.id + '/groups/', function(data) {
         kg.sadikGroups.removeAll();
         self.addGroupsToKindergtn(kg, data);
       }).error(function(e) {
@@ -202,7 +192,7 @@
       } else if (rawData.length) {
         kg.disabled(true);
         var data = ko.toJSON(rawData);
-        $.post('/api2/sadik/' + kg.id() + '/groups/', data, function(returnedData) {
+        $.post('/api2/sadik/' + kg.id + '/groups/', data, function(returnedData) {
           kg.sadikGroups.removeAll();
           self.addGroupsToKindergtn(kg, returnedData);
           kg.messages.push(new Message({'class': 'alert-success', 'message': 'Данные успешно сохранены'}));
@@ -314,12 +304,11 @@ ko.bindingHandlers.slideOn = {
 
 ko.bindingHandlers.toggleCollapse = {
   update: function(element, valueAccessor) {
-    var value = valueAccessor();
-    var valueUnwrapped = ko.unwrap(value);
+    var valueUnwrapped = ko.unwrap(valueAccessor());
     if (valueUnwrapped) {
-      $(element).collapse('hide');
+      $(element).removeClass('in');
     } else {
-      $(element).collapse('show');
+      $(element).addClass('in');
     }
   }
 };

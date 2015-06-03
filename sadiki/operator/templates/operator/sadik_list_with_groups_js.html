@@ -31,13 +31,13 @@
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse"
          data-parent="#kindergtn-list-accordion"
-         data-bind="text: fullName, attr: {href: '#kindergtn_' + id()},
+         data-bind="text: fullName, attr: {href: '#kindergtn_' + id},
                     click: $parent.getSadikGroups,
                     highlightHideText: { text: fullName, highlight: $parent.filterText},
-                    css: {disabled: !activeDistribution()}"
+                    css: {disabled: !activeDistribution}"
          href=""></a>
     </div>
-    <div id="" class="accordion-body collapse" data-bind="attr: {id: 'kindergtn_' + id()},  toggleCollapse: $root.kgListCollapsed">
+    <div id="" class="accordion-body collapse" data-bind="attr: {id: 'kindergtn_' + id},  toggleCollapse: $root.kgListCollapsed">
       <div class="accordion-inner">
           <!-- ko foreach: { data: messages, afterAdd: $root.showMessage } -->
             <div class="alert" data-bind="css: msgClass">

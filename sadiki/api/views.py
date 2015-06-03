@@ -434,7 +434,7 @@ class GroupsForSadikView(SadikOperatorPermissionMixin, View):
         year = get_current_distribution_year()
         kg = get_object_or_404(Sadik, pk=sadik_id)
         for sg_data in data:
-            age_group = AgeGroup.objects.get(pk=sg_data['ageGroup'])
+            age_group = AgeGroup.objects.get(pk=sg_data['ageGroupId'])
             if sg_data['id']:
                 sadik_group = SadikGroup.objects.get(pk=sg_data['id'])
             else:
