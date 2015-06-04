@@ -59,6 +59,8 @@ class SadikListWithGroupsJS(SadikOperatorPermissionMixin, TemplateView):
         context = super(SadikListWithGroupsJS, self).get_context_data(**kwargs)
         distribution = Distribution.objects.active()
         context['distribution_is_active'] = json.dumps(bool(distribution))
+        context['current_distribution_year'] = json.dumps(
+            get_current_distribution_year().year)
         return context
 
 

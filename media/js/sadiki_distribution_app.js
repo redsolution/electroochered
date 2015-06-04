@@ -49,10 +49,10 @@
 
   function AgeGroup(data) {
     this.id = data.id;
-    this.name = ko.observable(data.name);
-    this.shortName = ko.observable(data.short_name);
-    this.minBirthDate = ko.observable(data.min_birth_date);
-    this.maxBirthDate = ko.observable(data.max_birth_date);
+    this.name = data.name;
+    this.shortName = data.short_name;
+    this.minBirthDate = data.min_birth_date;
+    this.maxBirthDate = data.max_birth_date;
   }
 
   function SadikGroup(data) {
@@ -64,11 +64,12 @@
     this.ageGroupId = data.age_group;
     this.name = ko.observable();
 
-    this.setName = function(ageGroups) {
+    this.setName = function(ageGroups, year) {
       var ageGroup = ko.utils.arrayFirst(ageGroups(), function(item) {
         return item.id === self.ageGroupId;
       });
-      self.name(ageGroup.name());
+      self.name(ageGroup.name + ' за ' + current_distribution_year + ' год' + ' (c ' +
+                ageGroup.minBirthDate + ' по ' + ageGroup.maxBirthDate + ')');
     };
   }
 
@@ -83,6 +84,7 @@
     this.totalFreePlaces = ko.observable();
     this.totalCapacity = ko.observable();
     this.ageGroups = ko.observableArray();
+
     this.distributionIsActive = ko.observable(distribution_is_active);
 
     this.viewStatus = ko.observable();
