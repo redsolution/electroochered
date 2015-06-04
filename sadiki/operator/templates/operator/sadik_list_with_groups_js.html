@@ -22,7 +22,7 @@
     Свободных мест: <span data-bind="text: totalFreePlaces"></span>
   </div>
   <div class="span3 offset3">
-    <button class="btn" data-bind="text: collapseButtonText, click: toggleCollapseStatus"></btn>
+    <button class="btn" data-bind="text: collapseButtonText, click: toggleCollapseStatus, disable: viewStatus"></btn>
   </div>
 </div>
 <div class="alert alert-info" data-bind="text: viewStatus, visible: viewStatus" style="display: none;"></div>
