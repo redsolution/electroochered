@@ -203,10 +203,8 @@ DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после 
 SHORT_STAY_DECISION_BY_RESOLUTION = 304  # выделение места по пезолюции
 
 # перемещение/копирование персональных данных из модуля personal_data в ядро
-GET_NAME_FROM_PDATA = 400   # копирование Ф.И.О. в нужные поля User и Profile
-GET_NAME_FROM_PROFILE = 401     # копирование имени из Profile в User 
-GET_OTHER_INFO_FROM_PDATA = 402     # копирование адреса и телефона в Profile
-GET_CHILD_NAME_FROM_PDATA = 403     # копирование Ф.И.О. ребёнка     
+CHANGE_USER_PERSONAL_DATA = 400
+CHANGE_CHILD_PERSONAL_DATA = 401
 
 # добавление или изменение персональных данных при авторизации через ЕСИА
 CHANGE_PERSONAL_DATA_BY_ESIA = 500
@@ -693,6 +691,25 @@ distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
 
+change_personal_data_template = u"""
+        {% if old_data %}
+            Старые значения.
+            {% for key, value in old_data.items %}
+                {{ key }}: {{ value }};
+            {% endfor %}
+        {% else %}
+            Старые значения отсутствуют.
+        {% endif %}
+        {% if new_data %}
+            Новые значения.
+            {% for key, value in new_data.items %}
+                {{ key }}: {{ value }};
+            {% endfor %}
+        {% else %}
+            Новые значения отсутствуют.
+        {% endif %}
+    """
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -828,6 +845,15 @@ ACTION_TEMPLATES.update({
     },
     DISTRIBUTED_KG_LEAVE: {
         ANONYM_LOG: Template(distributed_kg_leave_template)
+    },
+    CHANGE_USER_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
+    },
+    CHANGE_CHILD_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
+    },
+    CHANGE_PERSONAL_DATA_BY_ESIA: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
     },
 })
 
