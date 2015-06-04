@@ -22,15 +22,19 @@ class Command(BaseCommand):
                         user.last_name = pdata.last_name
                         profile.middle_name = pdata.second_name
                         user.save()
+                        profile.save()
+                        # TODO: создать лог записи name
                     profile.town = pdata.settlement
                     profile.street = pdata.street
                     profile.house = pdata.house
                     profile.mobile_number = pdata.phone
                     profile.save()
+                    # TODO: создать лог записи other
                 if (not user.first_name and not user.last_name
                                 and profile.first_name):
                     user.first_name = profile.first_name
                     user.save()
+                    # TODO: создать лог записи name from Profile
 
         all_child_personal_data = ChildPersData.objects.all()
         for pdata in all_child_personal_data:
@@ -39,8 +43,8 @@ class Command(BaseCommand):
             requestion.child_last_name = pdata.last_name
             if not requestion.name:
                 requestion.name = pdata.first_name
-            requestion.save()            
-            
+            requestion.save()
+            # TODO: создать лог записи child name
 
 
 
