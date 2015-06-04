@@ -13,9 +13,6 @@
            data-bind="value: filterText, valueUpdate: 'keyup'"
            placeholder="Начните вводить название ДОУ">
   </div>
-  <div class="span3 offset3">
-    <button class="btn" data-bind="text: collapseButtonText, click: toggleCollapseStatus"></btn>
-  </div>
 </div>
 <div class="info-block row">
   <div class="info-inside span3">
@@ -23,6 +20,9 @@
   </div>
   <div class="info-inside span3">
     Свободных мест: <span data-bind="text: totalFreePlaces"></span>
+  </div>
+  <div class="span3 offset3">
+    <button class="btn" data-bind="text: collapseButtonText, click: toggleCollapseStatus"></btn>
   </div>
 </div>
 <div class="alert alert-info" data-bind="text: viewStatus, visible: viewStatus" style="display: none;"></div>
@@ -84,7 +84,7 @@
   <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout-3.3.0.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout.mapping-latest.js'></script>
   <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout.validation.min.js'></script>
-  <script type='text/javascript' src='{{ STATIC_URL }}js/sadiki_distribution_app.js?0.6dev'></script>
+  <script type='text/javascript' src='{{ STATIC_URL }}js/sadiki_distribution_app.js?0.7dev'></script>
   <script type="text/javascript">
     jQuery(document).ready(function($){
       $('<div id="up"><i class="icon-arrow-up"></i> Наверх</div>').insertAfter('ul.nav');
