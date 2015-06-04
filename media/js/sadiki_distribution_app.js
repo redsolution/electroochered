@@ -122,6 +122,7 @@
        * automatically, with default values.
        */
 
+      var errFlag = false;
       $.each(kg.ageGroupsIds(), function(key, val) {
         // ищем подходящую группу среди активных возрастных групп в садике
         sadikGroup = data.filter(function(item) {
@@ -134,20 +135,23 @@
           sg.setName(self.ageGroups);
         // если таких групп несколько - ошибка, запрещаем работу с ДОУ
         } else if (sadikGroup.length > 1) {
-          kg.display(false);
+          errFlag = true;
           kg.sadikGroups.removeAll();
+          kg.messages.removeAll();
           kg.messages.push(new Message({
             'class': 'alert',
             'message': 'Данный ДОУ содержит более одной активной группы для ' +
             'определенного возраста. Сообщите о проблеме в техническую поддержку.'
           }));
-          return;
+          return false;
         // если такой группы нет - создаем новую
         } else {
           sg = kg.addSadikGroup({'age_group': val}, self.ageGroups);
           sg.setName(self.ageGroups);
         }
       });
+
+      kg.display(!errFlag);
     };
 
     this.getSadikGroups = function(kg) {
