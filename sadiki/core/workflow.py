@@ -193,7 +193,13 @@ CHANGE_BENEFITS_BY_OPERATOR = 82
 CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
+# TODO: добавить поддержку action_flags из модуля personal_data
 EMAIL_VERIFICATION = 204
+# добавление или изменение персональных данных при авторизации через ЕСИА
+CHANGE_PERSONAL_DATA_BY_ESIA = 205
+# перемещение персональных данных из модуля personal_data в ядро
+MIGRATE_USER_PERSONAL_DATA = 206
+MIGRATE_CHILD_PERSONAL_DATA = 207
 
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
@@ -201,13 +207,6 @@ SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания 
 SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
 DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после комплектования
 SHORT_STAY_DECISION_BY_RESOLUTION = 304  # выделение места по пезолюции
-
-# перемещение/копирование персональных данных из модуля personal_data в ядро
-CHANGE_USER_PERSONAL_DATA = 400
-CHANGE_CHILD_PERSONAL_DATA = 401
-
-# добавление или изменение персональных данных при авторизации через ЕСИА
-CHANGE_PERSONAL_DATA_BY_ESIA = 500
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -477,7 +476,13 @@ ACTION_CHOICES.extend(
      #    Путевки
      (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
      # персональные данные
-     (EMAIL_VERIFICATION, u'Подтверждение почтового ящика')
+     (EMAIL_VERIFICATION, u'Подтверждение почтового ящика'),
+     (MIGRATE_USER_PERSONAL_DATA,
+        u'Перенос перс. данных пользователя в связи с обновлением до v1.9'),
+     (MIGRATE_CHILD_PERSONAL_DATA,
+        u'Перенос перс. данных ребёнка в связи с обновлением до v1.9'),
+     (CHANGE_PERSONAL_DATA_BY_ESIA,
+        u'Изменение перс. данных пользователя при авторизации через ЕСИА'),
     ]
 )
 
@@ -691,19 +696,25 @@ distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
 
-change_personal_data_template = u"""
+migrate_personal_data_template = u"""
+    {% for field_name, field_value in new_data.items %}
+        {{ field_name }}: {{ field_value }};
+    {% endfor %}
+    """
+
+change_personal_data_by_esia_template = u"""
         {% if old_data %}
-            Старые значения.
+            Старые значения:
             {% for key, value in old_data.items %}
-                {{ key }}: {{ value }};
+                {{ key }}= {{ value }};
             {% endfor %}
         {% else %}
             Старые значения отсутствуют.
         {% endif %}
         {% if new_data %}
-            Новые значения.
+            Новые значения:
             {% for key, value in new_data.items %}
-                {{ key }}: {{ value }};
+                {{ key }}= {{ value }};
             {% endfor %}
         {% else %}
             Новые значения отсутствуют.
@@ -846,14 +857,14 @@ ACTION_TEMPLATES.update({
     DISTRIBUTED_KG_LEAVE: {
         ANONYM_LOG: Template(distributed_kg_leave_template)
     },
-    CHANGE_USER_PERSONAL_DATA: {
-        ACCOUNT_LOG: Template(change_personal_data_template)
+    MIGRATE_USER_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(migrate_personal_data_template)
     },
-    CHANGE_CHILD_PERSONAL_DATA: {
-        ACCOUNT_LOG: Template(change_personal_data_template)
+    MIGRATE_CHILD_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(migrate_personal_data_template)
     },
     CHANGE_PERSONAL_DATA_BY_ESIA: {
-        ACCOUNT_LOG: Template(change_personal_data_template)
+        ACCOUNT_LOG: Template(change_personal_data_by_esia_template)
     },
 })
 

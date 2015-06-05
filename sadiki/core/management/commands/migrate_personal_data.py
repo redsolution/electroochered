@@ -5,8 +5,8 @@ from django.contrib.auth.models import User
 
 from sadiki.core.models import Profile, Requestion
 from sadiki.logger.models import Logger
-from sadiki.core.workflow import CHANGE_USER_PERSONAL_DATA
-from sadiki.core.workflow import CHANGE_CHILD_PERSONAL_DATA
+from sadiki.core.workflow import MIGRATE_USER_PERSONAL_DATA
+from sadiki.core.workflow import MIGRATE_CHILD_PERSONAL_DATA
 from personal_data.models import ChildPersData, UserPersData
 
 PRINT_STEP = 100
@@ -52,7 +52,7 @@ class Command(BaseCommand):
             user.save()
             if new_data:
                 Logger.objects.create_for_action(
-                    CHANGE_USER_PERSONAL_DATA,
+                    MIGRATE_USER_PERSONAL_DATA,
                     context_dict={'new_data': new_data},
                     extra={'user': user},
                     reason=u'Обновление до v1.9'
@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 new_data['child_first_name'] = pdata.first_name
             requestion.save()
             Logger.objects.create_for_action(
-                CHANGE_CHILD_PERSONAL_DATA,
+                MIGRATE_CHILD_PERSONAL_DATA,
                 context_dict={'new_data': new_data},
                 extra={'user': requestion.profile.user},
                 reason=u'Обновление до v1.9'
