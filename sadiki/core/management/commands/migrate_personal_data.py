@@ -4,9 +4,9 @@ from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
 
 from sadiki.core.models import Profile, Requestion
+from sadiki.logger.models import Logger
 from sadiki.core.workflow import CHANGE_USER_PERSONAL_DATA
 from sadiki.core.workflow import CHANGE_CHILD_PERSONAL_DATA
-from sadiki.logger.models import Logger
 from personal_data.models import ChildPersData, UserPersData
 
 
@@ -15,6 +15,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         all_users = User.objects.select_related().all()
+        users_remained = len(all_users)
+        print u'Обрабатываем персональные данные пользователей'
         for user in all_users:
             new_data = {}
             if hasattr(user, 'profile'):
@@ -49,8 +51,13 @@ class Command(BaseCommand):
                     extra={'user': user},
                     reason=u'Обновление до v1.9'
                 )
+            users_remained -= 1
+            if users_remained % 10 == 0:
+                print u'Осталось {}'.format(users_remained)
 
+        print u'Обрабатываем персональные данные детей'
         all_child_personal_data = ChildPersData.objects.all()
+        child_pdata_remained = len(all_child_personal_data)
         for pdata in all_child_personal_data:
             new_data = {}
             requestion = pdata.application
@@ -68,7 +75,9 @@ class Command(BaseCommand):
                 extra={'user': requestion.profile.user},
                 reason=u'Обновление до v1.9'
             )
-
+            child_pdata_remained -= 1
+            if child_pdata_remained % 10 == 0:
+                print u'Осталось {}'.format(child_pdata_remained)
 
 
 '''
