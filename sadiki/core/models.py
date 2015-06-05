@@ -11,7 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
-from django.core.validators import MaxValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models.query_utils import Q
@@ -26,7 +26,7 @@ from sadiki.core.utils import add_crc, calculate_luhn_digit, \
     get_current_distribution_year, get_qs_attr, get_user_by_email, \
     find_closest_kg
 from sadiki.core.validators import birth_date_validator, \
-    registration_date_validator
+    registration_date_validator, snils_validator
 from sadiki.settings import REQUESTER_USERNAME_PREFIX
 from south.modelsinspector import add_introspection_rules
 import datetime
@@ -779,10 +779,7 @@ class Profile(models.Model):
         help_text=u"Учетная запись в сервисе Skype")
     snils = models.CharField(
         u'СНИЛС', max_length=50, null=True,
-        validators=[RegexValidator(
-            '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
-            message=u'СНИЛС должен быть записан в формате xxx-xxx-xxx xx'
-        ), ])
+        validators=[snils_validator, ])
     town = models.CharField(
         max_length=50, verbose_name=u'Населенный пункт', null=True)
     street = models.CharField(
@@ -1071,10 +1068,7 @@ class Requestion(models.Model):
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(
         u'СНИЛС ребёнка', max_length=50, null=True,
-        validators=[RegexValidator(
-            '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
-            message=u'СНИЛС должен быть записан в формате xxx-xxx-xxx xx'
-        ), ])
+        validators=[snils_validator, ])
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
