@@ -778,7 +778,7 @@ class Profile(models.Model):
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
     snils = models.CharField(
-        u'СНИЛС', max_length=50, null=True,
+        u'СНИЛС', max_length=20, null=True,
         validators=[snils_validator, ])
     town = models.CharField(
         max_length=50, verbose_name=u'Населенный пункт', null=True)
@@ -1067,7 +1067,7 @@ class Requestion(models.Model):
     birthplace = models.CharField(
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(
-        u'СНИЛС ребёнка', max_length=50, null=True,
+        u'СНИЛС ребёнка', max_length=20, null=True,
         validators=[snils_validator, ])
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',

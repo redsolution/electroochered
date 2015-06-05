@@ -45,7 +45,7 @@ class Migration(SchemaMigration):
 
         # Adding field 'Requestion.child_snils'
         db.add_column('core_requestion', 'child_snils',
-                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
+                      self.gf('django.db.models.fields.CharField')(max_length=20, null=True),
                       keep_default=False)
 
         # Adding field 'Profile.middle_name'
@@ -60,7 +60,7 @@ class Migration(SchemaMigration):
 
         # Adding field 'Profile.snils'
         db.add_column('core_profile', 'snils',
-                      self.gf('django.db.models.fields.CharField')(max_length=50, null=True),
+                      self.gf('django.db.models.fields.CharField')(max_length=20, null=True),
                       keep_default=False)
 
         # Adding field 'Profile.town'
@@ -275,7 +275,7 @@ class Migration(SchemaMigration):
             'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
             'sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Sadik']", 'null': 'True', 'symmetrical': 'False'}),
             'skype': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'snils': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'snils': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True'}),
             'social_auth_public': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'street': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'town': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
@@ -292,7 +292,7 @@ class Migration(SchemaMigration):
             'cast': ('django.db.models.fields.IntegerField', [], {'default': '3'}),
             'child_last_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'child_middle_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
-            'child_snils': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'child_snils': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True'}),
             'closest_kg': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'closest_kg'", 'null': 'True', 'to': "orm['core.Sadik']"}),
             'decision_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'distribute_in_any_sadik': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
