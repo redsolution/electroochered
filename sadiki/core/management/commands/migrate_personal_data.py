@@ -52,7 +52,7 @@ class Command(BaseCommand):
                     reason=u'Обновление до v1.9'
                 )
             users_remained -= 1
-            if users_remained % 10 == 0:
+            if users_remained % 100 == 0:
                 print u'Осталось {}'.format(users_remained)
 
         print u'Обрабатываем персональные данные детей'
@@ -76,5 +76,5 @@ class Command(BaseCommand):
                 reason=u'Обновление до v1.9'
             )
             child_pdata_remained -= 1
-            if child_pdata_remained % 10 == 0:
+            if child_pdata_remained % 100 == 0:
                 print u'Осталось {}'.format(child_pdata_remained)
