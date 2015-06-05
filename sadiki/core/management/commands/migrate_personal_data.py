@@ -29,25 +29,25 @@ class Command(BaseCommand):
                 if not user.first_name and not user.last_name:
                     user.first_name = pdata.first_name
                     user.last_name = pdata.last_name
-                    new_data['first_name'] = pdata.first_name
-                    new_data['last_name'] = pdata.last_name
+                    new_data[u'Имя'] = pdata.first_name
+                    new_data[u'Фамилия'] = pdata.last_name
                     profile.middle_name = pdata.second_name
-                    new_data['middle_name'] = pdata.second_name
+                    new_data[u'Отчество'] = pdata.second_name
                 profile.town = pdata.settlement
-                new_data['town'] = pdata.settlement
+                new_data[u'Город'] = pdata.settlement
                 profile.street = pdata.street
-                new_data['street'] = pdata.street
+                new_data[u'Улица'] = pdata.street
                 profile.house = pdata.house
-                new_data['house'] = pdata.house
+                new_data[u'Дом'] = pdata.house
                 profile.mobile_number = pdata.phone
-                new_data['phone'] = pdata.phone
+                new_data[u'Моб.телефон'] = pdata.phone
             # Теперь, если в profile указано имя, но в user поля пустые,
             # переносим туда это имя. Теоретически, оно берётся из ВК,
             # поэтому имеет низший приоритет при переносе
             if (not user.first_name and not user.last_name
                                      and profile.first_name):
                 user.first_name = profile.first_name
-                new_data['first_name'] = profile.first_name
+                new_data[u'Имя'] = profile.first_name
             profile.save()
             user.save()
             if new_data:
@@ -72,12 +72,12 @@ class Command(BaseCommand):
             new_data = {}
             requestion = pdata.application
             requestion.child_middle_name = pdata.second_name
-            new_data['child_middle_name'] = pdata.second_name
+            new_data[u'Отчество_ребёнка'] = pdata.second_name
             requestion.child_last_name = pdata.last_name
-            new_data['child_last_name'] = pdata.last_name
+            new_data[u'Фамилия_ребёнка'] = pdata.last_name
             if not requestion.name:
                 requestion.name = pdata.first_name
-                new_data['child_first_name'] = pdata.first_name
+                new_data[u'Имя_ребёнка'] = pdata.first_name
             requestion.save()
             Logger.objects.create_for_action(
                 MIGRATE_CHILD_PERSONAL_DATA,
