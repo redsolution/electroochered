@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
+import logging
 import random
 import string
+import sys
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
@@ -14,7 +16,7 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py remove_personal_data'''
 
     def handle(self, *args, **options):
-        print "Изменяем описание льгот"
+        print u"Изменяем описание льгот"
         benefits = Benefit.objects.all()
         for benefit in benefits:
             benefit.name = u"Льгота №{} категории {}".format(
@@ -22,12 +24,9 @@ class Command(BaseCommand):
             benefit.description = benefit.name
             benefit.save()
 
-        print "Изменяем содержимое логов о персональных данных"
-        pdata_log_ids = Logger.objects.filter(action_flag__gt=200)
-        pdata_log_msgs = LoggerMessage.objects.filter(logger__in=pdata_log_ids)
-        for msg in pdata_log_msgs:
-            msg.message = u"Изменение персональных данных"
-            msg.save()
+        print u"Изменяем содержимое логов"
+        from sadiki.core.workflow import ANONYM_LOG
+        LoggerMessage.objects.filter(level__gt=ANONYM_LOG).update(message=u"")
 
         men_data = {
             'first_names': ['Вася', 'Федя', 'Коля', 'Степан', 'Алексей',
@@ -64,7 +63,7 @@ class Command(BaseCommand):
                        'генерала Уранова', 'Светлая', 'Ленина', 'Пушкина'],
         }
 
-        print "Изменяем персональные данные детей"
+        print u"Изменяем персональные данные детей"
         pdata = {u"М": men_data, u"Ж": women_data}
         child_data = ChildPersData.objects.all()
         for record in child_data:
@@ -74,7 +73,7 @@ class Command(BaseCommand):
             record.last_name = random.choice(pdata[sex]['last_names'])
             record.save()
 
-        print "Изменяем персональные данные пользователей"
+        logging.info(u"Изменяем персональные данные пользователей")
         pers_data = UserPersData.objects.all()
         for record in pers_data:
             sex = random.choice(pdata.keys())
@@ -88,5 +87,5 @@ class Command(BaseCommand):
                                     for _ in xrange(11)])
             record.save()
 
-        print "Удаляем почту"
+        print u"Удаляем почту"
         User.objects.all().update(email='')
