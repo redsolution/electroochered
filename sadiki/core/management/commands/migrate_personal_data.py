@@ -7,15 +7,10 @@ from sadiki.core.models import Profile, Requestion
 from sadiki.logger.models import Logger
 from sadiki.core.workflow import MIGRATE_USER_PERSONAL_DATA
 from sadiki.core.workflow import MIGRATE_CHILD_PERSONAL_DATA
+from sadiki.core.utils import remove_empty_personal_data_values
 from personal_data.models import ChildPersData, UserPersData
 
 PRINT_STEP = 100
-
-
-def remove_empty_values(data):
-    target_keys = [key for key in data if data[key] == '' or data[key] == None]
-    for key in target_keys:
-        data.pop(key)
 
 
 class Command(BaseCommand):
@@ -57,7 +52,7 @@ class Command(BaseCommand):
             profile.save()
             user.save()
             # удаляем возможные пустые значения, чтобы не засоряли лог
-            remove_empty_values(new_data)
+            remove_empty_personal_data_values(new_data)
             if new_data:
                 Logger.objects.create_for_action(
                     MIGRATE_USER_PERSONAL_DATA,
@@ -87,7 +82,7 @@ class Command(BaseCommand):
                 requestion.name = pdata.first_name
                 new_data[u'Имя_ребёнка'] = pdata.first_name
             requestion.save()
-            remove_empty_values(new_data)
+            remove_empty_personal_data_values(new_data)
             if new_data:
                 Logger.objects.create_for_action(
                     MIGRATE_CHILD_PERSONAL_DATA,
