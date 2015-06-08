@@ -5,7 +5,9 @@ from multiprocessing import Pool
 
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 from django.http import HttpResponse, Http404, HttpResponseForbidden
+from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.template.context import RequestContext
 from django.utils import simplejson
@@ -18,18 +20,21 @@ from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
     EvidienceDocument, EvidienceDocumentTemplate, REQUESTION_IDENTITY, \
     STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES, \
-    STATUS_KG_LEAVE
+    STATUS_KG_LEAVE, AgeGroup, SadikGroup
 from sadiki.api.utils import add_requestions_data
 from sadiki.anonym.views import Queue
+from sadiki.operator.views.sadik import SadikOperatorPermissionMixin
 from sadiki.operator.forms import ConfirmationForm, \
     RequestionIdentityDocumentForm
 from sadiki.core.exceptions import RequestionHidden
 from sadiki.core.workflow import workflow, DISTRIBUTION_BY_RESOLUTION, \
     REQUESTER_DECISION_BY_RESOLUTION, INNER_TRANSITIONS, \
-    SHORT_STAY_DECISION_BY_RESOLUTION
+    SHORT_STAY_DECISION_BY_RESOLUTION, CHANGE_SADIK_GROUP_PLACES
 from sadiki.core.signals import post_status_change, pre_status_change
 from sadiki.core.serializers import RequestionGeoSerializer, \
-    AnonymRequestionGeoSerializer
+    AnonymRequestionGeoSerializer, SadikSerializer, AgeGroupSerializer, \
+    SadikGroupSerializer
+from sadiki.core.utils import get_current_distribution_year
 from sadiki.logger.models import Logger
 
 
@@ -403,3 +408,64 @@ class RequestionsQueue(Queue):
 def serialize_requestions((queryset, serializer)):
     requestions = serializer(queryset, many=True)
     return requestions.data
+
+
+def get_simple_kindergtns(request):
+    kgs = Sadik.objects.prefetch_related('age_groups', 'groups').all()
+    return JSONResponse(SadikSerializer(kgs, many=True).data)
+
+
+def get_age_groups(request):
+    u"""
+    Возвращает просто json-массив со всеми возрастными группами
+    """
+    age_groups = AgeGroup.objects.all()
+    return JSONResponse(AgeGroupSerializer(age_groups, many=True).data)
+
+
+class GroupsForSadikView(SadikOperatorPermissionMixin, View):
+
+    def get(self, request, sadik_id):
+        sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
+        return JSONResponse(SadikGroupSerializer(sgs, many=True).data)
+
+    def post(self, request, sadik_id):
+        data = json.loads(request.body)
+        year = get_current_distribution_year()
+        kg = get_object_or_404(Sadik, pk=sadik_id)
+        for sg_data in data:
+            age_group = AgeGroup.objects.get(pk=sg_data['ageGroupId'])
+            if sg_data['id']:
+                sadik_group = SadikGroup.objects.get(pk=sg_data['id'])
+            else:
+                try:
+                    sadik_group = SadikGroup.objects.get(
+                        sadik=kg, active=True, age_group=age_group)
+                except ObjectDoesNotExist:
+                    sadik_group = SadikGroup(
+                        sadik=kg, active=True, age_group=age_group, year=year)
+                    sadik_group.set_default_age(age_group)
+            places = int(sg_data["capacity"])
+            sadik_group.free_places = places
+            sadik_group.capacity = places
+            sadik_group.save()
+            Logger.objects.create_for_action(
+                CHANGE_SADIK_GROUP_PLACES,
+                context_dict={'sadik_group': sadik_group},
+                extra={
+                    'user': request.user,
+                    'obj': sadik_group,
+                    'age_group': sadik_group.age_group
+                })
+        sgs = SadikGroup.objects.filter(active=True, sadik=sadik_id)
+        return JSONResponse(SadikGroupSerializer(sgs, many=True).data)
+
+
+class PlacesCount(SadikOperatorPermissionMixin, View):
+    def get(self, request):
+        groups = SadikGroup.objects.filter(active=True)
+        total_free_places = groups.aggregate(total_free_places=Sum('free_places'))
+        total_capacity = groups.aggregate(total_capacity=Sum('capacity'))
+        total_places = total_free_places
+        total_places.update(total_capacity)
+        return JSONResponse(total_places)
