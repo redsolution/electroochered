@@ -12,6 +12,12 @@ from personal_data.models import ChildPersData, UserPersData
 PRINT_STEP = 100
 
 
+def remove_empty_values(data):
+    target_keys = [key for key in data if data[key] == '' or data[key] == None]
+    for key in target_keys:
+        data.pop(key)
+
+
 class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
@@ -50,6 +56,8 @@ class Command(BaseCommand):
                 new_data[u'Имя'] = profile.first_name
             profile.save()
             user.save()
+            # удаляем возможные пустые значения, чтобы не засоряли лог
+            remove_empty_values(new_data)
             if new_data:
                 Logger.objects.create_for_action(
                     MIGRATE_USER_PERSONAL_DATA,
@@ -79,12 +87,14 @@ class Command(BaseCommand):
                 requestion.name = pdata.first_name
                 new_data[u'Имя_ребёнка'] = pdata.first_name
             requestion.save()
-            Logger.objects.create_for_action(
-                MIGRATE_CHILD_PERSONAL_DATA,
-                context_dict={'new_data': new_data},
-                extra={'user': requestion.profile.user},
-                reason=u'Обновление до v1.9'
-            )
+            remove_empty_values(new_data)
+            if new_data:
+                Logger.objects.create_for_action(
+                    MIGRATE_CHILD_PERSONAL_DATA,
+                    context_dict={'new_data': new_data},
+                    extra={'user': requestion.profile.user},
+                    reason=u'Обновление до v1.9'
+                )
             prepared_child_pdata += 1
             if prepared_child_pdata % PRINT_STEP == 0:
                 print u'Готово {}%'.format(
