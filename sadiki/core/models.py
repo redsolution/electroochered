@@ -843,6 +843,16 @@ class PersonalDocument(models.Model):
         max_length=100, null=True)
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
 
+    def __unicode__(self):
+        format_string = u'Тип документа= {}, {} {}, выдан {} {};'
+        return format_string.format(
+            self.get_doc_type_display(),
+            self.series,
+            self.number,
+            self.issued_by,
+            self.issued_date.isoformat()
+        )
+
 
 NOT_CONFIRMED_STATUSES = (
     STATUS_WAIT_REVIEW,
