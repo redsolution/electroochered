@@ -29,7 +29,7 @@
     {% endif %}
     {# пункты меню оператора и оператора ДОУ #}
     {% if request.user.is_sadik_operator or request.user.is_operator %}
-        {% create_extend_list sadik_list_with_groups distribution_info decision_manager as distribution_urls %}
+        {% create_extend_list sadik_list_with_groups_js distribution_info decision_manager as distribution_urls %}
         <li {% if request.path in distribution_urls or url_name == "sadikgroup_change_places" %}class="active"{% endif %}>
             <a href="{{ distribution_info }}"><i class="imgicon wand"></i><p>Комплектование</p></a>
         </li>

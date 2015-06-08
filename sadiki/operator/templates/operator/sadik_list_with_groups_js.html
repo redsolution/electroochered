@@ -1,0 +1,102 @@
+{% extends "distribution/distribution_base.html" %}
+
+{% block title %}Выделение мест{% endblock %}
+
+{% block content %}
+<div class="alert" data-bind="visible: distributionIsActive" style="display: none;">
+  Имеется активное распределение, выделение мест невозможно.
+</div>
+<div class="info-block row">
+  <div class="info-inside span5">
+    <span class="add-on">Быстрый поиск: </span>
+    <input id="kg-list-filter" type="search"
+           data-bind="value: filterText, valueUpdate: 'keyup', disable: viewStatus"
+           placeholder="Начните вводить название ДОУ">
+  </div>
+</div>
+<div class="info-block row">
+  <div class="info-inside span3">
+    Выделено мест: <span data-bind="text: totalCapacity"></span>
+  </div>
+  <div class="info-inside span3">
+    Свободных мест: <span data-bind="text: totalFreePlaces"></span>
+  </div>
+  <div class="span3 offset3">
+    <button class="btn" data-bind="text: collapseButtonText, click: toggleCollapseStatus, disable: viewStatus"></btn>
+  </div>
+</div>
+<div class="alert alert-info" data-bind="text: viewStatus, visible: viewStatus" style="display: none;"></div>
+<div class="accordion" id="kindergtn-list-accordion" data-bind='foreach: KinderGtnList'>
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse"
+         data-parent="#kindergtn-list-accordion"
+         data-bind="text: fullName, attr: {href: '#kindergtn_' + id},
+                    click: $parent.getSadikGroups,
+                    highlightHideText: { text: fullName, highlight: $parent.filterText},
+                    css: {disabled: !activeDistribution}"
+         href=""></a>
+    </div>
+    <div id="" class="accordion-body collapse" data-bind="attr: {id: 'kindergtn_' + id},  toggleCollapse: $root.kgListCollapsed">
+      <div class="accordion-inner">
+          <!-- ko foreach: { data: messages, afterAdd: $root.showMessage } -->
+            <div class="alert" data-bind="css: msgClass">
+              <button type="button" class="close" data-dismiss="alert">&times;</button>
+              <span data-bind="text: message"></span>
+            </div>
+          <!-- /ko -->
+          <div data-bind="slideOn: display">
+            <table class="table table-striped table-bordered table-condensed places-table inside-accordion">
+              <thead>
+                <tr>
+                  <th>Возрастная категория</th>
+                  <th class="capacity">Выделено мест</th>
+                  <th class="free-places">Свободных мест</th>
+                </tr>
+              </thead>
+              <tbody data-bind="foreach: sadikGroups">
+                <tr>
+                  <td data-bind="text: name"></td>
+                  <td><input class="text-right table-input" type="text"
+                             data-bind="value: capacity,
+                                        valueUpdate: 'keyup',
+                                        disable: $root.distributionIsActive() || $parent.disabled()" /></td>
+                  <td data-bind="text: freePlaces"></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="button-block">
+              <button class="btn btn-primary" data-bind="click: $parent.saveSadikGroups,
+                                                         disable: $root.distributionIsActive() || disabled()" type="submit">Сохранить</button>
+            </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block bottomjs %}
+  {{ block.super }}
+  <script type="text/javascript">
+    var distribution_is_active = {{ distribution_is_active }};
+    var current_distribution_year = {{ current_distribution_year }};
+  </script>
+  <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout-3.3.0.js'></script>
+  <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout.mapping-latest.js'></script>
+  <script type='text/javascript' src='{{ STATIC_URL }}js/libs/knockout.validation.min.js'></script>
+  <script type='text/javascript' src='{{ STATIC_URL }}js/sadiki_distribution_app.js?0.8dev'></script>
+  <script type="text/javascript">
+    jQuery(document).ready(function($){
+      $('<div id="up"><i class="icon-arrow-up"></i> Наверх</div>').insertAfter('ul.nav');
+      $('#up').topLink({
+          min: $('ul.nav').height() + $('.header').height(),
+          fadeSpeed: 100
+      }).click(function(e){
+          e.preventDefault();
+          $.scrollTo(0,300);
+      });
+    });
+  </script>
+
+{% endblock bottomjs %}
