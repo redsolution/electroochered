@@ -760,12 +760,11 @@ class Profile(models.Model):
 
     user = models.OneToOneField('auth.User', verbose_name=u'Пользователь',
         unique=True)
+
     # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-    first_name = models.CharField(u'Имя', max_length=255, null=True)
     middle_name = models.CharField(u'Отчество', max_length=255, null=True)
-    last_name = models.CharField(u'Фамилия', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
