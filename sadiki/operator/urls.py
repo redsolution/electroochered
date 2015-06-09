@@ -9,7 +9,8 @@ from sadiki.operator.views.requestion import FrontPage, RequestionInfo, \
     RequestionStatusChange, SetIdentityDocument, FindProfileForRequestion, \
     EmbedRequestionToProfile, GenerateBlank, GenerateProfilePassword, ChangeRequestionLocation, ProfileInfo, SocialProfilePublic
 from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePlaces, \
-    RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik
+    RequestionListEnrollment, SadikInfoChange, DistributedRequestionsForSadik, \
+    SadikListWithGroupsJS
 
 
 urlpatterns = patterns('',
@@ -50,6 +51,8 @@ urlpatterns = patterns('',
     # Работа с садиками
     url(r'^dou/$',
         SadikListWithGroups.as_view(), name=u'sadik_list_with_groups'),
+    url(r'^doujs/$',
+        SadikListWithGroupsJS.as_view(), name=u'sadik_list_with_groups_js'),
     url(r'^dou/(?P<sadik_id>\d{1,7})/change_info/$',
         SadikInfoChange.as_view(), name=u'sadik_info_change'),
     url(r'^dou/(?P<sadik_id>\d{1,7})/places/$',
