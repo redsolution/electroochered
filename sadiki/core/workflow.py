@@ -195,11 +195,9 @@ CHANGE_DOCUMENTS = 83
 # изменение персональных данных
 # TODO: добавить поддержку action_flags из модуля personal_data
 EMAIL_VERIFICATION = 204
-# добавление или изменение персональных данных при авторизации через ЕСИА
-CHANGE_PERSONAL_DATA_BY_ESIA = 205
 # перемещение персональных данных из модуля personal_data в ядро
-MIGRATE_USER_PERSONAL_DATA = 206
-MIGRATE_CHILD_PERSONAL_DATA = 207
+MIGRATE_USER_PERSONAL_DATA = 205
+MIGRATE_CHILD_PERSONAL_DATA = 206
 
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
@@ -207,6 +205,12 @@ SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания 
 SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
 DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после комплектования
 SHORT_STAY_DECISION_BY_RESOLUTION = 304  # выделение места по пезолюции
+
+# поддержка авторизации через ЕСИА
+CREATE_PROFILE_BY_ESIA = 500
+BIND_ESIA_ACCOUNT = 501
+UNBIND_ESIA_ACCOUNT = 502
+CHANGE_PERSONAL_DATA_BY_ESIA = 503
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -481,6 +485,10 @@ ACTION_CHOICES.extend(
         u'Перенос перс. данных пользователя в связи с обновлением до v1.9'),
      (MIGRATE_CHILD_PERSONAL_DATA,
         u'Перенос перс. данных ребёнка в связи с обновлением до v1.9'),
+     (CREATE_PROFILE_BY_ESIA,
+        u'Создание нового профиля при регистрации через ЕСИА'),
+     (BIND_ESIA_ACCOUNT, u'Связывание профиля с аккаунтом ЕСИА'),
+     (UNBIND_ESIA_ACCOUNT, u'Разрыв связи профиля с аккаунтом ЕСИА'),
      (CHANGE_PERSONAL_DATA_BY_ESIA,
         u'Изменение перс. данных пользователя при авторизации через ЕСИА'),
     ]
@@ -703,6 +711,12 @@ migrate_personal_data_template = u"""
     {% endfor %}
     """
 
+bind_esia_account_template = u"""
+    Профиль: {{ profile }}.
+    {% if binding %}Привязана{% else %}Отвязана{% endif %}
+    учётная запись ЕСИА №{{ esia_id }}.
+    """
+
 change_personal_data_by_esia_template = u"""
         {% if old_data %}
             Старые значения:
@@ -863,6 +877,12 @@ ACTION_TEMPLATES.update({
     },
     MIGRATE_CHILD_PERSONAL_DATA: {
         ACCOUNT_LOG: Template(migrate_personal_data_template)
+    },
+    BIND_ESIA_ACCOUNT: {
+        OPERATOR_LOG: Template(bind_esia_account_template)
+    },
+    UNBIND_ESIA_ACCOUNT: {
+        OPERATOR_LOG: Template(bind_esia_account_template)
     },
     CHANGE_PERSONAL_DATA_BY_ESIA: {
         ACCOUNT_LOG: Template(change_personal_data_by_esia_template)
