@@ -193,11 +193,12 @@ CHANGE_BENEFITS_BY_OPERATOR = 82
 CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
-# TODO: добавить поддержку action_flags из модуля personal_data
+# TODO: добавить поддержку логов из модуля personal_data (200-203)
 EMAIL_VERIFICATION = 204
+# 205 реализуется в модуле pgu
 # перемещение персональных данных из модуля personal_data в ядро
-MIGRATE_USER_PERSONAL_DATA = 205
-MIGRATE_CHILD_PERSONAL_DATA = 206
+MIGRATE_USER_PERSONAL_DATA = 220
+MIGRATE_CHILD_PERSONAL_DATA = 221
 
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
