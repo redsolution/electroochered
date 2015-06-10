@@ -761,6 +761,28 @@ class Profile(models.Model):
     user = models.OneToOneField('auth.User', verbose_name=u'Пользователь',
         unique=True)
 
+    @property
+    def first_name(self):
+        try:
+            return self._first_name
+        except AttributeError:
+            return self.user.first_name
+
+    @first_name.setter
+    def first_name(self, value):
+        self._first_name = value
+
+    @property
+    def last_name(self):
+        try:
+            return self._last_name
+        except AttributeError:
+            return self.user.last_name
+
+    @last_name.setter
+    def last_name(self, value):
+        self._last_name = value
+
     # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
@@ -811,6 +833,12 @@ class Profile(models.Model):
         self.first_name = data.get('first_name')
         self.phone_number = data.get('home_phone')
         self.skype = data.get('skype')
+
+    def save(self, *args, **kwargs):
+        self.user.first_name = self.first_name
+        self.user.last_name = self.last_name
+        self.user.save()
+        return super(Profile, self).save(*args, **kwargs)
 
     def __unicode__(self):
         return self.user.username
