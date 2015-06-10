@@ -2,13 +2,12 @@
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-
+from django.conf.settings import INSTALLED_APPS
 from sadiki.core.models import Profile, Requestion
 from sadiki.logger.models import Logger
 from sadiki.core.workflow import MIGRATE_USER_PERSONAL_DATA
 from sadiki.core.workflow import MIGRATE_CHILD_PERSONAL_DATA
 from sadiki.core.utils import remove_empty_personal_data_values
-from personal_data.models import ChildPersData, UserPersData
 
 PRINT_STEP = 100
 
@@ -17,6 +16,10 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
     def handle(self, *args, **options):
+        if 'personal_data' not in INSTALLED_APPS:
+            print u'Модуль персональных данных не установлен!'
+            return
+        from personal_data.models import ChildPersData, UserPersData
         all_profiles = Profile.objects.select_related('userpersdata').all()
         number_of_profiles = len(all_profiles)
         prepared_profiles = 0

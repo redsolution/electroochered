@@ -7,11 +7,12 @@ from pysnippets import dttools
 from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
 
-try:
-    from personal_data.models import ChildPersData, UserPersData
-    USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
-except ImportError:
-    USE_PDATA = False
+USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
+if USE_PDATA:
+    try:
+        from personal_data.models import ChildPersData, UserPersData
+    except ImportError:
+        USE_PDATA = False
 
 
 def add_requestions_data(requestions, request):
