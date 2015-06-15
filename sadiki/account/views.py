@@ -26,6 +26,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
     get_coords_from_address, get_random_token, find_closest_kg
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA, CHANGE_PERSONAL_DATA_BY_OPERATOR
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -110,8 +111,16 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         profile = request.user.profile
         pdata_form = PersonalDataForm(request.POST, instance=profile)
         if pdata_form.is_valid():
-            pdata_form.save()
-            # TODO: new logger
+            profile = pdata_form.save()
+            if sadiki.administrator.admin.get_user_type(request.user):
+                action_flag = CHANGE_PERSONAL_DATA_BY_OPERATOR
+            else:
+                action_flag = CHANGE_PERSONAL_DATA
+            Logger.objects.create_for_action(
+                action_flag,
+                context_dict={'profile': profile},
+                extra={'user': request.user, 'obj': profile},
+            )
         return HttpResponseRedirect(reverse('frontpage'))
 
 

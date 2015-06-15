@@ -72,9 +72,11 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
             action_flag__in=PERSONAL_DATA_ACTION_FLAGS,
         ).order_by('datetime')
         for log in logs:
-            messages = log.loggermessage_set.filter_for_user(self.request.user)
-            if messages:
-                logs_with_messages.append([log, messages])
+            messages = log.loggermessage_set.filter(
+                logger__object_id=profile.id,
+                logger__content_type=ContentType.objects.get_for_model(Profile)
+            )
+            logs_with_messages.append([log, messages])
         return logs_with_messages
 
     def get(self, request):

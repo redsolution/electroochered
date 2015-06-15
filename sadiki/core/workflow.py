@@ -726,7 +726,7 @@ change_personal_data_template = u'''
     телефон2: {{ profile.mobile_number }}; населенный пункт: {{ profile.town }};
     улица: {{ profile.street }}; дом: {{ profile.house }};
     СНИЛС: {{ profile.snils }}; документы:
-    {% for document in profile.personaldocument_set %}{{ document }}{% endfor %}.
+    {% for document in profile.personaldocument_set.all %}{{ document }}{% endfor %}.
     '''
 
 change_pdata_requestion_template = u'''
