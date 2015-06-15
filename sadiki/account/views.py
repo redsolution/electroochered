@@ -109,6 +109,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
 
     def post(self, request, *args, **kwargs):
         profile = request.user.profile
+        context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
         if pdata_form.is_valid():
             profile = pdata_form.save()
@@ -121,7 +122,10 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
                 context_dict={'profile': profile},
                 extra={'user': request.user, 'obj': profile},
             )
-        return HttpResponseRedirect(reverse('frontpage'))
+            return HttpResponseRedirect(reverse('frontpage'))
+        else:
+            context.update({'pdata_form': pdata_form})
+            return self.render_to_response(context)
 
 
 class EmailChange(AccountPermissionMixin, View):
