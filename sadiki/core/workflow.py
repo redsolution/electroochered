@@ -720,12 +720,18 @@ distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
 
-# TODO: разработать новый формат сообщения
 change_personal_data_template = u'''
+    Фамилия: {{ profile.last_name }}; имя: {{ profile.first_name }};
+    отчество: {{ profile.middle_name }}; телефон1: {{ profile.phone_number }}
+    телефон2: {{ profile.mobile_number }}; населенный пункт: {{ profile.town }};
+    улица: {{ profile.street }}; дом: {{ profile.house }};
+    СНИЛС: {{ profile.snils }}; документы:
+    {% for document in profile.personaldocument_set %}{{ document }}{% endfor %}.
     '''
 
-# TODO: разработать новый формат сообщения
 change_pdata_requestion_template = u'''
+    Фамилия: {{ requestion.child_last_name }}, имя: {{ requestion.name }},
+    отчество: {{ requestion.child_middle_name }}
     '''
 
 migrate_personal_data_template = u"""
