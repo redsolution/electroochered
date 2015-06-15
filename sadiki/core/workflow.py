@@ -193,7 +193,10 @@ CHANGE_BENEFITS_BY_OPERATOR = 82
 CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
-# TODO: добавить поддержку логов из модуля personal_data (200-203)
+CHANGE_PERSONAL_DATA = 200
+CHANGE_PERSONAL_DATA_BY_OPERATOR = 201
+CHANGE_PDATA_REQUESTION = 202
+CHANGE_PDATA_REQUESTION_BY_OPERATOR = 203
 EMAIL_VERIFICATION = 204
 # 205 реализуется в модуле pgu
 # перемещение персональных данных из модуля personal_data в ядро
@@ -212,6 +215,14 @@ CREATE_PROFILE_BY_ESIA = 500
 BIND_ESIA_ACCOUNT = 501
 UNBIND_ESIA_ACCOUNT = 502
 CHANGE_PERSONAL_DATA_BY_ESIA = 503
+
+# эти логи будут отображаться в блоке 'Персональные данные'
+PERSONAL_DATA_ACTION_FLAGS = (
+    CHANGE_PERSONAL_DATA,
+    CHANGE_PERSONAL_DATA_BY_OPERATOR,
+    MIGRATE_USER_PERSONAL_DATA,
+    CHANGE_PERSONAL_DATA_BY_ESIA,
+)
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -481,11 +492,15 @@ ACTION_CHOICES.extend(
      #    Путевки
      (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
      # персональные данные
+     (CHANGE_PERSONAL_DATA, u'Изменение персональных данных пользователем'),
+     (CHANGE_PERSONAL_DATA_BY_OPERATOR, u'Изменение персональных данных оператором'),
+     (CHANGE_PDATA_REQUESTION, u'Изменение персональных данных заявки пользователем'),
+     (CHANGE_PDATA_REQUESTION_BY_OPERATOR, u'Изменение персональных данных заявки оператором'),
      (EMAIL_VERIFICATION, u'Подтверждение почтового ящика'),
      (MIGRATE_USER_PERSONAL_DATA,
-        u'Перенос перс. данных пользователя в связи с обновлением до v1.9'),
+        u'Перенос персональных данных пользователя в связи с обновлением до v1.9'),
      (MIGRATE_CHILD_PERSONAL_DATA,
-        u'Перенос перс. данных ребёнка в связи с обновлением до v1.9'),
+        u'Перенос персональных данных ребёнка в связи с обновлением до v1.9'),
      (CREATE_PROFILE_BY_ESIA,
         u'Создание нового профиля при регистрации через ЕСИА'),
      (BIND_ESIA_ACCOUNT, u'Связывание профиля с аккаунтом ЕСИА'),
@@ -705,6 +720,14 @@ distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
 
+# TODO: разработать новый формат сообщения
+change_personal_data_template = u'''
+    '''
+
+# TODO: разработать новый формат сообщения
+change_pdata_requestion_template = u'''
+    '''
+
 migrate_personal_data_template = u"""
     Перенесены данные:
     {% for field_name, field_value in new_data.items %}
@@ -872,6 +895,18 @@ ACTION_TEMPLATES.update({
     },
     DISTRIBUTED_KG_LEAVE: {
         ANONYM_LOG: Template(distributed_kg_leave_template)
+    },
+    CHANGE_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
+    },
+    CHANGE_PERSONAL_DATA_BY_OPERATOR: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
+    },
+    CHANGE_PDATA_REQUESTION: {
+        ACCOUNT_LOG: Template(change_pdata_requestion_template)
+    },
+    CHANGE_PDATA_REQUESTION_BY_OPERATOR: {
+        ACCOUNT_LOG: Template(change_pdata_requestion_template)
     },
     MIGRATE_USER_PERSONAL_DATA: {
         ACCOUNT_LOG: Template(migrate_personal_data_template)
