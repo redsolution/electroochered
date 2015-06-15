@@ -2,7 +2,7 @@
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from django.conf.settings import INSTALLED_APPS
+from sadiki.settings import INSTALLED_APPS
 from sadiki.core.models import Profile, Requestion
 from sadiki.logger.models import Logger
 from sadiki.core.workflow import MIGRATE_USER_PERSONAL_DATA

@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from pysnippets import dttools
+from sadiki.settings import INSTALLED_APPS
 from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
 
-USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
+USE_PDATA = 'personal_data' in INSTALLED_APPS
 if USE_PDATA:
     try:
         from personal_data.models import ChildPersData, UserPersData
