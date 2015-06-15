@@ -17,8 +17,8 @@ from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
 class RequestionForm(FormWithDocument):
     name = forms.CharField(
         label=u"Имя ребёнка", max_length=20,
-        help_text=u"В поле достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не нужно!")
+        help_text=u"Достаточно ввести только имя ребёнка. "
+                  u"Фамилию и отчество вводить не обязательно!")
     template = TemplateFormField(
         destination=REQUESTION_IDENTITY, label=u'Тип документа')
     pref_sadiks = SadikWithAreasNameField(
@@ -31,8 +31,8 @@ class RequestionForm(FormWithDocument):
 
     class Meta:
         model = Requestion
-        _base_fields = ['areas', 'name', 'token',
-                        'birth_date', 'sex', 'template',
+        _base_fields = ['areas', 'name', 'child_last_name', 'child_middle_name',
+                        'token', 'birth_date', 'sex', 'template',
                         'document_number', 'district',
                         'pref_sadiks', 'location', 'admission_date']
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
@@ -40,6 +40,8 @@ class RequestionForm(FormWithDocument):
         fields = _base_fields
 
     def __init__(self, *args, **kwds):
+        self.base_fields['child_last_name'].required = False
+        self.base_fields['child_middle_name'].required = False
         self.base_fields['areas'].help_text = None
         self.base_fields['location'].label = u'Укажите ваше местоположение'
         self.base_fields['location'].required = True
@@ -70,14 +72,17 @@ class RequestionForm(FormWithDocument):
 class ChangeRequestionForm(forms.ModelForm):
     name = forms.CharField(
         label=u"Имя ребёнка", max_length=20,
-        help_text=u"В поле достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не нужно!")
+        help_text=u"Достаточно ввести только имя ребёнка. "
+                  u"Фамилию и отчество вводить не обязательно!")
 
     class Meta:
         model = Requestion
-        fields = ('name', 'sex', 'location', 'admission_date', 'district')
+        fields = ('name', 'sex', 'location', 'admission_date', 'district',
+            'child_middle_name', 'child_last_name')
 
     def __init__(self, *args, **kwds):
+        self.base_fields['child_middle_name'].required = False
+        self.base_fields['child_last_name'].required = False
         self.base_fields['location'].required = True
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
