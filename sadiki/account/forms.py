@@ -4,11 +4,12 @@ import datetime
 from django import forms
 from django.conf import settings
 from django.forms.models import ModelForm
+from django.contrib.auth.models import User
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
 from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import location_errors
 from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
-    Benefit
+    Benefit, PersonalDocument
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
     JQueryUIAdmissionDateWidget, SelectMultipleBenefits
 
@@ -114,6 +115,39 @@ class SocialProfilePublicForm(ModelForm):
     class Meta:
         model = Profile
         fields = ('social_auth_public',)
+
+
+class PersonalDataForm(ModelForm):
+    first_name = forms.CharField(label=u'Имя', max_length=30, required=True)
+    last_name = forms.CharField(label=u'Фамилия', max_length=30, required=True)
+
+    class Meta:
+        model = Profile
+        fields = ['first_name', 'last_name', 'middle_name',
+                  'phone_number', 'mobile_number',
+                  'snils', 'town', 'street', 'house']
+
+    def __init__(self, *args, **kwargs):
+        self.base_fields['middle_name'].required = False
+        self.base_fields['phone_number'].required = False
+        self.base_fields['mobile_number'].required = False
+        self.base_fields['snils'].required = False
+        self.base_fields['town'].required = False
+        self.base_fields['street'].required = False
+        self.base_fields['house'].required = False
+        super(PersonalDataForm, self).__init__(*args, **kwargs)
+        try:
+            self.fields['first_name'].initial = self.instance.first_name
+            self.fields['last_name'].initial = self.instance.last_name
+        except:
+            pass
+
+    def save(self, commit=True):
+        profile = super(PersonalDataForm, self).save(commit=False)
+        profile.first_name = self.cleaned_data['first_name']
+        profile.last_name = self.cleaned_data['last_name']
+        profile.save()
+        return profile
 
 
 class EmailAddForm(forms.Form):

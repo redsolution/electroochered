@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 
-from sadiki.account.forms import RequestionForm, \
+from sadiki.account.forms import RequestionForm, PersonalDataForm, \
     BenefitsForm, ChangeRequestionForm,\
     PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
@@ -91,11 +91,13 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         profile = kwargs.get('profile')
         form = EmailAddForm()
         profile_change_form = SocialProfilePublicForm(instance=profile)
+        pdata_form = PersonalDataForm(instance=profile)
         context = {
             'params': kwargs,
             'profile': profile,
             'form': form,
             'profile_change_form': profile_change_form,
+            'pdata_form': pdata_form,
             'plugin_menu_items': get_plugin_menu_items(),
             'profile_additions': get_profile_additions(),
         }
@@ -103,6 +105,14 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         if vkontakte_associations:
             context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
+
+    def post(self, request, *args, **kwargs):
+        profile = request.user.profile
+        pdata_form = PersonalDataForm(request.POST, instance=profile)
+        if pdata_form.is_valid():
+            pdata_form.save()
+            # TODO: new logger
+        return HttpResponseRedirect(reverse('frontpage'))
 
 
 class EmailChange(AccountPermissionMixin, View):

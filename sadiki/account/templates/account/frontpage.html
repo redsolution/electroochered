@@ -5,6 +5,22 @@
 {% block bottomjs %}
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
+    <script type="text/javascript">
+        function editField(element) {
+            var parent = $(element.parentElement);
+            parent.children('a').hide();
+            parent.children('label').hide();
+            parent.children('input').show().focus();
+            parent.children('input').bind("blur", function(){
+                parent.children('label').html(parent.children('input').val())
+                parent.children('a').show();
+                parent.children('label').show();
+                parent.children('input').hide();
+
+                parent.children('input').unbind();
+            });
+        }
+    </script>
     <script>
         var el;
         var email_string;
@@ -198,6 +214,76 @@
                     <p id="mail_confirm_sent" hidden="">На указанный почтовый адрес отправлено письмо с инструкциями по подтверждению. Письмо действительно в течении трех дней. Письма можно запрашивать не чаще, чем раз в 5 минут.</p>
                 {% endif %}
             </form>
+            {% block personal_data %}
+            <div class="block-head personal-data-head">Персональные данные:</div>
+            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="span5">
+                        {% for field in pdata_form %}
+                            {% if field.is_hidden %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
+                        {% with pdata_form.last_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.first_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.middle_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.phone_number as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.mobile_number as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.snils as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.town as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.street as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.house as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                    <div class="uniForm">
+                        <div class="buttonHolder">
+                            <button class="primaryAction" type="submit" >Сохранить</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </form>
+            {% endblock %}
         <div class="vkontakte-info clearfix">
             {% block vkontakte_info %}
             <div class="block-head">Профиль ВКонтакте:</div>

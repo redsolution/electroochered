@@ -786,7 +786,8 @@ class Profile(models.Model):
     # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-    middle_name = models.CharField(u'Отчество', max_length=255, null=True)
+    middle_name = models.CharField(u'Отчество', max_length=255, null=True,
+        help_text=u'Отчество')
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
@@ -798,14 +799,15 @@ class Profile(models.Model):
     skype = models.CharField(u'Skype',
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
-    snils = models.CharField(
-        u'СНИЛС', max_length=20, null=True,
-        validators=[snils_validator, ])
-    town = models.CharField(
-        max_length=50, verbose_name=u'Населенный пункт', null=True)
-    street = models.CharField(
-        max_length=50, verbose_name=u'Улица', null=True)
-    house = models.CharField(max_length=10, verbose_name=u'Дом', null=True)
+    snils = models.CharField(u'СНИЛС', max_length=20, null=True,
+        validators=[snils_validator, ],
+        help_text=u'СНИЛС')
+    town = models.CharField(u'Населённый пункт', max_length=50, null=True,
+        help_text=u'Населённый пункт')
+    street = models.CharField(u'Улица', max_length=50, null=True,
+        help_text=u'Улица')
+    house = models.CharField(u'Дом', max_length=10, null=True,
+        help_text=u'Номер дома')
     # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
     social_auth_public = models.NullBooleanField(

@@ -1066,6 +1066,10 @@ tr.dynamic-form .errorlist {
     line-height: normal;
 }
 
+.requestion-info .personal-data-head{
+    margin-top: 15px;
+}
+
 /*если не задан пароль, показать яркое предупреждение*/
 .requestion-info .empty-passwd-tip{
     width: 50%;
