@@ -57,7 +57,7 @@ class Command(BaseCommand):
                 Logger.objects.create_for_action(
                     MIGRATE_USER_PERSONAL_DATA,
                     context_dict={'new_data': new_data},
-                    extra={'user': user},
+                    extra={'user': user, 'obj': profile},
                     reason=u'Обновление до v1.9'
                 )
             prepared_profiles += 1
@@ -87,7 +87,7 @@ class Command(BaseCommand):
                 Logger.objects.create_for_action(
                     MIGRATE_CHILD_PERSONAL_DATA,
                     context_dict={'new_data': new_data},
-                    extra={'user': requestion.profile.user},
+                    extra={'user': requestion.profile.user, 'obj': requestion},
                     reason=u'Обновление до v1.9'
                 )
             prepared_child_pdata += 1
