@@ -195,8 +195,8 @@ CHANGE_DOCUMENTS = 83
 # изменение персональных данных
 CHANGE_PERSONAL_DATA = 200
 CHANGE_PERSONAL_DATA_BY_OPERATOR = 201
-CHANGE_PDATA_REQUESTION = 202
-CHANGE_PDATA_REQUESTION_BY_OPERATOR = 203
+CHANGE_CHILD_PDATA = 202
+CHANGE_CHILD_PDATA_BY_OPERATOR = 203
 EMAIL_VERIFICATION = 204
 # 205 реализуется в модуле pgu
 # перемещение персональных данных из модуля personal_data в ядро
@@ -220,7 +220,11 @@ CHANGE_PERSONAL_DATA_BY_ESIA = 503
 PERSONAL_DATA_ACTION_FLAGS = (
     CHANGE_PERSONAL_DATA,
     CHANGE_PERSONAL_DATA_BY_OPERATOR,
+    # изменение персональных данных ребёнка тоже включаем
+    CHANGE_CHILD_PDATA,
+    CHANGE_CHILD_PDATA_BY_OPERATOR,
     MIGRATE_USER_PERSONAL_DATA,
+    MIGRATE_CHILD_PERSONAL_DATA,
     CHANGE_PERSONAL_DATA_BY_ESIA,
 )
 
@@ -494,8 +498,8 @@ ACTION_CHOICES.extend(
      # персональные данные
      (CHANGE_PERSONAL_DATA, u'Изменение персональных данных пользователем'),
      (CHANGE_PERSONAL_DATA_BY_OPERATOR, u'Изменение персональных данных оператором'),
-     (CHANGE_PDATA_REQUESTION, u'Изменение персональных данных заявки пользователем'),
-     (CHANGE_PDATA_REQUESTION_BY_OPERATOR, u'Изменение персональных данных заявки оператором'),
+     (CHANGE_CHILD_PDATA, u'Изменение персональных данных ребёнка пользователем'),
+     (CHANGE_CHILD_PDATA_BY_OPERATOR, u'Изменение персональных данных ребёнка оператором'),
      (EMAIL_VERIFICATION, u'Подтверждение почтового ящика'),
      (MIGRATE_USER_PERSONAL_DATA,
         u'Перенос персональных данных пользователя в связи с обновлением до v1.9'),
@@ -729,9 +733,9 @@ change_personal_data_template = u'''
     {% for document in profile.personaldocument_set.all %}{{ document }}{% endfor %}.
     '''
 
-change_pdata_requestion_template = u'''
+change_child_pdata_template = u'''
     Фамилия: {{ requestion.child_last_name }}, имя: {{ requestion.name }},
-    отчество: {{ requestion.child_middle_name }}
+    отчество: {{ requestion.child_middle_name }}, пол: {{ requestion.sex }}.
     '''
 
 migrate_personal_data_template = u"""
@@ -908,11 +912,11 @@ ACTION_TEMPLATES.update({
     CHANGE_PERSONAL_DATA_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_personal_data_template)
     },
-    CHANGE_PDATA_REQUESTION: {
-        ACCOUNT_LOG: Template(change_pdata_requestion_template)
+    CHANGE_CHILD_PDATA: {
+        ACCOUNT_LOG: Template(change_child_pdata_template)
     },
-    CHANGE_PDATA_REQUESTION_BY_OPERATOR: {
-        ACCOUNT_LOG: Template(change_pdata_requestion_template)
+    CHANGE_CHILD_PDATA_BY_OPERATOR: {
+        ACCOUNT_LOG: Template(change_child_pdata_template)
     },
     MIGRATE_USER_PERSONAL_DATA: {
         ACCOUNT_LOG: Template(migrate_personal_data_template)

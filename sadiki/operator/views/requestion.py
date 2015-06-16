@@ -33,6 +33,7 @@ from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
     CHANGE_REQUESTION_BY_OPERATOR, Transition, workflow, CREATE_PROFILE,\
     CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
 from sadiki.core.workflow import CHANGE_PERSONAL_DATA_BY_OPERATOR
+from sadiki.core.workflow import CHANGE_CHILD_PDATA_BY_OPERATOR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
@@ -191,6 +192,7 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
 class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     template_name = "operator/requestion_info.html"
     logger_action = CHANGE_REQUESTION_BY_OPERATOR
+    logger_pdata_action = CHANGE_CHILD_PDATA_BY_OPERATOR
     change_requestion_form = OperatorChangeRequestionForm
 
     def redirect_to(self, requestion):
