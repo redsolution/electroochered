@@ -721,12 +721,21 @@ distributed_kg_leave_template = u"""
     """
 
 change_personal_data_template = u'''
-    Фамилия: {{ profile.last_name }}; имя: {{ profile.first_name }};
-    отчество: {{ profile.middle_name }}; телефон1: {{ profile.phone_number }}
-    телефон2: {{ profile.mobile_number }}; населенный пункт: {{ profile.town }};
-    улица: {{ profile.street }}; дом: {{ profile.house }};
-    СНИЛС: {{ profile.snils }}; документы:
-    {% for document in profile.personaldocument_set.all %}{{ document }}{% endfor %}.
+    {% if profile.last_name %}Фамилия: {{ profile.last_name }};{% endif %}
+    {% if profile.first_name %}Имя: {{ profile.first_name }};{% endif %}
+    {% if profile.middle_name %}Отчество: {{ profile.middle_name }};{% endif %}
+    {% if profile.phone_number %}Телефон1: {{ profile.phone_number }};{% endif %}
+    {% if profile.mobile_number %}Телефон2: {{ profile.mobile_number }};{% endif %}
+    {% if profile.town %}Населенный пункт: {{ profile.town }};{% endif %}
+    {% if profile.street %}Улица: {{ profile.street }};{% endif %}
+    {% if profile.house %}Дом: {{ profile.house }};{% endif %}
+    {% if profile.snils %}СНИЛС: {{ profile.snils }};{% endif %}
+    {% with profile.personaldocument_set.all as documents %}
+      {% if documents.exists %}
+        Документы:
+        {% for document in documents %}{{ document }};{% endfor %}
+      {% endif %}
+    {% endwith %}
     '''
 
 change_child_pdata_template = u'''
