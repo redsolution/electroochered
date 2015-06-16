@@ -137,7 +137,76 @@
                     <p class="text-success" id="mail_confirm_sent" hidden="">Почтовый адрес успешно подтвержден</p>
                 {% endif %}
             </form>
+            {% block personal_data %}
+            <div class="block-head personal-data-head">Персональные данные:</div>
+            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="span5">
+                        {% for field in pdata_form %}
+                            {% if field.is_hidden %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
+                        {% with pdata_form.last_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.first_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.middle_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.phone_number as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.mobile_number as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.snils as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.town as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.street as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.house as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                    </div>
+                </div>
 
+                <div class="row">
+                    <div class="span5">
+                    <div class="uniForm">
+                        <div class="buttonHolder">
+                            <button class="primaryAction" type="submit" >Сохранить</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </form>
+            {% endblock %}
         <div class="vkontakte-info">
             <div class="block-head">Профиль ВКонтакте:</div>
             {% if vkontakte_association %}

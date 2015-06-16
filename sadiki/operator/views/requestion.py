@@ -32,6 +32,7 @@ from sadiki.core.utils import check_url, get_unique_username, get_coords_from_ad
 from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
     CHANGE_REQUESTION_BY_OPERATOR, Transition, workflow, CREATE_PROFILE,\
     CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA_BY_OPERATOR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
@@ -170,8 +171,13 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
     template_name = "operator/profile_info.html"
 
     def dispatch(self, request, profile_id):
-        profile = get_object_or_404(Profile, id=profile_id)
-        return super(AccountFrontPage, self).dispatch(request, profile=profile)
+        kwargs = {
+            'profile': get_object_or_404(Profile, id=profile_id),
+            'redirect_to': reverse('operator_profile_info',
+                                   kwargs={'profile_id': profile_id}),
+            'action_flag': CHANGE_PERSONAL_DATA_BY_OPERATOR,
+        }
+        return super(AccountFrontPage, self).dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(ProfileInfo, self).get_context_data(**kwargs)

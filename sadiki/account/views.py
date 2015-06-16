@@ -26,7 +26,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
     get_coords_from_address, get_random_token, find_closest_kg
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
-from sadiki.core.workflow import CHANGE_PERSONAL_DATA, CHANGE_PERSONAL_DATA_BY_OPERATOR
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -85,8 +85,12 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
-        return super(AccountFrontPage, self).dispatch(request, profile=profile)
+        kwargs = {
+            'profile': request.user.get_profile(),
+            'redirect_to': reverse('frontpage'),
+            'action_flag': CHANGE_PERSONAL_DATA,
+        }
+        return super(AccountFrontPage, self).dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         profile = kwargs.get('profile')
@@ -107,22 +111,20 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
 
-    def post(self, request, *args, **kwargs):
-        profile = request.user.profile
+    def post(self, request, **kwargs):
+        profile = kwargs.get('profile')
+        redirect_to = kwargs.get('redirect_to')
+        action_flag = kwargs.get('action_flag')
         context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
         if pdata_form.is_valid():
             profile = pdata_form.save()
-            if sadiki.administrator.admin.get_user_type(request.user):
-                action_flag = CHANGE_PERSONAL_DATA_BY_OPERATOR
-            else:
-                action_flag = CHANGE_PERSONAL_DATA
             Logger.objects.create_for_action(
                 action_flag,
                 context_dict={'profile': profile},
                 extra={'user': request.user, 'obj': profile},
             )
-            return HttpResponseRedirect(reverse('frontpage'))
+            return HttpResponseRedirect(redirect_to)
         else:
             context.update({'pdata_form': pdata_form})
             return self.render_to_response(context)
