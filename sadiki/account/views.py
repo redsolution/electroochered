@@ -117,7 +117,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         action_flag = kwargs.get('action_flag')
         context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
-        if pdata_form.is_valid():
+        if pdata_form.is_valid() and pdata_form.has_changed():
             profile = pdata_form.save()
             Logger.objects.create_for_action(
                 action_flag,

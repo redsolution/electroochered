@@ -95,6 +95,7 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
         profile = get_object_or_404(Profile, id=profile_id)
         data = {'requestions_with_logs': self.get_logs_for_profile(profile),
                 'profile': profile,
+                'personal_data_logs': self.get_personal_data_logs(profile),
                 'plugin_menu_items': get_operator_plugin_menu_items(profile.id),
                 'plugin_logs': get_operator_plugin_logs(profile)}
         return self.render_to_response(data)
