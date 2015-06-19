@@ -1411,6 +1411,15 @@ tr.dynamic-form .errorlist {
     width: 60px !important;
 }
 
+.personal-documents-disabled{
+    display: none;
+}
+
+.personal-document-area{
+    margin-top: 20px;
+    border-top: 2px #eeeeee solid;
+}
+
 .form-disabled .editor, .form-disabled .ui-datepicker-trigger,
 .form-disabled .documents-form .field-value a{
     display: none;
