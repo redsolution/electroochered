@@ -737,7 +737,7 @@ change_personal_data_template = u'''
     {% with profile.personaldocument_set.all as documents %}
       {% if documents.exists %}
         Документы:
-        {% for document in documents %}{{ document }};{% endfor %}
+        {% for document in documents %}{{ document }}{% endfor %}
       {% endif %}
     {% endwith %}
     '''

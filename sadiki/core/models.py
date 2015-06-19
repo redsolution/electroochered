@@ -879,7 +879,7 @@ class PersonalDocument(models.Model):
             self.series,
             self.number,
             self.issued_by,
-            self.issued_date.isoformat()
+            self.issued_date,
         )
 
 

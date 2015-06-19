@@ -4,6 +4,7 @@ import datetime
 from django import forms
 from django.conf import settings
 from django.forms.models import ModelForm
+from django.forms.models import BaseModelFormSet
 from django.contrib.auth.models import User
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
 from sadiki.core.fields import SadikWithAreasNameField
@@ -153,6 +154,52 @@ class PersonalDataForm(ModelForm):
         profile.last_name = self.cleaned_data['last_name']
         profile.save()
         return profile
+
+
+class PersonalDocumentForm(ModelForm):
+    profile = forms.IntegerField(widget=forms.HiddenInput)
+    doc_type = forms.ChoiceField(label=u'Документ, удостоверяющий личность',
+                                 choices=PersonalDocument.DOC_TYPE_CHOICES)
+
+    class Meta:
+        model = PersonalDocument
+        fields = ['doc_type', 'profile', 'series',
+                  'number', 'issued_date', 'issued_by']
+
+    def clean_profile(self):
+        return Profile.objects.get(id=self.cleaned_data['profile'])
+
+    def __init__(self, *args, **kwargs):
+        # self.base_fields['doc_type'].widget = forms.Select(attrs={'readonly':'readonly'})
+        self.base_fields['issued_date'].widget = JqueryUIDateWidget()
+        super(PersonalDocumentForm, self).__init__(*args, **kwargs)
+
+
+class BasePersonalDocumentFormset(BaseModelFormSet):
+
+    def is_valid(self, *args, **kwargs):
+        u""" будет возвращать True, если все валидные формы имеют различные
+        типы документа.
+        """
+        choices = PersonalDocument.DOC_TYPE_CHOICES
+        all_valid_forms = [form for form in self.forms if form.is_valid()]
+        for choice in choices:
+            valid_forms = [form for form in all_valid_forms
+                           if int(form.cleaned_data['doc_type']) == choice[0]]
+            if len(valid_forms) > 1:
+                return False
+        return True
+
+    def has_changed(self, *args, **kwargs):
+        for form in self.forms:
+            if form.is_valid() and form.has_changed():
+                return True
+        return False
+
+    def save(self, commit=True):
+        for form in self.forms:
+            if form.is_valid():
+                form.save()
 
 
 class EmailAddForm(forms.Form):

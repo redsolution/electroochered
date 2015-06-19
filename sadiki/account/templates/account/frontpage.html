@@ -270,6 +270,38 @@
                                 {% include 'account/include/pdata-form-field.html' %}
                             </div>
                         {% endwith %}
+                        {{ doc_formset.management_form }}
+                        {% for doc_form in doc_formset %}
+                            <div class="edit-personal-document">
+                                {{ doc_form.id }}
+                                {{ doc_form.profile }}
+                                {% with doc_form.doc_type as field %}
+                                    <div class="requestion-info">
+                                        {% include 'account/include/requestion-form-field.html' %}
+                                    </div>
+                                {% endwith %}
+                                {% with doc_form.series as field %}
+                                    <div class="requestion-info">
+                                        {% include 'account/include/requestion-form-field.html' %}
+                                    </div>
+                                {% endwith %}
+                                {% with doc_form.number as field %}
+                                    <div class="requestion-info">
+                                        {% include 'account/include/requestion-form-field.html' %}
+                                    </div>
+                                {% endwith %}
+                                {% with doc_form.issued_date as field %}
+                                    <div class="requestion-info">
+                                        {% include 'account/include/requestion-form-field.html' %}
+                                    </div>
+                                {% endwith %}
+                                {% with doc_form.issued_by as field %}
+                                    <div class="requestion-info">
+                                        {% include 'account/include/requestion-form-field.html' %}
+                                    </div>
+                                {% endwith %}
+                            </p>
+                        {% endfor %}
                     </div>
                 </div>
 

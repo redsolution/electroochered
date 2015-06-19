@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.forms.models import modelformset_factory
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -13,12 +14,13 @@ from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 
 from sadiki.account.forms import RequestionForm, PersonalDataForm, \
-    BenefitsForm, ChangeRequestionForm,\
-    PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
+    PersonalDocumentForm, BenefitsForm, ChangeRequestionForm,\
+    PreferredSadikForm, SocialProfilePublicForm, EmailAddForm, \
+    BasePersonalDocumentFormset
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 import sadiki.authorisation.views
 from sadiki.core.exceptions import TransitionNotAllowed
-from sadiki.core.models import Requestion, Benefit, \
+from sadiki.core.models import PersonalDocument, Requestion, Benefit, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
@@ -103,6 +105,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             'form': form,
             'profile_change_form': profile_change_form,
             'pdata_form': pdata_form,
+            'doc_formset': self.get_documents_formset(profile),
             'plugin_menu_items': get_plugin_menu_items(),
             'profile_additions': get_profile_additions(),
         }
@@ -117,8 +120,21 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         action_flag = kwargs.get('action_flag')
         context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
+        PersonalDocumentFormset = modelformset_factory(
+            PersonalDocument,
+            form=PersonalDocumentForm,
+            formset=BasePersonalDocumentFormset,
+            extra=len(PersonalDocument.DOC_TYPE_CHOICES),
+        )
+        doc_formset = PersonalDocumentFormset(request.POST)
+        is_changed = False
+        if doc_formset.is_valid() and doc_formset.has_changed():
+            doc_formset.save()
+            is_changed = True
         if pdata_form.is_valid() and pdata_form.has_changed():
             profile = pdata_form.save()
+            is_changed = True
+        if is_changed:
             Logger.objects.create_for_action(
                 action_flag,
                 context_dict={'profile': profile},
@@ -126,8 +142,27 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             )
             return HttpResponseRedirect(redirect_to)
         else:
-            context.update({'pdata_form': pdata_form})
+            context.update({'pdata_form': pdata_form,
+                            'doc_formset': doc_formset})
             return self.render_to_response(context)
+
+    def get_documents_formset(self, profile):
+        choices = PersonalDocument.DOC_TYPE_CHOICES
+        documents_set = profile.personaldocument_set
+        initial_values = []
+        for choice in choices:
+            if not documents_set.filter(doc_type=choice[0]).exists():
+                initial_values.append({'doc_type': choice[0],
+                                       'profile': profile.id})
+        PersonalDocumentFormset = modelformset_factory(
+            PersonalDocument,
+            form=PersonalDocumentForm,
+            formset=BasePersonalDocumentFormset,
+            extra=len(initial_values),
+        )
+        formset = PersonalDocumentFormset(initial=initial_values,
+                                          queryset=documents_set.all())
+        return formset
 
 
 class EmailChange(AccountPermissionMixin, View):
