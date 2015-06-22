@@ -158,7 +158,7 @@ class PersonalDataForm(ModelForm):
 
 class PersonalDocumentForm(ModelForm):
     profile = forms.IntegerField(widget=forms.HiddenInput)
-    doc_type = forms.ChoiceField(label=u'Документ, удостоверяющий личность',
+    doc_type = forms.ChoiceField(label=u'Тип документа',
                                  choices=PersonalDocument.DOC_TYPE_CHOICES)
 
     class Meta:
