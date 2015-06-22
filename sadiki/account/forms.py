@@ -12,7 +12,7 @@ from sadiki.core.geo_field import location_errors
 from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
     Benefit, PersonalDocument
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
-    JQueryUIAdmissionDateWidget, SelectMultipleBenefits
+    JQueryUIAdmissionDateWidget, JqueryIssueDateWidget, SelectMultipleBenefits
 
 
 class RequestionForm(FormWithDocument):
@@ -170,8 +170,7 @@ class PersonalDocumentForm(ModelForm):
         return Profile.objects.get(id=self.cleaned_data['profile'])
 
     def __init__(self, *args, **kwargs):
-        # self.base_fields['doc_type'].widget = forms.Select(attrs={'readonly':'readonly'})
-        self.base_fields['issued_date'].widget = JqueryUIDateWidget()
+        self.base_fields['issued_date'].widget = JqueryIssueDateWidget()
         super(PersonalDocumentForm, self).__init__(*args, **kwargs)
 
 

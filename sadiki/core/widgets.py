@@ -103,6 +103,27 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
             attrs, default_class, **kwargs)
 
 
+class JqueryIssueDateWidget(JqueryUIDateWidget):
+    def render(self, name, value, *args, **kwargs):
+        static_url = static('img/icon_edit.fw.png')
+        js = '''
+        <script type="text/javascript">
+        //<![CDATA[
+            $(function(){{
+            var datepicker_conf = {{maxDate: new Date(),
+                                    minDate: new Date(1990, 1, 1),
+                                    dateFormat: '{format:>s}',
+                                    buttonImage: '{img_url}'}};
+                $("#id_{name:>s}").datepicker(datepicker_conf);
+            }});
+        //]]>
+        </script> '''.format(name=name,
+                             format=settings.JS_DATE_FORMAT, img_url=static_url)
+        html = super(JqueryUIDateWidget, self).render(name, value, *args,
+                                                      **kwargs)
+        return mark_safe(html + js)
+
+
 class JQueryUIAdmissionDateWidget(JqueryUIDateWidget):
     def render(self, name, value, *args, **kwargs):
         max_year = datetime.date.today().year + 2
