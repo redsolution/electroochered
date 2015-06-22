@@ -1,0 +1,9 @@
+<div class="field">
+    <label class="field-label">{{ field.label }}</label>
+    <p class="field-value">
+        {{ field }}
+    </p>
+    {% if field.help_text %}
+        <p class="hint">{{ field.help_text }}</p>
+    {% endif %}
+</div>
