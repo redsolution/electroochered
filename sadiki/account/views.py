@@ -143,7 +143,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             return HttpResponseRedirect(redirect_to)
         else:
             context.update({'pdata_form': pdata_form,
-                            'doc_formset': doc_formset})
+                            'doc_formset': self.get_documents_formset(profile)})
             return self.render_to_response(context)
 
     def get_documents_formset(self, profile):
