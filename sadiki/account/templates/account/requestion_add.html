@@ -291,6 +291,15 @@
                     {% with form.sex as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
+                    {% with form.birthplace as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.kinship as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.child_snils as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
                     {% with form.admission_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}

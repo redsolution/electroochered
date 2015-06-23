@@ -743,8 +743,13 @@ change_personal_data_template = u'''
     '''
 
 change_child_pdata_template = u'''
-    Фамилия: {{ requestion.child_last_name }}, имя: {{ requestion.name }},
-    отчество: {{ requestion.child_middle_name }}, пол: {{ requestion.sex }}.
+    {% if requestion.child_last_name %}Фамилия: {{ requestion.child_last_name }};{% endif %}
+    {% if requestion.name %}Имя: {{ requestion.name }};{% endif %}
+    {% if requestion.child_middle_name %}Отчество: {{ requestion.child_middle_name }};{% endif %}
+    {% if requestion.sex %}Пол: {{ requestion.sex }};{% endif %}
+    {% if requestion.birthplace %}Место рождения: {{ requestion.birthplace }};{% endif %}
+    {% if requestion.kinship %}Заявитель: {{ requestion.kinship }};{% endif %}
+    {% if requestion.child_snils %}СНИЛС: {{ requestion.child_snils }};{% endif %}
     '''
 
 migrate_personal_data_template = u"""

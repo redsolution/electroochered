@@ -34,6 +34,7 @@ class RequestionForm(FormWithDocument):
         model = Requestion
         _base_fields = ['areas', 'name', 'child_last_name', 'child_middle_name',
                         'token', 'birth_date', 'sex', 'template',
+                        'birthplace', 'kinship', 'child_snils',
                         'document_number', 'district',
                         'pref_sadiks', 'location', 'admission_date']
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
@@ -79,7 +80,8 @@ class ChangeRequestionForm(forms.ModelForm):
     class Meta:
         model = Requestion
         fields = ('name', 'sex', 'location', 'admission_date', 'district',
-            'child_middle_name', 'child_last_name')
+                  'child_middle_name', 'child_last_name',
+                  'birthplace', 'kinship', 'child_snils',)
 
     def __init__(self, *args, **kwds):
         self.base_fields['child_middle_name'].required = False
