@@ -3,7 +3,7 @@ import csv
 import getpass
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from sadiki.settings import INSTALLED_APPS
+from django.conf import settings
 from sadiki.core.models import Profile, Requestion
 
 
@@ -11,7 +11,7 @@ class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
     def handle(self, *args, **options):
-        if 'personal_data' not in INSTALLED_APPS:
+        if 'personal_data' not in settings.INSTALLED_APPS:
             print u'Модуль персональных данных не установлен!'
             return
         from personal_data.models import ChildPersData, UserPersData

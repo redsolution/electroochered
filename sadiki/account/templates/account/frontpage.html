@@ -5,7 +5,7 @@
 {% block bottomjs %}
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
-    <script type="text/javascript" src="/static/js/jqueryuidate.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/jqueryuidate.js"></script>
     <script type="text/javascript">
         function editField(element) {
             var parent = $(element.parentElement);
@@ -20,6 +20,10 @@
 
                 parent.children('input').unbind();
             });
+        }
+
+        function show_extra_doc_form(element) {
+            $(".extra-document").first().removeClass("extra-document")
         }
     </script>
     <script>
@@ -167,11 +171,6 @@
                 content: '<p>Указанный электронный почтовый адрес можно использовать для входа на сайт. Также на него будут отправляться уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
                 placement: "top"});
         })
-    </script>
-    <script type="text/javascript">
-        function show_extra_doc_form(element) {
-            $(".extra-document").first().removeClass("extra-document")
-        }
     </script>
 {% endblock bottomjs %}
 {% block content %}

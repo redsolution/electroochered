@@ -182,12 +182,14 @@ class BasePersonalDocumentFormset(BaseModelFormSet):
         u""" будет возвращать True, если все валидные формы имеют различные
         типы документа.
         """
-        choices = PersonalDocument.DOC_TYPE_CHOICES
+        doc_type_choices = PersonalDocument.DOC_TYPE_CHOICES
         all_valid_forms = [form for form in self.forms if form.is_valid()]
-        for choice in choices:
-            valid_forms = [form for form in all_valid_forms
-                           if int(form.cleaned_data['doc_type']) == choice[0]]
-            if len(valid_forms) > 1:
+        for doc_type_choice in doc_type_choices:
+            doc_type_valid_forms = [
+                form for form in all_valid_forms
+                if int(form.cleaned_data['doc_type']) == doc_type_choice[0]
+            ]
+            if len(doc_type_valid_forms) > 1:
                 return False
         return True
 
