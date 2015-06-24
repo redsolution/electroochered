@@ -132,9 +132,6 @@ class PersonalDataForm(ModelForm):
         self.base_fields['phone_number'].required = False
         self.base_fields['mobile_number'].required = False
         self.base_fields['snils'].required = False
-        self.base_fields['town'].required = False
-        self.base_fields['street'].required = False
-        self.base_fields['house'].required = False
         super(PersonalDataForm, self).__init__(*args, **kwargs)
         try:
             self.fields['first_name'].initial = self.instance.first_name
@@ -171,12 +168,13 @@ class PersonalDocumentForm(ModelForm):
 class BasePersonalDocumentFormset(BaseModelFormSet):
 
     def is_valid(self, *args, **kwargs):
-        u""" будет возвращать True, если все валидные формы имеют различные
-        типы документа.
+        u""" возвращает True, если хотя бы одна форма валидна,
+        и все валидные формы имеют различные типы документа.
         """
-        doc_type_choices = PersonalDocument.DOC_TYPE_CHOICES
         all_valid_forms = [form for form in self.forms if form.is_valid()]
-        for doc_type_choice in doc_type_choices:
+        if not all_valid_forms:
+            return False
+        for doc_type_choice in PersonalDocument.DOC_TYPE_CHOICES:
             doc_type_valid_forms = [
                 form for form in all_valid_forms
                 if int(form.cleaned_data['doc_type']) == doc_type_choice[0]

@@ -128,22 +128,21 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         )
         doc_formset = PersonalDocumentFormset(request.POST)
         is_changed = False
-        if doc_formset.is_valid() and doc_formset.has_changed():
-            doc_formset.save()
-            is_changed = True
-        if pdata_form.is_valid() and pdata_form.has_changed():
-            profile = pdata_form.save()
-            is_changed = True
-        if is_changed:
-            Logger.objects.create_for_action(
-                action_flag,
-                context_dict={'profile': profile},
-                extra={'user': request.user, 'obj': profile},
-            )
-            return HttpResponseRedirect(redirect_to)
+        if (pdata_form.is_valid() and doc_formset.is_valid()
+            and (pdata_form.has_changed() or doc_formset.has_changed())):
+                pdata_form.save()
+                doc_formset.save()
+                messages.success(request,
+                                 u'Персональные данные успешно изменены')
+                Logger.objects.create_for_action(
+                    action_flag,
+                    context_dict={'profile': profile},
+                    extra={'user': request.user, 'obj': profile},
+                )
+                return HttpResponseRedirect(redirect_to)
         else:
             context.update({'pdata_form': pdata_form,
-                            'doc_formset': self.get_documents_formset(profile)})
+                            'doc_formset': doc_formset})
             return self.render_to_response(context)
 
     def get_documents_formset(self, profile):
