@@ -38,7 +38,6 @@ class RequestionForm(FormWithDocument):
         fields = _base_fields
 
     def __init__(self, *args, **kwds):
-        self.base_fields['child_last_name'].required = False
         self.base_fields['child_middle_name'].required = False
         self.base_fields['areas'].help_text = None
         self.base_fields['location'].label = u'Укажите ваше местоположение'
@@ -50,6 +49,7 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['admission_date'].required = True
         self.base_fields['admission_date'].initial = datetime.date.today()
+        self.base_fields['child_snils'].required = False
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
@@ -82,6 +82,7 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
+        self.base_fields['child_snils'].required = False
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
 

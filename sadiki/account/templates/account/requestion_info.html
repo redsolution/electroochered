@@ -411,6 +411,69 @@
                 <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
+        {% with change_requestion_form.birthplace as field %}
+        <div class="field {% if field.errors %}error{% endif %}">
+            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+            {% if not field.value or field.errors %}
+                <p class="field-value">
+                    {% if can_change_requestion %}
+                        {{ field }}
+                    {% else %}
+                        &ltне указано&gt
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="field-value hidden-input">
+                    <label class="value">{{ field.value }}</label>
+                    {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                </p>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% with change_requestion_form.kinship as field %}
+        <div class="field {% if field.errors %}error{% endif %}">
+            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+            {% if not field.value or field.errors %}
+                <p class="field-value">
+                    {% if can_change_requestion %}
+                        {{ field }}
+                    {% else %}
+                        &ltне указано&gt
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="field-value hidden-input">
+                    <label class="value">{{ field.value }}</label>
+                    {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                </p>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% with change_requestion_form.child_snils as field %}
+        <div class="field {% if field.errors %}error{% endif %}">
+            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+            {% if not field.value or field.errors %}
+                <p class="field-value">
+                    {% if can_change_requestion %}
+                        {{ field }}
+                    {% else %}
+                        &ltне указано&gt
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="field-value hidden-input">
+                    <label class="value">{{ field.value }}</label>
+                    {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                </p>
+            {% endif %}
+            {% if field.help_text %}
+                <p class="hint">{{ field.help_text }}</p>
+            {% endif %}
+        </div>
+        {% endwith %}
         <div class="field">
             <label class="field-label">Дата регистрации</label>
             <p class="field-value">
