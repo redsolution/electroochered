@@ -195,8 +195,8 @@ CHANGE_DOCUMENTS = 83
 # изменение персональных данных
 CHANGE_PERSONAL_DATA = 200
 CHANGE_PERSONAL_DATA_BY_OPERATOR = 201
-CHANGE_CHILD_PDATA = 202
-CHANGE_CHILD_PDATA_BY_OPERATOR = 203
+CHANGE_PDATA_REQUESTION = 202
+CHANGE_PDATA_REQUESTION_BY_OPERATOR = 203
 EMAIL_VERIFICATION = 204
 # 205 реализуется в модуле pgu
 # перемещение персональных данных из модуля personal_data в ядро
@@ -443,11 +443,7 @@ workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_KG_LEAVE,
 workflow.add(STATUS_DISTRIBUTED, STATUS_KG_LEAVE, DISTRIBUTED_KG_LEAVE,
              u"Выпуск из ДОУ")
 
-DISABLE_EMAIL_ACTIONS = [
-    DECISION, PERMANENT_DECISION,
-    CHANGE_CHILD_PDATA, CHANGE_CHILD_PDATA_BY_OPERATOR,
-    MIGRATE_CHILD_PERSONAL_DATA
-]
+DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION,]
 
 STATUS_CHANGE_TRANSITIONS = [transition.index for transition in workflow.transitions]
 
@@ -498,8 +494,8 @@ ACTION_CHOICES.extend(
      # персональные данные
      (CHANGE_PERSONAL_DATA, u'Изменение персональных данных пользователем'),
      (CHANGE_PERSONAL_DATA_BY_OPERATOR, u'Изменение персональных данных оператором'),
-     (CHANGE_CHILD_PDATA, u'Изменение персональных данных ребёнка пользователем'),
-     (CHANGE_CHILD_PDATA_BY_OPERATOR, u'Изменение персональных данных ребёнка оператором'),
+     (CHANGE_PDATA_REQUESTION, u'Изменение персональных данных заявки пользователем'),
+     (CHANGE_PDATA_REQUESTION_BY_OPERATOR, u'Изменение персональных данных заявки оператором'),
      (EMAIL_VERIFICATION, u'Подтверждение почтового ящика'),
      (MIGRATE_USER_PERSONAL_DATA,
         u'Перенос персональных данных пользователя в связи с обновлением до v1.9'),
@@ -926,10 +922,10 @@ ACTION_TEMPLATES.update({
     CHANGE_PERSONAL_DATA_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_personal_data_template)
     },
-    CHANGE_CHILD_PDATA: {
+    CHANGE_PDATA_REQUESTION: {
         ACCOUNT_LOG: Template(change_child_pdata_template)
     },
-    CHANGE_CHILD_PDATA_BY_OPERATOR: {
+    CHANGE_PDATA_REQUESTION_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_child_pdata_template)
     },
     MIGRATE_USER_PERSONAL_DATA: {

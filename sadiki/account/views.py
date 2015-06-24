@@ -28,7 +28,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
     get_coords_from_address, get_random_token, find_closest_kg
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
-from sadiki.core.workflow import CHANGE_PERSONAL_DATA, CHANGE_CHILD_PDATA
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA, CHANGE_PDATA_REQUESTION
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -345,7 +345,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
     logger_action = ACCOUNT_CHANGE_REQUESTION
-    logger_pdata_action = CHANGE_CHILD_PDATA
+    logger_pdata_action = CHANGE_PDATA_REQUESTION
     change_requestion_form = ChangeRequestionForm
 
     def can_change_benefits(self, requestion):
