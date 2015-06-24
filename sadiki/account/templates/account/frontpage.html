@@ -23,7 +23,10 @@
         }
 
         function show_extra_doc_form(element) {
-            $(".extra-document").first().removeClass("extra-document")
+            var hidden_doc_forms = $(".hidden-document-form");
+            hidden_doc_forms.first().removeClass("hidden-document-form");
+            if (hidden_doc_forms.length == 1)
+                $("#add-document-form").addClass("extra-documents-disabled");
         }
     </script>
     <script>
@@ -275,9 +278,10 @@
                                 {% include 'account/include/pdata-form-field.html' %}
                             </div>
                         {% endwith %}
+                        <div class="block-head personal-data-head">Документы пользователя</div>
                         {{ doc_formset.management_form }}
                         {% for doc_form in doc_formset %}
-                            <div class="personal-document-area{% if doc_form in doc_formset.extra_forms %} extra-document{% endif %}">
+                            <div class="personal-document-area{% if doc_form in doc_formset.extra_forms %} hidden-document-form{% endif %}">
                                 {{ doc_form.id }}
                                 {{ doc_form.profile }}
                                 {% with doc_form.doc_type as field %}
@@ -307,7 +311,9 @@
                                 {% endwith %}
                             </div>
                         {% endfor %}
-                        <div class="btn btn-primary" onclick="show_extra_doc_form(this);">Добавить документ, удостоверяющий личность</div>
+                        {% if doc_formset.extra_forms %}
+                            <a class="editor" href="#" onclick="show_extra_doc_form(this); return false" id="add-document-form"><i class="icon-plus"></i>Добавить документ</a>
+                        {% endif %}
                     </div>
                 </div>
 
