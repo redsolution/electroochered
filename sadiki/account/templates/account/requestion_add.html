@@ -276,13 +276,13 @@
         <div class="row">
             <div class="span5">
                 <div class="requestion-info">
+                    {% with form.child_last_name as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
                     {% with form.name as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.child_middle_name as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
-                    {% with form.child_last_name as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.birth_date as field %}

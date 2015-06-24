@@ -16,10 +16,6 @@ from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
 
 
 class RequestionForm(FormWithDocument):
-    name = forms.CharField(
-        label=u"Имя ребёнка", max_length=20,
-        help_text=u"Достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не обязательно!")
     template = TemplateFormField(
         destination=REQUESTION_IDENTITY, label=u'Тип документа')
     pref_sadiks = SadikWithAreasNameField(
@@ -72,10 +68,6 @@ class RequestionForm(FormWithDocument):
 
 
 class ChangeRequestionForm(forms.ModelForm):
-    name = forms.CharField(
-        label=u"Имя ребёнка", max_length=20,
-        help_text=u"Достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не обязательно!")
 
     class Meta:
         model = Requestion

@@ -724,17 +724,14 @@ change_personal_data_template = u'''
     {% if profile.last_name %}Фамилия: {{ profile.last_name }};{% endif %}
     {% if profile.first_name %}Имя: {{ profile.first_name }};{% endif %}
     {% if profile.middle_name %}Отчество: {{ profile.middle_name }};{% endif %}
-    {% if profile.phone_number %}Телефон1: {{ profile.phone_number }};{% endif %}
-    {% if profile.mobile_number %}Телефон2: {{ profile.mobile_number }};{% endif %}
+    {% if profile.phone_number %}Телефон: {{ profile.phone_number }};{% endif %}
+    {% if profile.mobile_number %}Дополнительный телефон: {{ profile.mobile_number }};{% endif %}
     {% if profile.town %}Населенный пункт: {{ profile.town }};{% endif %}
     {% if profile.street %}Улица: {{ profile.street }};{% endif %}
     {% if profile.house %}Дом: {{ profile.house }};{% endif %}
     {% if profile.snils %}СНИЛС: {{ profile.snils }};{% endif %}
     {% with profile.personaldocument_set.all as documents %}
-      {% if documents.exists %}
-        Документы:
-        {% for document in documents %}{{ document }}{% endfor %}
-      {% endif %}
+      {% for document in documents %}{{ document }}; {% endfor %}
     {% endwith %}
     '''
 

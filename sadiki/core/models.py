@@ -786,28 +786,22 @@ class Profile(models.Model):
     # используется для указания принадлежности оператора к территориальной области
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
-    middle_name = models.CharField(u'Отчество', max_length=255, null=True,
-        help_text=u'Отчество')
+    middle_name = models.CharField(u'Отчество', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
-        blank=False, null=True,
-        help_text=u"Номер телефона для связи")
+        blank=False, null=True)
     mobile_number = models.CharField(u'Дополнительный телефон',
-        max_length=255, blank=True, null=True,
-        help_text=u"Дополнительный номер телефона для связи")
+        max_length=255, blank=True, null=True)
     skype = models.CharField(u'Skype',
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
     snils = models.CharField(u'СНИЛС', max_length=20, null=True,
         validators=[snils_validator, ],
-        help_text=u'СНИЛС')
-    town = models.CharField(u'Населённый пункт', max_length=50, null=True,
-        help_text=u'Населённый пункт')
-    street = models.CharField(u'Улица', max_length=50, null=True,
-        help_text=u'Улица')
-    house = models.CharField(u'Дом', max_length=10, null=True,
-        help_text=u'Номер дома')
+        help_text=u'Формат: 123-456-789 12')
+    town = models.CharField(u'Населённый пункт', max_length=50, null=True)
+    street = models.CharField(u'Улица', max_length=50, null=True)
+    house = models.CharField(u'Номер дома', max_length=10, null=True)
     # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
     social_auth_public = models.NullBooleanField(
@@ -873,13 +867,13 @@ class PersonalDocument(models.Model):
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
 
     def __unicode__(self):
-        format_string = u'Тип документа= {}, {} {}, выдан {} {};'
+        format_string = u'Тип документа: {}, {} {}, выдан {} {}'
         return format_string.format(
             self.get_doc_type_display(),
             self.series,
             self.number,
+            self.issued_date.strftime('%d.%m.%Y'),
             self.issued_by,
-            self.issued_date,
         )
 
 
@@ -1107,7 +1101,8 @@ class Requestion(models.Model):
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(
         u'СНИЛС ребёнка', max_length=20, null=True,
-        validators=[snils_validator, ])
+        validators=[snils_validator, ],
+        help_text=u'Формат: 123-456-789 12')
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)

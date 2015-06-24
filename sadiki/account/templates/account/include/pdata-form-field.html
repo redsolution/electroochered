@@ -11,4 +11,7 @@
             <a href="#" onclick="editField(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
     	</p>
     {% endif %}
+    {% if field.help_text %}
+        <p class="hint">{{ field.help_text }}</p>
+    {% endif %}
 </div>
