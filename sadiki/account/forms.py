@@ -5,6 +5,7 @@ from django import forms
 from django.conf import settings
 from django.forms.models import ModelForm
 from django.forms.models import BaseModelFormSet
+from django.forms.util import ErrorList
 from django.contrib.auth.models import User
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
 from sadiki.core.fields import SadikWithAreasNameField
@@ -174,14 +175,17 @@ class BasePersonalDocumentFormset(BaseModelFormSet):
         all_valid_forms = [form for form in self.forms if form.is_valid()]
         if not all_valid_forms:
             return False
-        for doc_type_choice in PersonalDocument.DOC_TYPE_CHOICES:
-            doc_type_valid_forms = [
-                form for form in all_valid_forms
-                if int(form.cleaned_data['doc_type']) == doc_type_choice[0]
-            ]
-            if len(doc_type_valid_forms) > 1:
-                return False
-        return True
+        used_doc_type_choices = set()
+        validation_result = True
+        for valid_form in all_valid_forms:
+            doc_type_choice = int(valid_form.cleaned_data['doc_type'])
+            if doc_type_choice in used_doc_type_choices:
+                doc_type_errors = valid_form._errors.setdefault('doc_type',
+                                                                ErrorList())
+                doc_type_errors.append(u'Документ такого типа уже есть')
+                validation_result = False
+            used_doc_type_choices.add(doc_type_choice)
+        return validation_result
 
     def has_changed(self, *args, **kwargs):
         for form in self.forms:
