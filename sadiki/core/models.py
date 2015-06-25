@@ -784,21 +784,21 @@ class Profile(models.Model):
         self._last_name = value
 
     # используется для указания принадлежности оператора к территориальной области
-    area = models.ForeignKey('Area',
-        verbose_name=u'Территориальная область к которой относится', null=True)
+    area = models.ForeignKey(
+        'Area',
+        verbose_name=u'Территориальная область к которой относится',
+        null=True)
     middle_name = models.CharField(u'Отчество', max_length=255, null=True)
-    email_verified = models.BooleanField(u'E-mail достоверный',
-        default=False)
+    email_verified = models.BooleanField(u'E-mail достоверный', default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
-        blank=False, null=True)
-    mobile_number = models.CharField(u'Дополнительный телефон',
-        max_length=255, blank=True, null=True)
-    skype = models.CharField(u'Skype',
-        max_length=255, blank=True, null=True,
-        help_text=u"Учетная запись в сервисе Skype")
+                                    blank=False, null=True)
+    mobile_number = models.CharField(u'Дополнительный телефон', max_length=255,
+                                     blank=True, null=True)
+    skype = models.CharField(u'Skype', max_length=255, blank=True, null=True,
+                             help_text=u"Учетная запись в сервисе Skype")
     snils = models.CharField(u'СНИЛС', max_length=20, null=True,
-        validators=[snils_validator, ],
-        help_text=u'Формат: 123-456-789 12')
+                             validators=[snils_validator, ],
+                             help_text=u'Формат: 123-456-789 12')
     town = models.CharField(u'Населённый пункт', max_length=50, null=True)
     street = models.CharField(u'Улица', max_length=50, null=True)
     house = models.CharField(u'Номер дома', max_length=10, null=True)
@@ -855,15 +855,13 @@ class PersonalDocument(models.Model):
         (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
     )
 
-    doc_type = models.IntegerField(u'Тип документа',
-        choices=DOC_TYPE_CHOICES, default=DOC_TYPE_PASSPORT)
-    series = models.CharField(u'Серия документа',
-        max_length=20, null=True)
-    number = models.CharField(u'Номер документа',
-        max_length=50, null=True)
+    doc_type = models.IntegerField(u'Тип документа', choices=DOC_TYPE_CHOICES,
+                                   default=DOC_TYPE_PASSPORT)
+    series = models.CharField(u'Серия документа', max_length=20, null=True)
+    number = models.CharField(u'Номер документа', max_length=50, null=True)
     issued_date = models.DateField(u'Дата выдачи документа', null=True)
     issued_by = models.CharField(u'Организация, выдавшая документ',
-        max_length=100, null=True)
+                                 max_length=100, null=True)
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
 
     def __unicode__(self):
