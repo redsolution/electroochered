@@ -77,7 +77,6 @@ class ChangeRequestionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwds):
         self.base_fields['child_middle_name'].required = False
-        self.base_fields['child_last_name'].required = False
         self.base_fields['location'].required = True
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
