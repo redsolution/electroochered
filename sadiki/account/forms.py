@@ -132,6 +132,12 @@ class PersonalDataForm(ModelForm):
         self.base_fields['middle_name'].required = False
         self.base_fields['phone_number'].required = False
         self.base_fields['mobile_number'].required = False
+        default_snils_help_text = self.base_fields['snils'].help_text
+        self.base_fields['snils'].help_text = u'При наличии. {}'.format(
+            default_snils_help_text)
+        self.base_fields['middle_name'].help_text = u'При наличии'
+        self.base_fields['phone_number'].help_text = u'При наличии'
+        self.base_fields['mobile_number'].help_text = u'При наличии'
         self.base_fields['snils'].required = False
         super(PersonalDataForm, self).__init__(*args, **kwargs)
         try:
