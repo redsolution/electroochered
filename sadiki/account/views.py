@@ -118,6 +118,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         profile = kwargs.get('profile')
         redirect_to = kwargs.get('redirect_to')
         action_flag = kwargs.get('action_flag')
+        old_pdata = profile.to_dict()
         context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
         PersonalDocumentFormset = modelformset_factory(
@@ -133,9 +134,11 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             doc_formset.save()
             messages.success(request,
                              u'Персональные данные успешно изменены')
+            new_pdata = profile.to_dict()
             Logger.objects.create_for_action(
                 action_flag,
-                context_dict={'profile': profile},
+                context_dict={'old_pdata': old_pdata,
+                              'new_pdata': new_pdata},
                 extra={'user': request.user, 'obj': profile},
             )
             return HttpResponseRedirect(redirect_to)

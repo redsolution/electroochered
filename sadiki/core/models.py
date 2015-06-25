@@ -13,9 +13,11 @@ from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
 from django.core.validators import MaxValueValidator
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
 from django.db import models, transaction
 from django.db.models.query_utils import Q
 from django.db.models.signals import m2m_changed, post_save
+
 from ordereddict import OrderedDict
 
 from sadiki.conf_settings import MUNICIPALITY_OCATO
@@ -830,6 +832,17 @@ class Profile(models.Model):
         self.phone_number = data.get('home_phone')
         self.skype = data.get('skype')
 
+    def to_dict(self):
+        result_dict = model_to_dict(self)
+        result_dict.update({'first_name': self.first_name,
+                            'last_name': self.last_name})
+        personal_documents = [
+            personal_document.to_dict()
+            for personal_document in self.personaldocument_set.all()
+        ]
+        result_dict.update({'personal_documents': personal_documents})
+        return result_dict
+
     def save(self, *args, **kwargs):
         self.user.first_name = self.first_name
         self.user.last_name = self.last_name
@@ -863,6 +876,11 @@ class PersonalDocument(models.Model):
     issued_by = models.CharField(u'Организация, выдавшая документ',
                                  max_length=100, null=True)
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
+
+    def to_dict(self):
+        result_dict = model_to_dict(self)
+        result_dict.update({'doc_type': self.get_doc_type_display()})
+        return result_dict
 
     def __unicode__(self):
         format_string = u'Тип документа: {}, {} {}, выдан {} {}'

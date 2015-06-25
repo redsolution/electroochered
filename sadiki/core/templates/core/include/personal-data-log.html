@@ -1,0 +1,11 @@
+{% if old_value %}
+    {% if new_value %}
+        {% if old_value != new_value %}
+            {{ field_name }}: с {{ old_value }} на {{ new_value }};
+        {% endif %}
+    {% else %}
+        {{ field_name }}: удалено, было {{ old_value }});
+    {% endif %}
+{% elif new_value %}
+    {{ field_name }}: {{ new_value }};
+{% endif %}

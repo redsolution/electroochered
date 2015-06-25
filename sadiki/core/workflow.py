@@ -724,18 +724,41 @@ distributed_kg_leave_template = u"""
     """
 
 change_personal_data_template = u'''
-    {% if profile.last_name %}Фамилия: {{ profile.last_name }};{% endif %}
-    {% if profile.first_name %}Имя: {{ profile.first_name }};{% endif %}
-    {% if profile.middle_name %}Отчество: {{ profile.middle_name }};{% endif %}
-    {% if profile.phone_number %}Телефон: {{ profile.phone_number }};{% endif %}
-    {% if profile.mobile_number %}Дополнительный телефон: {{ profile.mobile_number }};{% endif %}
-    {% if profile.town %}Населенный пункт: {{ profile.town }};{% endif %}
-    {% if profile.street %}Улица: {{ profile.street }};{% endif %}
-    {% if profile.house %}Дом: {{ profile.house }};{% endif %}
-    {% if profile.snils %}СНИЛС: {{ profile.snils }};{% endif %}
-    {% with profile.personaldocument_set.all as documents %}
-      {% for document in documents %}{{ document }}; {% endfor %}
+    {% with field_name='Фамилия' old_value=old_pdata.last_name new_value=new_pdata.last_name %}
+        {% include 'core/include/personal-data-log.html' %}
     {% endwith %}
+    {% with field_name='Имя' old_value=old_pdata.first_name new_value=new_pdata.first_name %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='Отчество' old_value=old_pdata.middle_name new_value=new_pdata.middle_name %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='Телефон' old_value=old_pdata.phone_number new_value=new_pdata.phone_number %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='Дополнительный телефон' old_value=old_pdata.mobile_number new_value=new_pdata.mobile_number %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='СНИЛС' old_value=old_pdata.snils new_value=new_pdata.snils %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='Населённый пункт' old_value=old_pdata.town new_value=new_pdata.town %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='Улица' old_value=old_pdata.street new_value=new_pdata.street %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    {% with field_name='Номер дома' old_value=old_pdata.house new_value=new_pdata.house %}
+        {% include 'core/include/personal-data-log.html' %}
+    {% endwith %}
+    Документы:
+    {% for document in new_pdata.personal_documents %}
+        {{ document.doc_type }},
+        {{ document.series }}
+        {{ document.number }}
+        выдан {{ document.issued_date|date:"d.m.Y" }}
+        {{ document.issued_by }};
+    {% endfor %}
     '''
 
 change_child_pdata_template = u'''
