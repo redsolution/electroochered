@@ -26,6 +26,7 @@ searchindex/
 snapshots/
 sadiki/cover/
 sadiki/local_settings.py
+sadiki/urls.py
 templates/includes/notifier.html
 doc/build
 static/*
