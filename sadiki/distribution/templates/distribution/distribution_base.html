@@ -19,9 +19,9 @@
         <li {% if request.path in decision_urls %}class="active"{% endif %}>
             <a href="{{ distribution_info }}">Сводка</a>
         </li>
-        {% if sadik_list_with_groups|check_url_availability:request.user %}
-        <li {% if request.path == sadik_list_with_groups or request.path|resolve_url_name == "sadikgroup_change_places" %}class="active"{% endif %}>
-            <a href="{{ sadik_list_with_groups }}">Выделение мест</a>
+        {% if sadik_list_with_groups_js|check_url_availability:request.user %}
+        <li {% if request.path == sadik_list_with_groups_js or request.path|resolve_url_name == "sadikgroup_change_places" %}class="active"{% endif %}>
+            <a href="{{ sadik_list_with_groups_js }}">Выделение мест</a>
         </li>
         {% endif %}
         <li {% if request.path == decision_manager %}class="active"{% endif %}>

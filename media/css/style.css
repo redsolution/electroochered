@@ -1813,3 +1813,45 @@ dl {
   border: 0;
   padding: 0;
 }
+
+.info-block {
+  margin: 0 0 10px 0;
+  padding-left: 5px;
+  font-size: 14px;
+}
+  .info-block input {
+    width: 50%;
+    height: 20px;
+  }
+  .info-block button {
+    margin-left: 10px;
+  }
+
+.info-inside {
+  margin: 0;
+}
+
+.highlight {
+  background-color: #FFFC00;
+}
+
+.inside-accordion {
+  margin-bottom: 0;
+}
+
+.button-block {
+  float: right;
+  margin: 10px 0 10px 0;
+}
+
+span.error {
+  display: block;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.table-input {
+  width: 50%;
+}
