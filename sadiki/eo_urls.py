@@ -22,31 +22,6 @@ if settings.DEBUG:
             {'document_root': settings.MEDIA_ROOT}),
     )
 
-if 'smevfms' in settings.INSTALLED_APPS:
-    urlpatterns += patterns(
-        '',
-        (r'^fms/', include('smevfms.urls')),
-    )
-
-if 'smevzags' in settings.INSTALLED_APPS:
-    urlpatterns += patterns(
-        '',
-        (r'^zags/', include('smevzags.urls')),
-    )
-
-if 'electroochered-authesia' in settings.INSTALLED_APPS:
-    urlpatterns += patterns(
-        '',
-        (r'^esia_auth/', include('electroochered-authesia.urls')),
-        # (r'^auth_resp/', 'electroochered-authesia.views.recv_authnresponse'),
-    )
-
-if 'electrostat' in settings.INSTALLED_APPS:
-    urlpatterns += patterns(
-        '',
-        (r'^api/', include('electrostat.urls')),
-    )
-
 urlpatterns += patterns(
     '',
     (r'^adm/', include(sadiki_admin_site.urls)),
