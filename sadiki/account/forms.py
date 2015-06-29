@@ -132,7 +132,7 @@ class PersonalDataForm(ModelForm):
         self.base_fields['middle_name'].required = False
         self.base_fields['phone_number'].required = False
         self.base_fields['mobile_number'].required = False
-        default_snils_help_text = self.base_fields['snils'].help_text
+        default_snils_help_text = Profile._meta.get_field('snils').help_text
         self.base_fields['snils'].help_text = u'При наличии. {}'.format(
             default_snils_help_text)
         self.base_fields['middle_name'].help_text = u'При наличии'
