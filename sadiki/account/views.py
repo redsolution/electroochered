@@ -133,7 +133,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             pdata_form.save()
             doc_formset.save()
             messages.success(request,
-                             u'Персональные данные успешно изменены')
+                             u'Персональные данные успешно сохранены')
             new_pdata = profile.to_dict()
             Logger.objects.create_for_action(
                 action_flag,
@@ -143,6 +143,8 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             )
             return HttpResponseRedirect(redirect_to)
         else:
+            messages.error(request, u'Персональные данные не были сохранены. '
+                           u'Пожалуйста, исправьте ошибки, выделенные красным')
             context.update({'pdata_form': pdata_form,
                             'doc_formset': doc_formset})
             return self.render_to_response(context)
