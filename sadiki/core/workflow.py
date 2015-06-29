@@ -709,9 +709,8 @@ distributed_kg_leave_template = u"""
     """
 
 migrate_personal_data_template = u"""
-    Перенесены данные:
     {% for field_name, field_value in new_data.items %}
-        {{ field_name }}= {{ field_value }};
+        {{ field_name }}: {{ field_value }};
     {% endfor %}
     """
 
