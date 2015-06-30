@@ -1112,7 +1112,8 @@ class Requestion(models.Model):
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     kinship = models.CharField(
-        u'Степень родства', max_length=50, null=True)
+        u'Степень родства заявителя', max_length=50, null=True,
+        help_text=u'Укажите, кем приходится заявитель ребёнку')
     birthplace = models.CharField(
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(

@@ -11,9 +11,10 @@ from sadiki.anonym.forms import FormWithDocument, TemplateFormField
 from sadiki.core.fields import SadikWithAreasNameField
 from sadiki.core.geo_field import location_errors
 from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
-    Benefit, PersonalDocument
+    Benefit, PersonalDocument, AGENT_TYPE_CHOICES
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
     JQueryUIAdmissionDateWidget, JqueryIssueDateWidget, SelectMultipleBenefits
+from sadiki.core.widgets import ChoiceWithTextOptionWidget
 
 
 class RequestionForm(FormWithDocument):
@@ -51,6 +52,8 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].required = True
         self.base_fields['admission_date'].initial = datetime.date.today()
         self.base_fields['child_snils'].required = False
+        self.base_fields['kinship'].widget = ChoiceWithTextOptionWidget(
+            choices=AGENT_TYPE_CHOICES)
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
