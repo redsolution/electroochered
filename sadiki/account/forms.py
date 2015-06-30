@@ -41,6 +41,7 @@ class RequestionForm(FormWithDocument):
 
     def __init__(self, *args, **kwds):
         self.base_fields['child_middle_name'].required = False
+        self.base_fields['child_middle_name'].help_text = u'При наличии'
         self.base_fields['areas'].help_text = None
         self.base_fields['location'].label = u'Укажите ваше местоположение'
         self.base_fields['location'].required = True
@@ -52,6 +53,10 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].required = True
         self.base_fields['admission_date'].initial = datetime.date.today()
         self.base_fields['child_snils'].required = False
+        default_snils_help_text = Requestion._meta.get_field(
+            'child_snils').help_text
+        self.base_fields['child_snils'].help_text = u'При наличии. {}'.format(
+            default_snils_help_text)
         self.base_fields['kinship'].widget = ChoiceWithTextOptionWidget(
             choices=AGENT_TYPE_CHOICES)
         super(RequestionForm, self).__init__(*args, **kwds)
@@ -81,11 +86,18 @@ class ChangeRequestionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwds):
         self.base_fields['child_middle_name'].required = False
+        self.base_fields['child_middle_name'].help_text = u'При наличии'
         self.base_fields['location'].required = True
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['child_snils'].required = False
+        default_snils_help_text = Requestion._meta.get_field(
+            'child_snils').help_text
+        self.base_fields['child_snils'].help_text = u'При наличии. {}'.format(
+            default_snils_help_text)
+        self.base_fields['kinship'].widget = ChoiceWithTextOptionWidget(
+            choices=AGENT_TYPE_CHOICES)
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
 
