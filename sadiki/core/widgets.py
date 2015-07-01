@@ -30,9 +30,11 @@ class ChoiceWithTextOptionWidget(Widget):
 
     def render(self, name, value, attrs=None):
         displayed_value = value
-        if not value:
+        if value is None:
             selected_choice = self.choices[0]
             displayed_value = selected_choice
+        elif not value:
+            selected_choice = self.choices[-1]
         elif value not in self.choices[:-1]:
             selected_choice = self.choices[-1]
         else:
@@ -52,6 +54,7 @@ class ChoiceWithTextOptionWidget(Widget):
         else:
             hidden_class = u''
         text_input = (u'<input type="text" name="{name}" id="id_{name}" '
+                      u'placeholder="заполните вручную" '
                       u'value="{value}" {hidden} />')
         output.append(text_input.format(name=name, value=displayed_value,
                                         hidden=hidden_class))

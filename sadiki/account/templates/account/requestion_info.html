@@ -454,6 +454,7 @@
             {% endif %}
         </div>
         {% endwith %}
+        <div class="select-with-text-option">
         {% with change_requestion_form.kinship as field %}
         <div class="field {% if field.errors %}error{% endif %}">
             <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
@@ -465,6 +466,7 @@
             {% endif %}
         </div>
         {% endwith %}
+        </div>
         <div class="field">
             <label class="field-label">Дата регистрации</label>
             <p class="field-value">

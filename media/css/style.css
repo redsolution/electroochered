@@ -1350,6 +1350,16 @@ tr.dynamic-form .errorlist {
     margin-left: -5px;
 }
 
+.select-with-text-option input {
+    margin-left: 0px;
+    margin-top: 1px;
+    width: 100%
+}
+
+.select-with-text-option select {
+    margin-left: 0px;
+}
+
 .requestion-form select{
     width: 100%
 }
