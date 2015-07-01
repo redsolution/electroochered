@@ -401,6 +401,9 @@
                     <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                 </p>
             {% endif %}
+            {% if field.help_text %}
+                <p class="hint">{{ field.help_text }}</p>
+            {% endif %}
         </div>
         {% endwith %}
         <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
