@@ -133,6 +133,28 @@ function change_document_hint($input, help_text) {
 
 })(jQuery);
 
+(function ($) {
+    $.fn.snilsValidate = function () {
+        $(this).on('keyup', function() {
+            var input = $(this).val();
+            if (input) {
+                var pattern = new RegExp('^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$');
+                if (pattern.test(input)) {
+                    $(this).parents('div.field').removeClass('error');
+                }
+                else {
+                    $(this).parents('div.field').addClass('error');
+                }
+            }
+            else {
+                $(this).parents('div.field').removeClass('error');
+            }
+        });
+    };
+
+})(jQuery);
+
+
 (function($){
     $.fn.serializeObject = function()
     {

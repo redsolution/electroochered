@@ -6,6 +6,7 @@
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/jqueryuidate.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/plugins.js"></script>
     <script type="text/javascript">
         function editField(element) {
             var parent = $(element.parentElement);
@@ -173,6 +174,8 @@
                 title: "Электронный почтовый адрес",
                 content: '<p>Указанный электронный почтовый адрес можно использовать для входа на сайт. Также на него будут отправляться уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
                 placement: "top"});
+
+            $('#id_snils').snilsValidate();
         })
     </script>
 {% endblock bottomjs %}

@@ -180,6 +180,11 @@
                 content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
                 "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
             });
+
+            $('#id_template').regexpValidate('#id_document_number');
+
+            $('#id_child_snils').snilsValidate();
+
         }) // конец $(document).ready()
         
         // при выборе района прячем поле с районом, показываем ТО
@@ -231,12 +236,6 @@
             $(this).prop("disabled", true);
             $("#mainform").submit();
         })
-    </script>
-
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#id_template').regexpValidate('#id_document_number');
-        });
     </script>
 {% endblock %}
 
