@@ -283,41 +283,27 @@
                             </div>
                         {% endwith %}
                         <div class="block-head personal-data-head">Документы заявителя</div>
-                        {{ doc_formset.management_form }}
-                        {% for doc_form in doc_formset %}
-                            <div class="personal-document-area{% if doc_form in doc_formset.extra_forms and not forloop.first %} hidden-document-form{% endif %}">
-                                {{ doc_form.id }}
-                                {{ doc_form.profile }}
-                                {% with doc_form.doc_type as field %}
-                                    <div class="requestion-info">
-                                        {% include 'account/include/document-form-field.html' %}
-                                    </div>
-                                {% endwith %}
-                                {% with doc_form.series as field %}
-                                    <div class="requestion-info">
-                                        {% include 'account/include/document-form-field.html' %}
-                                    </div>
-                                {% endwith %}
-                                {% with doc_form.number as field %}
-                                    <div class="requestion-info">
-                                        {% include 'account/include/document-form-field.html' %}
-                                    </div>
-                                {% endwith %}
-                                {% with doc_form.issued_date as field %}
-                                    <div class="requestion-info">
-                                        {% include 'account/include/document-form-field.html' %}
-                                    </div>
-                                {% endwith %}
-                                {% with doc_form.issued_by as field %}
-                                    <div class="requestion-info">
-                                        {% include 'account/include/document-form-field.html' %}
-                                    </div>
-                                {% endwith %}
-                            </div>
-                        {% endfor %}
-                        {% if doc_formset.extra_forms %}
-                            <a class="editor" href="#" onclick="show_extra_doc_form(this); return false" id="add-document-form"><i class="icon-plus"></i>Добавить документ</a>
-                        {% endif %}
+                        <div class="personal-document-area requestion-info">
+                            {{ doc_form.profile }}
+                            {% with doc_form.doc_type as field %}
+                                {% include 'account/include/document-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.doc_name as field %}
+                                {% include 'account/include/document-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.series as field %}
+                                {% include 'account/include/document-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.number as field %}
+                                {% include 'account/include/document-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.issued_date as field %}
+                                {% include 'account/include/document-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.issued_by as field %}
+                                {% include 'account/include/document-form-field.html' %}
+                            {% endwith %}
+                        </div>
                     </div>
                 </div>
 

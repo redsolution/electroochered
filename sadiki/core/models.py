@@ -861,12 +861,10 @@ class PersonalDocument(models.Model):
         unique_together = (('doc_type', 'series', 'number'),)
 
     DOC_TYPE_PASSPORT = 1
-    DOC_TYPE_DRIVERLICENSE = 2
     DOC_TYPE_OTHER = 0
 
     DOC_TYPE_CHOICES = (
         (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
-        (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
         (DOC_TYPE_OTHER, u'Иное'),
     )
 

@@ -99,13 +99,27 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         form = EmailAddForm()
         profile_change_form = SocialProfilePublicForm(instance=profile)
         pdata_form = PersonalDataForm(instance=profile)
+        # ищем паспорт, если нет - любой документ, если нет - пустая форма
+        user_documents = profile.personaldocument_set
+        if user_documents.exists():
+            user_passports = user_documents.filter(
+                doc_type=PersonalDocument.DOC_TYPE_PASSPORT)
+            if user_passports.exists():
+                document_form = PersonalDocumentForm(
+                    instance=user_passports.all()[0])
+            else:
+                document_form = PersonalDocumentForm(
+                    instance=user_documents.all()[0])
+        else:
+            document_form = PersonalDocumentForm(
+                initial={'profile': profile.id})
         context = {
             'params': kwargs,
             'profile': profile,
             'form': form,
             'profile_change_form': profile_change_form,
             'pdata_form': pdata_form,
-            'doc_formset': self.get_documents_formset(profile),
+            'doc_form': document_form,
             'plugin_menu_items': get_plugin_menu_items(),
             'profile_additions': get_profile_additions(),
         }
@@ -121,17 +135,11 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         old_pdata = profile.to_dict()
         context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
-        PersonalDocumentFormset = modelformset_factory(
-            PersonalDocument,
-            form=PersonalDocumentForm,
-            formset=BasePersonalDocumentFormset,
-            extra=len(PersonalDocument.DOC_TYPE_CHOICES),
-        )
-        doc_formset = PersonalDocumentFormset(request.POST)
-        if (pdata_form.is_valid() and doc_formset.is_valid()
-                and (pdata_form.has_changed() or doc_formset.has_changed())):
+        document_form = PersonalDocumentForm(request.POST, instance=profile)
+        if (pdata_form.is_valid() and document_form.is_valid()
+                and (pdata_form.has_changed() or document_form.has_changed())):
             pdata_form.save()
-            doc_formset.save()
+            document_form.save()
             messages.success(request,
                              u'Персональные данные успешно сохранены')
             new_pdata = profile.to_dict()
@@ -146,7 +154,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             messages.error(request, u'Персональные данные не были сохранены. '
                            u'Пожалуйста, исправьте ошибки, выделенные красным')
             context.update({'pdata_form': pdata_form,
-                            'doc_formset': doc_formset})
+                            'doc_form': document_form})
             return self.render_to_response(context)
 
     def get_documents_formset(self, profile):

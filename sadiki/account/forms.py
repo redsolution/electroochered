@@ -176,7 +176,7 @@ class PersonalDocumentForm(ModelForm):
 
     class Meta:
         model = PersonalDocument
-        fields = ['doc_type', 'profile', 'series',
+        fields = ['doc_type', 'doc_name', 'profile', 'series',
                   'number', 'issued_date', 'issued_by']
 
     def clean_profile(self):
