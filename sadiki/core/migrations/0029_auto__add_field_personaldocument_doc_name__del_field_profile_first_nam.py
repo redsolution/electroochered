@@ -8,6 +8,11 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
+        # Adding field 'PersonalDocument.doc_name'
+        db.add_column('core_personaldocument', 'doc_name',
+                      self.gf('django.db.models.fields.CharField')(max_length=30, null=True),
+                      keep_default=False)
+
         # Deleting field 'Profile.first_name'
         db.delete_column('core_profile', 'first_name')
 
@@ -16,6 +21,9 @@ class Migration(SchemaMigration):
 
 
     def backwards(self, orm):
+        # Deleting field 'PersonalDocument.doc_name'
+        db.delete_column('core_personaldocument', 'doc_name')
+
         # Adding field 'Profile.first_name'
         db.add_column('core_profile', 'first_name',
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True),
@@ -153,6 +161,7 @@ class Migration(SchemaMigration):
         },
         'core.personaldocument': {
             'Meta': {'unique_together': "(('doc_type', 'series', 'number'),)", 'object_name': 'PersonalDocument'},
+            'doc_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True'}),
             'doc_type': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'issued_by': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),

@@ -862,19 +862,22 @@ class PersonalDocument(models.Model):
 
     DOC_TYPE_PASSPORT = 1
     DOC_TYPE_DRIVERLICENSE = 2
+    DOC_TYPE_OTHER = 0
 
     DOC_TYPE_CHOICES = (
         (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
         (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
+        (DOC_TYPE_OTHER, u'Иное'),
     )
 
     doc_type = models.IntegerField(u'Тип документа', choices=DOC_TYPE_CHOICES,
                                    default=DOC_TYPE_PASSPORT)
+    doc_name = models.CharField(u'Название документа',
+                                max_length=30, null=True)
     series = models.CharField(u'Серия документа', max_length=20, null=True)
     number = models.CharField(u'Номер документа', max_length=50, null=True)
     issued_date = models.DateField(u'Дата выдачи документа', null=True)
-    issued_by = models.CharField(u'Организация, выдавшая документ',
-                                 max_length=100, null=True)
+    issued_by = models.CharField(u'Кем выдан', max_length=100, null=True)
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
 
     def to_dict(self):
