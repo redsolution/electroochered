@@ -99,17 +99,11 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         form = EmailAddForm()
         profile_change_form = SocialProfilePublicForm(instance=profile)
         pdata_form = PersonalDataForm(instance=profile)
-        # ищем паспорт, если нет - любой документ, если нет - пустая форма
-        user_documents = profile.personaldocument_set
+        # На текущий момент поддерживается только один документ
+        # поэтому показываем на странице только документ с наименьшим id
+        user_documents = profile.personaldocument_set.order_by('id')
         if user_documents.exists():
-            user_passports = user_documents.filter(
-                doc_type=PersonalDocument.DOC_TYPE_PASSPORT)
-            if user_passports.exists():
-                document_form = PersonalDocumentForm(
-                    instance=user_passports.all()[0])
-            else:
-                document_form = PersonalDocumentForm(
-                    instance=user_documents.all()[0])
+            document_form = PersonalDocumentForm(instance=user_documents[0])
         else:
             document_form = PersonalDocumentForm(
                 initial={'profile': profile.id})
@@ -135,7 +129,14 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         old_pdata = profile.to_dict()
         context = self.get_context_data(profile=profile)
         pdata_form = PersonalDataForm(request.POST, instance=profile)
-        document_form = PersonalDocumentForm(request.POST, instance=profile)
+        # можем изменять только документ с наименьшим id
+        user_documents = profile.personaldocument_set.order_by('id')
+        if user_documents.exists():
+            document_instance = user_documents[0]
+        else:
+            document_instance = None
+        document_form = PersonalDocumentForm(request.POST,
+                                             instance=document_instance)
         if (pdata_form.is_valid() and document_form.is_valid()
                 and (pdata_form.has_changed() or document_form.has_changed())):
             pdata_form.save()

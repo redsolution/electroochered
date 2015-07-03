@@ -182,7 +182,28 @@ class PersonalDocumentForm(ModelForm):
     def clean_profile(self):
         return Profile.objects.get(id=self.cleaned_data['profile'])
 
+    def clean(self):
+        required_fields = []
+        doc_type = int(self.cleaned_data['doc_type'])
+        if doc_type != PersonalDocument.DOC_TYPE_OTHER:
+            if not self.cleaned_data.get('series'):
+                required_fields.append('series')
+            if not self.cleaned_data.get('issued_by'):
+                required_fields.append('issued_by')
+        elif not self.cleaned_data.get('doc_name'):
+            required_fields.append('doc_name')
+        for required_field in required_fields:
+            required_field_errors = self._errors.setdefault(
+                required_field, ErrorList())
+            required_field_errors.append(u'Обязательное поле')
+        return self.cleaned_data
+
     def __init__(self, *args, **kwargs):
+        self.base_fields['doc_name'].required = False
+        self.base_fields['series'].required = False
+        self.base_fields['series'].help_text = u'При наличии'
+        self.base_fields['issued_by'].required = False
+        self.base_fields['issued_by'].help_text = u'При наличии'
         self.base_fields['issued_date'].widget = JqueryIssueDateWidget()
         super(PersonalDocumentForm, self).__init__(*args, **kwargs)
 
