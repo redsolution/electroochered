@@ -837,8 +837,8 @@ class Profile(models.Model):
         result_dict.update({'first_name': self.first_name,
                             'last_name': self.last_name})
         personal_documents = [
-            personal_document.to_dict()
-            for personal_document in self.personaldocument_set.all()
+            personal_document.__unicode__()
+            for personal_document in self.personaldocument_set.order_by('id')
         ]
         result_dict.update({'personal_documents': personal_documents})
         return result_dict
@@ -884,9 +884,13 @@ class PersonalDocument(models.Model):
         return result_dict
 
     def __unicode__(self):
-        format_string = u'Тип документа: {}, {} {}, выдан {} {}'
+        format_string = u'{}, {} {}, выдан {} {}'
+        if self.doc_type == PersonalDocument.DOC_TYPE_OTHER:
+            doc_name = self.doc_name
+        else:
+            doc_name = self.get_doc_type_display()
         return format_string.format(
-            self.get_doc_type_display(),
+            doc_name,
             self.series,
             self.number,
             self.issued_date.strftime('%d.%m.%Y'),

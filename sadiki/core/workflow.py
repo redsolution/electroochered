@@ -751,14 +751,13 @@ change_personal_data_template = u'''
     {% with field_name='Номер дома' old_value=old_pdata.house new_value=new_pdata.house %}
         {% include 'core/include/personal-data-log.html' %}
     {% endwith %}
-    Документы:
-    {% for document in new_pdata.personal_documents %}
-        {{ document.doc_type }},
-        {{ document.series }}
-        {{ document.number }}
-        выдан {{ document.issued_date|date:"d.m.Y" }}
-        {{ document.issued_by }};
-    {% endfor %}
+    {% if old_pdata.personal_documents %}
+        {% if new_pdata.personal_documents.0 != old_pdata.personal_documents.0 %}
+            Документы: c {{ old_pdata.personal_documents.0 }} на {{ new_pdata.personal_documents.0 }}.
+        {% endif %}
+    {% else %}
+        Документы: {{ new_pdata.personal_documents.0 }}.
+    {% endif %}
     '''
 
 change_child_pdata_template = u'''
