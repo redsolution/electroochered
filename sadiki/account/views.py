@@ -137,8 +137,13 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             document_instance = None
         document_form = PersonalDocumentForm(request.POST,
                                              instance=document_instance)
-        if (pdata_form.is_valid() and document_form.is_valid()
-                and (pdata_form.has_changed() or document_form.has_changed())):
+        if not pdata_form.is_valid() or not document_form.is_valid():
+            messages.error(request, u'Персональные данные не были сохранены. '
+                           u'Пожалуйста, исправьте ошибки, выделенные красным')
+            context.update({'pdata_form': pdata_form,
+                            'doc_form': document_form})
+            return self.render_to_response(context)
+        elif pdata_form.has_changed() or document_form.has_changed():
             pdata_form.save()
             document_form.save()
             messages.success(request,
@@ -150,13 +155,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
                               'new_pdata': new_pdata},
                 extra={'user': request.user, 'obj': profile},
             )
-            return HttpResponseRedirect(redirect_to)
-        else:
-            messages.error(request, u'Персональные данные не были сохранены. '
-                           u'Пожалуйста, исправьте ошибки, выделенные красным')
-            context.update({'pdata_form': pdata_form,
-                            'doc_form': document_form})
-            return self.render_to_response(context)
+        return HttpResponseRedirect(redirect_to)
 
     def get_documents_formset(self, profile):
         choices = PersonalDocument.DOC_TYPE_CHOICES
