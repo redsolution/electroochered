@@ -1171,6 +1171,16 @@ class Requestion(models.Model):
             место в любом детском саду в выбранных территориальных областях,
             в случае, когда в приоритетных ДОУ не окажется места""")
 
+    REQUESTER_TYPE_MOTHER = 1
+    REQUESTER_TYPE_FATHER = 2
+    REQUESTER_TYPE_OTHER = 0
+
+    REQUESTER_TYPE_CHOICES = (
+        (REQUESTER_TYPE_MOTHER, u'мать'),
+        (REQUESTER_TYPE_FATHER, u'отец'),
+        (REQUESTER_TYPE_OTHER, u'иное'),
+    )
+
     objects = query_set_factory(RequestionQuerySet)
 
     def get_requestion_number(self):
