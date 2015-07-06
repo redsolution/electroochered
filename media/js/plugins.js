@@ -154,6 +154,38 @@ function change_document_hint($input, help_text) {
 
 })(jQuery);
 
+// плагин изменяет внешний вид формы документов заявителя
+// в зависимости от выбранного типа документа
+function change_personal_document_form($choice_selector) {
+    var doc_type = $choice_selector.val();
+    var $doc_form = $choice_selector.parents('div.personal-document-area');
+    var $doc_fields = $doc_form.find('div.field');
+    var $doc_name_field = $doc_fields.find('#id_doc_name').parents('div.field');
+    var $doc_series_field = $doc_fields.find('#id_series').parents('div.field');
+    var $doc_issued_by_field = $doc_fields.find('#id_issued_by').parents('div.field');
+    if (doc_type == 0) {
+        $doc_name_field.removeClass('hidden');
+        $doc_series_field.find("p.hint").removeClass('hidden');
+        $doc_issued_by_field.find("p.hint").removeClass('hidden');
+    }
+    else {
+        $doc_name_field.find('input').val('');
+        $doc_name_field.addClass('hidden');
+        $doc_series_field.find("p.hint").addClass('hidden');
+        $doc_issued_by_field.find("p.hint").addClass('hidden');
+    }
+}
+
+(function ($) {
+    $.fn.personalDocumentFormHandler = function () {
+        change_personal_document_form($(this));
+
+        $(this).on('change', function() {
+            change_personal_document_form($(this));
+        });
+    };
+
+})(jQuery);
 
 (function($){
     $.fn.serializeObject = function()
