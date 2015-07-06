@@ -185,6 +185,7 @@
 
             $('#id_child_snils').snilsValidate();
 
+            $('#id_kinship_type').kinshipFieldHandler();
         }) // конец $(document).ready()
         
         // при выборе района прячем поле с районом, показываем ТО
@@ -297,6 +298,9 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div class="select-with-text-option">
+                    {% with form.kinship_type as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
                     {% with form.kinship as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}

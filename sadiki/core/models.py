@@ -1119,6 +1119,14 @@ class Requestion(models.Model):
     kinship = models.CharField(
         u'Степень родства заявителя', max_length=50, null=True,
         help_text=u'Укажите, кем приходится заявитель ребёнку')
+
+    @property
+    def kinship_type(self):
+        for kinship_id, kinship_name in self.REQUESTER_TYPE_CHOICES:
+            if self.kinship == kinship_name:
+                return kinship_id
+        return self.REQUESTER_TYPE_OTHER
+
     birthplace = models.CharField(
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(

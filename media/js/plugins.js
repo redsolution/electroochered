@@ -187,6 +187,35 @@ function change_personal_document_form($choice_selector) {
 
 })(jQuery);
 
+// плагин влияет на отображение текстового поля "степень родства заявителя"
+function change_kinship_field_view($choice_selector) {
+    var kinship_type = $choice_selector.val();
+    var $kinship_choice_field = $choice_selector.parents('div.field');
+    var $kinship_text_field = $('#id_kinship').parents('div.field');
+    if (kinship_type == 0) {
+        $kinship_text_field.removeClass('hidden');
+        $kinship_choice_field.find('p.hint').addClass('hidden');
+    }
+    else {
+        $kinship_text_field.find('input').val('');
+        $kinship_text_field.addClass('hidden');
+        $kinship_choice_field.find('p.hint').removeClass('hidden');
+    }
+}
+
+(function ($) {
+    $.fn.kinshipFieldHandler = function () {
+        change_kinship_field_view($(this));
+
+        $(this).on('change', function() {
+            change_kinship_field_view($(this));
+        });
+    };
+
+})(jQuery);
+
+
+
 (function($){
     $.fn.serializeObject = function()
     {

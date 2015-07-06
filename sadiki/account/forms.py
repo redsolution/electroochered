@@ -26,14 +26,18 @@ class RequestionForm(FormWithDocument):
         required=True, widget=SelectMultipleJS(),
         help_text=u'Этот список не даёт прав на внеочередное зачисление '
                   u'в выбранные ДОУ')
+    kinship_type = forms.ChoiceField(
+        label=u'Степень родства заявителя',
+        help_text=u'Укажите, кем приходится заявитель ребёнку',
+        choices=Requestion.REQUESTER_TYPE_CHOICES)
     token = forms.CharField(widget=forms.HiddenInput())
 
     class Meta:
         model = Requestion
         _base_fields = ['areas', 'name', 'child_last_name', 'child_middle_name',
                         'token', 'birth_date', 'sex', 'template',
-                        'birthplace', 'kinship', 'child_snils',
-                        'document_number', 'district',
+                        'birthplace', 'kinship_type', 'kinship',
+                        'child_snils', 'document_number', 'district',
                         'pref_sadiks', 'location', 'admission_date']
         if settings.DESIRED_SADIKS == settings.DESIRED_SADIKS_CHOICE:
             _base_fields = _base_fields + ['distribute_in_any_sadik',]
@@ -52,16 +56,23 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['admission_date'].required = True
         self.base_fields['admission_date'].initial = datetime.date.today()
+        self.base_fields['kinship'].label = u''
+        self.base_fields['kinship'].required = False
         self.base_fields['child_snils'].required = False
         default_snils_help_text = Requestion._meta.get_field(
             'child_snils').help_text
         self.base_fields['child_snils'].help_text = u'При наличии. {}'.format(
             default_snils_help_text)
-        self.base_fields['kinship'].widget = ChoiceWithTextOptionWidget(
-            choices=Requestion.REQUESTER_TYPE_CHOICES)
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
+        kinship_type = int(self.cleaned_data['kinship_type'])
+        if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
+            self.cleaned_data['kinship'] = dict(
+                Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
+        if not self.cleaned_data['kinship']:
+            kinship_errors = self._errors.setdefault('kinship', ErrorList())
+            kinship_errors.append(u'Обязательное поле')
         self.cleaned_data['distribute_in_any_sadik'] = True
         return super(RequestionForm, self).clean(*args, **kwargs)
 
@@ -77,12 +88,16 @@ class RequestionForm(FormWithDocument):
 
 
 class ChangeRequestionForm(forms.ModelForm):
+    kinship_type = forms.ChoiceField(
+        label=u'Степень родства заявителя',
+        help_text=u'Укажите, кем приходится заявитель ребёнку',
+        choices=Requestion.REQUESTER_TYPE_CHOICES)
 
     class Meta:
         model = Requestion
         fields = ('name', 'sex', 'location', 'admission_date', 'district',
                   'child_middle_name', 'child_last_name',
-                  'birthplace', 'kinship', 'child_snils',)
+                  'birthplace', 'kinship_type', 'kinship', 'child_snils',)
 
     def __init__(self, *args, **kwds):
         self.base_fields['child_middle_name'].required = False
@@ -91,14 +106,24 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
+        self.base_fields['kinship'].label = u''
+        self.base_fields['kinship'].required = False
         self.base_fields['child_snils'].required = False
         default_snils_help_text = Requestion._meta.get_field(
             'child_snils').help_text
         self.base_fields['child_snils'].help_text = u'При наличии. {}'.format(
             default_snils_help_text)
-        self.base_fields['kinship'].widget = ChoiceWithTextOptionWidget(
-            choices=Requestion.REQUESTER_TYPE_CHOICES)
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
+
+    def clean(self, *args, **kwargs):
+        kinship_type = int(self.cleaned_data['kinship_type'])
+        if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
+            self.cleaned_data['kinship'] = dict(
+                Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
+        if not self.cleaned_data['kinship']:
+            kinship_errors = self._errors.setdefault('kinship', ErrorList())
+            kinship_errors.append(u'Обязательное поле')
+        return super(ChangeRequestionForm, self).clean(*args, **kwargs)
 
 
 class BenefitsForm(forms.ModelForm):
@@ -182,7 +207,7 @@ class PersonalDocumentForm(ModelForm):
     def clean_profile(self):
         return Profile.objects.get(id=self.cleaned_data['profile'])
 
-    def clean(self):
+    def clean(self, *args, **kwargs):
         required_fields = []
         doc_type = int(self.cleaned_data['doc_type'])
         if doc_type != PersonalDocument.DOC_TYPE_OTHER:
@@ -196,7 +221,7 @@ class PersonalDocumentForm(ModelForm):
             required_field_errors = self._errors.setdefault(
                 required_field, ErrorList())
             required_field_errors.append(u'Обязательное поле')
-        return self.cleaned_data
+        return super(PersonalDocumentForm, self).clean(*args, **kwargs)
 
     def __init__(self, *args, **kwargs):
         self.base_fields['doc_name'].required = False

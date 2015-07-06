@@ -374,7 +374,9 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def get(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = self.change_requestion_form(instance=requestion)
+        change_requestion_form = self.change_requestion_form(
+            instance=requestion,
+            initial={'kinship_type': requestion.kinship_type})
         change_benefits_form = BenefitsForm(instance=requestion)
         pref_sadiks_form = PreferredSadikForm(instance=requestion)
         DocumentFormset = self.get_documents_formset()

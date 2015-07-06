@@ -321,6 +321,8 @@
                 "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
             });
             $('#id_child_snils').snilsValidate();
+
+            $('#id_kinship_type').kinshipFieldHandler();
         });
 
         $("#requestionform_submit").click(function() {
@@ -459,6 +461,17 @@
         </div>
         {% endwith %}
         <div class="select-with-text-option">
+        {% with change_requestion_form.kinship_type as field %}
+        <div class="field {% if field.errors %}error{% endif %}">
+            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+            <p class="field-value">
+                {{ field }}
+            </p>
+            {% if field.help_text %}
+                <p class="hint">{{ field.help_text }}</p>
+            {% endif %}
+        </div>
+        {% endwith %}
         {% with change_requestion_form.kinship as field %}
         <div class="field {% if field.errors %}error{% endif %}">
             <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
