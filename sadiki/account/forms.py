@@ -120,6 +120,11 @@ class ChangeRequestionForm(forms.ModelForm):
         if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
             self.cleaned_data['kinship'] = dict(
                 Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
+        if (self.cleaned_data['kinship'] == self.instance.kinship
+                and 'kinship' in self.changed_data):
+            self.changed_data.remove('kinship')
+        if 'kinship_type' in self.changed_data:
+            self.changed_data.remove('kinship_type')
         if not self.cleaned_data['kinship']:
             kinship_errors = self._errors.setdefault('kinship', ErrorList())
             kinship_errors.append(u'Обязательное поле')
