@@ -28,7 +28,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
     get_coords_from_address, get_random_token, find_closest_kg
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
-from sadiki.core.workflow import CHANGE_PERSONAL_DATA, CHANGE_PDATA_REQUESTION
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -356,7 +356,6 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
     logger_action = ACCOUNT_CHANGE_REQUESTION
-    logger_pdata_action = CHANGE_PDATA_REQUESTION
     change_requestion_form = ChangeRequestionForm
 
     def can_change_benefits(self, requestion):
@@ -422,11 +421,6 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
                 change_requestion_form.save()
                 context_dict['changed_data'].extend(change_requestion_form.changed_data)
                 context_dict['cleaned_data'].update(change_requestion_form.cleaned_data)
-                Logger.objects.create_for_action(
-                    self.logger_pdata_action,
-                    context_dict={'requestion': requestion},
-                    extra={'user': request.user, 'obj': requestion},
-                )
             # изменение льгот возможно только для документально неподтврежденных
             if can_change_benefits:
                 if change_benefits_form.has_changed():

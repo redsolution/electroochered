@@ -559,11 +559,16 @@ ACTION_TEMPLATES.update({
 
 requestion_account_template = u"""
     {% if requestion.sex %}Пол: {{ requestion.get_sex_display }};{% endif %}
+    {% if requestion.child_last_name %}Фамилия: {{ requestion.child_last_name }};{% endif %}
     {% if requestion.name %}Имя: {{ requestion.name }};{% endif %}
+    {% if requestion.child_middle_name %}Отчество: {{ requestion.child_middle_name }};{% endif %}
+    {% if requestion.birthplace %}Место рождения: {{ requestion.birthplace }};{% endif %}
+    {% if requestion.kinship %}Заявитель: {{ requestion.kinship }};{% endif %}
     {% if requestion.comment %}Комментарий: {{ requestion.comment }};{% endif %}
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
     {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+    {% if requestion.child_snils %}СНИЛС: {{ requestion.child_snils }};{% endif %}
     {% if benefit_documents %}
         Документы для льгот:
         {% for document in benefit_documents %}
@@ -626,9 +631,14 @@ change_requestion_anonym_template = u"""
 
 change_requestion_account_template = u"""
         {% if "sex" in changed_data %}Пол: {{ requestion.get_sex_display }};{% endif %}
+        {% if "child_last_name" in changed_data %}Фамилия: {{ requestion.child_last_name }};{% endif %}
         {% if "name" in changed_data %}Имя: {{ requestion.name }};{% endif %}
+        {% if "child_middle_name" in changed_data %}Отчество: {{ requestion.child_middle_name }};{% endif %}
+        {% if "birthplace" in changed_data %}Место рождения: {{ requestion.birthplace }};{% endif %}
+        {% if "kinship" in changed_data %}Заявитель: {{ requestion.kinship }};{% endif %}
         {% if "comment" in changed_data %}Комментарий: {{ requestion.comment }};{% endif %}
         {% if "location" in changed_data %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        {% if "child_snils" in changed_data %}СНИЛС: {{ requestion.child_snils }};{% endif %}
         {% if "benefits" in changed_data %}
             {% if cleaned_data.benefits %}
                 Льготы: {% for benefit in cleaned_data.benefits %}{{ benefit }}; {% endfor %}
@@ -758,16 +768,6 @@ change_personal_data_template = u'''
     {% else %}
         Документы: {{ new_pdata.personal_documents.0 }}.
     {% endif %}
-    '''
-
-change_child_pdata_template = u'''
-    {% if requestion.child_last_name %}Фамилия: {{ requestion.child_last_name }};{% endif %}
-    {% if requestion.name %}Имя: {{ requestion.name }};{% endif %}
-    {% if requestion.child_middle_name %}Отчество: {{ requestion.child_middle_name }};{% endif %}
-    {% if requestion.sex %}Пол: {{ requestion.sex }};{% endif %}
-    {% if requestion.birthplace %}Место рождения: {{ requestion.birthplace }};{% endif %}
-    {% if requestion.kinship %}Заявитель: {{ requestion.kinship }};{% endif %}
-    {% if requestion.child_snils %}СНИЛС: {{ requestion.child_snils }};{% endif %}
     '''
 
 migrate_personal_data_template = u"""
@@ -943,12 +943,6 @@ ACTION_TEMPLATES.update({
     },
     CHANGE_PERSONAL_DATA_BY_OPERATOR: {
         ACCOUNT_LOG: Template(change_personal_data_template)
-    },
-    CHANGE_PDATA_REQUESTION: {
-        ACCOUNT_LOG: Template(change_child_pdata_template)
-    },
-    CHANGE_PDATA_REQUESTION_BY_OPERATOR: {
-        ACCOUNT_LOG: Template(change_child_pdata_template)
     },
     MIGRATE_USER_PERSONAL_DATA: {
         ACCOUNT_LOG: Template(migrate_personal_data_template)
