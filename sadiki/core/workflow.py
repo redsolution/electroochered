@@ -733,42 +733,56 @@ distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
 
-change_personal_data_template = u'''
-    {% with field_name='Фамилия' old_value=old_pdata.last_name new_value=new_pdata.last_name %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Имя' old_value=old_pdata.first_name new_value=new_pdata.first_name %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Отчество' old_value=old_pdata.middle_name new_value=new_pdata.middle_name %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Телефон' old_value=old_pdata.phone_number new_value=new_pdata.phone_number %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Дополнительный телефон' old_value=old_pdata.mobile_number new_value=new_pdata.mobile_number %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='СНИЛС' old_value=old_pdata.snils new_value=new_pdata.snils %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Населённый пункт' old_value=old_pdata.town new_value=new_pdata.town %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Улица' old_value=old_pdata.street new_value=new_pdata.street %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% with field_name='Номер дома' old_value=old_pdata.house new_value=new_pdata.house %}
-        {% include 'core/include/personal-data-log.html' %}
-    {% endwith %}
-    {% if old_pdata.personal_documents %}
-        {% if new_pdata.personal_documents.0 != old_pdata.personal_documents.0 %}
-            Документы: c {{ old_pdata.personal_documents.0 }} на {{ new_pdata.personal_documents.0 }}.
+change_pdata_field_template = u"""
+    {% if old_value %}
+        {% if new_value %}
+            {% if old_value != new_value %}
+                {{ field_name }}: с {{ old_value }} на {{ new_value }};
+            {% endif %}
+        {% else %}
+            {{ field_name }}: удалено, было {{ old_value }});
         {% endif %}
-    {% else %}
-        Документы: {{ new_pdata.personal_documents.0 }}.
+    {% elif new_value %}
+        {{ field_name }}: {{ new_value }};
     {% endif %}
-    '''
+    """
+
+change_personal_data_template = u"""
+    {{% with field_name='Фамилия' old_value=old_pdata.last_name new_value=new_pdata.last_name %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Имя' old_value=old_pdata.first_name new_value=new_pdata.first_name %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Отчество' old_value=old_pdata.middle_name new_value=new_pdata.middle_name %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Телефон' old_value=old_pdata.phone_number new_value=new_pdata.phone_number %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Дополнительный телефон' old_value=old_pdata.mobile_number new_value=new_pdata.mobile_number %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='СНИЛС' old_value=old_pdata.snils new_value=new_pdata.snils %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Населённый пункт' old_value=old_pdata.town new_value=new_pdata.town %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Улица' old_value=old_pdata.street new_value=new_pdata.street %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Номер дома' old_value=old_pdata.house new_value=new_pdata.house %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% if old_pdata.personal_documents %}}
+        {{% if new_pdata.personal_documents.0 != old_pdata.personal_documents.0 %}}
+            Документы: c {{{{ old_pdata.personal_documents.0 }}}} на {{{{ new_pdata.personal_documents.0 }}}}.
+        {{% endif %}}
+    {{% else %}}
+        Документы: {{{{ new_pdata.personal_documents.0 }}}}.
+    {{% endif %}}
+    """.format(change_field_template=change_pdata_field_template)
 
 migrate_personal_data_template = u"""
     Перенесены данные:
