@@ -137,7 +137,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
             document_instance = None
         document_form = PersonalDocumentForm(request.POST,
                                              instance=document_instance)
-        if not pdata_form.is_valid() or not document_form.is_valid():
+        if not (pdata_form.is_valid() and document_form.is_valid()):
             messages.error(request, u'Персональные данные не были сохранены. '
                            u'Пожалуйста, исправьте ошибки, выделенные красным')
             context.update({'pdata_form': pdata_form,

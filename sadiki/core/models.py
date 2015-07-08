@@ -790,15 +790,16 @@ class Profile(models.Model):
         'Area',
         verbose_name=u'Территориальная область к которой относится',
         null=True)
-    middle_name = models.CharField(u'Отчество', max_length=255, null=True)
+    middle_name = models.CharField(u'Отчество', max_length=255,
+                                   blank=True, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный', default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
-                                    blank=False, null=True)
+                                    blank=True, null=True)
     mobile_number = models.CharField(u'Дополнительный телефон', max_length=255,
                                      blank=True, null=True)
     skype = models.CharField(u'Skype', max_length=255, blank=True, null=True,
                              help_text=u"Учетная запись в сервисе Skype")
-    snils = models.CharField(u'СНИЛС', max_length=20, null=True,
+    snils = models.CharField(u'СНИЛС', max_length=20, blank=True, null=True,
                              validators=[snils_validator, ],
                              help_text=u'Формат: 123-456-789 12')
     town = models.CharField(u'Населённый пункт', max_length=50, null=True)
@@ -837,7 +838,7 @@ class Profile(models.Model):
         result_dict.update({'first_name': self.first_name,
                             'last_name': self.last_name})
         personal_documents = [
-            personal_document.__unicode__()
+            u'{}'.format(personal_document)
             for personal_document in self.personaldocument_set.order_by('id')
         ]
         result_dict.update({'personal_documents': personal_documents})
@@ -871,11 +872,13 @@ class PersonalDocument(models.Model):
     doc_type = models.IntegerField(u'Тип документа', choices=DOC_TYPE_CHOICES,
                                    default=DOC_TYPE_PASSPORT)
     doc_name = models.CharField(u'Название документа',
-                                max_length=30, null=True)
-    series = models.CharField(u'Серия документа', max_length=20, null=True)
+                                max_length=30, blank=True, null=True)
+    series = models.CharField(u'Серия документа', max_length=20,
+                              blank=True, null=True)
     number = models.CharField(u'Номер документа', max_length=50, null=True)
     issued_date = models.DateField(u'Дата выдачи документа', null=True)
-    issued_by = models.CharField(u'Кем выдан', max_length=100, null=True)
+    issued_by = models.CharField(u'Кем выдан', max_length=100,
+                                 blank=True, null=True)
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
 
     def to_dict(self):
@@ -1110,14 +1113,14 @@ class Requestion(models.Model):
         u'Имя ребёнка', max_length=255, null=True,
         validators=[validate_no_spaces, ],)
     child_middle_name = models.CharField(
-        u'Отчество ребёнка', max_length=50, null=True)
+        u'Отчество ребёнка', max_length=50, blank=True, null=True)
     child_last_name = models.CharField(
         u'Фамилия ребёнка', max_length=50, null=True)
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     kinship = models.CharField(
-        u'Степень родства заявителя', max_length=50, null=True,
+        u'Степень родства заявителя', max_length=50, blank=True, null=True,
         help_text=u'Укажите, кем приходится заявитель ребёнку')
 
     @property
@@ -1130,7 +1133,7 @@ class Requestion(models.Model):
     birthplace = models.CharField(
         u'Место рождения ребёнка', max_length=50, null=True)
     child_snils = models.CharField(
-        u'СНИЛС ребёнка', max_length=20, null=True,
+        u'СНИЛС ребёнка', max_length=20, blank=True, null=True,
         validators=[snils_validator, ],
         help_text=u'Формат: 123-456-789 12')
     cast = models.IntegerField(
