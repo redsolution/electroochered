@@ -1,5 +1,9 @@
 <div class="field{% if field.errors %} error{% endif %}">
-    <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+    <label class="field-label">
+        {{ field.label }}
+        <span class="required {% if not field.field.required %}hidden{% endif %}">*</span>
+        {% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+    </label>
     <p class="field-value">
         {{ field }}
     </p>

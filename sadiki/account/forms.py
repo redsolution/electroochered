@@ -44,7 +44,6 @@ class RequestionForm(FormWithDocument):
         fields = _base_fields
 
     def __init__(self, *args, **kwds):
-        self.base_fields['child_middle_name'].help_text = u'При наличии'
         self.base_fields['areas'].help_text = None
         self.base_fields['location'].label = u'Укажите ваше местоположение'
         self.base_fields['location'].required = True
@@ -56,10 +55,6 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].required = True
         self.base_fields['admission_date'].initial = datetime.date.today()
         self.base_fields['kinship'].label = u''
-        default_snils_help_text = Requestion._meta.get_field(
-            'child_snils').help_text
-        self.base_fields['child_snils'].help_text = u'При наличии. {}'.format(
-            default_snils_help_text)
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
@@ -97,16 +92,11 @@ class ChangeRequestionForm(forms.ModelForm):
                   'birthplace', 'kinship_type', 'kinship', 'child_snils',)
 
     def __init__(self, *args, **kwds):
-        self.base_fields['child_middle_name'].help_text = u'При наличии'
         self.base_fields['location'].required = True
         self.base_fields['location'].label = u'Ваше местоположение'
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['kinship'].label = u''
-        default_snils_help_text = Requestion._meta.get_field(
-            'child_snils').help_text
-        self.base_fields['child_snils'].help_text = u'При наличии. {}'.format(
-            default_snils_help_text)
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
@@ -168,12 +158,6 @@ class PersonalDataForm(ModelForm):
                   'snils', 'town', 'street', 'house']
 
     def __init__(self, *args, **kwargs):
-        default_snils_help_text = Profile._meta.get_field('snils').help_text
-        self.base_fields['snils'].help_text = u'При наличии. {}'.format(
-            default_snils_help_text)
-        self.base_fields['middle_name'].help_text = u'При наличии'
-        self.base_fields['phone_number'].help_text = u'При наличии'
-        self.base_fields['mobile_number'].help_text = u'При наличии'
         super(PersonalDataForm, self).__init__(*args, **kwargs)
         try:
             self.fields['first_name'].initial = self.instance.first_name
@@ -219,8 +203,6 @@ class PersonalDocumentForm(ModelForm):
         return super(PersonalDocumentForm, self).clean(*args, **kwargs)
 
     def __init__(self, *args, **kwargs):
-        self.base_fields['series'].help_text = u'При наличии'
-        self.base_fields['issued_by'].help_text = u'При наличии'
         self.base_fields['issued_date'].widget = JqueryIssueDateWidget()
         super(PersonalDocumentForm, self).__init__(*args, **kwargs)
 

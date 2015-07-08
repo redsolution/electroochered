@@ -169,14 +169,20 @@ function change_document_hint($input, help_text) {
         var $doc_issued_by_field = $doc_fields.find('#id_issued_by').parents('div.field');
         if (doc_type == 0) {
             $doc_name_field.removeClass('hidden');
-            $doc_series_field.find("p.hint").removeClass('hidden');
-            $doc_issued_by_field.find("p.hint").removeClass('hidden');
+            $doc_name_field.find('span.required').removeClass('hidden');
+            //$doc_series_field.find("p.hint").removeClass('hidden');
+            $doc_series_field.find('span.required').addClass('hidden');
+            //$doc_issued_by_field.find("p.hint").removeClass('hidden');
+            $doc_issued_by_field.find('span.required').addClass('hidden');
         }
         else {
             $doc_name_field.find('input').val('');
             $doc_name_field.addClass('hidden');
-            $doc_series_field.find("p.hint").addClass('hidden');
-            $doc_issued_by_field.find("p.hint").addClass('hidden');
+            $doc_name_field.find('span.required').addClass('hidden');
+            //$doc_series_field.find("p.hint").addClass('hidden');
+            $doc_series_field.find('span.required').removeClass('hidden');
+            //$doc_issued_by_field.find("p.hint").addClass('hidden');
+            $doc_issued_by_field.find('span.required').removeClass('hidden');
         }
     }
 
