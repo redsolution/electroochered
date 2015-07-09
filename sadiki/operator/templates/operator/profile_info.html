@@ -199,23 +199,26 @@
                         <div class="block-head personal-data-head">Документы заявителя</div>
                         <div class="personal-document-area requestion-info">
                             {{ doc_form.profile }}
-                            {% with doc_form.doc_type as field %}
-                                {% include 'account/include/document-form-field.html' %}
-                            {% endwith %}
+                            <div class="field">
+                                <label class="field-label">{{ doc_form.doc_type.label }}</label>
+                                <p class="field-value">
+                                    {{ doc_form.doc_type }}
+                                </p>
+                            </div>
                             {% with doc_form.doc_name as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.series as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.number as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.issued_date as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.issued_by as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                         </div>
                     </div>
