@@ -1114,6 +1114,10 @@ tr.dynamic-form .errorlist {
     line-height: 100%;
 }
 
+.requestion-info .field-value :required{
+    border: 2px #A60000 solid;
+}
+
 .requestion-info .field-value .value{
     vertical-align: top;
 }

@@ -159,6 +159,9 @@ class PersonalDataForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(PersonalDataForm, self).__init__(*args, **kwargs)
+        for field in self.fields.itervalues():
+            if field.required:
+                field.widget.attrs['required'] = 'true'
         try:
             self.fields['first_name'].initial = self.instance.first_name
             self.fields['last_name'].initial = self.instance.last_name
@@ -205,6 +208,9 @@ class PersonalDocumentForm(ModelForm):
     def __init__(self, *args, **kwargs):
         self.base_fields['issued_date'].widget = JqueryIssueDateWidget()
         super(PersonalDocumentForm, self).__init__(*args, **kwargs)
+        for field in self.fields.itervalues():
+            if field.required:
+                field.widget.attrs['required'] = 'true'
 
 
 class BasePersonalDocumentFormset(BaseModelFormSet):
