@@ -5,7 +5,6 @@
 {% block bottomjs %}
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
-    <script type="text/javascript" src="{{ STATIC_URL }}js/jqueryuidate.js"></script>
     <script type="text/javascript" src="{{ STATIC_URL }}js/plugins.js"></script>
     <script type="text/javascript">
         function editField(element) {
@@ -175,6 +174,10 @@
                 content: '<p>Указанный электронный почтовый адрес можно использовать для входа на сайт. Также на него будут отправляться уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
                 placement: "top"});
 
+            $('#id_issued_date').datepicker('option', 'onSelect', function(text, date) {
+                $('#issued_date_label').text(text);
+            });
+
             $('#id_snils').snilsValidate();
 
             $('#id_doc_type').personalDocumentFormHandler();
@@ -286,6 +289,7 @@
                         {% endwith %}
                         <div class="block-head personal-data-head">Документы заявителя</div>
                         <div class="personal-document-area requestion-info">
+                            {{ doc_form.media }}
                             {{ doc_form.profile }}
                             <div class="field">
                                 <label class="field-label">{{ doc_form.doc_type.label }}</label>
@@ -303,7 +307,26 @@
                                 {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.issued_date as field %}
-                                {% include 'account/include/pdata-form-field.html' %}
+                            <div class="field {% if field.errors %}error{% endif %}">
+                                <label class="field-label">
+                                    {{ field.label }}
+                                    <span class="required {% if not field.field.required %}hidden{% endif %}">*</span>
+                                    {% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                                </label>
+                                {% if not field.value or field.errors %}
+	                                <p class="field-value">
+	                                    {{ field }}
+	                                </p>
+                                {% else %}
+                                    <p class="field-value hidden-input">
+                                        <label id="issued_date_label" class="value">{{ field.value }}</label>
+                                        {{ field }}
+                                    </p>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <p class="hint">{{ field.help_text }}</p>
+                                {% endif %}
+                            </div>
                             {% endwith %}
                             {% with doc_form.issued_by as field %}
                                 {% include 'account/include/pdata-form-field.html' %}
