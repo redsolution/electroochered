@@ -10,6 +10,7 @@ from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 from sadiki.authorisation.models import VerificationKey
+from sadiki.logger.models import Logger
 
 
 class CoreViewsTest(TestCase):
@@ -317,4 +318,103 @@ class CoreViewsTest(TestCase):
         self.assertIn(token, self.client.session['token'].keys())
         self.assertIsNone(self.client.session['token'][token])
 
+        settings.TEST_MODE = False
+
+    def test_profile_personal_data_actions(self):
+        u"""
+        Проверка корректности добавления и изменения персональных данных
+        в профиле пользователя
+        """
+        settings.TEST_MODE = True
+        profile_form_data = {
+            'last_name': 'Jordison',
+            'first_name': 'Ann',
+            'town': 'NY',
+            'street': '1st avenue',
+            'house': '10',
+            'profile': self.requester.profile.id,
+            'doc_type': 1,
+            'series': '111',
+            'number': '123456',
+            'issued_date': '30.03.2012',
+            'issued_by': 'some_organization',
+        }
+        # заполнение персональных данных оператором
+        self.assertTrue(self.client.login(username=self.operator.username,
+                        password='password'))
+        response = self.client.post(
+            reverse('operator_profile_info', args=(self.requester.profile.id,)),
+            profile_form_data)
+        self.assertEqual(response.status_code, 302)
+        # заполнение персональных данных пользователем
+        self.assertTrue(self.client.login(username=self.requester.username,
+                        password='123456q'))
+        response = self.client.post(
+            reverse('account_frontpage'), profile_form_data)
+        self.assertEqual(response.status_code, 302)
+        # попытка сохранить документ без названия
+        profile_form_data.update({'doc_type': 0})
+        response = self.client.post(
+            reverse('account_frontpage'), profile_form_data)
+        self.assertNotEqual(response.status_code, 302)
+        # теперь с названием
+        profile_form_data.update({'doc_name': 'test_document'})
+        response = self.client.post(
+            reverse('account_frontpage'), profile_form_data)
+        self.assertEqual(response.status_code, 302)
+        # попытка сохранить паспортные данные без обязательных полей
+        profile_form_data.update({'doc_type': 1})
+        profile_form_data.pop('series')
+        profile_form_data.pop('issued_by')
+        response = self.client.post(
+            reverse('account_frontpage'), profile_form_data)
+        self.assertNotEqual(response.status_code, 302)
+        settings.TEST_MODE = False
+
+    def test_requestion_personal_data_actions(self):
+        u"""
+        Проверка корректности добавления и изменения персональных данных
+        заявки.
+        """
+        settings.TEST_MODE = True
+        management.call_command('generate_sadiks', 1)
+        kgs = Sadik.objects.all()
+        requestion_form_data = {
+            'name': 'Ann',
+            'child_last_name': 'Jordison',
+            'sex': 'Ж',
+            'birth_date': '07.06.2014',
+            'admission_date': '01.01.2014',
+            'template': '2',
+            'document_number': 'II-ИВ 016809',
+            'birthplace': 'Chelyabinsk',
+            'kinship_type': 1,
+            'areas': '1',
+            'location': 'POINT (60.115814208984375 55.051432600719835)',
+            'pref_sadiks': [str(kgs[0].id)],
+        }
+        # добавление заявки оператором
+        self.assertTrue(self.client.login(username=self.operator.username,
+                        password='password'))
+        response = self.client.post(
+            reverse('operator_requestion_add',
+                    args=(self.requester.profile.id,)),
+            requestion_form_data)
+        self.assertEqual(response.status_code, 302)
+        # добавление заявки пользователем
+        self.assertTrue(self.client.login(username=self.requester.username,
+                        password='123456q'))
+        response = self.client.post(
+            reverse('requestion_add_by_user'), requestion_form_data)
+        self.assertEqual(response.status_code, 302)
+        # попытка добавить заявку без указания степени родства заявителя
+        requestion_form.update({'kinship_type': 0})
+        response = self.client.post(
+            reverse('requestion_add_by_user'), requestion_form_data)
+        self.assertNotEqual(response.status_code, 302)
+        # с указанием иной степени родства заявителя
+        requestion_form.update({'kinship': 'grandfather'})
+        response = self.client.post(
+            reverse('requestion_add_by_user'), requestion_form_data)
+        self.assertEqual(response.status_code, 302)
         settings.TEST_MODE = False
