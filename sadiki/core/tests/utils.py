@@ -90,10 +90,14 @@ def create_requestion(**kwargs):
 
     defaults = {
         'name': random.choice(names['first']),
+        'child_last_name': random.choice(names['last']),
         'sex': random.choice([u'М', u'Ж']),
         'admission_date': get_admission_date(),
         'distribute_in_any_sadik': True,
         'birth_date': default_birth_date,
+        'birthplace': 'Chelyabinsk',
+        'kinship_type': random.choice([0, 1, 2]),
+        'kinship': random_string(10),
         'profile': create_profile(),
         'location_properties': 'челябинск',
         'location': point.Point(random.choice([1, 2, 3, 4]),
