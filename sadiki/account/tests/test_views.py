@@ -10,7 +10,10 @@ from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,\
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
 from sadiki.authorisation.models import VerificationKey
-from sadiki.logger.models import Logger
+from sadiki.logger.models import Logger, ANONYM_LOG, ACCOUNT_LOG
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA, \
+    CHANGE_PERSONAL_DATA_BY_OPERATOR, CHANGE_REQUESTION, \
+    CHANGE_REQUESTION_BY_OPERATOR
 
 
 class CoreViewsTest(TestCase):
@@ -323,49 +326,135 @@ class CoreViewsTest(TestCase):
     def test_profile_personal_data_actions(self):
         u"""
         Проверка корректности добавления и изменения персональных данных
-        в профиле пользователя
+        в профиле пользователя. Проверка наличия логов и их содержимого
         """
         settings.TEST_MODE = True
         profile_form_data = {
             'last_name': 'Jordison',
             'first_name': 'Ann',
-            'town': 'NY',
+            'town': 'New York',
             'street': '1st avenue',
-            'house': '10',
+            'house': '100',
             'profile': self.requester.profile.id,
             'doc_type': 1,
-            'series': '111',
-            'number': '123456',
+            'series': '123456',
+            'number': '654321',
             'issued_date': '30.03.2012',
             'issued_by': 'some_organization',
         }
-        # заполнение персональных данных оператором
-        self.assertTrue(self.client.login(username=self.operator.username,
-                        password='password'))
-        response = self.client.post(
-            reverse('operator_profile_info', args=(self.requester.profile.id,)),
-            profile_form_data)
-        self.assertEqual(response.status_code, 302)
-        # заполнение персональных данных пользователем
+        # ----- изменение персональных данных пользователем -----
         self.assertTrue(self.client.login(username=self.requester.username,
                         password='123456q'))
+        # заполняем пустую форму
         response = self.client.post(
             reverse('account_frontpage'), profile_form_data)
         self.assertEqual(response.status_code, 302)
+        # проверка логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
+        self.assertTrue(logs.exists())
+        last_log = logs[0]
+        account_logs = last_log.loggermessage_set.filter(level=ACCOUNT_LOG)
+        self.assertEqual(len(account_logs), 1)
+        log_message = account_logs[0].message
+        self.assertIn('Ann', log_message)
+        self.assertIn('Jordison', log_message)
+        self.assertIn('New York', log_message)
+        self.assertIn('1st avenue', log_message)
+        self.assertIn('100', log_message)
+        self.assertIn(u'Паспорт', log_message)
+        self.assertIn('123456', log_message)
+        self.assertIn('654321', log_message)
+        self.assertIn('30.03.2012', log_message)
+        self.assertIn('some_organization', log_message)
+        last_log.delete()
         # попытка сохранить документ без названия
         profile_form_data.update({'doc_type': 0})
         response = self.client.post(
             reverse('account_frontpage'), profile_form_data)
         self.assertNotEqual(response.status_code, 302)
-        # теперь с названием
+        # теперь с названием, + убираем необязательные поля
         profile_form_data.update({'doc_name': 'test_document'})
+        profile_form_data.pop('series')
+        profile_form_data.pop('issued_by')
         response = self.client.post(
             reverse('account_frontpage'), profile_form_data)
         self.assertEqual(response.status_code, 302)
+        # проверка логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
+        self.assertTrue(logs.exists())
+        last_log = logs[0]
+        account_logs = last_log.loggermessage_set.filter(level=ACCOUNT_LOG)
+        self.assertEqual(len(account_logs), 1)
+        log_message = account_logs[0].message
+        self.assertNotIn('Ann', log_message)
+        self.assertNotIn('Jordison', log_message)
+        self.assertNotIn('New York', log_message)
+        self.assertNotIn('1st avenue', log_message)
+        self.assertNotIn('100', log_message)
+        self.assertIn(u'Паспорт', log_message)
+        self.assertIn('123456', log_message)
+        self.assertIn('654321', log_message)
+        self.assertIn('30.03.2012', log_message)
+        self.assertIn('some_organization', log_message)
+        self.assertIn('test_document', log_message)
+        last_log.delete()
+        # меняем только имя
+        profile_form_data.update({'first_name': 'Mary'})
+        response = self.client.post(
+            reverse('account_frontpage'), profile_form_data)
+        self.assertEqual(response.status_code, 302)
+        # проверка логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
+        self.assertTrue(logs.exists())
+        last_log = logs[0]
+        account_logs = last_log.loggermessage_set.filter(level=ACCOUNT_LOG)
+        self.assertEqual(len(account_logs), 1)
+        log_message = account_logs[0].message
+        self.assertIn('Ann', log_message)
+        self.assertIn('Mary', log_message)
+        self.assertNotIn('Jordison', log_message)
+        self.assertNotIn('New York', log_message)
+        self.assertNotIn('1st avenue', log_message)
+        self.assertNotIn('100', log_message)
+        self.assertNotIn(u'Паспорт', log_message)
+        self.assertNotIn('test_document', log_message)
+        self.assertNotIn('654321', log_message)
+        self.assertNotIn('30.03.2012', log_message)
+        last_log.delete()
+        # ----- изменение персональных данных оператором -----
+        self.assertTrue(self.client.login(username=self.operator.username,
+                        password='password'))
+        # меняем только адрес
+        profile_form_data.update({'town': 'Chicago', 'street': 'any_street',
+                                  'house': 222})
+        response = self.client.post(
+            reverse('operator_profile_info', args=(self.requester.profile.id,)),
+            profile_form_data)
+        self.assertEqual(response.status_code, 302)
+        # проверка логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA_BY_OPERATOR).order_by('-datetime')
+        self.assertTrue(logs.exists())
+        last_log = logs[0]
+        account_logs = last_log.loggermessage_set.filter(level=ACCOUNT_LOG)
+        self.assertEqual(len(account_logs), 1)
+        log_message = account_logs[0].message
+        self.assertNotIn('Mary', log_message)
+        self.assertNotIn('Jordison', log_message)
+        self.assertIn('New York', log_message)
+        self.assertIn('1st avenue', log_message)
+        self.assertIn('100', log_message)
+        self.assertIn('Chicago', log_message)
+        self.assertIn('any_street', log_message)
+        self.assertIn('222', log_message)
+        self.assertNotIn('test_document', log_message)
+        self.assertNotIn('654321', log_message)
+        self.assertNotIn('30.03.2012', log_message)
         # попытка сохранить паспортные данные без обязательных полей
         profile_form_data.update({'doc_type': 1})
-        profile_form_data.pop('series')
-        profile_form_data.pop('issued_by')
         response = self.client.post(
             reverse('account_frontpage'), profile_form_data)
         self.assertNotEqual(response.status_code, 302)
