@@ -97,7 +97,7 @@ def create_requestion(**kwargs):
         'birth_date': default_birth_date,
         'birthplace': 'Chelyabinsk',
         'kinship_type': random.choice([0, 1, 2]),
-        'kinship': random_string(10),
+        'kinship': get_random_string(10),
         'profile': create_profile(),
         'location_properties': 'челябинск',
         'location': point.Point(random.choice([1, 2, 3, 4]),
