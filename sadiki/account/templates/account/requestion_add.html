@@ -298,12 +298,12 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div class="select-with-text-option">
-                    {% with form.kinship_type as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
-                    {% with form.kinship as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
+                        {% with form.kinship_type as field %}
+                            {% include "account/include/requestion-form-field.html" %}
+                        {% endwith %}
+                        {% with form.kinship as field %}
+                            {% include "account/include/requestion-form-field.html" %}
+                        {% endwith %}
                     </div>
                     {% with form.admission_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
@@ -320,9 +320,9 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div class="small-field">
-                    {% with benefits_form.benefits as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
+                        {% with benefits_form.benefits as field %}
+                            {% include "account/include/requestion-form-field.html" %}
+                        {% endwith %}
                     </div>
                 </div>
                 {% endblock %}
