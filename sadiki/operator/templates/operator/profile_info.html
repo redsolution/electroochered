@@ -198,24 +198,47 @@
                         {% endwith %}
                         <div class="block-head personal-data-head">Документы заявителя</div>
                         <div class="personal-document-area requestion-info">
+                            {{ doc_form.media }}
                             {{ doc_form.profile }}
-                            {% with doc_form.doc_type as field %}
-                                {% include 'account/include/document-form-field.html' %}
-                            {% endwith %}
+                            <div class="field">
+                                <label class="field-label">{{ doc_form.doc_type.label }}</label>
+                                <p class="field-value">
+                                    {{ doc_form.doc_type }}
+                                </p>
+                            </div>
                             {% with doc_form.doc_name as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.series as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.number as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.issued_date as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                            <div class="field {% if field.errors %}error{% endif %}">
+                                <label class="field-label">
+                                    {{ field.label }}
+                                    <span class="required {% if not field.field.required %}hidden{% endif %}">*</span>
+                                    {% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                                </label>
+                                {% if not field.value or field.errors %}
+	                                <p class="field-value">
+	                                    {{ field }}
+	                                </p>
+                                {% else %}
+                                    <p class="field-value hidden-input">
+                                        <label id="issued_date_label" class="value">{{ field.value }}</label>
+                                        {{ field }}
+                                    </p>
+                                {% endif %}
+                                {% if field.help_text %}
+                                    <p class="hint">{{ field.help_text }}</p>
+                                {% endif %}
+                            </div>
                             {% endwith %}
                             {% with doc_form.issued_by as field %}
-                                {% include 'account/include/document-form-field.html' %}
+                                {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                         </div>
                     </div>

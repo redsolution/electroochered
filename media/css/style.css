@@ -1353,11 +1353,11 @@ tr.dynamic-form .errorlist {
 .select-with-text-option input {
     margin-left: 0px;
     margin-top: 1px;
-    width: 100%
 }
 
 .select-with-text-option select {
     margin-left: 0px;
+    width: auto !important;
 }
 
 .requestion-form select{
@@ -1452,6 +1452,11 @@ tr.dynamic-form .errorlist {
 
 .requestion-info .field.error .field-label{
     color: #A60000;
+}
+
+.requestion-info .field .field-label .required{
+    color: #A60000;
+    font-size: 20px;
 }
 
 .requestion-info .field.error{
