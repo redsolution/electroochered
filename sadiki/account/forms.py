@@ -28,7 +28,6 @@ class RequestionForm(FormWithDocument):
                   u'в выбранные ДОУ')
     kinship_type = forms.ChoiceField(
         label=u'Степень родства заявителя',
-        help_text=u'Укажите, кем приходится заявитель ребёнку',
         choices=Requestion.REQUESTER_TYPE_CHOICES)
     token = forms.CharField(widget=forms.HiddenInput())
 
@@ -83,7 +82,6 @@ class RequestionForm(FormWithDocument):
 class ChangeRequestionForm(forms.ModelForm):
     kinship_type = forms.ChoiceField(
         label=u'Степень родства заявителя',
-        help_text=u'Укажите, кем приходится заявитель ребёнку',
         choices=Requestion.REQUESTER_TYPE_CHOICES)
 
     class Meta:
