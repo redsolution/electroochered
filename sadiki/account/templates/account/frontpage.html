@@ -307,24 +307,22 @@
                                 {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
                             {% with doc_form.issued_date as field %}
-                            <div class="field {% if field.errors %}error{% endif %}">
-                                <label class="field-label">
-                                    {{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
-                                </label>
-                                {% if not field.value or field.errors %}
-	                                <p class="field-value">
-	                                    {{ field }}
-	                                </p>
-                                {% else %}
-                                    <p class="field-value hidden-input">
-                                        <label id="issued_date_label" class="value">{{ field.value }}</label>
-                                        {{ field }}
-                                    </p>
-                                {% endif %}
-                                {% if field.help_text %}
-                                    <p class="hint">{{ field.help_text }}</p>
-                                {% endif %}
-                            </div>
+                                <div class="field {% if field.errors %}error{% endif %}">
+                                    <label class="field-label">
+                                        {{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                                    </label>
+                                    {% if not field.value or field.errors %}
+	                                    <p class="field-value">
+	                                        {{ field }}
+	                                    </p>
+                                    {% else %}
+                                        <p class="field-value hidden-input">
+                                            <label id="issued_date_label" class="value">{{ field.value }}</label>
+                                            {{ field }}
+                                        </p>
+                                    {% endif %}
+                                    <p class="hint">{% if not field.field.required %}При наличии. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                                </div>
                             {% endwith %}
                             {% with doc_form.issued_by as field %}
                                 {% include 'account/include/pdata-form-field.html' %}
