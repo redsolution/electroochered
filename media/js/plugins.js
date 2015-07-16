@@ -197,11 +197,13 @@ function change_document_hint($input, help_text) {
         var $kinship_text_field = $('#id_kinship').parents('div.field');
         if (kinship_type == 0) {
             $kinship_text_field.removeClass('hidden');
+            $kinship_text_field.find('p.hint').addClass('hidden');
             $kinship_choice_field.find('p.hint').addClass('hidden');
         }
         else {
             $kinship_text_field.find('input').val('');
             $kinship_text_field.addClass('hidden');
+            $kinship_text_field.find('p.hint').removeClass('hidden');
             $kinship_choice_field.find('p.hint').removeClass('hidden');
         }
     }
