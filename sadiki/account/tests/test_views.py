@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.test import TestCase
 from django.core import management
 from django.conf import settings
@@ -329,13 +331,14 @@ class CoreViewsTest(TestCase):
         в профиле пользователя. Проверка наличия логов и их содержимого
         """
         settings.TEST_MODE = True
+        profile = self.requester.profile
         profile_form_data = {
             'last_name': 'Jordison',
             'first_name': 'Ann',
             'town': 'New York',
             'street': '1st avenue',
             'house': '100',
-            'profile': self.requester.profile.id,
+            'profile': profile.id,
             'doc_type': 1,
             'series': '123456',
             'number': '654321',
@@ -347,8 +350,23 @@ class CoreViewsTest(TestCase):
                         password='123456q'))
         # заполняем пустую форму
         response = self.client.post(
-            reverse('account_frontpage'), profile_form_data)
-        self.assertEqual(response.status_code, 302)
+            reverse('account_frontpage'), profile_form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('account_frontpage'))
+        # проверяем изменение данных
+        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        self.assertEqual(changed_profile.first_name, 'Ann')
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertEqual(changed_profile.town, 'New York')
+        self.assertEqual(changed_profile.street, '1st avenue')
+        self.assertEqual(changed_profile.house, '100')
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 1)
+        self.assertEqual(profile_document.series, '123456')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        self.assertEqual(profile_document.issued_by, 'some_organization')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
@@ -372,14 +390,33 @@ class CoreViewsTest(TestCase):
         profile_form_data.update({'doc_type': 0})
         response = self.client.post(
             reverse('account_frontpage'), profile_form_data)
-        self.assertNotEqual(response.status_code, 302)
-        # теперь с названием, + убираем необязательные поля
-        profile_form_data.update({'doc_name': 'test_document'})
-        profile_form_data.pop('series')
-        profile_form_data.pop('issued_by')
+        self.assertEqual(response.status_code, 200)
+        # проверяем, что документ не сохранился
+        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 1)
+        self.assertEqual(profile_document.series, '123456')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        self.assertEqual(profile_document.issued_by, 'some_organization')
+        # теперь добавляем название документа, + убираем необязательные поля
+        profile_form_data.update({'doc_name': 'test_document',
+                                  'series': '',
+                                  'issued_by': ''})
         response = self.client.post(
-            reverse('account_frontpage'), profile_form_data)
-        self.assertEqual(response.status_code, 302)
+            reverse('account_frontpage'), profile_form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('account_frontpage'))
+        # проверяем изменение данных
+        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.series, '')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        self.assertEqual(profile_document.issued_by, '')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
@@ -403,8 +440,12 @@ class CoreViewsTest(TestCase):
         # меняем только имя
         profile_form_data.update({'first_name': 'Mary'})
         response = self.client.post(
-            reverse('account_frontpage'), profile_form_data)
-        self.assertEqual(response.status_code, 302)
+            reverse('account_frontpage'), profile_form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('account_frontpage'))
+        # проверяем изменение данных
+        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        self.assertEqual(changed_profile.first_name, 'Mary')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
@@ -431,9 +472,16 @@ class CoreViewsTest(TestCase):
         profile_form_data.update({'town': 'Chicago', 'street': 'any_street',
                                   'house': 222})
         response = self.client.post(
-            reverse('operator_profile_info', args=(self.requester.profile.id,)),
-            profile_form_data)
-        self.assertEqual(response.status_code, 302)
+            reverse('operator_profile_info', args=(profile.id,)),
+            profile_form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, reverse('operator_profile_info',
+                                               args=(profile.id,)))
+        # проверяем изменение данных
+        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        self.assertEqual(changed_profile.town, 'Chicago')
+        self.assertEqual(changed_profile.street, 'any_street')
+        self.assertEqual(changed_profile.house, '222')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA_BY_OPERATOR).order_by('-datetime')
@@ -456,8 +504,18 @@ class CoreViewsTest(TestCase):
         # попытка сохранить паспортные данные без обязательных полей
         profile_form_data.update({'doc_type': 1})
         response = self.client.post(
-            reverse('account_frontpage'), profile_form_data)
-        self.assertNotEqual(response.status_code, 302)
+            reverse('operator_profile_info', args=(profile.id,)),
+            profile_form_data)
+        self.assertEqual(response.status_code, 200)
+        # проверяем, что документ не сохранился
+        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.series, '')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        self.assertEqual(profile_document.issued_by, '')
         settings.TEST_MODE = False
 
     def test_requestion_personal_data_actions(self):
@@ -488,9 +546,26 @@ class CoreViewsTest(TestCase):
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
         create_response = self.client.post(
-            reverse('requestion_add_by_user'), requestion_form_data)
-        self.assertEqual(create_response.status_code, 302)
+            reverse('requestion_add_by_user'), requestion_form_data,
+            follow=True)
+        self.assertIn('requestion', create_response.context)
         created_requestion = create_response.context['requestion']
+        requestion_id = created_requestion.id
+        self.assertEqual(create_response.status_code, 200)
+        self.assertRedirects(
+            create_response,
+            reverse('account_requestion_info', args=(created_requestion.id,)))
+        # проверяем сохранение заявки
+        requestion = Requestion.objects.get(id=requestion_id)
+        self.assertEqual(requestion.name, 'Ann')
+        self.assertEqual(requestion.child_last_name, 'Jordison')
+        self.assertEqual(requestion.sex, u'Ж')
+        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
+        self.assertEqual(requestion.birthplace, 'Chelyabinsk')
+        self.assertEqual(requestion.kinship, u'мать')
+        evidience_document = requestion.evidience_documents()[0]
+        self.assertEqual(evidience_document.document_number, u'II-ИВ 016809')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
@@ -520,8 +595,19 @@ class CoreViewsTest(TestCase):
         }
         create_response = self.client.post(
             reverse('account_requestion_info', args=(created_requestion.id,)),
-            change_requestion_form_data)
-        self.assertEqual(create_response.status_code, 302)
+            change_requestion_form_data, follow=True)
+        self.assertEqual(create_response.status_code, 200)
+        self.assertRedirects(
+            create_response,
+            reverse('account_requestion_info', args=(created_requestion.id,)))
+        # проверяем изменение данных заявки
+        requestion = Requestion.objects.get(id=requestion_id)
+        self.assertEqual(requestion.name, 'Mary')
+        self.assertEqual(requestion.child_last_name, 'Jordison')
+        self.assertEqual(requestion.sex, u'Ж')
+        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.birthplace, 'Chelyabinsk')
+        self.assertEqual(requestion.kinship, u'мать')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=ACCOUNT_CHANGE_REQUESTION).order_by('-datetime')
@@ -542,15 +628,24 @@ class CoreViewsTest(TestCase):
         requestion_form_data.update({'token': token, 'kinship_type': 0})
         response = self.client.post(
             reverse('requestion_add_by_user'), requestion_form_data)
-        self.assertNotEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
         # теперь с указанием иной степени родства
         response = self.client.get(reverse('requestion_add_by_user'))
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, 'kinship': 'grandfather'})
         response = self.client.post(
             reverse('requestion_add_by_user'),
-            requestion_form_data)
-        self.assertEqual(response.status_code, 302)
+            requestion_form_data, follow=True)
+        self.assertIn('requestion', response.context)
+        created_requestion = response.context['requestion']
+        requestion_id = created_requestion.id
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(
+            response,
+            reverse('account_requestion_info', args=(requestion_id,)))
+        # проверка данных
+        requestion = Requestion.objects.get(id=requestion_id)
+        self.assertEqual(requestion.kinship, 'grandfather')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
@@ -564,12 +659,14 @@ class CoreViewsTest(TestCase):
         last_log.delete()
         # добавление заявки оператором
         self.client.login(username=self.operator.username, password='password')
+        profile = self.requester.profile
         response = self.client.get(
-            reverse('operator_requestion_add',
-                    args=(self.requester.profile.id,)))
+            reverse('operator_requestion_add', args=(profile.id,)))
         token = response.context['form']['token'].value()
         requestion_form_data.update({
             'token': token,
+            'template': '2',
+            'document_number': 'II-ИВ 123321',
             'core-evidiencedocument-content_type-object_id-TOTAL_FORMS': 1,
             'core-evidiencedocument-content_type-object_id-INITIAL_FORMS': 0,
             'core-evidiencedocument-content_type-object_id-MAX_NUM_FORMS': 100,
@@ -579,11 +676,26 @@ class CoreViewsTest(TestCase):
             ''
         })
         response = self.client.post(
-            reverse('operator_requestion_add',
-                    args=(self.requester.profile.id,)),
-            requestion_form_data)
-        self.assertEqual(response.status_code, 302)
-        created_requestion = create_response.context['requestion']
+            reverse('operator_requestion_add', args=(profile.id,)),
+            requestion_form_data, follow=True)
+        self.assertIn('requestion', response.context)
+        created_requestion = response.context['requestion']
+        requestion_id = created_requestion.id
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(
+            response,
+            reverse('operator_requestion_info', args=(requestion_id,)))
+        # проверяем сохранение заявки
+        requestion = Requestion.objects.get(id=requestion_id)
+        self.assertEqual(requestion.name, 'Ann')
+        self.assertEqual(requestion.child_last_name, 'Jordison')
+        self.assertEqual(requestion.sex, u'Ж')
+        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
+        self.assertEqual(requestion.birthplace, 'Chelyabinsk')
+        self.assertEqual(requestion.kinship, 'grandfather')
+        evidience_document = requestion.evidience_documents()[0]
+        self.assertEqual(evidience_document.document_number, u'II-ИВ 123321')
         # проверка логов
         logs = Logger.objects.filter(
             action_flag=REQUESTION_REGISTRATION_BY_OPERATOR).order_by(
