@@ -332,6 +332,9 @@ class CoreViewsTest(TestCase):
         """
         settings.TEST_MODE = True
         profile = self.requester.profile
+        account_frontpage_url = reverse('account_frontpage')
+        operator_profile_info_url = reverse('operator_profile_info',
+                                            args=(profile.id,))
         profile_form_data = {
             'last_name': 'Jordison',
             'first_name': 'Ann',
@@ -349,10 +352,10 @@ class CoreViewsTest(TestCase):
         self.assertTrue(self.client.login(username=self.requester.username,
                         password='123456q'))
         # заполняем пустую форму
-        response = self.client.post(
-            reverse('account_frontpage'), profile_form_data, follow=True)
+        response = self.client.post(account_frontpage_url, profile_form_data,
+                                    follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertRedirects(response, reverse('account_frontpage'))
+        self.assertRedirects(response, account_frontpage_url)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=self.requester.profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
@@ -388,8 +391,7 @@ class CoreViewsTest(TestCase):
         last_log.delete()
         # попытка сохранить документ без названия
         profile_form_data.update({'doc_type': 0})
-        response = self.client.post(
-            reverse('account_frontpage'), profile_form_data)
+        response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=self.requester.profile.id)
@@ -404,10 +406,10 @@ class CoreViewsTest(TestCase):
         profile_form_data.update({'doc_name': 'test_document',
                                   'series': '',
                                   'issued_by': ''})
-        response = self.client.post(
-            reverse('account_frontpage'), profile_form_data, follow=True)
+        response = self.client.post(account_frontpage_url, profile_form_data,
+                                    follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertRedirects(response, reverse('account_frontpage'))
+        self.assertRedirects(response, account_frontpage_url)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=self.requester.profile.id)
         profile_document = changed_profile.personaldocument_set.all()[0]
@@ -439,10 +441,10 @@ class CoreViewsTest(TestCase):
         last_log.delete()
         # меняем только имя
         profile_form_data.update({'first_name': 'Mary'})
-        response = self.client.post(
-            reverse('account_frontpage'), profile_form_data, follow=True)
+        response = self.client.post(account_frontpage_url, profile_form_data,
+                                    follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertRedirects(response, reverse('account_frontpage'))
+        self.assertRedirects(response, account_frontpage_url)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=self.requester.profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -471,12 +473,10 @@ class CoreViewsTest(TestCase):
         # меняем только адрес
         profile_form_data.update({'town': 'Chicago', 'street': 'any_street',
                                   'house': 222})
-        response = self.client.post(
-            reverse('operator_profile_info', args=(profile.id,)),
-            profile_form_data, follow=True)
+        response = self.client.post(operator_profile_info_url,
+                                    profile_form_data, follow=True)
         self.assertEqual(response.status_code, 200)
-        self.assertRedirects(response, reverse('operator_profile_info',
-                                               args=(profile.id,)))
+        self.assertRedirects(response, operator_profile_info_url)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=self.requester.profile.id)
         self.assertEqual(changed_profile.town, 'Chicago')
@@ -503,9 +503,8 @@ class CoreViewsTest(TestCase):
         self.assertNotIn('30.03.2012', log_message)
         # попытка сохранить паспортные данные без обязательных полей
         profile_form_data.update({'doc_type': 1})
-        response = self.client.post(
-            reverse('operator_profile_info', args=(profile.id,)),
-            profile_form_data)
+        response = self.client.post(operator_profile_info_url,
+                                    profile_form_data)
         self.assertEqual(response.status_code, 200)
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=self.requester.profile.id)
@@ -524,6 +523,7 @@ class CoreViewsTest(TestCase):
         заявки.
         """
         settings.TEST_MODE = True
+        requestion_add_by_user_url = reverse('requestion_add_by_user')
         management.call_command('generate_sadiks', 1)
         kgs = Sadik.objects.all()
         requestion_form_data = {
@@ -542,12 +542,11 @@ class CoreViewsTest(TestCase):
         }
         # добавление заявки пользователем
         self.client.login(username=self.requester.username, password='123456q')
-        response = self.client.get(reverse('requestion_add_by_user'))
+        response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
         create_response = self.client.post(
-            reverse('requestion_add_by_user'), requestion_form_data,
-            follow=True)
+            requestion_add_by_user_url, requestion_form_data, follow=True)
         self.assertIn('requestion', create_response.context)
         created_requestion = create_response.context['requestion']
         requestion_id = created_requestion.id
@@ -623,19 +622,18 @@ class CoreViewsTest(TestCase):
         self.assertNotIn(u'мать', log_message)
         last_log.delete()
         # попытка добавить заявку без указания степени родства заявителя
-        response = self.client.get(reverse('requestion_add_by_user'))
+        response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, 'kinship_type': 0})
-        response = self.client.post(
-            reverse('requestion_add_by_user'), requestion_form_data)
+        response = self.client.post(requestion_add_by_user_url,
+                                    requestion_form_data)
         self.assertEqual(response.status_code, 200)
         # теперь с указанием иной степени родства
-        response = self.client.get(reverse('requestion_add_by_user'))
+        response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, 'kinship': 'grandfather'})
-        response = self.client.post(
-            reverse('requestion_add_by_user'),
-            requestion_form_data, follow=True)
+        response = self.client.post(requestion_add_by_user_url,
+                                    requestion_form_data, follow=True)
         self.assertIn('requestion', response.context)
         created_requestion = response.context['requestion']
         requestion_id = created_requestion.id
