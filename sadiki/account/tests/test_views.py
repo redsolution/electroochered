@@ -348,18 +348,35 @@ class CoreViewsTest(TestCase):
             'issued_date': '30.03.2012',
             'issued_by': 'some_organization',
         }
-        # ----- изменение персональных данных пользователем -----
+        # ----- тестируем изменение персональных данных пользователем -----
         self.assertTrue(self.client.login(username=self.requester.username,
                         password='123456q'))
-        # заполняем пустую форму
+        # проверяем, что данные профиля не заполнены
+        self.assertFalse(profile.first_name)
+        self.assertFalse(profile.last_name)
+        self.assertFalse(profile.middle_name)
+        self.assertFalse(profile.mobile_number)
+        self.assertFalse(profile.phone_number)
+        self.assertFalse(profile.snils)
+        self.assertFalse(profile.town)
+        self.assertFalse(profile.street)
+        self.assertFalse(profile.house)
+        profile_documents = profile.personaldocument_set
+        self.assertFalse(profile_documents.exists())
+
+        # заполняем данные
         response = self.client.post(account_frontpage_url, profile_form_data,
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
         # проверяем изменение данных
-        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
         self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertFalse(changed_profile.mobile_number)
+        self.assertFalse(changed_profile.phone_number)
+        self.assertFalse(changed_profile.snils)
         self.assertEqual(changed_profile.town, 'New York')
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
@@ -370,7 +387,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
         self.assertEqual(profile_document.issued_by, 'some_organization')
-        # проверка логов
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
         self.assertTrue(logs.exists())
@@ -389,12 +406,23 @@ class CoreViewsTest(TestCase):
         self.assertIn('30.03.2012', log_message)
         self.assertIn('some_organization', log_message)
         last_log.delete()
-        # попытка сохранить документ без названия
+
+        # пытаемся сохранить документ типа "иное" без названия
         profile_form_data.update({'doc_type': 0})
         response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
+        # TODO: проверить ошибки формы
         # проверяем, что документ не сохранился
-        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        changed_profile = Profile.objects.get(id=profile.id)
+        self.assertEqual(changed_profile.first_name, 'Ann')
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertFalse(changed_profile.mobile_number)
+        self.assertFalse(changed_profile.phone_number)
+        self.assertFalse(changed_profile.snils)
+        self.assertEqual(changed_profile.town, 'New York')
+        self.assertEqual(changed_profile.street, '1st avenue')
+        self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
         self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '123456')
@@ -402,6 +430,11 @@ class CoreViewsTest(TestCase):
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
         self.assertEqual(profile_document.issued_by, 'some_organization')
+        # проверяем отсутствие логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
         # теперь добавляем название документа, + убираем необязательные поля
         profile_form_data.update({'doc_name': 'test_document',
                                   'series': '',
@@ -411,7 +444,16 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
         # проверяем изменение данных
-        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        changed_profile = Profile.objects.get(id=profile.id)
+        self.assertEqual(changed_profile.first_name, 'Ann')
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertFalse(changed_profile.mobile_number)
+        self.assertFalse(changed_profile.phone_number)
+        self.assertFalse(changed_profile.snils)
+        self.assertEqual(changed_profile.town, 'New York')
+        self.assertEqual(changed_profile.street, '1st avenue')
+        self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
         self.assertEqual(profile_document.doc_type, 0)
         self.assertEqual(profile_document.series, '')
@@ -419,7 +461,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
         self.assertEqual(profile_document.issued_by, '')
-        # проверка логов
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
         self.assertTrue(logs.exists())
@@ -439,16 +481,32 @@ class CoreViewsTest(TestCase):
         self.assertIn('some_organization', log_message)
         self.assertIn('test_document', log_message)
         last_log.delete()
-        # меняем только имя
-        profile_form_data.update({'first_name': 'Mary'})
+
+        # меняем имя и добавляем СНИЛС
+        profile_form_data.update({'first_name': 'Mary',
+                                  'snils': '123-123-123 44'})
         response = self.client.post(account_frontpage_url, profile_form_data,
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
         # проверяем изменение данных
-        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
-        # проверка логов
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertFalse(changed_profile.mobile_number)
+        self.assertFalse(changed_profile.phone_number)
+        self.assertEqual(changed_profile.snils, '123-123-123 44')
+        self.assertEqual(changed_profile.town, 'New York')
+        self.assertEqual(changed_profile.street, '1st avenue')
+        self.assertEqual(changed_profile.house, '100')
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.series, '')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
         self.assertTrue(logs.exists())
@@ -458,6 +516,7 @@ class CoreViewsTest(TestCase):
         log_message = account_logs[0].message
         self.assertIn('Ann', log_message)
         self.assertIn('Mary', log_message)
+        self.assertIn('123-123-123 44', log_message)
         self.assertNotIn('Jordison', log_message)
         self.assertNotIn('New York', log_message)
         self.assertNotIn('1st avenue', log_message)
@@ -467,22 +526,66 @@ class CoreViewsTest(TestCase):
         self.assertNotIn('654321', log_message)
         self.assertNotIn('30.03.2012', log_message)
         last_log.delete()
-        # ----- изменение персональных данных оператором -----
+
+        # пытаемся задать некорректный СНИЛС и заодно поменять имя
+        profile_form_data.update({'first_name': 'Kate',
+                                  'snils': '444-333222 11'})
+        response = self.client.post(account_frontpage_url , profile_form_data)
+        self.assertEqual(response.status_code, 200)
+        # TODO: проверить ошибки формы
+        # проверяем, что ни СНИЛС, ни имя не сохранились
+        changed_profile = Profile.objects.get(id=profile.id)
+        self.assertEqual(changed_profile.first_name, 'Mary')
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertFalse(changed_profile.mobile_number)
+        self.assertFalse(changed_profile.phone_number)
+        self.assertEqual(changed_profile.snils, '123-123-123 44')
+        self.assertEqual(changed_profile.town, 'New York')
+        self.assertEqual(changed_profile.street, '1st avenue')
+        self.assertEqual(changed_profile.house, '100')
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.series, '')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        # проверяем отсутствие логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
+        # ----- тестируем изменение персональных данных оператором -----
         self.assertTrue(self.client.login(username=self.operator.username,
                         password='password'))
-        # меняем только адрес
-        profile_form_data.update({'town': 'Chicago', 'street': 'any_street',
-                                  'house': 222})
+
+        # меняем адрес, добавляем телефон, возвращаем имя и корректный СНИЛС
+        profile_form_data.update({'first_name': 'Mary',
+                                  'snils': '123-123-123 44',
+                                  'town': 'Chicago', 'street': 'any_street',
+                                  'house': 222, 'mobile_number': '777-77-77'})
         response = self.client.post(operator_profile_info_url,
                                     profile_form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, operator_profile_info_url)
         # проверяем изменение данных
-        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        changed_profile = Profile.objects.get(id=profile.id)
+        self.assertEqual(changed_profile.first_name, 'Mary')
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertEqual(changed_profile.mobile_number, '777-77-77')
+        self.assertFalse(changed_profile.phone_number)
+        self.assertEqual(changed_profile.snils, '123-123-123 44')
         self.assertEqual(changed_profile.town, 'Chicago')
         self.assertEqual(changed_profile.street, 'any_street')
         self.assertEqual(changed_profile.house, '222')
-        # проверка логов
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.series, '')
+        self.assertEqual(profile_document.number, '654321')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2012, 3, 30))
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA_BY_OPERATOR).order_by('-datetime')
         self.assertTrue(logs.exists())
@@ -498,23 +601,40 @@ class CoreViewsTest(TestCase):
         self.assertIn('Chicago', log_message)
         self.assertIn('any_street', log_message)
         self.assertIn('222', log_message)
+        self.assertIn('777-77-77', log_message)
         self.assertNotIn('test_document', log_message)
         self.assertNotIn('654321', log_message)
         self.assertNotIn('30.03.2012', log_message)
-        # попытка сохранить паспортные данные без обязательных полей
+        last_log.delete()
+
+        # пытаемся сохранить паспортные данные без обязательных полей
         profile_form_data.update({'doc_type': 1})
         response = self.client.post(operator_profile_info_url,
                                     profile_form_data)
         self.assertEqual(response.status_code, 200)
+        # TODO: проверить ошибки формы
         # проверяем, что документ не сохранился
-        changed_profile = Profile.objects.get(id=self.requester.profile.id)
+        changed_profile = Profile.objects.get(id=profile.id)
+        self.assertEqual(changed_profile.first_name, 'Mary')
+        self.assertEqual(changed_profile.last_name, 'Jordison')
+        self.assertFalse(changed_profile.middle_name)
+        self.assertEqual(changed_profile.mobile_number, '777-77-77')
+        self.assertFalse(changed_profile.phone_number)
+        self.assertEqual(changed_profile.snils, '123-123-123 44')
+        self.assertEqual(changed_profile.town, 'Chicago')
+        self.assertEqual(changed_profile.street, 'any_street')
+        self.assertEqual(changed_profile.house, '222')
         profile_document = changed_profile.personaldocument_set.all()[0]
         self.assertEqual(profile_document.doc_type, 0)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
-        self.assertEqual(profile_document.issued_by, '')
+        # проверяем отсутствие логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA_BY_OPERATOR).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
         settings.TEST_MODE = False
 
     def test_requestion_personal_data_actions(self):
@@ -527,7 +647,7 @@ class CoreViewsTest(TestCase):
         management.call_command('generate_sadiks', 1)
         kgs = Sadik.objects.all()
         requestion_form_data = {
-            'name': 'Ann',
+            'name': '',
             'child_last_name': 'Jordison',
             'sex': 'Ж',
             'birth_date': '07.06.2014',
@@ -540,8 +660,28 @@ class CoreViewsTest(TestCase):
             'location': 'POINT (60.115814208984375 55.051432600719835)',
             'pref_sadiks': [str(kgs[0].id)],
         }
-        # добавление заявки пользователем
+        # ----- тестируем добавление заявки пользователем -----
         self.client.login(username=self.requester.username, password='123456q')
+
+        # оставляем пустым обязательное поле "имя ребёнка"
+        response = self.client.get(requestion_add_by_user_url)
+        token = response.context['form']['token'].value()
+        requestion_form_data.update({'token': token, })
+        create_response = self.client.post(
+            requestion_add_by_user_url, requestion_form_data)
+        self.assertEqual(create_response.status_code, 200)
+        # TODO: проверить ошибки формы
+        # проверяем, что заявка не добавилась
+        requestions = Requestion.objects.filter(
+            profile_id=self.requester.profile.id)
+        self.assertFalse(requestions.exists())
+        # проверяем отсутствие логов
+        logs = Logger.objects.filter(
+            action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
+        # добавляем недостающее имя ребёнка
+        requestion_form_data.update({'name': 'Ann'})
         response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
@@ -550,10 +690,10 @@ class CoreViewsTest(TestCase):
         self.assertIn('requestion', create_response.context)
         created_requestion = create_response.context['requestion']
         requestion_id = created_requestion.id
+        requestion_info_url = reverse('account_requestion_info',
+                                      args=(created_requestion.id,))
         self.assertEqual(create_response.status_code, 200)
-        self.assertRedirects(
-            create_response,
-            reverse('account_requestion_info', args=(created_requestion.id,)))
+        self.assertRedirects(create_response, requestion_info_url)
         # проверяем сохранение заявки
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Ann')
@@ -565,7 +705,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.kinship, u'мать')
         evidience_document = requestion.evidience_documents()[0]
         self.assertEqual(evidience_document.document_number, u'II-ИВ 016809')
-        # проверка логов
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
         self.assertTrue(logs.exists())
@@ -579,7 +719,8 @@ class CoreViewsTest(TestCase):
         self.assertIn('Chelyabinsk', log_message)
         self.assertIn(u'мать', log_message)
         last_log.delete()
-        # изменение добавленной заявки. меняем только имя ребёнка
+
+        # изменение добавленной заявки. меняем имя ребёнка, указываем СНИЛС
         change_requestion_form_data = {
             'name': 'Mary',
             'child_last_name': 'Jordison',
@@ -588,17 +729,15 @@ class CoreViewsTest(TestCase):
             'admission_date': '01.01.2014',
             'birthplace': 'Chelyabinsk',
             'kinship_type': 1,
+            'child_snils': '111-222-333 99',
             'areas': '1',
             'location': 'POINT (60.115814208984375 55.051432600719835)',
             'pref_sadiks': [str(kgs[0].id)],
         }
         create_response = self.client.post(
-            reverse('account_requestion_info', args=(created_requestion.id,)),
-            change_requestion_form_data, follow=True)
+            requestion_info_url, change_requestion_form_data, follow=True)
         self.assertEqual(create_response.status_code, 200)
-        self.assertRedirects(
-            create_response,
-            reverse('account_requestion_info', args=(created_requestion.id,)))
+        self.assertRedirects(create_response, requestion_info_url)
         # проверяем изменение данных заявки
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')
@@ -607,7 +746,8 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, u'мать')
-        # проверка логов
+        self.assertEqual(requestion.child_snils, '111-222-333 99')
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=ACCOUNT_CHANGE_REQUESTION).order_by('-datetime')
         self.assertTrue(logs.exists())
@@ -616,46 +756,85 @@ class CoreViewsTest(TestCase):
         self.assertEqual(len(account_logs), 1)
         log_message = account_logs[0].message
         self.assertIn('Mary', log_message)
+        self.assertIn('111-222-333 99', log_message)
         self.assertNotIn('Jordison', log_message)
         self.assertNotIn(u'Женский', log_message)
         self.assertNotIn('Chelyabinsk', log_message)
         self.assertNotIn(u'мать', log_message)
         last_log.delete()
-        # попытка добавить заявку без указания степени родства заявителя
-        response = self.client.get(requestion_add_by_user_url)
-        token = response.context['form']['token'].value()
-        requestion_form_data.update({'token': token, 'kinship_type': 0})
-        response = self.client.post(requestion_add_by_user_url,
-                                    requestion_form_data)
+
+        # пытаемся поменять СНИЛС на некорректный
+        change_requestion_form_data.update({'child_snils': '111222333'})
+        response = self.client.post(requestion_info_url,
+                                    change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
-        # теперь с указанием иной степени родства
-        response = self.client.get(requestion_add_by_user_url)
-        token = response.context['form']['token'].value()
-        requestion_form_data.update({'token': token, 'kinship': 'grandfather'})
-        response = self.client.post(requestion_add_by_user_url,
-                                    requestion_form_data, follow=True)
-        self.assertIn('requestion', response.context)
-        created_requestion = response.context['requestion']
-        requestion_id = created_requestion.id
-        self.assertEqual(response.status_code, 200)
-        self.assertRedirects(
-            response,
-            reverse('account_requestion_info', args=(requestion_id,)))
-        # проверка данных
+        # TODO: проверить ошибки форм
+        # проверяем, что заявка не изменилась
         requestion = Requestion.objects.get(id=requestion_id)
-        self.assertEqual(requestion.kinship, 'grandfather')
-        # проверка логов
+        self.assertEqual(requestion.name, 'Mary')
+        self.assertEqual(requestion.child_last_name, 'Jordison')
+        self.assertEqual(requestion.sex, u'Ж')
+        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.birthplace, 'Chelyabinsk')
+        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.child_snils, '111-222-333 99')
+        # проверяем отсутствие логов
         logs = Logger.objects.filter(
-            action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
+            action_flag=ACCOUNT_CHANGE_REQUESTION).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
+        # пытаемся занулить степень родства заявителя
+        change_requestion_form_data.update({'child_snils': '111-222-333 99',
+                                            'kinship_type': 0})
+        response = self.client.post(requestion_info_url,
+                                    change_requestion_form_data)
+        self.assertEqual(response.status_code, 200)
+        # TODO: проверить ошибки форм
+        # проверяем, что заявка не изменилась
+        requestion = Requestion.objects.get(id=requestion_id)
+        self.assertEqual(requestion.name, 'Mary')
+        self.assertEqual(requestion.child_last_name, 'Jordison')
+        self.assertEqual(requestion.sex, u'Ж')
+        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.birthplace, 'Chelyabinsk')
+        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.child_snils, '111-222-333 99')
+        # проверяем отсутствие логов
+        logs = Logger.objects.filter(
+            action_flag=ACCOUNT_CHANGE_REQUESTION).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
+        # наконец, задаём собственную степень родства
+        change_requestion_form_data.update({'kinship': 'grandfather'})
+        response = self.client.post(
+            requestion_info_url, change_requestion_form_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, requestion_info_url)
+        # проверяем изменение данных заявки
+        requestion = Requestion.objects.get(id=requestion_id)
+        self.assertEqual(requestion.name, 'Mary')
+        self.assertEqual(requestion.child_last_name, 'Jordison')
+        self.assertEqual(requestion.sex, u'Ж')
+        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.birthplace, 'Chelyabinsk')
+        self.assertEqual(requestion.kinship, 'grandfather')
+        self.assertEqual(requestion.child_snils, '111-222-333 99')
+        # проверяем логи
+        logs = Logger.objects.filter(
+            action_flag=ACCOUNT_CHANGE_REQUESTION).order_by('-datetime')
         self.assertTrue(logs.exists())
         last_log = logs[0]
         account_logs = last_log.loggermessage_set.filter(level=ACCOUNT_LOG)
         self.assertEqual(len(account_logs), 1)
         log_message = account_logs[0].message
-        self.assertNotIn(u'мать', log_message)
+        self.assertNotIn('111-222-333 99', log_message)
+        self.assertNotIn('Jordison', log_message)
+        self.assertNotIn(u'Женский', log_message)
+        self.assertNotIn('Chelyabinsk', log_message)
         self.assertIn('grandfather', log_message)
         last_log.delete()
-        # добавление заявки оператором
+
+        # ----- тестируем добавление заявки оператором -----
         self.client.login(username=self.operator.username, password='password')
         profile = self.requester.profile
         response = self.client.get(
@@ -691,10 +870,10 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, 'grandfather')
+        self.assertEqual(requestion.kinship, u'мать')
         evidience_document = requestion.evidience_documents()[0]
         self.assertEqual(evidience_document.document_number, u'II-ИВ 123321')
-        # проверка логов
+        # проверяем логи
         logs = Logger.objects.filter(
             action_flag=REQUESTION_REGISTRATION_BY_OPERATOR).order_by(
                 '-datetime')
@@ -707,6 +886,7 @@ class CoreViewsTest(TestCase):
         self.assertIn('Jordison', log_message)
         self.assertIn(u'Женский', log_message)
         self.assertIn('Chelyabinsk', log_message)
-        self.assertIn('grandfather', log_message)
+        self.assertIn(u'мать', log_message)
         last_log.delete()
+
         settings.TEST_MODE = False
