@@ -823,6 +823,14 @@ class Profile(models.Model):
     def is_password_set(self):
         return is_password_usable(self.user.password)
 
+    def set_email_verified(self):
+        self.email_verified = True
+        self.save()
+
+    def set_email_unverified(self):
+        self.email_verified = False
+        self.save()
+
     def social_auth_clean_data(self):
         self.phone_number = None
         self.first_name = None
