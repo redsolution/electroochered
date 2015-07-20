@@ -810,6 +810,9 @@ class Profile(models.Model):
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
+    pd_processing_permit = models.DateTimeField(
+        u'Дата согласия на обработку персональных данных',
+        blank=True, null=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
@@ -885,7 +888,7 @@ class PersonalDocument(models.Model):
                               blank=True, null=True)
     number = models.CharField(u'Номер документа', max_length=50, null=True)
     issued_date = models.DateField(u'Дата выдачи документа', null=True)
-    issued_by = models.CharField(u'Кем выдан', max_length=100,
+    issued_by = models.CharField(u'Кем выдан', max_length=250,
                                  blank=True, null=True)
     profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
 

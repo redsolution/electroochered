@@ -10,20 +10,31 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'PersonalDocument.doc_name'
         db.add_column('core_personaldocument', 'doc_name',
-                      self.gf('django.db.models.fields.CharField')(max_length=30, null=True),
+                      self.gf('django.db.models.fields.CharField')(max_length=30, null=True, blank=True),
                       keep_default=False)
 
+
+        # Changing field 'PersonalDocument.issued_by'
+        db.alter_column('core_personaldocument', 'issued_by', self.gf('django.db.models.fields.CharField')(max_length=250, null=True))
         # Deleting field 'Profile.first_name'
         db.delete_column('core_profile', 'first_name')
 
         # Deleting field 'Profile.last_name'
         db.delete_column('core_profile', 'last_name')
 
+        # Adding field 'Profile.pd_processing_permit'
+        db.add_column('core_profile', 'pd_processing_permit',
+                      self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True),
+                      keep_default=False)
+
 
     def backwards(self, orm):
         # Deleting field 'PersonalDocument.doc_name'
         db.delete_column('core_personaldocument', 'doc_name')
 
+
+        # Changing field 'PersonalDocument.issued_by'
+        db.alter_column('core_personaldocument', 'issued_by', self.gf('django.db.models.fields.CharField')(max_length=100, null=True))
         # Adding field 'Profile.first_name'
         db.add_column('core_profile', 'first_name',
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True),
@@ -33,6 +44,9 @@ class Migration(SchemaMigration):
         db.add_column('core_profile', 'last_name',
                       self.gf('django.db.models.fields.CharField')(max_length=255, null=True),
                       keep_default=False)
+
+        # Deleting field 'Profile.pd_processing_permit'
+        db.delete_column('core_profile', 'pd_processing_permit')
 
 
     models = {
@@ -161,14 +175,14 @@ class Migration(SchemaMigration):
         },
         'core.personaldocument': {
             'Meta': {'unique_together': "(('doc_type', 'series', 'number'),)", 'object_name': 'PersonalDocument'},
-            'doc_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True'}),
+            'doc_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
             'doc_type': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'issued_by': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
+            'issued_by': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
             'issued_date': ('django.db.models.fields.DateField', [], {'null': 'True'}),
             'number': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'profile': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Profile']"}),
-            'series': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True'})
+            'series': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'})
         },
         'core.preference': {
             'Meta': {'object_name': 'Preference'},
@@ -184,12 +198,13 @@ class Migration(SchemaMigration):
             'email_verified': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'house': ('django.db.models.fields.CharField', [], {'max_length': '10', 'null': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'middle_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
+            'middle_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'mobile_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
+            'pd_processing_permit': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
+            'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
             'sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Sadik']", 'null': 'True', 'symmetrical': 'False'}),
             'skype': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'snils': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True'}),
+            'snils': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'social_auth_public': ('django.db.models.fields.NullBooleanField', [], {'null': 'True', 'blank': 'True'}),
             'street': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'town': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
@@ -205,8 +220,8 @@ class Migration(SchemaMigration):
             'birthplace': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
             'cast': ('django.db.models.fields.IntegerField', [], {'default': '3'}),
             'child_last_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
-            'child_middle_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
-            'child_snils': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True'}),
+            'child_middle_name': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
+            'child_snils': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
             'closest_kg': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'closest_kg'", 'null': 'True', 'to': "orm['core.Sadik']"}),
             'decision_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
             'distribute_in_any_sadik': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
@@ -215,7 +230,7 @@ class Migration(SchemaMigration):
             'distribution_type': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'district': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.District']", 'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'kinship': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True'}),
+            'kinship': ('django.db.models.fields.CharField', [], {'max_length': '50', 'null': 'True', 'blank': 'True'}),
             'location': ('django.contrib.gis.db.models.fields.PointField', [], {'null': 'True', 'blank': 'True'}),
             'location_properties': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
