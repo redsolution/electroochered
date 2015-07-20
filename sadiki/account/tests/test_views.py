@@ -369,6 +369,11 @@ class CoreViewsTest(TestCase):
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
+        # проверяем отсутствие ошибок форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertFalse(doc_form.errors)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
@@ -411,7 +416,12 @@ class CoreViewsTest(TestCase):
         profile_form_data.update({'doc_type': 0})
         response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
-        # TODO: проверить ошибки формы
+        # проверяем ошибки форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertIn('doc_name', doc_form.errors)
+        self.assertIn(u'Обязательное поле', doc_form.errors['doc_name'])
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
@@ -443,6 +453,11 @@ class CoreViewsTest(TestCase):
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
+        # проверяем отсутствие ошибок форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertFalse(doc_form.errors)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
@@ -489,6 +504,11 @@ class CoreViewsTest(TestCase):
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
+        # проверяем отсутствие ошибок форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertFalse(doc_form.errors)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -532,7 +552,13 @@ class CoreViewsTest(TestCase):
                                   'snils': '444-333222 11'})
         response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
-        # TODO: проверить ошибки формы
+        # проверяем ошибки форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(doc_form.errors)
+        self.assertNotIn('first_name', pdata_form.errors)
+        self.assertIn('snils', pdata_form.errors)
+        self.assertIn(u'неверный формат', pdata_form.errors['snils'])
         # проверяем, что ни СНИЛС, ни имя не сохранились
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -568,6 +594,11 @@ class CoreViewsTest(TestCase):
                                     profile_form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, operator_profile_info_url)
+        # проверяем отсутствие ошибок форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertFalse(doc_form.errors)
         # проверяем изменение данных
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -612,7 +643,14 @@ class CoreViewsTest(TestCase):
         response = self.client.post(operator_profile_info_url,
                                     profile_form_data)
         self.assertEqual(response.status_code, 200)
-        # TODO: проверить ошибки формы
+        # проверяем ошибки форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertIn('series', doc_form.errors)
+        self.assertIn(u'Обязательное поле', doc_form.errors['series'])
+        self.assertIn('issued_by', doc_form.errors)
+        self.assertIn(u'Обязательное поле', doc_form.errors['issued_by'])
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -670,7 +708,10 @@ class CoreViewsTest(TestCase):
         create_response = self.client.post(
             requestion_add_by_user_url, requestion_form_data)
         self.assertEqual(create_response.status_code, 200)
-        # TODO: проверить ошибки формы
+        # проверяем ошибки формы
+        requestion_form = create_response.context['form']
+        self.assertIn('name', requestion_form.errors)
+        self.assertIn(u'Обязательное поле', requestion_form.errors['name'])
         # проверяем, что заявка не добавилась
         requestions = Requestion.objects.filter(
             profile_id=self.requester.profile.id)
@@ -734,10 +775,13 @@ class CoreViewsTest(TestCase):
             'location': 'POINT (60.115814208984375 55.051432600719835)',
             'pref_sadiks': [str(kgs[0].id)],
         }
-        create_response = self.client.post(
+        response = self.client.post(
             requestion_info_url, change_requestion_form_data, follow=True)
-        self.assertEqual(create_response.status_code, 200)
-        self.assertRedirects(create_response, requestion_info_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, requestion_info_url)
+        # проверяем отсутствие ошибок формы
+        requestion_form = response.context['change_requestion_form']
+        self.assertFalse(requestion_form.errors)
         # проверяем изменение данных заявки
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')
@@ -768,7 +812,10 @@ class CoreViewsTest(TestCase):
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
-        # TODO: проверить ошибки форм
+        # проверяем ошибки формы
+        requestion_form = response.context['change_requestion_form']
+        self.assertIn('child_snils', requestion_form.errors)
+        self.assertIn(u'неверный формат', requestion_form.errors['child_snils'])
         # проверяем, что заявка не изменилась
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')
@@ -789,7 +836,11 @@ class CoreViewsTest(TestCase):
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
-        # TODO: проверить ошибки форм
+        # проверяем ошибки формы
+        requestion_form = response.context['change_requestion_form']
+        self.assertNotIn('child_snils', requestion_form.errors)
+        self.assertIn('kinship', requestion_form.errors)
+        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
         # проверяем, что заявка не изменилась
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')
@@ -810,6 +861,9 @@ class CoreViewsTest(TestCase):
             requestion_info_url, change_requestion_form_data, follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, requestion_info_url)
+        # проверяем отсутствие ошибок формы
+        requestion_form = response.context['change_requestion_form']
+        self.assertFalse(requestion_form.errors)
         # проверяем изменение данных заявки
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')
@@ -852,15 +906,15 @@ class CoreViewsTest(TestCase):
             'core-evidiencedocument-content_type-object_id-0-document_number':
             ''
         })
-        response = self.client.post(
+        create_response = self.client.post(
             reverse('operator_requestion_add', args=(profile.id,)),
             requestion_form_data, follow=True)
-        self.assertIn('requestion', response.context)
-        created_requestion = response.context['requestion']
+        self.assertIn('requestion', create_response.context)
+        created_requestion = create_response.context['requestion']
         requestion_id = created_requestion.id
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(create_response.status_code, 200)
         self.assertRedirects(
-            response,
+            create_response,
             reverse('operator_requestion_info', args=(requestion_id,)))
         # проверяем сохранение заявки
         requestion = Requestion.objects.get(id=requestion_id)
