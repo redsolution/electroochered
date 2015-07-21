@@ -26,7 +26,7 @@ from sadiki.core.utils import add_crc, calculate_luhn_digit, \
     get_current_distribution_year, get_qs_attr, get_user_by_email, \
     find_closest_kg
 from sadiki.core.validators import birth_date_validator, \
-    registration_date_validator
+    registration_date_validator, snils_validator
 from sadiki.settings import REQUESTER_USERNAME_PREFIX
 from south.modelsinspector import add_introspection_rules
 import datetime
@@ -764,6 +764,8 @@ class Profile(models.Model):
     area = models.ForeignKey('Area',
         verbose_name=u'Территориальная область к которой относится', null=True)
     first_name = models.CharField(u'Имя', max_length=255, null=True)
+    middle_name = models.CharField(u'Отчество', max_length=255, null=True)
+    last_name = models.CharField(u'Фамилия', max_length=255, null=True)
     email_verified = models.BooleanField(u'E-mail достоверный',
         default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
@@ -775,6 +777,14 @@ class Profile(models.Model):
     skype = models.CharField(u'Skype',
         max_length=255, blank=True, null=True,
         help_text=u"Учетная запись в сервисе Skype")
+    snils = models.CharField(
+        u'СНИЛС', max_length=20, null=True,
+        validators=[snils_validator, ])
+    town = models.CharField(
+        max_length=50, verbose_name=u'Населенный пункт', null=True)
+    street = models.CharField(
+        max_length=50, verbose_name=u'Улица', null=True)
+    house = models.CharField(max_length=10, verbose_name=u'Дом', null=True)
     # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
     social_auth_public = models.NullBooleanField(
@@ -805,6 +815,44 @@ class Profile(models.Model):
 
     def __unicode__(self):
         return self.user.username
+
+
+class PersonalDocument(models.Model):
+    u"""Документ, удостоверяющий личность заявителя"""
+    class Meta:
+        verbose_name = u'Документ заявителя'
+        verbose_name_plural = u'Документы заявителей'
+        unique_together = (('doc_type', 'series', 'number'),)
+
+    DOC_TYPE_PASSPORT = 1
+    DOC_TYPE_DRIVERLICENSE = 2
+
+    DOC_TYPE_CHOICES = (
+        (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
+        (DOC_TYPE_DRIVERLICENSE, u'Водительское удостоверение'),
+    )
+
+    doc_type = models.IntegerField(u'Тип документа',
+        choices=DOC_TYPE_CHOICES, default=DOC_TYPE_PASSPORT)
+    series = models.CharField(u'Серия документа',
+        max_length=20, null=True)
+    number = models.CharField(u'Номер документа',
+        max_length=50, null=True)
+    issued_date = models.DateField(u'Дата выдачи документа', null=True)
+    issued_by = models.CharField(u'Организация, выдавшая документ',
+        max_length=100, null=True)
+    profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
+
+    def __unicode__(self):
+        format_string = u'Тип документа= {}, {} {}, выдан {} {};'
+        return format_string.format(
+            self.get_doc_type_display(),
+            self.series,
+            self.number,
+            self.issued_by,
+            self.issued_date.isoformat()
+        )
+
 
 NOT_CONFIRMED_STATUSES = (
     STATUS_WAIT_REVIEW,
@@ -1015,13 +1063,22 @@ class Requestion(models.Model):
         u'Дата рождения ребёнка', validators=[birth_date_validator])
     # сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(
-        u'имя ребёнка', max_length=255, null=True,
-        validators=[validate_no_spaces, ],
-        help_text=u"В поле достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не нужно!")
+        u'Имя ребёнка', max_length=255, null=True,
+        validators=[validate_no_spaces, ],)
+    child_middle_name = models.CharField(
+        u'Отчество ребёнка', max_length=50, null=True)
+    child_last_name = models.CharField(
+        u'Фамилия ребёнка', max_length=50, null=True)
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
+    kinship = models.CharField(
+        u'Степень родства', max_length=50, null=True)
+    birthplace = models.CharField(
+        u'Место рождения ребёнка', max_length=50, null=True)
+    child_snils = models.CharField(
+        u'СНИЛС ребёнка', max_length=20, null=True,
+        validators=[snils_validator, ])
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)

@@ -193,7 +193,12 @@ CHANGE_BENEFITS_BY_OPERATOR = 82
 CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
+# TODO: добавить поддержку логов из модуля personal_data (200-203)
 EMAIL_VERIFICATION = 204
+# 205 реализуется в модуле pgu
+# перемещение персональных данных из модуля personal_data в ядро
+MIGRATE_USER_PERSONAL_DATA = 220
+MIGRATE_CHILD_PERSONAL_DATA = 221
 
 # переходы, связанные с группами кратковременного пребывания
 REQUESTER_SHORT_STAY = 300  # отметка о посещении групп КП
@@ -201,6 +206,12 @@ SHORT_STAY_DISTRIBUTION = 301  # из временного пребывания 
 SHORT_STAY_REQUESTER = 302  # возврат в очередники из группы КП
 DISTRIBUTION_SHORT_STAY = 303  # возврат в группу КП после комплектования
 SHORT_STAY_DECISION_BY_RESOLUTION = 304  # выделение места по пезолюции
+
+# поддержка авторизации через ЕСИА
+CREATE_PROFILE_BY_ESIA = 500
+BIND_ESIA_ACCOUNT = 501
+UNBIND_ESIA_ACCOUNT = 502
+CHANGE_PERSONAL_DATA_BY_ESIA = 503
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -421,7 +432,10 @@ workflow.add(STATUS_DISTRIBUTED_FROM_ES, STATUS_KG_LEAVE,
 workflow.add(STATUS_DISTRIBUTED, STATUS_KG_LEAVE, DISTRIBUTED_KG_LEAVE,
              u"Выпуск из ДОУ")
 
-DISABLE_EMAIL_ACTIONS = [DECISION, PERMANENT_DECISION]
+DISABLE_EMAIL_ACTIONS = [
+    DECISION, PERMANENT_DECISION,
+    MIGRATE_USER_PERSONAL_DATA, MIGRATE_CHILD_PERSONAL_DATA
+]
 
 STATUS_CHANGE_TRANSITIONS = [transition.index for transition in workflow.transitions]
 
@@ -470,7 +484,17 @@ ACTION_CHOICES.extend(
      #    Путевки
      (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
      # персональные данные
-     (EMAIL_VERIFICATION, u'Подтверждение почтового ящика')
+     (EMAIL_VERIFICATION, u'Подтверждение почтового ящика'),
+     (MIGRATE_USER_PERSONAL_DATA,
+        u'Перенос перс. данных пользователя в связи с обновлением до v1.9'),
+     (MIGRATE_CHILD_PERSONAL_DATA,
+        u'Перенос перс. данных ребёнка в связи с обновлением до v1.9'),
+     (CREATE_PROFILE_BY_ESIA,
+        u'Создание нового профиля при регистрации через ЕСИА'),
+     (BIND_ESIA_ACCOUNT, u'Связывание профиля с аккаунтом ЕСИА'),
+     (UNBIND_ESIA_ACCOUNT, u'Разрыв связи профиля с аккаунтом ЕСИА'),
+     (CHANGE_PERSONAL_DATA_BY_ESIA,
+        u'Изменение перс. данных пользователя при авторизации через ЕСИА'),
     ]
 )
 
@@ -684,6 +708,37 @@ distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
 
+migrate_personal_data_template = u"""
+    {% for field_name, field_value in new_data.items %}
+        {{ field_name }}: {{ field_value }};
+    {% endfor %}
+    """
+
+bind_esia_account_template = u"""
+    Профиль: {{ profile }}.
+    {% if binding %}Привязана{% else %}Отвязана{% endif %}
+    учётная запись ЕСИА №{{ esia_id }}.
+    """
+
+change_personal_data_by_esia_template = u"""
+        {% if old_data %}
+            Старые значения:
+            {% for key, value in old_data.items %}
+                {{ key }}= {{ value }};
+            {% endfor %}
+        {% else %}
+            Старые значения отсутствуют.
+        {% endif %}
+        {% if new_data %}
+            Новые значения:
+            {% for key, value in new_data.items %}
+                {{ key }}= {{ value }};
+            {% endfor %}
+        {% else %}
+            Новые значения отсутствуют.
+        {% endif %}
+    """
+
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
         ACCOUNT_LOG: Template(requestion_account_template + change_benefits_account_template),
@@ -819,6 +874,21 @@ ACTION_TEMPLATES.update({
     },
     DISTRIBUTED_KG_LEAVE: {
         ANONYM_LOG: Template(distributed_kg_leave_template)
+    },
+    MIGRATE_USER_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(migrate_personal_data_template)
+    },
+    MIGRATE_CHILD_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(migrate_personal_data_template)
+    },
+    BIND_ESIA_ACCOUNT: {
+        OPERATOR_LOG: Template(bind_esia_account_template)
+    },
+    UNBIND_ESIA_ACCOUNT: {
+        OPERATOR_LOG: Template(bind_esia_account_template)
+    },
+    CHANGE_PERSONAL_DATA_BY_ESIA: {
+        ACCOUNT_LOG: Template(change_personal_data_by_esia_template)
     },
 })
 
