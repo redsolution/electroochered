@@ -193,7 +193,10 @@ CHANGE_BENEFITS_BY_OPERATOR = 82
 CHANGE_DOCUMENTS = 83
 
 # изменение персональных данных
-# TODO: добавить поддержку логов из модуля personal_data (200-203)
+CHANGE_PERSONAL_DATA = 200
+CHANGE_PERSONAL_DATA_BY_OPERATOR = 201
+CHANGE_PDATA_REQUESTION = 202
+CHANGE_PDATA_REQUESTION_BY_OPERATOR = 203
 EMAIL_VERIFICATION = 204
 # 205 реализуется в модуле pgu
 # перемещение персональных данных из модуля personal_data в ядро
@@ -212,6 +215,14 @@ CREATE_PROFILE_BY_ESIA = 500
 BIND_ESIA_ACCOUNT = 501
 UNBIND_ESIA_ACCOUNT = 502
 CHANGE_PERSONAL_DATA_BY_ESIA = 503
+
+# эти логи будут отображаться в блоке 'Персональные данные'
+PERSONAL_DATA_ACTION_FLAGS = (
+    CHANGE_PERSONAL_DATA,
+    CHANGE_PERSONAL_DATA_BY_OPERATOR,
+    MIGRATE_USER_PERSONAL_DATA,
+    CHANGE_PERSONAL_DATA_BY_ESIA,
+)
 
 # внетренние системные переходы, выполняются по упрощенной схеме
 # недоступны пользователям, инициируются либо извне (по api), либо внутренними
@@ -434,7 +445,7 @@ workflow.add(STATUS_DISTRIBUTED, STATUS_KG_LEAVE, DISTRIBUTED_KG_LEAVE,
 
 DISABLE_EMAIL_ACTIONS = [
     DECISION, PERMANENT_DECISION,
-    MIGRATE_USER_PERSONAL_DATA, MIGRATE_CHILD_PERSONAL_DATA
+    MIGRATE_USER_PERSONAL_DATA, MIGRATE_CHILD_PERSONAL_DATA,
 ]
 
 STATUS_CHANGE_TRANSITIONS = [transition.index for transition in workflow.transitions]
@@ -484,11 +495,15 @@ ACTION_CHOICES.extend(
      #    Путевки
      (VACANCY_DISTRIBUTED, u'Завершено выделение места'),
      # персональные данные
+     (CHANGE_PERSONAL_DATA, u'Изменение персональных данных пользователем'),
+     (CHANGE_PERSONAL_DATA_BY_OPERATOR, u'Изменение персональных данных оператором'),
+     (CHANGE_PDATA_REQUESTION, u'Изменение персональных данных заявки пользователем'),
+     (CHANGE_PDATA_REQUESTION_BY_OPERATOR, u'Изменение персональных данных заявки оператором'),
      (EMAIL_VERIFICATION, u'Подтверждение почтового ящика'),
      (MIGRATE_USER_PERSONAL_DATA,
-        u'Перенос перс. данных пользователя в связи с обновлением до v1.9'),
+        u'Перенос персональных данных пользователя в связи с обновлением до v1.9'),
      (MIGRATE_CHILD_PERSONAL_DATA,
-        u'Перенос перс. данных ребёнка в связи с обновлением до v1.9'),
+        u'Перенос персональных данных ребёнка в связи с обновлением до v1.9'),
      (CREATE_PROFILE_BY_ESIA,
         u'Создание нового профиля при регистрации через ЕСИА'),
      (BIND_ESIA_ACCOUNT, u'Связывание профиля с аккаунтом ЕСИА'),
@@ -544,11 +559,16 @@ ACTION_TEMPLATES.update({
 
 requestion_account_template = u"""
     {% if requestion.sex %}Пол: {{ requestion.get_sex_display }};{% endif %}
+    {% if requestion.child_last_name %}Фамилия: {{ requestion.child_last_name }};{% endif %}
     {% if requestion.name %}Имя: {{ requestion.name }};{% endif %}
+    {% if requestion.child_middle_name %}Отчество: {{ requestion.child_middle_name }};{% endif %}
+    {% if requestion.birthplace %}Место рождения: {{ requestion.birthplace }};{% endif %}
+    {% if requestion.kinship %}Заявитель: {{ requestion.kinship }};{% endif %}
     {% if requestion.comment %}Комментарий: {{ requestion.comment }};{% endif %}
     {% if requestion.template %}Тип документа: {{ requestion.template }};{% endif %}
     {% if requestion.document_number %}Номер документа: {{ requestion.document_number }};{% endif %}
     {% if requestion.location %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+    {% if requestion.child_snils %}СНИЛС: {{ requestion.child_snils }};{% endif %}
     {% if benefit_documents %}
         Документы для льгот:
         {% for document in benefit_documents %}
@@ -611,9 +631,14 @@ change_requestion_anonym_template = u"""
 
 change_requestion_account_template = u"""
         {% if "sex" in changed_data %}Пол: {{ requestion.get_sex_display }};{% endif %}
+        {% if "child_last_name" in changed_data %}Фамилия: {{ requestion.child_last_name }};{% endif %}
         {% if "name" in changed_data %}Имя: {{ requestion.name }};{% endif %}
+        {% if "child_middle_name" in changed_data %}Отчество: {{ requestion.child_middle_name }};{% endif %}
+        {% if "birthplace" in changed_data %}Место рождения: {{ requestion.birthplace }};{% endif %}
+        {% if "kinship" in changed_data %}Заявитель: {{ requestion.kinship }};{% endif %}
         {% if "comment" in changed_data %}Комментарий: {{ requestion.comment }};{% endif %}
         {% if "location" in changed_data %}Местоположение: {{ requestion.location.x }}, {{ requestion.location.y }};{% endif %}
+        {% if "child_snils" in changed_data %}СНИЛС: {{ requestion.child_snils }};{% endif %}
         {% if "benefits" in changed_data %}
             {% if cleaned_data.benefits %}
                 Льготы: {% for benefit in cleaned_data.benefits %}{{ benefit }}; {% endfor %}
@@ -707,6 +732,57 @@ distributed_requester_template = u"""
 distributed_kg_leave_template = u"""
     Ребенок был выпущен из ДОУ оператором {{ operator }}.
     """
+
+change_pdata_field_template = u"""
+    {% if old_value %}
+        {% if new_value %}
+            {% if old_value != new_value %}
+                {{ field_name }}: с {{ old_value }} на {{ new_value }};
+            {% endif %}
+        {% else %}
+            {{ field_name }}: удалено, было {{ old_value }});
+        {% endif %}
+    {% elif new_value %}
+        {{ field_name }}: {{ new_value }};
+    {% endif %}
+    """
+
+change_personal_data_template = u"""
+    {{% with field_name='Фамилия' old_value=old_pdata.last_name new_value=new_pdata.last_name %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Имя' old_value=old_pdata.first_name new_value=new_pdata.first_name %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Отчество' old_value=old_pdata.middle_name new_value=new_pdata.middle_name %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Телефон' old_value=old_pdata.phone_number new_value=new_pdata.phone_number %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Дополнительный телефон' old_value=old_pdata.mobile_number new_value=new_pdata.mobile_number %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='СНИЛС' old_value=old_pdata.snils new_value=new_pdata.snils %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Населённый пункт' old_value=old_pdata.town new_value=new_pdata.town %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Улица' old_value=old_pdata.street new_value=new_pdata.street %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% with field_name='Номер дома' old_value=old_pdata.house new_value=new_pdata.house %}}
+        {change_field_template}
+    {{% endwith %}}
+    {{% if old_pdata.personal_documents %}}
+        {{% if new_pdata.personal_documents.0 != old_pdata.personal_documents.0 %}}
+            Документы: c {{{{ old_pdata.personal_documents.0 }}}} на {{{{ new_pdata.personal_documents.0 }}}}.
+        {{% endif %}}
+    {{% else %}}
+        Документы: {{{{ new_pdata.personal_documents.0 }}}}.
+    {{% endif %}}
+    """.format(change_field_template=change_pdata_field_template)
 
 migrate_personal_data_template = u"""
     {% for field_name, field_value in new_data.items %}
@@ -874,6 +950,12 @@ ACTION_TEMPLATES.update({
     },
     DISTRIBUTED_KG_LEAVE: {
         ANONYM_LOG: Template(distributed_kg_leave_template)
+    },
+    CHANGE_PERSONAL_DATA: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
+    },
+    CHANGE_PERSONAL_DATA_BY_OPERATOR: {
+        ACCOUNT_LOG: Template(change_personal_data_template)
     },
     MIGRATE_USER_PERSONAL_DATA: {
         ACCOUNT_LOG: Template(migrate_personal_data_template)

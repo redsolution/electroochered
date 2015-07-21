@@ -180,6 +180,12 @@
                 content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
                 "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
             });
+
+            $('#id_template').regexpValidate('#id_document_number');
+
+            $('#id_child_snils').snilsValidate();
+
+            $('#id_kinship_type').kinshipFieldHandler();
         }) // конец $(document).ready()
         
         // при выборе района прячем поле с районом, показываем ТО
@@ -232,12 +238,6 @@
             $("#mainform").submit();
         })
     </script>
-
-    <script type="text/javascript">
-        $(document).ready(function(){
-            $('#id_template').regexpValidate('#id_document_number');
-        });
-    </script>
 {% endblock %}
 
 {% block content_title %}
@@ -276,7 +276,13 @@
         <div class="row">
             <div class="span5">
                 <div class="requestion-info">
+                    {% with form.child_last_name as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
                     {% with form.name as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.child_middle_name as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.birth_date as field %}
@@ -285,6 +291,20 @@
                     {% with form.sex as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
+                    {% with form.birthplace as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.child_snils as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    <div class="select-with-text-option">
+                        {% with form.kinship_type as field %}
+                            {% include "account/include/requestion-form-field.html" %}
+                        {% endwith %}
+                        {% with form.kinship as field %}
+                            {% include "account/include/requestion-form-field.html" %}
+                        {% endwith %}
+                    </div>
                     {% with form.admission_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
@@ -300,9 +320,9 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div class="small-field">
-                    {% with benefits_form.benefits as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
+                        {% with benefits_form.benefits as field %}
+                            {% include "account/include/requestion-form-field.html" %}
+                        {% endwith %}
                     </div>
                 </div>
                 {% endblock %}

@@ -68,17 +68,6 @@ parseUri.options = {
     newElement.show(400);
 };
 
-/**
- * Плагин для изменения поля ввода номера документа
- *
- * Валидирует содержимое поля ввода для номера документа в соответствии с выбранным шаблоном.
- * Использовать так:
- *
- * поле выбора документа            селектор поля ввода номера
- *        V                                     V
- * $('#id_template').regexpValidate('#id_document_number');
- */
-
 function bind_new_regexp($input, regexp) {
     var pattern = new RegExp(regexp);
     $input.off('keyup').on('keyup', function(){
@@ -114,6 +103,17 @@ function change_document_hint($input, help_text) {
 }
 
 (function ($) {
+
+    /**
+     * Плагин для изменения поля ввода номера документа
+     *
+     * Валидирует содержимое поля ввода для номера документа в соответствии с выбранным шаблоном.
+     * Использовать так:
+     *
+     * поле выбора документа            селектор поля ввода номера
+     *        V                                     V
+     * $('#id_template').regexpValidate('#id_document_number');
+     */
     $.fn.regexpValidate = function (input_selector) {
         var $docnumber_input = $(input_selector);
         return this.each(function() {
@@ -131,7 +131,85 @@ function change_document_hint($input, help_text) {
         });
     };
 
+    // Валидирует содержимое полей для ввода СНИЛС
+    $.fn.snilsValidate = function () {
+        $(this).on('keyup', function() {
+            var input = $(this).val();
+            if (input) {
+                var pattern = new RegExp('^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$');
+                if (pattern.test(input)) {
+                    $(this).parents('div.field').removeClass('error');
+                }
+                else {
+                    $(this).parents('div.field').addClass('error');
+                }
+            }
+            else {
+                $(this).parents('div.field').removeClass('error');
+            }
+        });
+    };
+
+    // плагин изменяет внешний вид формы документов заявителя
+    // в зависимости от выбранного типа документа
+    $.fn.personalDocumentFormHandler = function () {
+        change_personal_document_form($(this));
+
+        $(this).on('change', function() {
+            change_personal_document_form($(this));
+        });
+    };
+
+    function change_personal_document_form($choice_selector) {
+        var doc_type = $choice_selector.val();
+        var $doc_form = $choice_selector.parents('div.personal-document-area');
+        var $doc_fields = $doc_form.find('div.field');
+        var $doc_name_field = $doc_fields.find('#id_doc_name').parents('div.field');
+        var $doc_series_field = $doc_fields.find('#id_series').parents('div.field');
+        var $doc_issued_by_field = $doc_fields.find('#id_issued_by').parents('div.field');
+        if (doc_type == 0) {
+            $doc_name_field.removeClass('hidden');
+            $doc_name_field.find("p.hint").addClass('hidden');
+            $doc_series_field.find("p.hint").removeClass('hidden');
+            $doc_issued_by_field.find("p.hint").removeClass('hidden');
+        }
+        else {
+            $doc_name_field.find('input').val('');
+            $doc_name_field.addClass('hidden');
+            $doc_name_field.find("p.hint").removeClass('hidden');
+            $doc_series_field.find("p.hint").addClass('hidden');
+            $doc_issued_by_field.find("p.hint").addClass('hidden');
+        }
+    }
+
+    // плагин влияет на отображение текстового поля "степень родства заявителя"
+    $.fn.kinshipFieldHandler = function () {
+        change_kinship_field_view($(this));
+
+        $(this).on('change', function() {
+            change_kinship_field_view($(this));
+        });
+    };
+
+    function change_kinship_field_view($choice_selector) {
+        var kinship_type = $choice_selector.val();
+        var $kinship_choice_field = $choice_selector.parents('div.field');
+        var $kinship_text_field = $('#id_kinship').parents('div.field');
+        if (kinship_type == 0) {
+            $kinship_text_field.removeClass('hidden');
+            $kinship_text_field.find('p.hint').addClass('hidden');
+            $kinship_choice_field.find('p.hint').addClass('hidden');
+        }
+        else {
+            $kinship_text_field.find('input').val('');
+            $kinship_text_field.addClass('hidden');
+            $kinship_text_field.find('p.hint').removeClass('hidden');
+            $kinship_choice_field.find('p.hint').removeClass('hidden');
+        }
+    }
+
 })(jQuery);
+
 
 (function($){
     $.fn.serializeObject = function()

@@ -5,6 +5,30 @@
 {% block bottomjs %}
     {{ block.super }}
     <script src="{{ STATIC_URL }}js/libs/jquery.cookie.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}js/plugins.js"></script>
+    <script type="text/javascript">
+        function editField(element) {
+            var parent = $(element.parentElement);
+            parent.children('a').hide();
+            parent.children('label').hide();
+            parent.children('input').show().focus();
+            parent.children('input').bind("blur", function(){
+                parent.children('label').html(parent.children('input').val())
+                parent.children('a').show();
+                parent.children('label').show();
+                parent.children('input').hide();
+
+                parent.children('input').unbind();
+            });
+        }
+
+        function show_extra_doc_form(element) {
+            var hidden_doc_forms = $(".hidden-document-form");
+            hidden_doc_forms.first().removeClass("hidden-document-form");
+            if (hidden_doc_forms.length == 1)
+                $("#add-document-form").addClass("extra-documents-disabled");
+        }
+    </script>
     <script>
         var el;
         var email_string;
@@ -149,6 +173,14 @@
                 title: "Электронный почтовый адрес",
                 content: '<p>Указанный электронный почтовый адрес можно использовать для входа на сайт. Также на него будут отправляться уведомления о смене статуса ваших заявок, зачислении и т.д.</p>',
                 placement: "top"});
+
+            $('#id_issued_date').datepicker('option', 'onSelect', function(text, date) {
+                $('#issued_date_label').text(text);
+            });
+
+            $('#id_snils').snilsValidate();
+
+            $('#id_doc_type').personalDocumentFormHandler();
         })
     </script>
 {% endblock bottomjs %}
@@ -198,6 +230,118 @@
                     <p id="mail_confirm_sent" hidden="">На указанный почтовый адрес отправлено письмо с инструкциями по подтверждению. Письмо действительно в течении трех дней. Письма можно запрашивать не чаще, чем раз в 5 минут.</p>
                 {% endif %}
             </form>
+            {% block personal_data %}
+            <div class="block-head personal-data-head">Персональные данные:</div>
+            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="span5">
+                        {% for field in pdata_form %}
+                            {% if field.is_hidden %}
+                                {{ field }}
+                            {% endif %}
+                        {% endfor %}
+                        {% with pdata_form.last_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.first_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.middle_name as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.phone_number as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.mobile_number as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.snils as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        <div class="block-head personal-data-head">Адрес места жительства заявителя</div>
+                        {% with pdata_form.town as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.street as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        {% with pdata_form.house as field %}
+                            <div class="requestion-info">
+                                {% include 'account/include/pdata-form-field.html' %}
+                            </div>
+                        {% endwith %}
+                        <div class="block-head personal-data-head">Документы заявителя</div>
+                        <div class="personal-document-area requestion-info">
+                            {{ doc_form.media }}
+                            {{ doc_form.profile }}
+                            <div class="field">
+                                <label class="field-label">{{ doc_form.doc_type.label }}</label>
+                                <p class="field-value">
+                                    {{ doc_form.doc_type }}
+                                </p>
+                            </div>
+                            {% with doc_form.doc_name as field %}
+                                {% include 'account/include/pdata-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.series as field %}
+                                {% include 'account/include/pdata-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.number as field %}
+                                {% include 'account/include/pdata-form-field.html' %}
+                            {% endwith %}
+                            {% with doc_form.issued_date as field %}
+                                <div class="field {% if field.errors %}error{% endif %}">
+                                    <label class="field-label">
+                                        {{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                                    </label>
+                                    {% if not field.value or field.errors %}
+	                                    <p class="field-value">
+	                                        {{ field }}
+	                                    </p>
+                                    {% else %}
+                                        <p class="field-value hidden-input">
+                                            <label id="issued_date_label" class="value">{{ field.value }}</label>
+                                            {{ field }}
+                                        </p>
+                                    {% endif %}
+                                    <p class="hint">{% if not field.field.required %}При наличии. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                                </div>
+                            {% endwith %}
+                            {% with doc_form.issued_by as field %}
+                                {% include 'account/include/pdata-form-field.html' %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="span5">
+                    <div class="uniForm">
+                        <div class="buttonHolder">
+                            <button class="primaryAction" type="submit" >Сохранить</button>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </form>
+            {% endblock %}
         <div class="vkontakte-info clearfix">
             {% block vkontakte_info %}
             <div class="block-head">Профиль ВКонтакте:</div>

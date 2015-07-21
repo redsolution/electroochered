@@ -23,5 +23,5 @@ def registration_date_validator(value):
 
 snils_validator = RegexValidator(
     '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
-    message=u'СНИЛС должен быть записан в формате xxx-xxx-xxx xx'
+    message=u'неверный формат'
 )

@@ -2,17 +2,19 @@
 import csv
 import getpass
 from django.core.management.base import BaseCommand
-
-
 from django.contrib.auth.models import User
+from django.conf import settings
 from sadiki.core.models import Profile, Requestion
-from personal_data.models import ChildPersData, UserPersData
 
 
 class Command(BaseCommand):
     help_text = '''Usage: manage.py migrate_personal_data'''
 
     def handle(self, *args, **options):
+        if 'personal_data' not in settings.INSTALLED_APPS:
+            print u'Модуль персональных данных не установлен!'
+            return
+        from personal_data.models import ChildPersData, UserPersData
         filename = '/srv/{user}/{user}.csv'.format(user=getpass.getuser())
         f = open(filename, 'w')
         writer = csv.writer(f)

@@ -1,17 +1,18 @@
 # -*- coding: utf-8 -*-
 from django.contrib.contenttypes.models import ContentType
-from django.conf import settings
 from django.core.urlresolvers import reverse
 
 from pysnippets import dttools
+from django.conf import settings
 from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
 
-try:
-    from personal_data.models import ChildPersData, UserPersData
-    USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
-except ImportError:
-    USE_PDATA = False
+USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
+if USE_PDATA:
+    try:
+        from personal_data.models import ChildPersData, UserPersData
+    except ImportError:
+        USE_PDATA = False
 
 
 def add_requestions_data(requestions, request):

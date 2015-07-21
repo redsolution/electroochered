@@ -9,6 +9,12 @@
         <h2>Заявка {{ requestion }}</h2>
         {% include "logger/include/include_logs.html" %}
     {% endfor %}
+    {% with personal_data_logs as logs_with_messages %}
+        {% if logs_with_messages %}
+            <h2>Персональные данные:</h2>
+            {% include "logger/include/include_logs.html" %}
+        {% endif %}
+    {% endwith %}
     {% for log_dict in plugin_logs %}
         {% for log_header, logs_with_messages in log_dict.items %}
             {% if logs_with_messages %}

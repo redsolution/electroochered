@@ -14,7 +14,7 @@ from sadiki.core.workflow import IMMEDIATELY_PERMANENT_DECISION, \
     PERMANENT_DECISION, DECISION, \
     TEMP_PASS_TRANSFER, TEMP_DISTRIBUTION_TRANSFER, IMMEDIATELY_DECISION, \
     DECISION_DISTRIBUTION, PASS_DISTRIBUTED, \
-    DISTRIBUTED_ARCHIVE, STATUS_CHANGE_TRANSITIONS
+    DISTRIBUTED_ARCHIVE, STATUS_CHANGE_TRANSITIONS, PERSONAL_DATA_ACTION_FLAGS
 from sadiki.logger.models import Logger, LoggerMessage
 from sadiki.operator.plugins import get_operator_plugin_menu_items, get_operator_plugin_logs
 from sadiki.operator.views.base import OperatorPermissionMixin
@@ -64,9 +64,25 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
             requestions_with_logs.append([requestion, logs_with_messages])
         return requestions_with_logs
 
+    def get_personal_data_logs(self, profile):
+        logs_with_messages = []
+        logs = Logger.objects.filter(
+            content_type=ContentType.objects.get_for_model(Profile),
+            object_id=profile.id,
+            action_flag__in=PERSONAL_DATA_ACTION_FLAGS,
+        ).order_by('datetime')
+        for log in logs:
+            messages = log.loggermessage_set.filter(
+                logger__object_id=profile.id,
+                logger__content_type=ContentType.objects.get_for_model(Profile)
+            )
+            logs_with_messages.append([log, messages])
+        return logs_with_messages
+
     def get(self, request):
         profile = request.user.get_profile()
         data = {'requestions_with_logs': self.get_logs_for_profile(profile),
+                'personal_data_logs': self.get_personal_data_logs(profile),
                 'plugin_menu_items': get_plugin_menu_items(),
                 'plugin_logs': get_plugin_logs(profile)}
         return self.render_to_response(data)
@@ -79,6 +95,7 @@ class OperatorLogs(OperatorPermissionMixin, AccountLogs):
         profile = get_object_or_404(Profile, id=profile_id)
         data = {'requestions_with_logs': self.get_logs_for_profile(profile),
                 'profile': profile,
+                'personal_data_logs': self.get_personal_data_logs(profile),
                 'plugin_menu_items': get_operator_plugin_menu_items(profile.id),
                 'plugin_logs': get_operator_plugin_logs(profile)}
         return self.render_to_response(data)

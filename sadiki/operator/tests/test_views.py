@@ -73,11 +73,14 @@ class CoreViewsTest(TestCase):
         create_response = self.client.post(
             url, {
                 'name': 'Ann',
+                'child_last_name': 'Jordison',
                 'sex': 'Ж',
                 'birth_date': '07.06.2014',
                 'admission_date': '01.01.2014',
                 'template': '2',
                 'document_number': 'II-ИВ 016809',
+                'birthplace': 'Chelyabinsk',
+                'kinship_type': 1,
                 'areas': '1',
                 'location': 'POINT (60.115814208984375 55.051432600719835)',
                 'pref_sadiks': [str(kgs[0].id), str(kgs[1].id)],
@@ -96,11 +99,14 @@ class CoreViewsTest(TestCase):
         # успешный post, создается заявка, токен удаляется
         form_data.update(
             {'name': 'Ann',
+             'child_last_name': 'Jordison',
              'sex': 'Ж',
              'birth_date': '07.06.2014',
              'admission_date': '01.01.2014',
              'template': '2',
              'document_number': 'II-ИВ 016809',
+             'birthplace': 'Chelyabinsk',
+             'kinship_type': 1,
              'areas': '1',
              'location': 'POINT (60.115814208984375 55.051432600719835)',
              'token': token,
