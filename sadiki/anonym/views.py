@@ -156,7 +156,7 @@ class Queue(RequirePermissionsMixin, ListView):
                         benefit_category=form.cleaned_data['benefit_category'])
                 area = form.cleaned_data.get('area')
                 if area:
-                    queryset = queryset.queue().filter(areas__in=area).distinct()
+                    queryset = queryset.filter(areas__in=area).distinct()
                 admission_date = form.cleaned_data.get('admission_date')
                 if admission_date:
                     admission_date = datetime.datetime.strptime(
