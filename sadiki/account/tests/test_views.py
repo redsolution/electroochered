@@ -693,7 +693,7 @@ class CoreViewsTest(TestCase):
             'template': '2',
             'document_number': 'II-ИВ 016809',
             'birthplace': 'Chelyabinsk',
-            'kinship_type': 1,
+            'kinship': '',
             'areas': '1',
             'location': 'POINT (60.115814208984375 55.051432600719835)',
             'pref_sadiks': [str(kgs[0].id)],
@@ -702,6 +702,7 @@ class CoreViewsTest(TestCase):
         self.client.login(username=self.requester.username, password='123456q')
 
         # оставляем пустым обязательное поле "имя ребёнка"
+        # также пропускаем kinship_type, KeyError не должен возникать
         response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
@@ -712,6 +713,8 @@ class CoreViewsTest(TestCase):
         requestion_form = create_response.context['form']
         self.assertIn('name', requestion_form.errors)
         self.assertIn(u'Обязательное поле', requestion_form.errors['name'])
+        self.assertIn('kinship', requestion_form.errors)
+        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
         # проверяем, что заявка не добавилась
         requestions = Requestion.objects.filter(
             profile_id=self.requester.profile.id)
@@ -721,8 +724,8 @@ class CoreViewsTest(TestCase):
             action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
         self.assertFalse(logs.exists())
 
-        # добавляем недостающее имя ребёнка
-        requestion_form_data.update({'name': 'Ann'})
+        # добавляем недостающие имя ребёнка и степень родства
+        requestion_form_data.update({'name': 'Ann', 'kinship_type': 1})
         response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
@@ -743,7 +746,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         evidience_document = requestion.evidience_documents()[0]
         self.assertEqual(evidience_document.document_number, u'II-ИВ 016809')
         # проверяем логи
@@ -758,7 +761,7 @@ class CoreViewsTest(TestCase):
         self.assertIn('Jordison', log_message)
         self.assertIn(u'Женский', log_message)
         self.assertIn('Chelyabinsk', log_message)
-        self.assertIn(u'мать', log_message)
+        self.assertIn(u'Мать', log_message)
         last_log.delete()
 
         # изменение добавленной заявки. меняем имя ребёнка, указываем СНИЛС
@@ -789,7 +792,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.sex, u'Ж')
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
         # проверяем логи
         logs = Logger.objects.filter(
@@ -804,7 +807,7 @@ class CoreViewsTest(TestCase):
         self.assertNotIn('Jordison', log_message)
         self.assertNotIn(u'Женский', log_message)
         self.assertNotIn('Chelyabinsk', log_message)
-        self.assertNotIn(u'мать', log_message)
+        self.assertNotIn(u'Мать', log_message)
         last_log.delete()
 
         # пытаемся поменять СНИЛС на некорректный
@@ -823,7 +826,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.sex, u'Ж')
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
         # проверяем отсутствие логов
         logs = Logger.objects.filter(
@@ -848,7 +851,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.sex, u'Ж')
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
         # проверяем отсутствие логов
         logs = Logger.objects.filter(
@@ -924,7 +927,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         evidience_document = requestion.evidience_documents()[0]
         self.assertEqual(evidience_document.document_number, u'II-ИВ 123321')
         # проверяем логи
@@ -940,7 +943,7 @@ class CoreViewsTest(TestCase):
         self.assertIn('Jordison', log_message)
         self.assertIn(u'Женский', log_message)
         self.assertIn('Chelyabinsk', log_message)
-        self.assertIn(u'мать', log_message)
+        self.assertIn(u'Мать', log_message)
         last_log.delete()
 
         settings.TEST_MODE = False

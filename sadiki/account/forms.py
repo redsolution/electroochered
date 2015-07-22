@@ -58,9 +58,8 @@ class RequestionForm(FormWithDocument):
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
-        kinship_type = int(self.cleaned_data.get('kinship_type')
-                           or Requestion.REQUESTER_TYPE_OTHER)
-        if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
+        kinship_type = self.cleaned_data.get('kinship_type')
+        if kinship_type and kinship_type != Requestion.REQUESTER_TYPE_OTHER:
             self.cleaned_data['kinship'] = dict(
                 Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
         if not self.cleaned_data['kinship']:
@@ -101,9 +100,8 @@ class ChangeRequestionForm(forms.ModelForm):
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
-        kinship_type = int(self.cleaned_data.get('kinship_type')
-                           or Requestion.REQUESTER_TYPE_OTHER)
-        if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
+        kinship_type = self.cleaned_data.get('kinship_type')
+        if kinship_type and kinship_type != Requestion.REQUESTER_TYPE_OTHER:
             self.cleaned_data['kinship'] = dict(
                 Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
         if (self.cleaned_data['kinship'] == self.instance.kinship
