@@ -101,6 +101,8 @@ class ChangeRequestionForm(forms.ModelForm):
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
     def clean(self, *args, **kwargs):
+        kinship_type = int(self.cleaned_data.get('kinship_type')
+                           or Requestion.REQUESTER_TYPE_OTHER)
         kinship_type = int(self.cleaned_data['kinship_type'])
         if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
             self.cleaned_data['kinship'] = dict(
