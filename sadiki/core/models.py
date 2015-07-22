@@ -1210,6 +1210,14 @@ class Requestion(models.Model):
 
     objects = query_set_factory(RequestionQuerySet)
 
+    def set_kinship(self, kinship_type):
+        kinship_type = str(kinship_type)
+        kinship_dict = dict(self.REQUESTER_TYPE_CHOICES)
+        if not (kinship_type and kinship_type in kinship_dict):
+            kinship_type = self.REQUESTER_TYPE_OTHER
+        self.kinship = kinship_dict[kinship_type]
+        self.save()
+
     def get_requestion_number(self):
         id_with_crc = add_crc(self.id)
         id_with_crc_str = chr(id_with_crc & 0xFF) + chr(id_with_crc >> 8 & 0xFF) + chr(id_with_crc >> 16 & 0xFF)
