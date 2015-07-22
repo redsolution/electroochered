@@ -3,5 +3,5 @@
     <p class="field-value">
         {{ field }}
     </p>
-    <p class="hint">{% if not field.field.required %}При наличии. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
 </div>
