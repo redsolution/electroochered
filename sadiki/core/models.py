@@ -1138,6 +1138,8 @@ class Requestion(models.Model):
 
     @property
     def kinship_type(self):
+        if not self.kinship:
+            return '';
         for kinship_id, kinship_name in self.REQUESTER_TYPE_CHOICES:
             if self.kinship == kinship_name:
                 return kinship_id
