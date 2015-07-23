@@ -362,12 +362,8 @@
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                 {% if not field.value or field.errors %}
-                    <p class="field-value">
-                        {% if can_change_requestion %}
-                            {{ field }}
-                        {% else %}
-                            &ltне указано&gt
-                        {% endif %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
                     </p>
                 {% else %}
                     <p class="field-value hidden-input">
@@ -390,12 +386,8 @@
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                 {% if not field.value or field.errors %}
-                    <p class="field-value">
-                        {% if can_change_requestion %}
-                            {{ field }}
-                        {% else %}
-                            &ltне указано&gt
-                        {% endif %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
                     </p>
                 {% else %}
                     <p class="field-value hidden-input">
@@ -404,7 +396,9 @@
                         <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                     </p>
                 {% endif %}
-                <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% if can_change_requestion %}
+                    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% endif %}
             </div>
         {% endwith %}
         <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
@@ -419,12 +413,8 @@
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                 {% if not field.value or field.errors %}
-                    <p class="field-value">
-                        {% if can_change_requestion %}
-                            {{ field }}
-                        {% else %}
-                            &ltне указано&gt
-                        {% endif %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
                     </p>
                 {% else %}
                     <p class="field-value hidden-input">
@@ -439,12 +429,8 @@
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                 {% if not field.value or field.errors %}
-                    <p class="field-value">
-                        {% if can_change_requestion %}
-                            {{ field }}
-                        {% else %}
-                            &ltне указано&gt
-                        {% endif %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
                     </p>
                 {% else %}
                     <p class="field-value hidden-input">
@@ -453,14 +439,16 @@
                         <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                     </p>
                 {% endif %}
-                <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% if can_change_requestion %}
+                    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% endif %}
             </div>
         {% endwith %}
         {% with change_requestion_form.kinship_type as field %}
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                 <p class="field-value hidden-input">
-                    <label class="value">{{ field|form_field_verbose }}</label>
+                    <label class="value{% if not field.value %} null-field-value{% endif %}">{{ field|form_field_verbose }}</label>
                     {{ field }}
                     <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                 </p>
@@ -472,7 +460,9 @@
                 <p class="field-value">
                     {{ field }}
                 </p>
-                <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% if can_change_requestion %}
+                    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% endif %}
             </div>
         {% endwith %}
         <div class="field">
