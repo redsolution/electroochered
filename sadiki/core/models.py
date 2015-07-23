@@ -1124,9 +1124,11 @@ class Requestion(models.Model):
         u'Имя ребёнка', max_length=255, null=True,
         validators=[validate_no_spaces, ],)
     child_middle_name = models.CharField(
-        u'Отчество ребёнка', max_length=50, blank=True, null=True)
+        u'Отчество ребёнка', max_length=50, blank=True, null=True,
+        validators=[validate_no_spaces, ],)
     child_last_name = models.CharField(
-        u'Фамилия ребёнка', max_length=50, null=True)
+        u'Фамилия ребёнка', max_length=50, null=True,
+        validators=[validate_no_spaces, ],)
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)

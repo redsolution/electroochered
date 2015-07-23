@@ -57,6 +57,12 @@ class RequestionForm(FormWithDocument):
                                              u' заявитель ребёнку')
         super(RequestionForm, self).__init__(*args, **kwds)
 
+    def clean_birthplace(self):
+        return self.cleaned_data.get('birthplace').strip()
+
+    def clean_kinship(self):
+        return self.cleaned_data.get('kinship').strip()
+
     def clean(self, *args, **kwargs):
         kinship_type = self.cleaned_data.get('kinship_type')
         if kinship_type and kinship_type != Requestion.REQUESTER_TYPE_OTHER:
@@ -98,6 +104,12 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
+
+    def clean_birthplace(self):
+        return self.cleaned_data.get('birthplace').strip()
+
+    def clean_kinship(self):
+        return self.cleaned_data.get('kinship').strip()
 
     def clean(self, *args, **kwargs):
         kinship_type = self.cleaned_data.get('kinship_type')
@@ -165,6 +177,30 @@ class PersonalDataForm(ModelForm):
         except:
             pass
 
+    def clean_first_name(self):
+        return self.cleaned_data.get('first_name').strip()
+
+    def clean_last_name(self):
+        return self.cleaned_data.get('last_name').strip()
+
+    def clean_middle_name(self):
+        return self.cleaned_data.get('middle_name').strip()
+
+    def clean_phone_number(self):
+        return self.cleaned_data.get('phone_number').strip()
+
+    def clean_mobile_number(self):
+        return self.cleaned_data.get('mobile_number').strip()
+
+    def clean_town(self):
+        return self.cleaned_data.get('town').strip()
+
+    def clean_street(self):
+        return self.cleaned_data.get('street').strip()
+
+    def clean_house(self):
+        return self.cleaned_data.get('house').strip()
+
     def save(self, commit=True):
         profile = super(PersonalDataForm, self).save(commit=False)
         profile.first_name = self.cleaned_data['first_name']
@@ -185,6 +221,18 @@ class PersonalDocumentForm(ModelForm):
 
     def clean_profile(self):
         return Profile.objects.get(id=self.cleaned_data['profile'])
+
+    def clean_doc_name(self):
+        return self.cleaned_data.get('doc_name').strip()
+
+    def clean_series(self):
+        return self.cleaned_data.get('series').strip()
+
+    def clean_number(self):
+        return self.cleaned_data.get('number').strip()
+
+    def clean_issued_by(self):
+        return self.cleaned_data.get('issued_by').strip()
 
     def clean(self, *args, **kwargs):
         required_fields = []

@@ -364,11 +364,13 @@ class CoreViewsTest(TestCase):
         profile_documents = profile.personaldocument_set
         self.assertFalse(profile_documents.exists())
 
-        # заполняем данные
+        # заполняем данные. намеренно добавляем лишние пробелы к полям
+        profile_form_data.update({'first_name': '  Ann ', 'series': ' 123456  '})
         response = self.client.post(account_frontpage_url, profile_form_data,
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
+        profile_form_data.update({'first_name': 'Ann', 'series': '123456'})
         # проверяем отсутствие ошибок форм
         pdata_form = response.context['pdata_form']
         doc_form = response.context['doc_form']
@@ -810,13 +812,19 @@ class CoreViewsTest(TestCase):
         self.assertNotIn(u'Мать', log_message)
         last_log.delete()
 
-        # пытаемся поменять СНИЛС на некорректный
-        change_requestion_form_data.update({'child_snils': '111222333'})
+        # пытаемся поменять СНИЛС на некорректный, + имя ребёнка с пробелами
+        change_requestion_form_data.update({'child_snils': '111222333',
+                                            'name': 'Mary Mary'})
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
+        change_requestion_form_data.update({'child_snils': '111-222-333 99',
+                                            'name': 'Mary'})
         # проверяем ошибки формы
         requestion_form = response.context['change_requestion_form']
+        self.assertIn('name', requestion_form.errors)
+        self.assertIn(u'Поле не должно содержать пробелов',
+                      requestion_form.errors['name'])
         self.assertIn('child_snils', requestion_form.errors)
         self.assertIn(u'неверный формат', requestion_form.errors['child_snils'])
         # проверяем, что заявка не изменилась
@@ -834,8 +842,7 @@ class CoreViewsTest(TestCase):
         self.assertFalse(logs.exists())
 
         # пытаемся занулить степень родства заявителя
-        change_requestion_form_data.update({'child_snils': '111-222-333 99',
-                                            'kinship_type': 0})
+        change_requestion_form_data.update({'kinship_type': 0})
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
