@@ -15,6 +15,8 @@ from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
     JQueryUIAdmissionDateWidget, JqueryIssueDateWidget, SelectMultipleBenefits
 from sadiki.core.widgets import ChoiceWithTextOptionWidget
+from sadiki.core.validators import passport_series_validator
+from sadiki.core.validators import passport_number_validator
 
 
 class RequestionForm(FormWithDocument):
@@ -226,9 +228,15 @@ class PersonalDocumentForm(ModelForm):
         return self.cleaned_data.get('doc_name').strip()
 
     def clean_series(self):
+        if (int(self.cleaned_data.get(
+                'doc_type')) == PersonalDocument.DOC_TYPE_PASSPORT):
+            passport_series_validator(self.cleaned_data.get('series'))
         return self.cleaned_data.get('series').strip()
 
     def clean_number(self):
+        if (int(self.cleaned_data.get(
+                'doc_type')) == PersonalDocument.DOC_TYPE_PASSPORT):
+            passport_number_validator(self.cleaned_data.get('number'))
         return self.cleaned_data.get('number').strip()
 
     def clean_issued_by(self):
@@ -238,7 +246,8 @@ class PersonalDocumentForm(ModelForm):
         required_fields = []
         doc_type = int(self.cleaned_data['doc_type'])
         if doc_type != PersonalDocument.DOC_TYPE_OTHER:
-            if not self.cleaned_data.get('series'):
+            if (not self.cleaned_data.get('series')
+                    and not 'series' in self.errors):
                 required_fields.append('series')
             if not self.cleaned_data.get('issued_by'):
                 required_fields.append('issued_by')

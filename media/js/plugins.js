@@ -166,8 +166,9 @@ function change_document_hint($input, help_text) {
         var $doc_fields = $doc_form.find('div.field');
         var $doc_name_field = $doc_fields.find('#id_doc_name').parents('div.field');
         var $doc_series_field = $doc_fields.find('#id_series').parents('div.field');
+        var $doc_number_field = $doc_fields.find('#id_number').parents('div.field');
         var $doc_issued_by_field = $doc_fields.find('#id_issued_by').parents('div.field');
-        if (doc_type == 1) {
+        if (doc_type == 1) { // тип документа "Иное"
             $doc_name_field.removeClass('hidden');
             if (!$doc_name_field.find('input').val()) {
                 $doc_name_field.find('a').hide();
@@ -175,7 +176,6 @@ function change_document_hint($input, help_text) {
                 $doc_name_field.find('input').show().focus();
             }
             $doc_name_field.find("p.hint").addClass('hidden');
-            $doc_series_field.find("p.hint").removeClass('hidden');
             $doc_issued_by_field.find("p.hint").removeClass('hidden');
         }
         else {
@@ -184,8 +184,20 @@ function change_document_hint($input, help_text) {
             $doc_name_field.find("p.hint").removeClass('hidden');
             $doc_name_field.removeClass('error');
             $doc_name_field.find('label.field-label span').html('');
-            $doc_series_field.find("p.hint").addClass('hidden');
             $doc_issued_by_field.find("p.hint").addClass('hidden');
+        }
+        // валидация содержимого полей "серия" и "номер" для типа документа "Паспорт"
+        if (doc_type == 2) {
+            $doc_series_field.find('p.hint').html('Формат: 1234');
+            bind_new_regexp($doc_series_field.find('input'), '^[0-9]{4}$');
+            $doc_number_field.find('p.hint').html('Формат: 123456');
+            bind_new_regexp($doc_number_field.find('input'), '^[0-9]{6}$');
+        }
+        else {
+            $doc_series_field.find('p.hint').html('При наличии');
+            $doc_series_field.find('input').off('keyup');
+            $doc_number_field.find('p.hint').html('');
+            $doc_number_field.find('input').off('keyup');
         }
     }
 

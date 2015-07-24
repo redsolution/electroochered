@@ -25,3 +25,13 @@ snils_validator = RegexValidator(
     '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
     message=u'неверный формат'
 )
+
+passport_series_validator = RegexValidator(
+    '^[0-9]{4}$',
+    message=u'неверный формат',
+)
+
+passport_number_validator = RegexValidator(
+    '^[0-9]{6}$',
+    message=u'неверный формат',
+)
