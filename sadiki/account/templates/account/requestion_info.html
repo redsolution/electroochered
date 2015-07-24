@@ -458,12 +458,11 @@
         {% with change_requestion_form.kinship as field %}
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
-                <p class="field-value">
+                <p class="field-value hidden-input">
+                    <label class="value">{{ field.value }}</label>
                     {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                 </p>
-                {% if can_change_requestion %}
-                    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
-                {% endif %}
             </div>
         {% endwith %}
         <div class="field">

@@ -872,8 +872,8 @@ class PersonalDocument(models.Model):
         verbose_name_plural = u'Документы заявителей'
         unique_together = (('doc_type', 'series', 'number'),)
 
-    DOC_TYPE_PASSPORT = 1
-    DOC_TYPE_OTHER = 0
+    DOC_TYPE_PASSPORT = 2
+    DOC_TYPE_OTHER = 1
 
     DOC_TYPE_CHOICES = (
         (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),

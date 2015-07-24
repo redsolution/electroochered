@@ -11,12 +11,18 @@
             var parent = $(element.parentElement);
             parent.children('a').hide();
             parent.children('label').hide();
-            parent.children('input').show().focus();
+            parent.children('input, select').show().focus();
             parent.children('input').bind("blur", function(){
                 parent.children('label').html(parent.children('input').val())
                 parent.children('a').show();
                 parent.children('label').show();
                 parent.children('input').hide();
+            });
+            parent.children('select').blur(function() {
+                parent.children('label').html(parent.find("select option:selected").text())
+                parent.children('a').show();
+                parent.children('label').show();
+                parent.children('select').hide();
             });
         }
 
@@ -316,12 +322,22 @@
                         <div class="personal-document-area requestion-info">
                             {{ doc_form.media }}
                             {{ doc_form.profile }}
-                            <div class="field">
-                                <label class="field-label">{{ doc_form.doc_type.label }}</label>
-                                <p class="field-value">
-                                    {{ doc_form.doc_type }}
-                                </p>
-                            </div>
+                            {% with doc_form.doc_type as field %}
+                                <div class="field {% if field.errors %}error{% endif %}">
+                                    <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                                    {% if not field.value or field.errors %}
+	                                    <p class="field-value">
+	                                        {{ field }}
+	                                    </p>
+                                    {% else %}
+                                        <p class="field-value hidden-input">
+                                            <label class="value">{{ field|form_field_verbose }}</label>
+                                            {{ field }}
+                                            <a class="editor" href="#" onclick="editField(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
                             {% with doc_form.doc_name as field %}
                                 {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
