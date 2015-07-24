@@ -141,7 +141,7 @@
             </form>
             {% block personal_data %}
             <div class="block-head personal-data-head">Персональные данные:</div>
-            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form">
+            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form" onsubmit="form_submit(this); return false">
                 {% csrf_token %}
                 <div class="row">
                     <div class="span5">
@@ -246,7 +246,7 @@
                     <div class="span5">
                     <div class="uniForm">
                         <div class="buttonHolder">
-                            <button class="primaryAction" type="submit" >Сохранить</button>
+                            <button class="primaryAction" type="submit" disabled="disabled">Сохранить</button>
                         </div>
                     </div>
                     </div>

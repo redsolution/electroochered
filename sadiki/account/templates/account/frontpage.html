@@ -17,8 +17,6 @@
                 parent.children('a').show();
                 parent.children('label').show();
                 parent.children('input').hide();
-
-                parent.children('input').unbind();
             });
         }
 
@@ -141,12 +139,38 @@
             $('#mail_confirm_sent').show();
         }
 
+        function field_changed(element) {
+            if (!$(element).find('label span.value-changed').length){
+                $(element).children("label").append('<span class="value-changed"> (Изменено)</span>');
+                $(element).children("label").addClass('changed');
+            }
+            // submit активный
+            $('#pdata_form button:submit').attr('disabled', false);
+            // сообщение при закрытии окна
+            function confirmmsg() {
+                return "Все несохраненные изменения будут утеряны";
+            }
+            window.onbeforeunload = confirmmsg;
+        }
+
+        //при отправке формы нужно убрать запрос на обновление страницы
+        function form_submit(form){
+            window.onbeforeunload = null;
+            $('#pdata_form button:submit').attr('disabled', true);
+            form.submit();
+        }
+
         $(document).ready(function(){
             {% if not profile.user.email %}
             mailLabelToEdit();
             {% else %}
             mailEditToLabel();
             {% endif %}
+
+            $('input, select').bind('change', function(){
+                var container_el = $(this).parents('.field');
+                field_changed(container_el);
+            });
 
             // делаем по ентеру отправку ajax а не post-формы
             $('#id_email').keypress(function(e) {
@@ -176,6 +200,7 @@
 
             $('#id_issued_date').datepicker('option', 'onSelect', function(text, date) {
                 $('#issued_date_label').text(text);
+                field_changed($('#id_issued_date').parents('.field'));
             });
 
             $('#id_snils').snilsValidate();
@@ -232,7 +257,7 @@
             </form>
             {% block personal_data %}
             <div class="block-head personal-data-head">Персональные данные:</div>
-            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form">
+            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form" onsubmit="form_submit(this); return false">
                 {% csrf_token %}
                 <div class="row">
                     <div class="span5">
@@ -333,11 +358,11 @@
 
                 <div class="row">
                     <div class="span5">
-                    <div class="uniForm">
-                        <div class="buttonHolder">
-                            <button class="primaryAction" type="submit" >Сохранить</button>
+                        <div class="uniForm">
+                            <div class="buttonHolder">
+                                <button class="primaryAction" type="submit" disabled="disabled">Сохранить</button>
+                            </div>
                         </div>
-                    </div>
                     </div>
                 </div>
             </form>
