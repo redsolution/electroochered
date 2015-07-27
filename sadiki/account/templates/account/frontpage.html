@@ -322,6 +322,11 @@
                         <div class="personal-document-area requestion-info">
                             {{ doc_form.media }}
                             {{ doc_form.profile }}
+                            {% if doc_form.non_field_errors %}
+                                <div class="field error">
+                                    <label class="field-label"><span class="errors">{% for error in doc_form.non_field_errors %}{{ error }}{% endfor %}</span></label>
+                                </div>
+                            {% endif %}
                             {% with doc_form.doc_type as field %}
                                 <div class="field {% if field.errors %}error{% endif %}">
                                     <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>

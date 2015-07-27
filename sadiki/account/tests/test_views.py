@@ -679,6 +679,56 @@ class CoreViewsTest(TestCase):
             action_flag=CHANGE_PERSONAL_DATA_BY_OPERATOR).order_by('-datetime')
         self.assertFalse(logs.exists())
 
+        # пытаемся добавить два одинаковых документа (совпадают тип+серия+номер)
+        doc_form_data = {'doc_type': 2, 'series': '1234', 'number': '123456',
+                         'issued_date': '01.01.2014', 'issued_by': 'test'}
+        profile_form_data.update(doc_form_data)
+        # сохраняем паспортные данные для текущего профиля
+        self.assertTrue(self.client.login(username=self.requester.username,
+                                          password='123456q'))
+        response = self.client.post(account_frontpage_url, profile_form_data,
+                                    follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, account_frontpage_url)
+        # проверяем отсутствие ошибок форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertFalse(doc_form.errors)
+        # проверяем изменение паспортных данных
+        changed_profile = Profile.objects.get(id=profile.id)
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 2)
+        self.assertEqual(profile_document.series, '1234')
+        self.assertEqual(profile_document.number, '123456')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2014, 1, 1))
+        self.assertEqual(profile_document.issued_by, 'test')
+        # создаём ещё один профиль
+        requester2 = User.objects.create_user(username='requester2',
+                                              password='123456q')
+        permission = Permission.objects.get(codename=u'is_requester')
+        requester2.user_permissions.add(permission)
+        requester2.save()
+        profile2 = Profile.objects.create(user=requester2)
+        self.assertTrue(self.client.login(username='requester2',
+                                          password='123456q'))
+        profile_form_data.update({'profile': profile2.id})
+        # пытаемся сохранить те же паспортные данные для нового профиля
+        response = self.client.post(account_frontpage_url, profile_form_data)
+        self.assertEqual(response.status_code, 200)
+        # проверяем ошибки форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertIn(u'Документ заявителя с таким Тип документа,'
+                      u'Серия документа и Номер документа уже существует.',
+                      doc_form.non_field_errors())
+        # проверяем, что данные не сохранились
+        changed_profile = Profile.objects.get(id=profile2.id)
+        profile_document = changed_profile.personaldocument_set
+        self.assertFalse(profile_document.exists())
+
         settings.TEST_MODE = False
 
     def test_requestion_personal_data_actions(self):
