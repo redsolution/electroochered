@@ -228,16 +228,18 @@ class PersonalDocumentForm(ModelForm):
         return self.cleaned_data.get('doc_name').strip()
 
     def clean_series(self):
-        if (int(self.cleaned_data.get(
+        series = self.cleaned_data.get('series')
+        if (series and int(self.cleaned_data.get(
                 'doc_type')) == PersonalDocument.DOC_TYPE_PASSPORT):
-            passport_series_validator(self.cleaned_data.get('series'))
-        return self.cleaned_data.get('series').strip()
+            passport_series_validator(series)
+        return series.strip()
 
     def clean_number(self):
-        if (int(self.cleaned_data.get(
+        number = self.cleaned_data.get('number')
+        if (number and int(self.cleaned_data.get(
                 'doc_type')) == PersonalDocument.DOC_TYPE_PASSPORT):
-            passport_number_validator(self.cleaned_data.get('number'))
-        return self.cleaned_data.get('number').strip()
+            passport_number_validator(number)
+        return number.strip()
 
     def clean_issued_by(self):
         return self.cleaned_data.get('issued_by').strip()

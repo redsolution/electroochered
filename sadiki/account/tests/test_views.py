@@ -652,7 +652,7 @@ class CoreViewsTest(TestCase):
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
         self.assertIn('series', doc_form.errors)
-        self.assertIn(u'неверный формат', doc_form.errors['series'])
+        self.assertIn(u'Обязательное поле', doc_form.errors['series'])
         self.assertIn('number', doc_form.errors)
         self.assertIn(u'неверный формат', doc_form.errors['number'])
         self.assertIn('issued_by', doc_form.errors)
