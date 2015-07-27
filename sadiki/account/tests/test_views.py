@@ -342,8 +342,8 @@ class CoreViewsTest(TestCase):
             'street': '1st avenue',
             'house': '100',
             'profile': profile.id,
-            'doc_type': 1,
-            'series': '123456',
+            'doc_type': 2,
+            'series': '1234',
             'number': '654321',
             'issued_date': '30.03.2012',
             'issued_by': 'some_organization',
@@ -365,7 +365,7 @@ class CoreViewsTest(TestCase):
         self.assertFalse(profile_documents.exists())
 
         # заполняем данные. намеренно добавляем лишние пробелы к полям
-        profile_form_data.update({'first_name': '  Ann ', 'series': ' 123456  '})
+        profile_form_data.update({'first_name': '  Ann ', 'house': ' 100  '})
         response = self.client.post(account_frontpage_url, profile_form_data,
                                     follow=True)
         self.assertEqual(response.status_code, 200)
@@ -388,8 +388,8 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 1)
-        self.assertEqual(profile_document.series, '123456')
+        self.assertEqual(profile_document.doc_type, 2)
+        self.assertEqual(profile_document.series, '1234')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
@@ -408,14 +408,14 @@ class CoreViewsTest(TestCase):
         self.assertIn('1st avenue', log_message)
         self.assertIn('100', log_message)
         self.assertIn(u'Паспорт', log_message)
-        self.assertIn('123456', log_message)
+        self.assertIn('1234', log_message)
         self.assertIn('654321', log_message)
         self.assertIn('30.03.2012', log_message)
         self.assertIn('some_organization', log_message)
         last_log.delete()
 
         # пытаемся сохранить документ типа "иное" без названия
-        profile_form_data.update({'doc_type': 0})
+        profile_form_data.update({'doc_type': 1})
         response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
         # проверяем ошибки форм
@@ -436,8 +436,8 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 1)
-        self.assertEqual(profile_document.series, '123456')
+        self.assertEqual(profile_document.doc_type, 2)
+        self.assertEqual(profile_document.series, '1234')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
@@ -472,7 +472,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -492,7 +492,7 @@ class CoreViewsTest(TestCase):
         self.assertNotIn('1st avenue', log_message)
         self.assertNotIn('100', log_message)
         self.assertIn(u'Паспорт', log_message)
-        self.assertIn('123456', log_message)
+        self.assertIn('1234', log_message)
         self.assertIn('654321', log_message)
         self.assertIn('30.03.2012', log_message)
         self.assertIn('some_organization', log_message)
@@ -523,7 +523,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -573,7 +573,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -613,7 +613,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, 'any_street')
         self.assertEqual(changed_profile.house, '222')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -641,7 +641,9 @@ class CoreViewsTest(TestCase):
         last_log.delete()
 
         # пытаемся сохранить паспортные данные без обязательных полей
-        profile_form_data.update({'doc_type': 1})
+        # + задаём некорректный формат номера
+        profile_form_data.update({'doc_type': 2, 'issued_by': '',
+                                  'series': '', 'number': 'test'})
         response = self.client.post(operator_profile_info_url,
                                     profile_form_data)
         self.assertEqual(response.status_code, 200)
@@ -650,7 +652,9 @@ class CoreViewsTest(TestCase):
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
         self.assertIn('series', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['series'])
+        self.assertIn(u'неверный формат', doc_form.errors['series'])
+        self.assertIn('number', doc_form.errors)
+        self.assertIn(u'неверный формат', doc_form.errors['number'])
         self.assertIn('issued_by', doc_form.errors)
         self.assertIn(u'Обязательное поле', doc_form.errors['issued_by'])
         # проверяем, что документ не сохранился
@@ -665,7 +669,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, 'any_street')
         self.assertEqual(changed_profile.house, '222')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
