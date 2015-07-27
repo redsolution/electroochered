@@ -7,8 +7,6 @@ import sys
 
 from django.core.management.base import BaseCommand
 from django.contrib.auth.models import User
-from django.conf import settings
-from django.db.utils import IntegrityError
 from sadiki.core.models import Benefit, Profile, Requestion, PersonalDocument
 from sadiki.logger.models import Logger, LoggerMessage
 
@@ -86,6 +84,8 @@ class Command(BaseCommand):
 
         kinship_data = [u'Мать', u'Отец', u'Опекун']
 
+        earliest_issue_date = datetime.date(2010, 1, 1)
+        today = datetime.date.today()
 
         print u"Изменяем персональные данные детей"
         all_requestions = Requestion.objects.all()
@@ -116,25 +116,26 @@ class Command(BaseCommand):
             profile.mobile_number = generate_random_phone_number()
             profile.snils = generate_random_snils()
             profile.save()
-            documents = profile.personaldocument_set.all()
-            for document in documents:
-                doc_data_is_unique = False
-                while not doc_data_is_unique:
-                    series = ''.join([
-                        random.choice(string.digits) for _ in range(4)])
-                    number = ''.join([
-                        random.choice(string.digits) for _ in range(6)])
-                    doc_data_is_unique = not PersonalDocument.objects.filter(
-                        doc_type=document.doc_type,
-                        series=series, number=number
-                    ).exists()
-                document.series = series
-                document.number = number
-                document.issued_date = generate_random_date(
-                    datetime.date(2010, 1, 1), datetime.date.today())
-                document.issued_by = 'organization {}'.format(
-                    random.randint(1, 100))
-                document.save()
+
+        all_documents = PersonalDocument.objects.all()
+        for document in all_documents:
+            prepared_unique_doc_data = False
+            while not prepared_unique_doc_data:
+                series = ''.join([
+                    random.choice(string.digits) for _ in range(4)])
+                number = ''.join([
+                    random.choice(string.digits) for _ in range(6)])
+                prepared_unique_doc_data = not PersonalDocument.objects.filter(
+                    doc_type=document.doc_type,
+                    series=series, number=number
+                ).exists()
+            document.series = series
+            document.number = number
+            document.issued_date = generate_random_date(
+                earliest_issue_date, today)
+            document.issued_by = 'organization {}'.format(
+                random.randint(1, 100))
+            document.save()
 
         print u"Удаляем почту"
         User.objects.all().update(email='')
