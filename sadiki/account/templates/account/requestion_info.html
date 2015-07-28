@@ -103,7 +103,7 @@
                 window.onbeforeunload = confirmmsg;
             }
 
-            $(document).ready(function(){
+            $(document).ready(function() {
                 if (requestion_marker) {
                     var map_center = requestion_point
                 } else {
@@ -129,9 +129,9 @@
                     addDrawControl(map, drawControl);
                 }
 
-                function addDrawControl(map, control){
+                function addDrawControl(map, control) {
                     map.addControl(control);
-                    $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+                    $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function() {
                         if (requestion_point) {
                                 map.panTo(requestion_point);
                         } else {
@@ -163,7 +163,7 @@
                 // изменение приоритетных ДОУ
                 $("#id_pref_sadiks").change(function(e, data) {
                     var value = parseInt(data.value);
-                    if (data.type == 'add'){
+                    if (data.type == 'add') {
                         pref_sadiks_ids.push(value);
                         renderMarkers(sadik_location_data, map)
                         map.panTo(sadik_location_data[value].location.slice().reverse())
@@ -202,9 +202,9 @@
             {% endif %}
             });
 
-            $('#id_areas, #id_distribute_in_any_sadik').change(function(){
-                if ($("#id_distribute_in_any_sadik").is(':checked')){
-                    if ($("#id_areas").val()){
+            $('#id_areas, #id_distribute_in_any_sadik').change(function() {
+                if ($("#id_distribute_in_any_sadik").is(':checked')) {
+                    if ($("#id_areas").val()) {
                         areas_ids = $("#id_areas").val().map(function(i) {return +i;});
                     } else {
                         areas_ids = []
@@ -218,7 +218,7 @@
         {% endwith %}
 
         //при отправке формы нужно убрать запрос на обновление страницы
-        function form_submit(f){
+        function form_submit(f) {
             window.onbeforeunload = null;
             $('#requestion-form button:button').attr('disabled', true);
             f.submit();
@@ -237,20 +237,20 @@
         }
 
         //обработка нажатия на кнопку редактирвания поля
-        function change_field(element){
+        function change_field(element) {
             var parent = $(element.parentElement);
             parent.children('a').hide();
             parent.children('label').hide();
             parent.children('input, select').show();
             parent.children('input, select').focus();
             parent.children('input').blur(function() {
-                parent.children('label').html(parent.children('input').val())
+                parent.children('label').html(parent.children('input').val());
                 parent.children('a').show();
                 parent.children('label').show();
                 parent.children('input').hide();
             })
             parent.children('select').blur(function() {
-                parent.children('label').html(parent.find("select option:selected").text())
+                parent.children('label').html(parent.find("select option:selected").text());
                 parent.children('a').show();
                 parent.children('label').show();
                 parent.children('select').hide();
@@ -282,15 +282,15 @@
             field_changed($(this).parents('.field'));
         }
 
-        $(document).ready(function(){
+        $(document).ready(function() {
             // прячем родной m2m django виджет
             $('#id_areas').hide();
             // сообщение о том, что поле было изменено + запрос при закрытии окна
-            $('input, select').not('#address_text').bind('change', function(){
+            $('input, select').not('#address_text').bind('change', function() {
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
-            $('p').bind('remove', function(){
+            $('p').bind('remove', function() {
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })

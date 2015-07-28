@@ -61,14 +61,13 @@ class ChoiceWithTextOptionWidget(Widget):
         js = u'''
         <script type="text/javascript">
             $("#id_select_{name}").change(function() {{
-              if ($(this).val() == "{other_choice}") {{
-                $("#id_{name}").val("");
-                $("#id_{name}").removeClass("hidden");
-              }}
-              else {{
-                $("#id_{name}").addClass("hidden");
-                $("#id_{name}").val($(this).val());
-              }}
+                if ($(this).val() == "{other_choice}") {{
+                    $("#id_{name}").val("");
+                    $("#id_{name}").removeClass("hidden");
+                }} else {{
+                    $("#id_{name}").addClass("hidden");
+                    $("#id_{name}").val($(this).val());
+                }}
             }});
         </script>
         '''.format(name=name, other_choice=self.choices[-1])
@@ -118,9 +117,9 @@ class JqueryUIDateWidget(DateInput):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
-            var datepicker_conf = {{maxDate: new Date(),
-                                    dateFormat: '{format:>s}'}};
+            $(function() {{
+                var datepicker_conf = {{maxDate: new Date(),
+                                        dateFormat: '{format:>s}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
@@ -141,12 +140,11 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
+            $(function() {{
                 var datepicker_conf = {{minDate: new Date(),
-                                        dateFormat: '{format:>s}',
-                                        }};
-                    $("#id_{name:>s}").datepicker(datepicker_conf);
-                }});
+                                        dateFormat: '{format:>s}'}};
+                $("#id_{name:>s}").datepicker(datepicker_conf);
+            }});
         //]]>
         </script> '''.format(name=name, format=settings.JS_DATE_FORMAT)
         html = super(JqueryUIDateWidget, self).render(name, value, *args,
@@ -164,11 +162,11 @@ class JqueryIssueDateWidget(JqueryUIDateWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
-            var datepicker_conf = {{maxDate: new Date(),
-                                    minDate: new Date(1990, 1, 1),
-                                    dateFormat: '{format:>s}',
-                                    buttonImage: '{img_url}'}};
+            $(function() {{
+                var datepicker_conf = {{maxDate: new Date(),
+                                        minDate: new Date(1990, 1, 1),
+                                        dateFormat: '{format:>s}',
+                                        buttonImage: '{img_url}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
@@ -186,11 +184,11 @@ class JQueryUIAdmissionDateWidget(JqueryUIDateWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
-            var datepicker_conf = {{maxDate: new Date({year}, 11, 31),
-                                    minDate: new Date(),
-                                    dateFormat: '{format:>s}',
-                                    buttonImage: '{img_url}'}};
+            $(function() {{
+                var datepicker_conf = {{maxDate: new Date({year}, 11, 31),
+                                        minDate: new Date(),
+                                        dateFormat: '{format:>s}',
+                                        buttonImage: '{img_url}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
@@ -245,11 +243,11 @@ class JqSplitDateTimeWidget(MultiWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
+            $(function() {{
                 var datepicker_conf = {{maxDate: new Date(),
                                         dateFormat: '{format:>s}'}};
-                    $("#id_{name:>s}_0").datepicker(datepicker_conf);
-                }});
+                $("#id_{name:>s}_0").datepicker(datepicker_conf);
+            }});
         //]]>
         </script> '''.format(name=name, format=settings.JS_DATE_FORMAT)
         html = super(JqSplitDateTimeWidget, self).render(name, value, *args,
@@ -313,7 +311,7 @@ class SelectMultipleJS(forms.SelectMultiple):
             js = u"""
             <script type="text/javascript">
             //<![CDATA[
-            $(function(){
+            $(function() {
                 try {
                     $('#id_%s').bsmSelect({removeLabel: 'Удалить', title: '------'});
                 } catch(err) {if (console) {console.log(err);}}

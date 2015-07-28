@@ -31,14 +31,13 @@
                 type: 'POST',
                 data: {'email': $('#id_email').val()},
                 dataType:'json',
-                success: function(data, textStatus, jqXHR){
+                success: function(data, textStatus, jqXHR) {
                     if (data.ok) {
                         $('#email_form div').removeClass('error');
                         $('#email_err_span').remove();
                         mailEditToLabel();
                         $('#mail_change_success').show();
-                    }
-                    else {
+                    } else {
                         $('#email_form div').addClass('error');
                         var span = $('<span/>')
                             .attr('class', 'error')
@@ -47,16 +46,16 @@
                         $('#email_form label').append(span);
                     }
                 },
-                error: function(){
+                error: function() {
                     console.log('error')
                 },
-                complete: function(jqXHR, textStatus){
+                complete: function(jqXHR, textStatus) {
                 }
         })
     }
 
-        $(document).ready(function(){
-            $("#reset_password_btn").each(function(){
+        $(document).ready(function() {
+            $("#reset_password_btn").each(function() {
                 $(this).click(function() {
                     $( "#dialog-confirm" ).dialog({
                       resizable: false,

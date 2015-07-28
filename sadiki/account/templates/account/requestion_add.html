@@ -80,16 +80,16 @@
             }
         }
         var drawControl = new L.Control.Draw(draw_control_options);
-        function add_draw_control(map, control){
+        function add_draw_control(map, control) {
             map.addControl(control);
-            $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+            $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function() {
                 if (requestion_point) {
                     map.panTo(requestion_point);
                 }
             })
         }
 
-        $(document).ready(function(){
+        $(document).ready(function() {
             // прячем родной m2m django виджет
             $('#id_areas').hide();
 
@@ -124,7 +124,7 @@
             var points = L.layerGroup([]);
 
             map.addLayer(drawnItems);
-            if (requestion_marker){
+            if (requestion_marker) {
                 drawnItems.addLayer(requestion_marker);
             }
 
@@ -160,7 +160,7 @@
             // изменение приоритетных ДОУ
             $("#id_pref_sadiks").change(function(e, data) {
                 var value = parseInt(data.value);
-                if (data.type == 'add'){
+                if (data.type == 'add') {
                     pref_sadiks_ids.push(value);
                     renderMarkers(sadik_location_data, map)
                     map.panTo(sadik_location_data[value].location.slice().reverse())
@@ -195,7 +195,7 @@
             $("#areas_field .field-value").remove();
             $(".kidgs_list").remove();
             areas_ids = [];
-            $('#id_areas option:selected').each(function (){
+            $('#id_areas option:selected').each(function () {
                 this.selected=false;
             });
             areas_all.forEach(function (area) {
@@ -208,9 +208,9 @@
             renderMarkers(sadik_location_data, map);
         });
 
-        $('#id_areas, #id_distribute_in_any_sadik').change(function(){
-            if ($("#id_distribute_in_any_sadik").is(':checked')){
-                if ($("#id_areas").val()){
+        $('#id_areas, #id_distribute_in_any_sadik').change(function() {
+            if ($("#id_distribute_in_any_sadik").is(':checked')) {
+                if ($("#id_areas").val()) {
                     areas_ids = [parseInt($("#id_areas").val())]
                 } else {
                     areas_ids = []
