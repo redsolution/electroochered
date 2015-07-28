@@ -298,45 +298,6 @@
                     <p class="hint">Публично доступный профиль ВКонтакте повышает доверие граждан к Электронной очереди</p>
                     </div>
                 </div>
-                <div class="field">
-                    <label class="field-label">Имя:</label>
-                    <p class="field-value">
-                        <span class="value">{{ profile.first_name|verbose_value }}</span>
-                        <span class="controls">
-                        <span class="buttons">
-                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-                        </span>
-                        <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                        </span>
-                    </p>
-                </div>
-                <div class="field">
-                    <label class="field-label">Телефон:</label>
-                    <p class="field-value">
-                        <span class="value">{{ profile.phone_number|verbose_value }}</span>
-                        <span class="controls">
-                            <span class="buttons">
-                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-                            </span>
-                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                        </span>
-                    </p>
-                </div>
-                <div class="field">
-                    <label class="field-label">Skype:</label>
-                    <p class="field-value">
-                        <span class="value">{{ profile.skype|verbose_value }}</span>
-                        <span class="controls">
-                            <span class="buttons">
-                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-                            </span>
-                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                        </span>
-                    </p>
-                </div>
             {% else %}
                 <p>Заявитель не привязал к своему профилю аккаунт ВКонтакте</p>
             {% endif %}
