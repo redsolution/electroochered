@@ -721,8 +721,8 @@ class CoreViewsTest(TestCase):
         pdata_form = response.context['pdata_form']
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
-        self.assertIn(u'Документ заявителя с таким Тип документа,'
-                      u'Серия документа и Номер документа уже существует.',
+        self.assertIn(u'Документ заявителя с такими значениями полей: '
+                      u'Тип, Серия и Номер — уже зарегистрирован в системе.',
                       doc_form.non_field_errors())
         # проверяем, что данные не сохранились
         changed_profile = Profile.objects.get(id=profile2.id)

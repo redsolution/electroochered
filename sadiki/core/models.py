@@ -897,6 +897,15 @@ class PersonalDocument(models.Model):
         result_dict.update({'doc_type': self.get_doc_type_display()})
         return result_dict
 
+    def unique_error_message(self, model_class, unique_check):
+        if (model_class == type(self)
+                and unique_check == ('doc_type', 'series', 'number')):
+            return (u'Документ заявителя с такими значениями полей: '
+                    u'Тип, Серия и Номер — уже зарегистрирован в системе.')
+        else:
+            return super(PersonalDocument, self).unique_error_message(
+                model_class, unique_check)
+
     def __unicode__(self):
         format_string = u'{}, {} {}, выдан {} {}'
         if self.doc_type == PersonalDocument.DOC_TYPE_OTHER:
