@@ -14,7 +14,7 @@ from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
     Benefit, PersonalDocument
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
     JQueryUIAdmissionDateWidget, JqueryIssueDateWidget, SelectMultipleBenefits
-from sadiki.core.widgets import ChoiceWithTextOptionWidget
+from sadiki.core.widgets import SnilsWidget
 from sadiki.core.validators import passport_series_validator
 from sadiki.core.validators import passport_number_validator
 
@@ -57,6 +57,7 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].initial = datetime.date.today()
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
+        self.base_fields['child_snils'].widget = SnilsWidget()
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean_birthplace(self):
@@ -105,6 +106,7 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
+        self.base_fields['child_snils'].widget = SnilsWidget()
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
     def clean_birthplace(self):
@@ -172,6 +174,7 @@ class PersonalDataForm(ModelForm):
                   'snils', 'town', 'street', 'house']
 
     def __init__(self, *args, **kwargs):
+        self.base_fields['snils'].widget = SnilsWidget()
         super(PersonalDataForm, self).__init__(*args, **kwargs)
         try:
             self.fields['first_name'].initial = self.instance.first_name

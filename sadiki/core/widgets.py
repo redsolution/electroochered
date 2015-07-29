@@ -75,6 +75,12 @@ class ChoiceWithTextOptionWidget(Widget):
         return mark_safe('\n'.join(output))
 
 
+class SnilsWidget(TextInput):
+    def __init__(self):
+        attrs = {'data-mask': '999-999-999 99'}
+        return super(SnilsWidget, self).__init__(attrs=attrs)
+
+
 class DateRangeWidget(MultiWidget):
     def __init__(self, attrs=None):  
         _widgets = (
