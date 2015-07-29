@@ -285,25 +285,22 @@
                     {% with form.child_middle_name as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    {% with form.birth_date as field %}
+                    {% with form.sex as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    {% with form.sex as field %}
+                    {% with form.birth_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.birthplace as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    {% with form.child_snils as field %}
+                    {% with form.admission_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.kinship_type as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.kinship as field %}
-                        {% include "account/include/requestion-form-field.html" %}
-                    {% endwith %}
-                    {% with form.admission_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                 </div>
@@ -315,6 +312,9 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.document_number as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.child_snils as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div class="small-field">

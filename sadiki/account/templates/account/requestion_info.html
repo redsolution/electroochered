@@ -410,6 +410,12 @@
                 <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
+        <div class="field">
+            <label class="field-label">Дата рождения</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.birth_date }}</span>
+            </p>
+        </div>
         {% with change_requestion_form.birthplace as field %}
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
@@ -426,25 +432,13 @@
                 {% endif %}
             </div>
         {% endwith %}
-        {% with change_requestion_form.child_snils as field %}
-            <div class="field {% if field.errors %}error{% endif %}">
-                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
-                {% if not field.value or field.errors %}
-                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
-                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
-                    </p>
-                {% else %}
-                    <p class="field-value hidden-input">
-                        <label class="value">{{ field.value }}</label>
-                        {{ field }}
-                        <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
-                    </p>
-                {% endif %}
-                {% if can_change_requestion %}
-                    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
-                {% endif %}
-            </div>
-        {% endwith %}
+        <div class="field">
+            <label class="field-label">Желаемая дата зачисления</label>
+            <p class="field-value hidden-input">
+                <label id="admission_date_label" class="value">{{ requestion.admission_date }}</label>
+                {{ change_requestion_form.admission_date }}
+            </p>
+        </div>
         {% with change_requestion_form.kinship_type as field %}
             <div class="field {% if field.errors %}error{% endif %}">
                 <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
@@ -472,25 +466,11 @@
             </p>
         </div>
         <div class="field">
-            <label class="field-label">Дата рождения</label>
-            <p class="field-value">
-                <span class="value">{{ requestion.birth_date }}</span>
-            </p>
-        </div>
-        <div class="field">
             <label class="field-label">Возрастная группа</label>
             <p class="field-value">
                 <span class="value">{{ requestion.age_groups.0|default:"Ребёнок не попадает ни в одну возрастную категорию." }}</span>
             </p>
         </div>
-        <div class="field">
-            <label class="field-label">Желаемая дата зачисления</label>
-            <p class="field-value hidden-input">
-                <label id="admission_date_label" class="value">{{ requestion.admission_date }}</label>
-                {{ change_requestion_form.admission_date }}
-            </p>
-        </div>
-
         <div class="hidden">
             {{ change_requestion_form.location }}
         </div>
@@ -538,6 +518,25 @@
             </div>
             {% endfor %}
         </div>
+        {% with change_requestion_form.child_snils as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                {% if not field.value or field.errors %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
+                    </p>
+                {% else %}
+                    <p class="field-value hidden-input">
+                        <label class="value">{{ field.value }}</label>
+                        {{ field }}
+                        <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% endif %}
+                {% if can_change_requestion %}
+                    <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                {% endif %}
+            </div>
+        {% endwith %}
         <div class="field">
             <label class="field-label">Льготы</label>
             {% if can_change_benefits %}
