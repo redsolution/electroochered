@@ -210,6 +210,9 @@ class EvidienceDocumentQueryset(models.query.QuerySet):
     def requestion_identity_documents(self):
         return self.filter(template__destination=REQUESTION_IDENTITY)
 
+    def other_documents(self):
+        return self.exclude(template__destination=REQUESTION_IDENTITY)
+
 
 class EvidienceDocument(models.Model):
 

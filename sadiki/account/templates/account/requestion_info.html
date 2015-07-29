@@ -497,7 +497,7 @@
         </div>
         <div class="block-head top-indent">Документы:</div>
         <div class="field">
-            {% for document in requestion.evidience_documents %}
+            {% for document in requestion.evidience_documents.requestion_identity_documents %}
             <label class="field-label">{{ document.template }}</label>
             <div>
                 <span class="document-info">
@@ -537,6 +537,28 @@
                 {% endif %}
             </div>
         {% endwith %}
+        <div class="field">
+            {% for document in requestion.evidience_documents.other_documents %}
+            <label class="field-label">{{ document.template }}</label>
+            <div>
+                <span class="document-info">
+                {% if not document.confirmed %}
+                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-not-approved">Документ не подтвержден оператором</span>
+                    </div>
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-approved">Документ подтвержден</span>
+                    </div>
+                {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
         <div class="field">
             <label class="field-label">Льготы</label>
             {% if can_change_benefits %}
