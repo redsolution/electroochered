@@ -33,6 +33,9 @@
                 </div>
             {% endfor %}
         </div>
+        {% with form.child_snils as field %}
+            {% include "account/include/requestion-form-field.html" %}
+        {% endwith %}
         <div class="small-field">
         {% with benefits_form.benefits as field %}
             {% include "account/include/requestion-form-field.html" %}

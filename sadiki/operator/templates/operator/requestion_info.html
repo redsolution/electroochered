@@ -106,9 +106,6 @@
         </div>
         {% endfor %}
     </div>
-    <div class="documents-form">
-        {% include "operator/includes/documents_formset.html" %}
-    </div>
     {% with change_requestion_form.child_snils as field %}
         <div class="field {% if field.errors %}error{% endif %}">
             <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
@@ -128,6 +125,9 @@
             {% endif %}
         </div>
     {% endwith %}
+    <div class="documents-form">
+        {% include "operator/includes/documents_formset.html" %}
+    </div>
     <div class="field">
         <label class="field-label">Льготы</label>
         {% if can_change_benefits %}
