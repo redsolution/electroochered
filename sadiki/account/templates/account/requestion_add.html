@@ -335,18 +335,15 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div id="areas_field" class="field">
-                        <label id="sg_label" class="field-label">Предпочитаемые группы ДОУ</label> 
-                        <div></div>
+                        <label id="sg_label" class="field-label">{{ field.label }}</label>
+                        <p class="hint hint-multiline">{{ field.help_text }}</p>
                         {{ form.areas }}
                         <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                     </div>
                 {% else %}
                     {% with form.areas as field %}
                         <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label> </label>
-                        <div></div>
-                        {% if field.help_text %}
-                            <p class="hint">{{ field.help_text }}</p>
-                        {% endif %}
+                        <p class="hint hint-multiline">{{ field.help_text }}</p>
                         {{ field }}
                         <select class="areas_all">
                             <option value selected="selected">----------</option>
@@ -358,8 +355,12 @@
                     {% endwith %}
                 {% endif %}
                 {% with form.pref_sadiks as field %}
-                    <div class="small-field">
-                        {% include "account/include/requestion-form-field.html" %}
+                    <div class="field {% if field.errors %}error{% endif %}">
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+                        <p class="hint hint-multiline">{{ field.help_text }}</p>
+                        <p class="field-value">
+                            {{ field }}
+                        </p>
                     </div>
                 {% endwith %}
                 </div>
@@ -368,7 +369,8 @@
                 <div class="requestion-info">
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
-                        <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
+                        <label class="field-label">{{ form.location.label }}{% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                        <p class="hint hint-multiline">{{ form.location.help_text }}</p>
                         <div style="overflow: hidden; padding-right: .5em;">
                             <a class="btn" id="get_coords" {% if form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
                             <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом">
