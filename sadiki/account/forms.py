@@ -63,13 +63,13 @@ class RequestionForm(FormWithDocument):
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
         self.base_fields['child_snils'].widget = SnilsWidget()
-        self.base_fields['pref_sadiks'].label = u'Предпочитаемые группы ДОУ'
+        self.base_fields['pref_sadiks'].label = u'Выберите ДОУ'
         self.base_fields['pref_sadiks'].help_text = (
             u'Выберите приоритетные для зачисления ДОУ. Нежелательно выбирать '
             u'более 3-х учреждений. Приоритетные детские сады могут находиться'
             u' в разных группах ДОУ. Список приоритетных ДОУ не даёт прав на '
             u'внеочередное зачисление в выбранные ДОУ.')
-        self.base_fields['areas'].label = u'Выберите ДОУ'
+        self.base_fields['areas'].label = u'Предпочитаемые группы ДОУ'
         self.base_fields['areas'].help_text = (
             u'Выберите группу ДОУ. Все детские сады муниципалитета объединены '
             u'в группы по территориальному признаку. Вы можете выбрать '
