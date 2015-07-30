@@ -400,8 +400,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         change_requestion_form = self.change_requestion_form(
             request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
-        pref_sadiks_form = preferred_sadik_form(request.POST,
-                                                instance=requestion)
+        pref_sadiks_form = self.preferred_sadik_form(request.POST,
+                                                     instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(request.POST,
