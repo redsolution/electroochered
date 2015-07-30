@@ -66,7 +66,9 @@ class OperatorRequestionForm(RequestionForm):
         super(OperatorRequestionForm, self).__init__(*args, **kwargs)
         self.fields['location'].label = u'Укажите местоположение заявителя'
         self.fields['areas'].label = u'Предпочитаемые группы ДОУ'
+        self.fields['areas'].help_text = u''
         self.fields['pref_sadiks'].label = u'Выберите ДОУ'
+        self.fields['pref_sadiks'].help_text = u''
 
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(

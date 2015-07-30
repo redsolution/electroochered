@@ -129,7 +129,7 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
         self.base_fields['child_snils'].widget = SnilsWidget()
-        self.base_fields['location'].label = (
+        self.base_fields['location'].help_text = (
             u'Ваше местоположение. Относительно этого местоположения оператор '
             u'будет подбирать ближайший детский сад из выбранных групп ДОУ, '
             u'если в приоритетных ДОУ не останется свободных мест. Для '
@@ -186,7 +186,7 @@ class PreferredSadikForm(forms.ModelForm):
         fields = ('areas', 'pref_sadiks')
 
     def __init__(self, *args, **kwargs):
-        self.base_fields['areas'].label = (
+        self.base_fields['areas'].help_text = (
             u'Предпочитаемые группы ДОУ. Все детские сады муниципалитета '
             u'объединены в группы по территориальному признаку. Вы можете '
             u'выбрать несколько групп ДОУ или удалить неподходящие. От выбора '
@@ -196,7 +196,7 @@ class PreferredSadikForm(forms.ModelForm):
             u'Учреждения выбранной группы ДОУ на карте окрашиваются в желтый '
             u'цвет. Изменив масштаб карты, можно оценить территорию, '
             u'охваченную выбранными группами ДОУ.')
-        self.base_fields['pref_sadiks'].label = (
+        self.base_fields['pref_sadiks'].help_text = (
             u'Приоритетные ДОУ. Нежелательно выбирать более 3-х учреждений. '
             u'Приоритетные детские сады могут находиться в разных группах '
             u'ДОУ. До момента проведения комплектования вы можете '
