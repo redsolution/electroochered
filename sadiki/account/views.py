@@ -357,6 +357,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
     logger_action = ACCOUNT_CHANGE_REQUESTION
     change_requestion_form = ChangeRequestionForm
+    preferred_sadik_form = PreferredSadikForm
 
     def can_change_benefits(self, requestion):
         return requestion.status == STATUS_REQUESTER_NOT_CONFIRMED
@@ -377,7 +378,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             instance=requestion,
             initial={'kinship_type': requestion.kinship_type})
         change_benefits_form = BenefitsForm(instance=requestion)
-        pref_sadiks_form = PreferredSadikForm(instance=requestion)
+        pref_sadiks_form = self.preferred_sadik_form(instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(
@@ -399,7 +400,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         change_requestion_form = self.change_requestion_form(
             request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
-        pref_sadiks_form = PreferredSadikForm(request.POST, instance=requestion)
+        pref_sadiks_form = preferred_sadik_form(request.POST,
+                                                instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(request.POST,

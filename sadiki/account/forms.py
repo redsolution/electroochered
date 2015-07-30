@@ -23,11 +23,9 @@ class RequestionForm(FormWithDocument):
     template = TemplateFormField(
         destination=REQUESTION_IDENTITY, label=u'Тип документа')
     pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
+        queryset=Sadik.objects.filter(
             active_registration=True).select_related('area'),
-        required=True, widget=SelectMultipleJS(),
-        help_text=u'Этот список не даёт прав на внеочередное зачисление '
-                  u'в выбранные ДОУ')
+        required=True, widget=SelectMultipleJS(),)
     kinship_type = forms.ChoiceField(
         label=u'Степень родства заявителя',
         choices=Requestion.REQUESTER_TYPE_CHOICES)
@@ -46,7 +44,13 @@ class RequestionForm(FormWithDocument):
 
     def __init__(self, *args, **kwds):
         self.base_fields['areas'].help_text = None
-        self.base_fields['location'].label = u'Укажите ваше местоположение'
+        self.base_fields['location'].label = (
+            u'Укажите местоположение заявки. Относительно этого '
+            u'местоположения оператор будет подбирать ближайший детский сад '
+            u'из выбранных групп ДОУ, если в приоритетных ДОУ не останется '
+            u'свободных мест. Введите адрес в строку поиска, нажмите кнопку. '
+            u'Далее кликните на иконке маркера и перетащите маркер в нужную '
+            u'точку на карте.')
         self.base_fields['location'].required = True
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\
@@ -58,6 +62,21 @@ class RequestionForm(FormWithDocument):
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
         self.base_fields['child_snils'].widget = SnilsWidget()
+        self.base_fields['pref_sadiks'].label = (
+            u'Выберите приоритетные для зачисления ДОУ. Нежелательно выбирать '
+            u'более 3-х учреждений. Приоритетные детские сады могут находиться'
+            u' в разных группах ДОУ. Список приоритетных ДОУ не даёт прав на '
+            u'внеочередное зачисление в выбранные ДОУ.')
+        self.base_fields['areas'].label = (
+            u'Выберите группу ДОУ. Все детские сады муниципалитета объединены '
+            u'в группы по территориальному признаку. Вы можете выбрать '
+            u'несколько групп ДОУ, количество не ограничено. От выбора групп '
+            u'ДОУ будет зависеть участие вашей заявки в комплектовании. При '
+            u'комплектовании ваша заявка будет претендовать только в '
+            u'учреждения выбранных групп ДОУ и приоритетные детские сады. '
+            u'Учреждения выбранной группы ДОУ на карте окрашиваются в желтый '
+            u'цвет. Изменив масштаб карты, можно оценить территорию, '
+            u'охваченную выбранными группами ДОУ.')
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean_birthplace(self):
@@ -107,6 +126,13 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
         self.base_fields['child_snils'].widget = SnilsWidget()
+        self.base_fields['location'].label = (
+            u'Ваше местоположение. Относительно этого местоположения оператор '
+            u'будет подбирать ближайший детский сад из выбранных групп ДОУ, '
+            u'если в приоритетных ДОУ не останется свободных мест. Для '
+            u'изменения местоположения наведите курсор мыши на маркер и '
+            u'перетащите маркер, зажав левую клавишу мыши. Не забудьте '
+            u'сохранить изменения.')
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
     def clean_birthplace(self):
@@ -148,13 +174,31 @@ class BenefitsForm(forms.ModelForm):
 
 class PreferredSadikForm(forms.ModelForm):
     pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
+        queryset=Sadik.objects.filter(
             active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS())
 
     class Meta:
         model = Requestion
         fields = ('areas', 'pref_sadiks')
+
+    def __init__(self, *args, **kwargs):
+        self.base_fields['areas'].label = (
+            u'Предпочитаемые группы ДОУ. Все детские сады муниципалитета '
+            u'объединены в группы по территориальному признаку. Вы можете '
+            u'выбрать несколько групп ДОУ или удалить неподходящие. От выбора '
+            u'групп ДОУ будет зависеть участие вашей заявки в комплектовании. '
+            u'При комплектовании ваша заявка будет претендовать только в '
+            u'учреждения выбранных групп ДОУ и приоритетные детские сады. '
+            u'Учреждения выбранной группы ДОУ на карте окрашиваются в желтый '
+            u'цвет. Изменив масштаб карты, можно оценить территорию, '
+            u'охваченную выбранными группами ДОУ.')
+        self.base_fields['pref_sadiks'].label = (
+            u'Приоритетные ДОУ. Нежелательно выбирать более 3-х учреждений. '
+            u'Приоритетные детские сады могут находиться в разных группах '
+            u'ДОУ. До момента проведения комплектования вы можете '
+            u'самостоятельно изменить список приоритетных ДОУ.')
+        super(PreferredSadikForm, self).__init__(*args, **kwargs)
 
 
 class SocialProfilePublicForm(ModelForm):

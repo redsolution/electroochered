@@ -1664,11 +1664,11 @@ dl {
 }
 
 #address_text {
-    margin-top: 0px;
+    margin-top: 5px;
     margin-bottom: 5px;
     height: 31px;
     font-size: 16px;
-    width: 100%;
+    width: 70%;
 }
 
 #requestion-info-block {
@@ -1694,7 +1694,7 @@ dl {
 #get_coords {
     float: right;
     position: relative;
-    top: 21px;
+    top: 8px;
 }
 
 #coords_success {

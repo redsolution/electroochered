@@ -45,6 +45,7 @@ from sadiki.operator.views.base import OperatorPermissionMixin, \
 from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
+from sadiki.operator.forms import OperatorPreferredSadikForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
 from sadiki.core.exceptions import TransitionNotAllowed
 
@@ -192,6 +193,7 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     template_name = "operator/requestion_info.html"
     logger_action = CHANGE_REQUESTION_BY_OPERATOR
     change_requestion_form = OperatorChangeRequestionForm
+    preferred_sadik_form = OperatorPreferredSadikForm
 
     def redirect_to(self, requestion):
         return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})
