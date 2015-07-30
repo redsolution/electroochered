@@ -214,22 +214,16 @@ function change_document_hint($input, help_text) {
                 $kinship_text_field.find('label.value').hide();
                 $kinship_text_field.find('input').show().focus();
             }
-            $kinship_text_field.find('p.hint').addClass('hidden');
-            $kinship_choice_field.find('p.hint').addClass('hidden');
         } else if (kinship_type == '') {
             $kinship_text_field.addClass('hidden');
             $kinship_text_field.find('input').val('');
-            $kinship_text_field.find('p.hint').addClass('hidden');
             $kinship_text_field.removeClass('error');
             $kinship_text_field.find('label.field-label span').html('');
-            $kinship_choice_field.find('p.hint').addClass('hidden');
         } else {
             $kinship_text_field.find('input').val('');
             $kinship_text_field.addClass('hidden');
-            $kinship_text_field.find('p.hint').removeClass('hidden');
             $kinship_text_field.removeClass('error');
             $kinship_text_field.find('label.field-label span').html('');
-            $kinship_choice_field.find('p.hint').removeClass('hidden');
         }
     }
 
