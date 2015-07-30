@@ -101,7 +101,7 @@
             });
 
             delete_special_benefits();
-            
+
             {% if use_districts %}
                 $('#areas_field').hide();
             {% endif %}
@@ -171,7 +171,7 @@
                     renderMarkers(sadik_location_data, map)
                 }
             });
-             
+
             $('#id_district').prop('selectedIndex', 0);
 
             $('#id_template').regexpValidate('#id_document_number');
@@ -180,7 +180,7 @@
 
             $('#id_kinship_type').kinshipFieldHandler();
         }) // конец $(document).ready()
-        
+
         // при выборе района прячем поле с районом, показываем ТО
         $(document).on("change", "#id_district", function () {
             var id = $(this).val();
@@ -355,6 +355,7 @@
                     {% endwith %}
                 {% endif %}
                 {% with form.pref_sadiks as field %}
+                  <div class="small-field">
                     <div class="field {% if field.errors %}error{% endif %}">
                         <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
                         <p class="hint hint-multiline">{{ field.help_text }}</p>
@@ -362,6 +363,7 @@
                             {{ field }}
                         </p>
                     </div>
+                  </div>
                 {% endwith %}
                 </div>
             </div>
@@ -378,7 +380,7 @@
                         <div id="coords_alert" class="alert" style="display: none;">
                         </div>
                         <div id="coords_success" class="alert alert-success" style="display: none;">
-                            Теперь при помощи кнопки <i class="icon-map-marker"></i>укажите 
+                            Теперь при помощи кнопки <i class="icon-map-marker"></i>укажите
                             местоположение на карте, или перетащите маркер заявки мышкой на нужное место
                         </div>
                     <div class="hidden">
