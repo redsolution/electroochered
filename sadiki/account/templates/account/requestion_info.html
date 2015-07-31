@@ -342,7 +342,9 @@
         {% endif %}
         </div>
     {% endblock top_block %}
-<form id="requestion-form" action='.' method="post" class="requestion-form {% if not can_change_requestion %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
+<form id="requestion-form" action='.' method="post"
+      class="requestion-form form-filled{% if not can_change_requestion %} form-disabled{% endif %}"
+      onsubmit="form_submit(this); return false">
 <div class="row">
     {% csrf_token %}
     {{ pref_sadiks_form.media }}

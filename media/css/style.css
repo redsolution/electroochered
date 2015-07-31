@@ -657,6 +657,10 @@ table.table.table-bordered tr.highlight td {
     margin-top: 3px;
 }
 
+.form-filled .field {
+  margin-bottom: 5px;
+}
+
 .requestion-add-form input{
     width: 100%
 }
@@ -1442,7 +1446,7 @@ tr.dynamic-form .errorlist {
 }
 
 .requestion-info .field{
-    padding: 5px 5px 0 5px;
+    padding: 5px;
     margin-left: -5px;
     border: 1px solid white;
 }
@@ -1453,6 +1457,7 @@ tr.dynamic-form .errorlist {
 
 .requestion-info .field.error{
     background: #ffdfdf; border: 1px solid #f3afb5;
+    margin-bottom: 5px;
     /* CSS3 */
     border-radius:         4px;
     -webkit-border-radius: 4px;
