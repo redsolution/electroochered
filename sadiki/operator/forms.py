@@ -66,9 +66,10 @@ class OperatorRequestionForm(RequestionForm):
         super(OperatorRequestionForm, self).__init__(*args, **kwargs)
         self.fields['location'].label = u'Укажите местоположение заявителя'
         self.fields['areas'].label = u'Предпочитаемые группы ДОУ'
-        self.fields['areas'].help_text = u''
         self.fields['pref_sadiks'].label = u'Выберите ДОУ'
-        self.fields['pref_sadiks'].help_text = u''
+        self.fields['location'].help_text = ''
+        self.fields['areas'].help_text = ''
+        self.fields['pref_sadiks'].help_text = ''
 
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(
@@ -90,14 +91,15 @@ class OperatorChangeRequestionForm(ChangeRequestionForm):
     def __init__(self, *args, **kwargs):
         super(OperatorChangeRequestionForm, self).__init__(*args, **kwargs)
         self.fields['location'].label = u"Местоположение заявителя"
+        self.fields['location'].help_text = ''
 
 
 class OperatorPreferredSadikForm(PreferredSadikForm):
 
     def __init__(self, *args, **kwargs):
         super(OperatorPreferredSadikForm, self).__init__(*args, **kwargs)
-        self.fields['areas'].label = u'Предпочитаемые группы ДОУ'
-        self.fields['pref_sadiks'].label = u'Приоритетные ДОУ'
+        self.fields['areas'].help_text = ''
+        self.fields['pref_sadiks'].help_text = ''
 
 
 class OperatorSearchForm(PublicSearchForm):

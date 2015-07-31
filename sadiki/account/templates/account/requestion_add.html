@@ -174,6 +174,15 @@
 
             $('#id_district').prop('selectedIndex', 0);
 
+            {% if request.user.is_operator %}
+                // tooltip к полю "Группы ДОУ"
+                $("#pref_dou_groups").popover({
+                    title: "Группы ДОУ",
+                    content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
+                    "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
+                });
+            {% endif %}
+
             $('#id_template').regexpValidate('#id_document_number');
 
             $('#id_child_snils').snilsValidate();
@@ -332,18 +341,28 @@
                 {% if use_districts %}
                     {% if form.areas.errors %} <span class="error">Пожалуйста, выберите район и соответствующие группы ДОУ для зачисления.</span>{% endif %}
                     {% with form.district as field %}
-                        {% include "account/include/requestion-form-field.html" %}
+                        <div class="field {% if field.errors %}error{% endif %}">
+                            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+                            <p class="field-value">
+                                {{ field }}
+                            </p>
+                            <p class="hint"></p>
+                        </div>
                     {% endwith %}
                     <div id="areas_field" class="field">
-                        <label id="sg_label" class="field-label">{{ field.label }}</label>
-                        <p class="hint hint-multiline">{{ field.help_text }}</p>
+                        <label id="sg_label" class="field-label">{{ form.areas.label }}</label>
+                        {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
+                        <div></div>
+                        {% if form.areas.help_text %}<p class="hint hint-multiline">{{ form.areas.help_text }}</p>{% endif %}
                         {{ form.areas }}
                         <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                     </div>
                 {% else %}
                     {% with form.areas as field %}
                         <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label> </label>
-                        <p class="hint hint-multiline">{{ field.help_text }}</p>
+                        {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
+                        <div></div>
+                        {% if field.help_text %}<p class="hint hint-multiline">{{ field.help_text }}</p>{% endif %}
                         {{ field }}
                         <select class="areas_all">
                             <option value selected="selected">----------</option>
@@ -358,7 +377,7 @@
                   <div class="small-field">
                     <div class="field {% if field.errors %}error{% endif %}">
                         <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
-                        <p class="hint hint-multiline">{{ field.help_text }}</p>
+                        {% if field.help_text %}<p class="hint hint-multiline">{{ field.help_text }}</p>{% endif %}
                         <p class="field-value">
                             {{ field }}
                         </p>
@@ -372,7 +391,7 @@
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
                         <label class="field-label">{{ form.location.label }}{% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
-                        <p class="hint hint-multiline">{{ form.location.help_text }}</p>
+                        {% if form.location.help_text %}<p class="hint hint-multiline">{{ form.location.help_text }}</p>{% endif %}
                         <div style="overflow: hidden; padding-right: .5em;">
                             <a class="btn" id="get_coords" {% if form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
                             <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом">
@@ -387,6 +406,10 @@
                         {{ form.location }}
                     </div>
                     <div id="account-requestion-map"></div>
+                    {% if request.user.is_operator %}
+                        <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
+                        Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
+                    {% endif %}
                     </div>
                 </div>
                 <ul class='map-legend'>

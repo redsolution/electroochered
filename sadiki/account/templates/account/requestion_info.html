@@ -310,6 +310,15 @@
             // поднимаем картинку виджета выбора даты поступления
             $('#id_admission_date').next().css('margin-top', '-5px');
 
+            {% if request.user.is_operator %}
+                // tooltip к полю "Группы ДОУ"
+                $("#pref_dou_groups").popover({
+                    title: "Группы ДОУ",
+                    content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
+                    "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
+                });
+            {% endif %}
+
             $("#queue_explain").popover({
                 title: "Положние заявки в очереди",
                 content: '<p>В число "Заявок перед вами" входят заявки со статусами Очередник-не подтвержден, Очередник, Выделено место, На комплектовании.</p><br>' +
@@ -595,17 +604,19 @@
             <div id="district_div">
                 <label class="field-label">Район</label>
                 <p class="field-value hidden-input">
-                    <label class="value">{{ requestion.district }}</label>
+                    <label class="value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if requestion.district %}{{ requestion.district }}{% else %}Не указан{% endif %}
+                    </label>
                     {{ change_requestion_form.district }}
                     <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                 </p>
+                <p class="hint"></p>
             </div>
             {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
-            <p class="field-label">{{ pref_sadiks_form.areas.label }}</p>
-            <label class="field-label">
-                {% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}
-            </label>
+            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
+            {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
+            {% if pref_sadiks_form.areas.help_text %}<p class="hint hint-multiline">{{ pref_sadiks_form.areas.help_text }}</p>{% endif %}
             {% for area in requestion.areas.all %}
                 {% if pref_sadiks_form.areas.value %}
                 <p class="field-value hidden-input">
@@ -627,8 +638,8 @@
             <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
         </div>
         <div class="field">
-            <p class="field-label">{{ pref_sadiks_form.pref_sadiks.label }}</p>
-            <label class="field-label"></label>
+            <label class="field-label">{{ pref_sadiks_form.pref_sadiks.label }}</label>
+            {% if pref_sadiks_form.pref_sadiks.help_text %}<p class="hint hint-multiline">{{ pref_sadiks_form.pref_sadiks.help_text }}</p>{% endif %}
             {% if can_change_requestion %}
                 {{ pref_sadiks_form.pref_sadiks }}
             {% else %}
@@ -650,8 +661,8 @@
     <div class="span6">
         <div class="requestion-info">
         <div id="location-header" class="{% if change_requestion_form.location.errors %}error {% endif %}field">
-            <p class="field-label">{{ change_requestion_form.location.label }}</p>
-            <label class="field-label">{% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+            <label class="field-label">{{ change_requestion_form.location.label }}{% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+            {% if change_requestion_form.location.help_text %}<p class="hint hint-multiline">{{ change_requestion_form.location.help_text }}</p>{% endif %}
             <div style="overflow: hidden; padding-right: .5em;">
                 <a class="btn" id="get_coords" {% if change_requestion_form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
                 <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
@@ -661,6 +672,10 @@
                 Теперь при помощи мышки перетащите маркер заявки на новое местоположение на карте
             </div>
             <div id="account-requestion-map"></div>
+            {% if request.user.is_operator %}
+                <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
+                Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
+            {% endif %}
         </div>
         </div>
         <ul class='map-legend'>
