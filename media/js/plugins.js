@@ -163,6 +163,7 @@ function change_document_hint($input, help_text) {
         var $doc_series_field = $doc_fields.find('#id_series').parents('div.field');
         var $doc_number_field = $doc_fields.find('#id_number').parents('div.field');
         var $doc_issued_by_field = $doc_fields.find('#id_issued_by').parents('div.field');
+        var format_error_regexp = new RegExp('^.*неверный формат.*$');
         if (doc_type == 1) { // тип документа "Иное"
             $doc_name_field.removeClass('hidden');
             if (!$doc_name_field.find('input').val()) {
@@ -175,8 +176,12 @@ function change_document_hint($input, help_text) {
             $doc_series_field.removeClass('error');
             $doc_series_field.find('label span.errors').text('');
             $doc_issued_by_field.find('label span.hint').show();
-            $doc_number_field.removeClass('error');
-            $doc_number_field.find('label span.errors').text('');
+            $doc_issued_by_field.removeClass('error');
+            $doc_issued_by_field.find('label span.errors').text('');
+            if (format_error_regexp.test($doc_number_field.find('label span.errors').text())) {
+                $doc_number_field.removeClass('error');
+                $doc_number_field.find('label span.errors').text('');
+            }
         } else {
             $doc_name_field.find('input').val('');
             $doc_name_field.addClass('hidden');
