@@ -65,7 +65,7 @@ class OperatorRequestionForm(RequestionForm):
     def __init__(self, *args, **kwargs):
         super(OperatorRequestionForm, self).__init__(*args, **kwargs)
         self.fields['location'].label = u'Укажите местоположение заявителя'
-        self.fields['areas'].label = u'Предпочитаемые группы ДОУ'
+        self.fields['areas'].label = u'Выберите группы ДОУ'
         self.fields['pref_sadiks'].label = u'Выберите ДОУ'
         self.fields['location'].help_text = ''
         self.fields['areas'].help_text = ''
