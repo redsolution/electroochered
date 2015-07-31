@@ -1145,8 +1145,7 @@ class Requestion(models.Model):
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     kinship = models.CharField(
-        u'Степень родства заявителя', max_length=50, blank=True, null=True,
-        help_text=u'Укажите, кем приходится заявитель ребёнку')
+        u'Степень родства заявителя', max_length=50, blank=True, null=True)
 
     @property
     def kinship_type(self):

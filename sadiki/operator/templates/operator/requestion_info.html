@@ -108,7 +108,7 @@
     </div>
     {% with change_requestion_form.child_snils as field %}
         <div class="field {% if field.errors %}error{% endif %}">
-            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}<span class="hint">{% if not field.field.required %} (при наличии){% endif %}</span></label>
             {% if not field.value or field.errors %}
                 <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
                     {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
@@ -121,7 +121,7 @@
                 </p>
             {% endif %}
             {% if can_change_requestion %}
-                <p class="hint">{% if not field.field.required %}При наличии{% endif %}{% if not field.field.required and field.help_text %}. {% endif %}{% if field.help_text %}{{ field.help_text }}{% endif %}</p>
+                <p class="hint">{{ field.help_text }}</p>
             {% endif %}
         </div>
     {% endwith %}

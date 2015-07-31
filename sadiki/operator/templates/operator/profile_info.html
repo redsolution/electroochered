@@ -218,6 +218,7 @@
                                             <a class="editor" href="#" onclick="editField(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                                         </p>
                                     {% endif %}
+                                    <p class="hint">{{ field.help_text }}</p>
                                 </div>
                             {% endwith %}
                             {% with doc_form.doc_name as field %}
@@ -244,9 +245,7 @@
                                         {{ field }}
                                     </p>
                                 {% endif %}
-                                {% if field.help_text %}
-                                    <p class="hint">{{ field.help_text }}</p>
-                                {% endif %}
+                                <p class="hint">{{ field.help_text }}</p>
                             </div>
                             {% endwith %}
                             {% with doc_form.issued_by as field %}

@@ -170,15 +170,21 @@ function change_document_hint($input, help_text) {
                 $doc_name_field.find('label.value').hide();
                 $doc_name_field.find('input').show().focus();
             }
-            $doc_name_field.find("p.hint").addClass('hidden');
-            $doc_issued_by_field.find("p.hint").removeClass('hidden');
+            $doc_name_field.find('label span.hint').hide();
+            $doc_series_field.find('label span.hint').show();
+            $doc_series_field.removeClass('error');
+            $doc_series_field.find('label span.errors').text('');
+            $doc_issued_by_field.find('label span.hint').show();
+            $doc_number_field.removeClass('error');
+            $doc_number_field.find('label span.errors').text('');
         } else {
             $doc_name_field.find('input').val('');
             $doc_name_field.addClass('hidden');
-            $doc_name_field.find("p.hint").removeClass('hidden');
             $doc_name_field.removeClass('error');
             $doc_name_field.find('label.field-label span').html('');
-            $doc_issued_by_field.find("p.hint").addClass('hidden');
+            $doc_name_field.find('label span.hint').show();
+            $doc_series_field.find('label span.hint').hide();
+            $doc_issued_by_field.find('label span.hint').hide();
         }
         // валидация содержимого полей "серия" и "номер" для типа документа "Паспорт"
         if (doc_type == 2) {
@@ -187,7 +193,7 @@ function change_document_hint($input, help_text) {
             $doc_number_field.find('p.hint').html('Формат: 123456');
             bind_new_regexp($doc_number_field.find('input'), '^[0-9]{6}$');
         } else {
-            $doc_series_field.find('p.hint').html('При наличии');
+            $doc_series_field.find('p.hint').html('');
             $doc_series_field.find('input').off('keyup');
             $doc_number_field.find('p.hint').html('');
             $doc_number_field.find('input').off('keyup');
@@ -209,6 +215,7 @@ function change_document_hint($input, help_text) {
         var $kinship_text_field = $('#id_kinship').parents('div.field');
         if (kinship_type == '0') {
             $kinship_text_field.removeClass('hidden');
+            $kinship_text_field.find('label span.hint').hide();
             if (!$kinship_text_field.find('input').val()) {
                 $kinship_text_field.find('a').hide();
                 $kinship_text_field.find('label.value').hide();
