@@ -129,7 +129,7 @@
         {% include "operator/includes/documents_formset.html" %}
     </div>
     <div class="field">
-        <label class="field-label">Льготы</label>
+        <label class="field-label">Льготы<span class="hint"> (при наличии)</span></label>
         {% if can_change_benefits %}
             {{ change_benefits_form.benefits }}
         {% else %}
