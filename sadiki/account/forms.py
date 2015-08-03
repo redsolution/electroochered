@@ -80,6 +80,7 @@ class RequestionForm(FormWithDocument):
             u'Учреждения выбранной группы ДОУ на карте окрашиваются в желтый '
             u'цвет. Изменив масштаб карты, можно оценить территорию, '
             u'охваченную выбранными группами ДОУ.')
+        self.base_fields['district'].label = u'Выберите район'
         super(RequestionForm, self).__init__(*args, **kwds)
 
     def clean_birthplace(self):
