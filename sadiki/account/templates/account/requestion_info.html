@@ -286,6 +286,15 @@
         $(document).ready(function() {
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+
+            // отображаем все выбранные группы ДОУ
+            if ($('#id_areas').val()) {
+                $('#id_areas').val().forEach(function (area_id) {
+                    add_area_field($("#add_sg"), area_id, areas_all[area_id-1].name);
+                });
+                $('#areas_select_first').hide();
+            }
+
             // сообщение о том, что поле было изменено + запрос при закрытии окна
             $('input, select').not('#address_text').bind('change', function() {
                 var container_el = $(this).parents('.field');
@@ -615,25 +624,14 @@
             <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
             {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
             {% if pref_sadiks_form.areas.help_text %}<p class="hint hint-multiline">{{ pref_sadiks_form.areas.help_text }}</p>{% endif %}
-            {% for area in requestion.areas.all %}
-                {% if pref_sadiks_form.areas.value %}
-                <p class="field-value hidden-input">
-                    <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
-                    <a id="{{ area.id }}" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">
-                            {{ area|default:"Весь муниципалитет" }}
-                    </a> <span class="caret caret-right caret-margins"></span>
-                    <a class="editor" href="#" onclick="del_field(this); return false"
-                        data-toggle="tooltip" title="Удалить группу ДОУ">
-                        <i id="area-close" class="icon-remove"></i>
-                    </a>
-                </p>
-                {% endif %}
-                <ul class="kidgs_list unstyled">
-                </ul>
-            {% endfor %}
-            <div></div>
+            <select id="areas_select_first" class="areas_all">
+                <option value selected="selected">----------</option>
+                {% for area in areas_all %}
+                <option value="{{ area.id }}">{{ area }}</option>
+                {% endfor %}
+            </select>
             {{ pref_sadiks_form.areas }}
-            <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+            <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
         </div>
         <div class="field">
             <label class="field-label">{{ pref_sadiks_form.pref_sadiks.label }}</label>
