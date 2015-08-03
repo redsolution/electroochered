@@ -393,7 +393,7 @@
                         <label class="field-label">{{ form.location.label }}{% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
                         {% if form.location.help_text %}<p class="hint hint-multiline">{{ form.location.help_text }}</p>{% endif %}
                         <div style="overflow: hidden; padding-right: .5em;">
-                            <a class="btn" id="get_coords" {% if form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+                            <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
                             <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом">
                         </div>
                         <div id="coords_alert" class="alert" style="display: none;">
