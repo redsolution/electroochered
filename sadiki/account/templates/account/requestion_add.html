@@ -103,8 +103,18 @@
             delete_special_benefits();
 
             {% if use_districts %}
-                $('#areas_field').hide();
+                if (!$('#id_district').val()) {
+                    $('#areas_field').hide();
+                }
             {% endif %}
+
+            // отображаем все выбранные группы ДОУ
+            if ($('#id_areas').val()) {
+                $('#id_areas').val().forEach(function (area_id) {
+                    add_area_field($("#add_sg"), area_id, areas_all[area_id-1].name);
+                });
+                $('#areas_select_first').hide();
+            }
 
             if (requestion_marker) {
                 map_center = requestion_point
@@ -156,7 +166,7 @@
                 $('#req_mark').parent().show();
             });
 
-            renderMarkers(sadik_location_data, map)
+            renderMarkers(sadik_location_data, map);
             // изменение приоритетных ДОУ
             $("#id_pref_sadiks").change(function(e, data) {
                 var value = parseInt(data.value);
@@ -171,8 +181,6 @@
                     renderMarkers(sadik_location_data, map)
                 }
             });
-
-            $('#id_district').prop('selectedIndex', 0);
 
             {% if request.user.is_operator %}
                 // tooltip к полю "Группы ДОУ"
@@ -359,18 +367,20 @@
                     </div>
                 {% else %}
                     {% with form.areas as field %}
-                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label> </label>
-                        {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
+                      <div class="field {% if field.errors %}error{% endif %}">
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                        {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}</label>
                         <div></div>
                         {% if field.help_text %}<p class="hint hint-multiline">{{ field.help_text }}</p>{% endif %}
                         {{ field }}
-                        <select class="areas_all">
+                        <select id="areas_select_first" class="areas_all">
                             <option value selected="selected">----------</option>
                             {% for area in areas_all %}
                             <option value="{{ area.id }}">{{ area }}</option>
                             {% endfor %}
                         </select>
-                        <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                      </div>
                     {% endwith %}
                 {% endif %}
                 {% with form.pref_sadiks as field %}
