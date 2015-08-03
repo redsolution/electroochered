@@ -289,10 +289,13 @@
 
             // отображаем все выбранные группы ДОУ
             if ($('#id_areas').val()) {
+                areas_ids = [];
                 $('#id_areas').val().forEach(function (area_id) {
                     add_area_field($("#add_sg"), area_id, areas_all[area_id-1].name);
+                    areas_ids.push(parseInt(area_id));
                 });
                 $('#areas_select_first').hide();
+                renderMarkers(sadik_location_data, map);
             }
 
             // сообщение о том, что поле было изменено + запрос при закрытии окна
