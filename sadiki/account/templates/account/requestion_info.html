@@ -291,7 +291,7 @@
             if ($('#id_areas').val()) {
                 areas_ids = [];
                 $('#id_areas').val().forEach(function (area_id) {
-                    add_area_field($("#add_sg"), area_id, areas_all[area_id-1].name);
+                    add_area_field($("#add_sadikgroup"), area_id, areas_all[area_id-1].name);
                     areas_ids.push(parseInt(area_id));
                 });
                 $('#areas_select_first').hide();
@@ -634,7 +634,7 @@
                 {% endfor %}
             </select>
             {{ pref_sadiks_form.areas }}
-            <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+            <a id="add_sadikgroup" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
         </div>
         <div class="field">
             <label class="field-label">{{ pref_sadiks_form.pref_sadiks.label }}</label>

@@ -111,7 +111,7 @@
             // отображаем все выбранные группы ДОУ
             if ($('#id_areas').val()) {
                 $('#id_areas').val().forEach(function (area_id) {
-                    add_area_field($("#add_sg"), area_id, areas_all[area_id-1].name);
+                    add_area_field($("#add_sadikgroup"), area_id, areas_all[area_id-1].name);
                     areas_ids.push(parseInt(area_id));
                 });
                 $('#areas_select_first').hide();
@@ -227,7 +227,7 @@
             });
             areas_all.forEach(function (area) {
                 if (area.district_id == id) {
-                    add_area_field($("#add_sg"), area.id, area.name);
+                    add_area_field($("#add_sadikgroup"), area.id, area.name);
                     areas_ids.push(area.id);
                     $('#id_areas [value='+area.id+']').attr("selected", "selected");
                 }
@@ -380,7 +380,7 @@
                         <div></div>
                         {% if form.areas.help_text %}<p class="hint hint-multiline">{{ form.areas.help_text }}</p>{% endif %}
                         {{ form.areas }}
-                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                        <a id="add_sadikgroup" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                     </div>
                 {% else %}
                     {% with form.areas as field %}
@@ -396,7 +396,7 @@
                             <option value="{{ area.id }}">{{ area }}</option>
                             {% endfor %}
                         </select>
-                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                        <a id="add_sadikgroup" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                       </div>
                     {% endwith %}
                 {% endif %}
