@@ -796,24 +796,6 @@ bind_esia_account_template = u"""
     учётная запись ЕСИА №{{ esia_id }}.
     """
 
-change_personal_data_by_esia_template = u"""
-        {% if old_data %}
-            Старые значения:
-            {% for key, value in old_data.items %}
-                {{ key }}= {{ value }};
-            {% endfor %}
-        {% else %}
-            Старые значения отсутствуют.
-        {% endif %}
-        {% if new_data %}
-            Новые значения:
-            {% for key, value in new_data.items %}
-                {{ key }}= {{ value }};
-            {% endfor %}
-        {% else %}
-            Новые значения отсутствуют.
-        {% endif %}
-    """
 
 ACTION_TEMPLATES.update({
     REQUESTION_ADD_BY_REQUESTER: {
@@ -970,7 +952,7 @@ ACTION_TEMPLATES.update({
         OPERATOR_LOG: Template(bind_esia_account_template)
     },
     CHANGE_PERSONAL_DATA_BY_ESIA: {
-        ACCOUNT_LOG: Template(change_personal_data_by_esia_template)
+        ACCOUNT_LOG: Template(change_personal_data_template)
     },
 })
 
