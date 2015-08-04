@@ -117,6 +117,20 @@
                 $('#areas_select_first').hide();
             }
 
+            {% if form.location.value %}
+                requestion_point = {{ form.location.value|get_coords_from_pointfield }};
+                requestion_marker = L.marker(requestion_point, {
+                    draggable: true,
+                    title: 'Маркер положения заявки',
+                    zIndexOffset: 1001,
+                });
+                requestion_marker.on('dragend', function() {
+                    lat_lng = this.getLatLng();
+                    requestion_point = [lat_lng.lat, lat_lng.lng];
+                    $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                });
+            {% endif %}
+
             if (requestion_marker) {
                 map_center = requestion_point
             } else {
@@ -139,33 +153,35 @@
                 drawnItems.addLayer(requestion_marker);
             }
 
-            add_draw_control(map, drawControl);
+            if (!requestion_marker) {
+                add_draw_control(map, drawControl);
 
-            map.on('draw:created', function (e) {
-                var type = e.layerType,
-                    layer = e.layer;
-                //убрать элемент добавления маркера
-                map.removeControl(drawControl);
+                map.on('draw:created', function (e) {
+                    var type = e.layerType,
+                        layer = e.layer;
+                    //убрать элемент добавления маркера
+                    map.removeControl(drawControl);
 
-                drawnItems.clearLayers();
-                lat_lng = layer.getLatLng();
-                requestion_point = [lat_lng.lat, lat_lng.lng];
-                // добавляем маркер заявки
-                requestion_marker = L.marker(requestion_point, {
-                    draggable: true,
-                    title: 'Маркер положения заявки',
-                    zIndexOffset: 1001,
-                });
-                // добавляем действие при перемещении маркера заявки
-                requestion_marker.on('dragend', function() {
-                    lat_lng = this.getLatLng();
+                    drawnItems.clearLayers();
+                    lat_lng = layer.getLatLng();
                     requestion_point = [lat_lng.lat, lat_lng.lng];
-                    $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                    // добавляем маркер заявки
+                    requestion_marker = L.marker(requestion_point, {
+                        draggable: true,
+                        title: 'Маркер положения заявки',
+                        zIndexOffset: 1001,
+                    });
+                    // добавляем действие при перемещении маркера заявки
+                    requestion_marker.on('dragend', function() {
+                        lat_lng = this.getLatLng();
+                        requestion_point = [lat_lng.lat, lat_lng.lng];
+                        $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                    });
+                    drawnItems.addLayer(requestion_marker);
+                    $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")");
+                    $('#req_mark').parent().show();
                 });
-                drawnItems.addLayer(requestion_marker);
-                $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")");
-                $('#req_mark').parent().show();
-            });
+            }
 
             renderMarkers(sadik_location_data, map);
             // изменение приоритетных ДОУ

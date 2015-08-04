@@ -287,6 +287,7 @@ register.tag(QueueTooltips)
 def get_field_verbose_name(instance, arg):
     return capfirst(instance._meta.get_field(arg).verbose_name)
 
+
 @register.filter
 def form_field_verbose(field):
     if hasattr(field.field, 'choices'):
@@ -299,3 +300,10 @@ def form_field_verbose(field):
         else:
             return choices_dict[field_value]
     return field.value
+
+
+@register.filter
+def get_coords_from_pointfield(field_value):
+    result = '[{x}, {y}]'
+    y, x = field_value.replace('POINT (', '').replace(')', '').split(' ')
+    return result.format(x=x, y=y)
