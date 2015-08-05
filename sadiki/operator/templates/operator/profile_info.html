@@ -31,14 +31,13 @@
                 type: 'POST',
                 data: {'email': $('#id_email').val()},
                 dataType:'json',
-                success: function(data, textStatus, jqXHR){
+                success: function(data, textStatus, jqXHR) {
                     if (data.ok) {
                         $('#email_form div').removeClass('error');
                         $('#email_err_span').remove();
                         mailEditToLabel();
                         $('#mail_change_success').show();
-                    }
-                    else {
+                    } else {
                         $('#email_form div').addClass('error');
                         var span = $('<span/>')
                             .attr('class', 'error')
@@ -47,16 +46,16 @@
                         $('#email_form label').append(span);
                     }
                 },
-                error: function(){
+                error: function() {
                     console.log('error')
                 },
-                complete: function(jqXHR, textStatus){
+                complete: function(jqXHR, textStatus) {
                 }
         })
     }
 
-        $(document).ready(function(){
-            $("#reset_password_btn").each(function(){
+        $(document).ready(function() {
+            $("#reset_password_btn").each(function() {
                 $(this).click(function() {
                     $( "#dialog-confirm" ).dialog({
                       resizable: false,
@@ -141,7 +140,7 @@
             </form>
             {% block personal_data %}
             <div class="block-head personal-data-head">Персональные данные:</div>
-            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form">
+            <form id="pdata_form" method="post" action="." class="requestion-form requestion-add-form" onsubmit="form_submit(this); return false">
                 {% csrf_token %}
                 <div class="row">
                     <div class="span5">
@@ -200,12 +199,28 @@
                         <div class="personal-document-area requestion-info">
                             {{ doc_form.media }}
                             {{ doc_form.profile }}
-                            <div class="field">
-                                <label class="field-label">{{ doc_form.doc_type.label }}</label>
-                                <p class="field-value">
-                                    {{ doc_form.doc_type }}
-                                </p>
-                            </div>
+                            {% if doc_form.non_field_errors %}
+                                <div class="field error">
+                                    <label class="field-label"><span class="errors">{% for error in doc_form.non_field_errors %}{{ error }}{% endfor %}</span></label>
+                                </div>
+                            {% endif %}
+                            {% with doc_form.doc_type as field %}
+                                <div class="field {% if field.errors %}error{% endif %}">
+                                    <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                                    {% if not field.value or field.errors %}
+	                                    <p class="field-value">
+	                                        {{ field }}
+	                                    </p>
+                                    {% else %}
+                                        <p class="field-value hidden-input">
+                                            <label class="value">{{ field|form_field_verbose }}</label>
+                                            {{ field }}
+                                            <a class="editor" href="#" onclick="editField(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                                        </p>
+                                    {% endif %}
+                                    <p class="hint">{{ field.help_text }}</p>
+                                </div>
+                            {% endwith %}
                             {% with doc_form.doc_name as field %}
                                 {% include 'account/include/pdata-form-field.html' %}
                             {% endwith %}
@@ -218,9 +233,7 @@
                             {% with doc_form.issued_date as field %}
                             <div class="field {% if field.errors %}error{% endif %}">
                                 <label class="field-label">
-                                    {{ field.label }}
-                                    <span class="required {% if not field.field.required %}hidden{% endif %}">*</span>
-                                    {% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                                    {{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
                                 </label>
                                 {% if not field.value or field.errors %}
 	                                <p class="field-value">
@@ -232,9 +245,7 @@
                                         {{ field }}
                                     </p>
                                 {% endif %}
-                                {% if field.help_text %}
-                                    <p class="hint">{{ field.help_text }}</p>
-                                {% endif %}
+                                <p class="hint">{{ field.help_text }}</p>
                             </div>
                             {% endwith %}
                             {% with doc_form.issued_by as field %}
@@ -248,7 +259,7 @@
                     <div class="span5">
                     <div class="uniForm">
                         <div class="buttonHolder">
-                            <button class="primaryAction" type="submit" >Сохранить</button>
+                            <button class="primaryAction" type="submit" disabled="disabled">Сохранить</button>
                         </div>
                     </div>
                     </div>
@@ -284,45 +295,6 @@
                     </form>
                     <p class="hint">Публично доступный профиль ВКонтакте повышает доверие граждан к Электронной очереди</p>
                     </div>
-                </div>
-                <div class="field">
-                    <label class="field-label">Имя:</label>
-                    <p class="field-value">
-                        <span class="value">{{ profile.first_name|verbose_value }}</span>
-                        <span class="controls">
-                        <span class="buttons">
-                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                            <a href="#" id="first_name" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-                        </span>
-                        <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                        </span>
-                    </p>
-                </div>
-                <div class="field">
-                    <label class="field-label">Телефон:</label>
-                    <p class="field-value">
-                        <span class="value">{{ profile.phone_number|verbose_value }}</span>
-                        <span class="controls">
-                            <span class="buttons">
-                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="phone_number" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-                            </span>
-                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                        </span>
-                    </p>
-                </div>
-                <div class="field">
-                    <label class="field-label">Skype:</label>
-                    <p class="field-value">
-                        <span class="value">{{ profile.skype|verbose_value }}</span>
-                        <span class="controls">
-                            <span class="buttons">
-                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_update_url }}'); return false"><img src="{{ STATIC_URL }}img/refresh.png"/></a>
-                                <a href="#" id="skype" onclick="dataChange(this, '{{ social_data_remove_url }}'); return false"><img src="{{ STATIC_URL }}img/remove.png"/></a>
-                            </span>
-                            <img class="loading" src="{{ STATIC_URL }}img/small-ajax-loader.gif"/>
-                        </span>
-                    </p>
                 </div>
             {% else %}
                 <p>Заявитель не привязал к своему профилю аккаунт ВКонтакте</p>

@@ -342,8 +342,8 @@ class CoreViewsTest(TestCase):
             'street': '1st avenue',
             'house': '100',
             'profile': profile.id,
-            'doc_type': 1,
-            'series': '123456',
+            'doc_type': 2,
+            'series': '1234',
             'number': '654321',
             'issued_date': '30.03.2012',
             'issued_by': 'some_organization',
@@ -364,11 +364,13 @@ class CoreViewsTest(TestCase):
         profile_documents = profile.personaldocument_set
         self.assertFalse(profile_documents.exists())
 
-        # заполняем данные
+        # заполняем данные. намеренно добавляем лишние пробелы к полям
+        profile_form_data.update({'first_name': '  Ann ', 'house': ' 100  '})
         response = self.client.post(account_frontpage_url, profile_form_data,
                                     follow=True)
         self.assertEqual(response.status_code, 200)
         self.assertRedirects(response, account_frontpage_url)
+        profile_form_data.update({'first_name': 'Ann', 'series': '123456'})
         # проверяем отсутствие ошибок форм
         pdata_form = response.context['pdata_form']
         doc_form = response.context['doc_form']
@@ -386,8 +388,8 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 1)
-        self.assertEqual(profile_document.series, '123456')
+        self.assertEqual(profile_document.doc_type, 2)
+        self.assertEqual(profile_document.series, '1234')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
@@ -406,14 +408,14 @@ class CoreViewsTest(TestCase):
         self.assertIn('1st avenue', log_message)
         self.assertIn('100', log_message)
         self.assertIn(u'Паспорт', log_message)
-        self.assertIn('123456', log_message)
+        self.assertIn('1234', log_message)
         self.assertIn('654321', log_message)
         self.assertIn('30.03.2012', log_message)
         self.assertIn('some_organization', log_message)
         last_log.delete()
 
         # пытаемся сохранить документ типа "иное" без названия
-        profile_form_data.update({'doc_type': 0})
+        profile_form_data.update({'doc_type': 1})
         response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
         # проверяем ошибки форм
@@ -434,8 +436,8 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 1)
-        self.assertEqual(profile_document.series, '123456')
+        self.assertEqual(profile_document.doc_type, 2)
+        self.assertEqual(profile_document.series, '1234')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
@@ -470,7 +472,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -490,7 +492,7 @@ class CoreViewsTest(TestCase):
         self.assertNotIn('1st avenue', log_message)
         self.assertNotIn('100', log_message)
         self.assertIn(u'Паспорт', log_message)
-        self.assertIn('123456', log_message)
+        self.assertIn('1234', log_message)
         self.assertIn('654321', log_message)
         self.assertIn('30.03.2012', log_message)
         self.assertIn('some_organization', log_message)
@@ -521,7 +523,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -571,7 +573,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, '1st avenue')
         self.assertEqual(changed_profile.house, '100')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -611,7 +613,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, 'any_street')
         self.assertEqual(changed_profile.house, '222')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -639,7 +641,9 @@ class CoreViewsTest(TestCase):
         last_log.delete()
 
         # пытаемся сохранить паспортные данные без обязательных полей
-        profile_form_data.update({'doc_type': 1})
+        # + задаём некорректный формат номера
+        profile_form_data.update({'doc_type': 2, 'issued_by': '',
+                                  'series': '', 'number': 'test'})
         response = self.client.post(operator_profile_info_url,
                                     profile_form_data)
         self.assertEqual(response.status_code, 200)
@@ -649,6 +653,8 @@ class CoreViewsTest(TestCase):
         self.assertFalse(pdata_form.errors)
         self.assertIn('series', doc_form.errors)
         self.assertIn(u'Обязательное поле', doc_form.errors['series'])
+        self.assertIn('number', doc_form.errors)
+        self.assertIn(u'неверный формат', doc_form.errors['number'])
         self.assertIn('issued_by', doc_form.errors)
         self.assertIn(u'Обязательное поле', doc_form.errors['issued_by'])
         # проверяем, что документ не сохранился
@@ -663,7 +669,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(changed_profile.street, 'any_street')
         self.assertEqual(changed_profile.house, '222')
         profile_document = changed_profile.personaldocument_set.all()[0]
-        self.assertEqual(profile_document.doc_type, 0)
+        self.assertEqual(profile_document.doc_type, 1)
         self.assertEqual(profile_document.series, '')
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
@@ -672,6 +678,56 @@ class CoreViewsTest(TestCase):
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA_BY_OPERATOR).order_by('-datetime')
         self.assertFalse(logs.exists())
+
+        # пытаемся добавить два одинаковых документа (совпадают тип+серия+номер)
+        doc_form_data = {'doc_type': 2, 'series': '1234', 'number': '123456',
+                         'issued_date': '01.01.2014', 'issued_by': 'test'}
+        profile_form_data.update(doc_form_data)
+        # сохраняем паспортные данные для текущего профиля
+        self.assertTrue(self.client.login(username=self.requester.username,
+                                          password='123456q'))
+        response = self.client.post(account_frontpage_url, profile_form_data,
+                                    follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertRedirects(response, account_frontpage_url)
+        # проверяем отсутствие ошибок форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertFalse(doc_form.errors)
+        # проверяем изменение паспортных данных
+        changed_profile = Profile.objects.get(id=profile.id)
+        profile_document = changed_profile.personaldocument_set.all()[0]
+        self.assertEqual(profile_document.doc_type, 2)
+        self.assertEqual(profile_document.series, '1234')
+        self.assertEqual(profile_document.number, '123456')
+        self.assertEqual(profile_document.issued_date,
+                         datetime.date(2014, 1, 1))
+        self.assertEqual(profile_document.issued_by, 'test')
+        # создаём ещё один профиль
+        requester2 = User.objects.create_user(username='requester2',
+                                              password='123456q')
+        permission = Permission.objects.get(codename=u'is_requester')
+        requester2.user_permissions.add(permission)
+        requester2.save()
+        profile2 = Profile.objects.create(user=requester2)
+        self.assertTrue(self.client.login(username='requester2',
+                                          password='123456q'))
+        profile_form_data.update({'profile': profile2.id})
+        # пытаемся сохранить те же паспортные данные для нового профиля
+        response = self.client.post(account_frontpage_url, profile_form_data)
+        self.assertEqual(response.status_code, 200)
+        # проверяем ошибки форм
+        pdata_form = response.context['pdata_form']
+        doc_form = response.context['doc_form']
+        self.assertFalse(pdata_form.errors)
+        self.assertIn(u'Документ заявителя с такими значениями полей: '
+                      u'Тип, Серия и Номер — уже зарегистрирован в системе.',
+                      doc_form.non_field_errors())
+        # проверяем, что данные не сохранились
+        changed_profile = Profile.objects.get(id=profile2.id)
+        profile_document = changed_profile.personaldocument_set
+        self.assertFalse(profile_document.exists())
 
         settings.TEST_MODE = False
 
@@ -693,7 +749,7 @@ class CoreViewsTest(TestCase):
             'template': '2',
             'document_number': 'II-ИВ 016809',
             'birthplace': 'Chelyabinsk',
-            'kinship_type': 1,
+            'kinship': '',
             'areas': '1',
             'location': 'POINT (60.115814208984375 55.051432600719835)',
             'pref_sadiks': [str(kgs[0].id)],
@@ -702,6 +758,7 @@ class CoreViewsTest(TestCase):
         self.client.login(username=self.requester.username, password='123456q')
 
         # оставляем пустым обязательное поле "имя ребёнка"
+        # также пропускаем kinship_type, KeyError не должен возникать
         response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
@@ -712,6 +769,8 @@ class CoreViewsTest(TestCase):
         requestion_form = create_response.context['form']
         self.assertIn('name', requestion_form.errors)
         self.assertIn(u'Обязательное поле', requestion_form.errors['name'])
+        self.assertIn('kinship', requestion_form.errors)
+        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
         # проверяем, что заявка не добавилась
         requestions = Requestion.objects.filter(
             profile_id=self.requester.profile.id)
@@ -721,8 +780,8 @@ class CoreViewsTest(TestCase):
             action_flag=REQUESTION_ADD_BY_REQUESTER).order_by('-datetime')
         self.assertFalse(logs.exists())
 
-        # добавляем недостающее имя ребёнка
-        requestion_form_data.update({'name': 'Ann'})
+        # добавляем недостающие имя ребёнка и степень родства
+        requestion_form_data.update({'name': 'Ann', 'kinship_type': 1})
         response = self.client.get(requestion_add_by_user_url)
         token = response.context['form']['token'].value()
         requestion_form_data.update({'token': token, })
@@ -743,7 +802,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         evidience_document = requestion.evidience_documents()[0]
         self.assertEqual(evidience_document.document_number, u'II-ИВ 016809')
         # проверяем логи
@@ -758,7 +817,7 @@ class CoreViewsTest(TestCase):
         self.assertIn('Jordison', log_message)
         self.assertIn(u'Женский', log_message)
         self.assertIn('Chelyabinsk', log_message)
-        self.assertIn(u'мать', log_message)
+        self.assertIn(u'Мать', log_message)
         last_log.delete()
 
         # изменение добавленной заявки. меняем имя ребёнка, указываем СНИЛС
@@ -789,7 +848,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.sex, u'Ж')
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
         # проверяем логи
         logs = Logger.objects.filter(
@@ -804,16 +863,22 @@ class CoreViewsTest(TestCase):
         self.assertNotIn('Jordison', log_message)
         self.assertNotIn(u'Женский', log_message)
         self.assertNotIn('Chelyabinsk', log_message)
-        self.assertNotIn(u'мать', log_message)
+        self.assertNotIn(u'Мать', log_message)
         last_log.delete()
 
-        # пытаемся поменять СНИЛС на некорректный
-        change_requestion_form_data.update({'child_snils': '111222333'})
+        # пытаемся поменять СНИЛС на некорректный, + имя ребёнка с пробелами
+        change_requestion_form_data.update({'child_snils': '111222333',
+                                            'name': 'Mary Mary'})
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
+        change_requestion_form_data.update({'child_snils': '111-222-333 99',
+                                            'name': 'Mary'})
         # проверяем ошибки формы
         requestion_form = response.context['change_requestion_form']
+        self.assertIn('name', requestion_form.errors)
+        self.assertIn(u'Поле не должно содержать пробелов',
+                      requestion_form.errors['name'])
         self.assertIn('child_snils', requestion_form.errors)
         self.assertIn(u'неверный формат', requestion_form.errors['child_snils'])
         # проверяем, что заявка не изменилась
@@ -823,7 +888,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.sex, u'Ж')
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
         # проверяем отсутствие логов
         logs = Logger.objects.filter(
@@ -831,8 +896,7 @@ class CoreViewsTest(TestCase):
         self.assertFalse(logs.exists())
 
         # пытаемся занулить степень родства заявителя
-        change_requestion_form_data.update({'child_snils': '111-222-333 99',
-                                            'kinship_type': 0})
+        change_requestion_form_data.update({'kinship_type': 0})
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
@@ -848,7 +912,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.sex, u'Ж')
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
         # проверяем отсутствие логов
         logs = Logger.objects.filter(
@@ -924,7 +988,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
-        self.assertEqual(requestion.kinship, u'мать')
+        self.assertEqual(requestion.kinship, u'Мать')
         evidience_document = requestion.evidience_documents()[0]
         self.assertEqual(evidience_document.document_number, u'II-ИВ 123321')
         # проверяем логи
@@ -940,7 +1004,7 @@ class CoreViewsTest(TestCase):
         self.assertIn('Jordison', log_message)
         self.assertIn(u'Женский', log_message)
         self.assertIn('Chelyabinsk', log_message)
-        self.assertIn(u'мать', log_message)
+        self.assertIn(u'Мать', log_message)
         last_log.delete()
 
         settings.TEST_MODE = False

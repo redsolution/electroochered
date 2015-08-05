@@ -654,7 +654,11 @@ table.table.table-bordered tr.highlight td {
 .requestion-info .small-field .field-value{
     font-size: 13px !important;
     min-height: 20px;
-    margin-top: 0px;
+    margin-top: 3px;
+}
+
+.form-filled .field {
+  margin-bottom: 5px;
 }
 
 .requestion-add-form input{
@@ -663,10 +667,6 @@ table.table.table-bordered tr.highlight td {
 
 .requestion-add-form input.hasDatepicker{
     width: 94%
-}
-
-.requestion-add-form .field{
-    margin-bottom: 5px;
 }
 
 .map-legend{
@@ -1099,7 +1099,7 @@ tr.dynamic-form .errorlist {
 
 .requestion-info .field-label{
     font-size: 16px;
-    color: #a9a9a9;
+    color: #555;
 }
 
 .requestion-info .field-label.changed{
@@ -1118,13 +1118,17 @@ tr.dynamic-form .errorlist {
     vertical-align: top;
 }
 
+.requestion-info .null-field-value{
+    color: #808080;
+}
+
 .requestion-info [class*="span"]{
     margin-left: 0px;
     padding-left: 0px;
 }
 
 .esia-binding-group{
-    margin-top: 34px;
+    margin-top: 15px;
     padding-top: 21px;
     border-top: 2px #eeeeee solid;
 }
@@ -1350,17 +1354,9 @@ tr.dynamic-form .errorlist {
     margin-left: -5px;
 }
 
-.select-with-text-option input {
-    margin-left: 0px;
-}
-
-.select-with-text-option select {
-    margin-left: 0px;
-    width: auto !important;
-}
-
 .requestion-form select{
-    width: 100%
+    width: 100%;
+    height: 32px;
 }
 
 .requestion-form .bsmSelect{
@@ -1441,6 +1437,12 @@ tr.dynamic-form .errorlist {
 .requestion-info .hint{
     color: #a9a9a9;
     font-size: 13px;
+    margin-bottom: 0;
+    min-height: 18px;
+}
+
+.requestion-info .hint-multiline {
+  line-height: 131%;
 }
 
 .requestion-info .field{
@@ -1455,6 +1457,7 @@ tr.dynamic-form .errorlist {
 
 .requestion-info .field.error{
     background: #ffdfdf; border: 1px solid #f3afb5;
+    margin-bottom: 5px;
     /* CSS3 */
     border-radius:         4px;
     -webkit-border-radius: 4px;
@@ -1572,7 +1575,7 @@ tr.dynamic-form .errorlist {
 
 /* added in 1.5.3b version */
 .requestion-form .areas_all {
-    margin-top: 0px;
+    margin-top: 8px;
     margin-left: 0px;
     margin-bottom: 2px;
 }
@@ -1669,11 +1672,11 @@ dl {
 }
 
 #address_text {
-    margin-top: 0px;
+    margin-top: 5px;
     margin-bottom: 5px;
     height: 31px;
     font-size: 16px;
-    width: 100%;
+    width: 70%;
 }
 
 #requestion-info-block {
@@ -1699,7 +1702,7 @@ dl {
 #get_coords {
     float: right;
     position: relative;
-    top: 21px;
+    top: 8px;
 }
 
 #coords_success {

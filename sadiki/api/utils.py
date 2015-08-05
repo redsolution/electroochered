@@ -3,16 +3,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 
 from pysnippets import dttools
-from django.conf import settings
 from sadiki.core.models import Requestion, REQUESTION_IDENTITY, \
     EvidienceDocument
-
-USE_PDATA = 'personal_data' in settings.INSTALLED_APPS
-if USE_PDATA:
-    try:
-        from personal_data.models import ChildPersData, UserPersData
-    except ImportError:
-        USE_PDATA = False
 
 
 def add_requestions_data(requestions, request):
@@ -36,39 +28,20 @@ def add_requestions_data(requestions, request):
             'distribution_datetime': dttools.datetime_to_stamp(
                 requestion.status_change_datetime),
             'name': requestion.name,
+            'middle_name': requestion.child_middle_name,
+            'last_name': requestion.child_last_name,
+            'parent_first_name': requestion.profile.first_name,
+            'parent_middle_name': requestion.profile.middle_name,
+            'parent_last_name': requestion.profile.last_name,
+            'phone': requestion.profile.phone_number or requestion.profile.mobile_number,
             'sex': requestion.sex,
             'status': requestion.status,
             'queue_profile_url': url,
             'birth_date': dttools.date_to_stamp(requestion.birth_date),
             'birth_cert': birth_cert.document_number})
-        if USE_PDATA:
-            requestion_data.update(get_personal_data(requestion))
         req_list.append(requestion_data)
 
     return req_list
-
-
-def get_personal_data(requestion):
-    u""" Requestion -> Dict
-    Собираем персональные данные о заявке персональные данные, при наличии.
-    Возвращаем словарь.
-    """
-    pdata = {}
-    if ChildPersData.objects.filter(application=requestion).exists():
-        child_pdata = ChildPersData.objects.get(application=requestion)
-        pdata.update({
-            'middle_name': child_pdata.second_name,
-            'last_name': child_pdata.last_name,
-        })
-    if UserPersData.objects.filter(profile=requestion.profile).exists():
-        user_pdata = UserPersData.objects.get(profile=requestion.profile)
-        pdata.update({
-            'parent_first_name': user_pdata.first_name,
-            'parent_middle_name': user_pdata.second_name,
-            'parent_last_name': user_pdata.last_name,
-            'phone': user_pdata.phone,
-        })
-    return pdata
 
 
 def is_active_child_status(status):

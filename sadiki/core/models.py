@@ -210,6 +210,9 @@ class EvidienceDocumentQueryset(models.query.QuerySet):
     def requestion_identity_documents(self):
         return self.filter(template__destination=REQUESTION_IDENTITY)
 
+    def other_documents(self):
+        return self.exclude(template__destination=REQUESTION_IDENTITY)
+
 
 class EvidienceDocument(models.Model):
 
@@ -872,8 +875,8 @@ class PersonalDocument(models.Model):
         verbose_name_plural = u'Документы заявителей'
         unique_together = (('doc_type', 'series', 'number'),)
 
-    DOC_TYPE_PASSPORT = 1
-    DOC_TYPE_OTHER = 0
+    DOC_TYPE_PASSPORT = 2
+    DOC_TYPE_OTHER = 1
 
     DOC_TYPE_CHOICES = (
         (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
@@ -896,6 +899,15 @@ class PersonalDocument(models.Model):
         result_dict = model_to_dict(self)
         result_dict.update({'doc_type': self.get_doc_type_display()})
         return result_dict
+
+    def unique_error_message(self, model_class, unique_check):
+        if (model_class == type(self)
+                and unique_check == ('doc_type', 'series', 'number')):
+            return (u'Документ заявителя с такими значениями полей: '
+                    u'Тип, Серия и Номер — уже зарегистрирован в системе.')
+        else:
+            return super(PersonalDocument, self).unique_error_message(
+                model_class, unique_check)
 
     def __unicode__(self):
         format_string = u'{}, {} {}, выдан {} {}'
@@ -1124,18 +1136,21 @@ class Requestion(models.Model):
         u'Имя ребёнка', max_length=255, null=True,
         validators=[validate_no_spaces, ],)
     child_middle_name = models.CharField(
-        u'Отчество ребёнка', max_length=50, blank=True, null=True)
+        u'Отчество ребёнка', max_length=50, blank=True, null=True,
+        validators=[validate_no_spaces, ],)
     child_last_name = models.CharField(
-        u'Фамилия ребёнка', max_length=50, null=True)
+        u'Фамилия ребёнка', max_length=50, null=True,
+        validators=[validate_no_spaces, ],)
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
     kinship = models.CharField(
-        u'Степень родства заявителя', max_length=50, blank=True, null=True,
-        help_text=u'Укажите, кем приходится заявитель ребёнку')
+        u'Степень родства заявителя', max_length=50, blank=True, null=True)
 
     @property
     def kinship_type(self):
+        if not self.kinship:
+            return '';
         for kinship_id, kinship_name in self.REQUESTER_TYPE_CHOICES:
             if self.kinship == kinship_name:
                 return kinship_id
@@ -1197,17 +1212,26 @@ class Requestion(models.Model):
             место в любом детском саду в выбранных территориальных областях,
             в случае, когда в приоритетных ДОУ не окажется места""")
 
-    REQUESTER_TYPE_MOTHER = 1
-    REQUESTER_TYPE_FATHER = 2
-    REQUESTER_TYPE_OTHER = 0
+    REQUESTER_TYPE_MOTHER = '1'
+    REQUESTER_TYPE_FATHER = '2'
+    REQUESTER_TYPE_OTHER = '0'
 
     REQUESTER_TYPE_CHOICES = (
-        (REQUESTER_TYPE_MOTHER, u'мать'),
-        (REQUESTER_TYPE_FATHER, u'отец'),
-        (REQUESTER_TYPE_OTHER, u'иное'),
+        ('', '---------'),
+        (REQUESTER_TYPE_MOTHER, u'Мать'),
+        (REQUESTER_TYPE_FATHER, u'Отец'),
+        (REQUESTER_TYPE_OTHER, u'Иное'),
     )
 
     objects = query_set_factory(RequestionQuerySet)
+
+    def set_kinship(self, kinship_type):
+        kinship_type = str(kinship_type)
+        kinship_dict = dict(self.REQUESTER_TYPE_CHOICES)
+        if not (kinship_type and kinship_type in kinship_dict):
+            kinship_type = self.REQUESTER_TYPE_OTHER
+        self.kinship = kinship_dict[kinship_type]
+        self.save()
 
     def get_requestion_number(self):
         id_with_crc = add_crc(self.id)

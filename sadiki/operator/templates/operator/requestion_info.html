@@ -106,11 +106,30 @@
         </div>
         {% endfor %}
     </div>
+    {% with change_requestion_form.child_snils as field %}
+        <div class="field {% if field.errors %}error{% endif %}">
+            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}<span class="hint">{% if not field.field.required %} (при наличии){% endif %}</span></label>
+            {% if not field.value or field.errors %}
+                <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                    {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
+                </p>
+            {% else %}
+                <p class="field-value hidden-input">
+                    <label class="value">{{ field.value }}</label>
+                    {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                </p>
+            {% endif %}
+            {% if can_change_requestion %}
+                <p class="hint">{{ field.help_text }}</p>
+            {% endif %}
+        </div>
+    {% endwith %}
     <div class="documents-form">
         {% include "operator/includes/documents_formset.html" %}
     </div>
     <div class="field">
-        <label class="field-label">Льготы</label>
+        <label class="field-label">Льготы<span class="hint"> (при наличии)</span></label>
         {% if can_change_benefits %}
             {{ change_benefits_form.benefits }}
         {% else %}

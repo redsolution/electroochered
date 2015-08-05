@@ -19,6 +19,9 @@
         {% with form.document_number as field %}
             {% include "account/include/requestion-form-field.html" %}
         {% endwith %}
+        {% with form.child_snils as field %}
+            {% include "account/include/requestion-form-field.html" %}
+        {% endwith %}
         <div class="documents-form">
             {{ formset.management_form }}
             {% for form in formset.forms %}

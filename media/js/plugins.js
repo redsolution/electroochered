@@ -2,14 +2,14 @@
 
 //usage: log('inside coolFunc', this, arguments);
 //paulirish.com/2009/log-a-lightweight-wrapper-for-consolelog/
-window.log = function(){
-  log.history = log.history || [];   // store logs to an array for reference
-  log.history.push(arguments);
-  if(this.console) {
-    arguments.callee = arguments.callee.caller;
-    var newarr = [].slice.call(arguments);
-    (typeof console.log === 'object' ? log.apply.call(console.log, console, newarr) : console.log.apply(console, newarr));
-  }
+window.log = function() {
+    log.history = log.history || [];   // store logs to an array for reference
+    log.history.push(arguments);
+    if(this.console) {
+        arguments.callee = arguments.callee.caller;
+        var newarr = [].slice.call(arguments);
+        (typeof console.log === 'object' ? log.apply.call(console.log, console, newarr) : console.log.apply(console, newarr));
+    }
 };
 
 // make it safe to use console.log always
@@ -39,7 +39,7 @@ function parseUri (str) {
 parseUri.options = {
 	strictMode: false,
 	key: ["source","protocol","authority","userInfo","user","password","host","port","relative","path","directory","file","query","anchor"],
-	q:   {
+	q: {
 		name:   "queryKey",
 		parser: /(?:^|&)([^&=]*)=?([^&]*)/g
 	},
@@ -70,17 +70,15 @@ parseUri.options = {
 
 function bind_new_regexp($input, regexp) {
     var pattern = new RegExp(regexp);
-    $input.off('keyup').on('keyup', function(){
+    $input.off('keyup').on('keyup', function() {
         var input_value = $input.val();
         if (input_value) {
             if (pattern.test(input_value)) {
                 $input.parents('div.field').removeClass('error');
-            }
-            else {
+            } else {
                 $input.parents('div.field').addClass('error');
             }
-        }
-        else {
+        } else {
             $input.parents('div.field').removeClass('error');
         }
     });
@@ -88,7 +86,7 @@ function bind_new_regexp($input, regexp) {
 
 function change_document_hint($input, help_text) {
     $input = $input.parent()
-    if (help_text){
+    if (help_text) {
         help_text = "Формат документа: " + help_text;
     } else {
         help_text = '&nbsp;';
@@ -118,13 +116,12 @@ function change_document_hint($input, help_text) {
         var $docnumber_input = $(input_selector);
         return this.each(function() {
             var $this = $(this);
-            $this.on('change', function(){
-                if ($(this).val()){
+            $this.on('change', function() {
+                if ($(this).val()) {
                     var doc_template = DOCUMENT_TEMPLATES[$(this).val()];
                     change_document_hint($docnumber_input, doc_template['help_text']);
                     bind_new_regexp($docnumber_input, doc_template['regexp']);
-                }
-                else{
+                } else {
                     change_document_hint($docnumber_input, '');
                 }
             }).trigger('change');
@@ -139,12 +136,10 @@ function change_document_hint($input, help_text) {
                 var pattern = new RegExp('^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$');
                 if (pattern.test(input)) {
                     $(this).parents('div.field').removeClass('error');
-                }
-                else {
+                } else {
                     $(this).parents('div.field').addClass('error');
                 }
-            }
-            else {
+            } else {
                 $(this).parents('div.field').removeClass('error');
             }
         });
@@ -166,19 +161,47 @@ function change_document_hint($input, help_text) {
         var $doc_fields = $doc_form.find('div.field');
         var $doc_name_field = $doc_fields.find('#id_doc_name').parents('div.field');
         var $doc_series_field = $doc_fields.find('#id_series').parents('div.field');
+        var $doc_number_field = $doc_fields.find('#id_number').parents('div.field');
         var $doc_issued_by_field = $doc_fields.find('#id_issued_by').parents('div.field');
-        if (doc_type == 0) {
+        var format_error_regexp = new RegExp('^.*неверный формат.*$');
+        if (doc_type == 1) { // тип документа "Иное"
             $doc_name_field.removeClass('hidden');
-            $doc_name_field.find("p.hint").addClass('hidden');
-            $doc_series_field.find("p.hint").removeClass('hidden');
-            $doc_issued_by_field.find("p.hint").removeClass('hidden');
-        }
-        else {
+            if (!$doc_name_field.find('input').val()) {
+                $doc_name_field.find('a').hide();
+                $doc_name_field.find('label.value').hide();
+                $doc_name_field.find('input').show().focus();
+            }
+            $doc_name_field.find('label span.hint').hide();
+            $doc_series_field.find('label span.hint').show();
+            $doc_series_field.removeClass('error');
+            $doc_series_field.find('label span.errors').text('');
+            $doc_issued_by_field.find('label span.hint').show();
+            $doc_issued_by_field.removeClass('error');
+            $doc_issued_by_field.find('label span.errors').text('');
+            if (format_error_regexp.test($doc_number_field.find('label span.errors').text())) {
+                $doc_number_field.removeClass('error');
+                $doc_number_field.find('label span.errors').text('');
+            }
+        } else {
             $doc_name_field.find('input').val('');
             $doc_name_field.addClass('hidden');
-            $doc_name_field.find("p.hint").removeClass('hidden');
-            $doc_series_field.find("p.hint").addClass('hidden');
-            $doc_issued_by_field.find("p.hint").addClass('hidden');
+            $doc_name_field.removeClass('error');
+            $doc_name_field.find('label.field-label span').html('');
+            $doc_name_field.find('label span.hint').show();
+            $doc_series_field.find('label span.hint').hide();
+            $doc_issued_by_field.find('label span.hint').hide();
+        }
+        // валидация содержимого полей "серия" и "номер" для типа документа "Паспорт"
+        if (doc_type == 2) {
+            $doc_series_field.find('p.hint').html('Формат: 1234');
+            bind_new_regexp($doc_series_field.find('input'), '^[0-9]{4}$');
+            $doc_number_field.find('p.hint').html('Формат: 123456');
+            bind_new_regexp($doc_number_field.find('input'), '^[0-9]{6}$');
+        } else {
+            $doc_series_field.find('p.hint').html('');
+            $doc_series_field.find('input').off('keyup');
+            $doc_number_field.find('p.hint').html('');
+            $doc_number_field.find('input').off('keyup');
         }
     }
 
@@ -195,16 +218,24 @@ function change_document_hint($input, help_text) {
         var kinship_type = $choice_selector.val();
         var $kinship_choice_field = $choice_selector.parents('div.field');
         var $kinship_text_field = $('#id_kinship').parents('div.field');
-        if (kinship_type == 0) {
+        if (kinship_type == '0') {
             $kinship_text_field.removeClass('hidden');
-            $kinship_text_field.find('p.hint').addClass('hidden');
-            $kinship_choice_field.find('p.hint').addClass('hidden');
-        }
-        else {
+            $kinship_text_field.find('label span.hint').hide();
+            if (!$kinship_text_field.find('input').val()) {
+                $kinship_text_field.find('a').hide();
+                $kinship_text_field.find('label.value').hide();
+                $kinship_text_field.find('input').show().focus();
+            }
+        } else if (kinship_type == '') {
+            $kinship_text_field.addClass('hidden');
+            $kinship_text_field.find('input').val('');
+            $kinship_text_field.removeClass('error');
+            $kinship_text_field.find('label.field-label span').html('');
+        } else {
             $kinship_text_field.find('input').val('');
             $kinship_text_field.addClass('hidden');
-            $kinship_text_field.find('p.hint').removeClass('hidden');
-            $kinship_choice_field.find('p.hint').removeClass('hidden');
+            $kinship_text_field.removeClass('error');
+            $kinship_text_field.find('label.field-label span').html('');
         }
     }
 
@@ -212,8 +243,7 @@ function change_document_hint($input, help_text) {
 
 
 (function($){
-    $.fn.serializeObject = function()
-    {
+    $.fn.serializeObject = function() {
         var o = {};
         var a = this.serializeArray();
         $.each(a, function() {
@@ -246,8 +276,7 @@ function change_document_hint($input, help_text) {
  */
 // внес изменение: при добавлении формы значения полей остаются прежними
 ;(function($) {
-    $.fn.formset = function(opts)
-    {
+    $.fn.formset = function(opts) {
         var options = $.extend({}, $.fn.formset.defaults, opts),
             flatExtraClasses = options.extraClasses.join(' '),
             $$ = $(this),
@@ -414,8 +443,7 @@ function change_document_hint($input, help_text) {
  *
  * @return {Object}
  */
-$.fn.serializeObject = function()
-{
+$.fn.serializeObject = function() {
     var o = {};
     var a = this.serializeArray();
     $.each(a, function() {
@@ -569,20 +597,20 @@ $.fn.serializeObject = function()
 				};
 
 				function keydownEvent(e) {
-					var k=e.which;
+					var k = e.which;
 
 					//backspace, delete, and escape get special treatment
-					if(k == 8 || k == 46 || (iPhone && k == 127)){
+					if (k == 8 || k == 46 || (iPhone && k == 127)) {
 						var pos = input.caret(),
 							begin = pos.begin,
 							end = pos.end;
 
-						if(end-begin==0){
-							begin=k!=46?seekPrev(begin):(end=seekNext(begin-1));
-							end=k==46?seekNext(end):end;
+						if (end-begin == 0) {
+							begin = k != 46 ? seekPrev(begin) : (end = seekNext(begin-1));
+							end = k == 46 ? seekNext(end) : end;
 						}
 						clearBuffer(begin, end);
-						shiftL(begin,end-1);
+						shiftL(begin, end-1);
 
 						return false;
 					} else if (k == 27) {//escape
@@ -595,10 +623,10 @@ $.fn.serializeObject = function()
 				function keypressEvent(e) {
 					var k = e.which,
 						pos = input.caret();
-					if (e.ctrlKey || e.altKey || e.metaKey || k<32) {//Ignore
+					if (e.ctrlKey || e.altKey || e.metaKey || k < 32) {//Ignore
 						return true;
 					} else if (k) {
-						if(pos.end-pos.begin!=0){
+						if(pos.end-pos.begin != 0) {
 							clearBuffer(pos.begin, pos.end);
 							shiftL(pos.begin, pos.end-1);
 						}
@@ -678,7 +706,7 @@ $.fn.serializeObject = function()
 					return (partialPosition ? i : firstNonMaskPos);
 				};
 
-				input.data($.mask.dataName,function(){
+				input.data($.mask.dataName,function() {
 					return $.map(buffer, function(c, i) {
 						return tests[i]&&c!=settings.placeholder[i % settings.placeholder.length] ? c : null;
 					}).join('');
@@ -695,7 +723,7 @@ $.fn.serializeObject = function()
 						focusText = input.val();
 						var pos = checkVal();
 						writeBuffer();
-						var moveCaret=function(){
+						var moveCaret=function() {
 							if (pos == mask.length)
 								input.caret(0, pos);
 							else
@@ -782,9 +810,9 @@ $.fn.serializeObject = function()
  * @desc Scroll on both axes, to different values
  * @example $('div').scrollTo( { top: 300, left:'+=200' }, { axis:'xy', offset:-20 } );
  */
-;(function( $ ){
+;(function( $ ) {
 
-	var $scrollTo = $.scrollTo = function( target, duration, settings ){
+	var $scrollTo = $.scrollTo = function( target, duration, settings ) {
 		$(window).scrollTo( target, duration, settings );
 	};
 
@@ -795,18 +823,18 @@ $.fn.serializeObject = function()
 
 	// Returns the element that needs to be animated to scroll the window.
 	// Kept for backwards compatibility (specially for localScroll & serialScroll)
-	$scrollTo.window = function( scope ){
+	$scrollTo.window = function( scope ) {
 		return $(window)._scrollable();
 	};
 
 	// Hack, hack, hack :)
 	// Returns the real elements to scroll (supports window/iframes, documents and regular nodes)
-	$.fn._scrollable = function(){
-		return this.map(function(){
+	$.fn._scrollable = function() {
+		return this.map(function() {
 			var elem = this,
 				isWin = !elem.nodeName || $.inArray( elem.nodeName.toLowerCase(), ['iframe','#document','html','body'] ) != -1;
 
-				if( !isWin )
+				if ( !isWin )
 					return elem;
 
 			var doc = (elem.contentWindow || elem).document || elem.ownerDocument || elem;
@@ -817,15 +845,15 @@ $.fn.serializeObject = function()
 		});
 	};
 
-	$.fn.scrollTo = function( target, duration, settings ){
-		if( typeof duration == 'object' ){
+	$.fn.scrollTo = function( target, duration, settings ) {
+		if ( typeof duration == 'object' ) {
 			settings = duration;
 			duration = 0;
 		}
-		if( typeof settings == 'function' )
+		if ( typeof settings == 'function' )
 			settings = { onAfter:settings };
 
-		if( target == 'max' )
+		if ( target == 'max' )
 			target = 9e9;
 
 		settings = $.extend( {}, $scrollTo.defaults, settings );
@@ -834,23 +862,23 @@ $.fn.serializeObject = function()
 		// Make sure the settings are given right
 		settings.queue = settings.queue && settings.axis.length > 1;
 
-		if( settings.queue )
+		if ( settings.queue )
 			// Let's keep the overall duration
 			duration /= 2;
 		settings.offset = both( settings.offset );
 		settings.over = both( settings.over );
 
-		return this._scrollable().each(function(){
+		return this._scrollable().each(function() {
 			var elem = this,
 				$elem = $(elem),
 				targ = target, toff, attr = {},
 				win = $elem.is('html,body');
 
-			switch( typeof targ ){
+			switch( typeof targ ) {
 				// A number will pass the regex
 				case 'number':
 				case 'string':
-					if( /^([+-]=)?\d+(\.\d+)?(px|%)?$/.test(targ) ){
+					if ( /^([+-]=)?\d+(\.\d+)?(px|%)?$/.test(targ) ) {
 						targ = both( targ );
 						// We are done
 						break;
@@ -859,32 +887,32 @@ $.fn.serializeObject = function()
 					targ = $(targ,this);
 				case 'object':
 					// DOMElement / jQuery
-					if( targ.is || targ.style )
+					if ( targ.is || targ.style )
 						// Get the real position of the target
 						toff = (targ = $(targ)).offset();
 			}
-			$.each( settings.axis.split(''), function( i, axis ){
+			$.each( settings.axis.split(''), function( i, axis ) {
 				var Pos	= axis == 'x' ? 'Left' : 'Top',
 					pos = Pos.toLowerCase(),
 					key = 'scroll' + Pos,
 					old = elem[key],
 					max = $scrollTo.max(elem, axis);
 
-				if( toff ){// jQuery / DOMElement
+				if ( toff ) {// jQuery / DOMElement
 					attr[key] = toff[pos] + ( win ? 0 : old - $elem.offset()[pos] );
 
 					// If it's a dom element, reduce the margin
-					if( settings.margin ){
+					if ( settings.margin ) {
 						attr[key] -= parseInt(targ.css('margin'+Pos)) || 0;
 						attr[key] -= parseInt(targ.css('border'+Pos+'Width')) || 0;
 					}
 
 					attr[key] += settings.offset[pos] || 0;
 
-					if( settings.over[pos] )
+					if ( settings.over[pos] )
 						// Scroll to a fraction of its width/height
 						attr[key] += targ[axis=='x'?'width':'height']() * settings.over[pos];
-				}else{
+				} else {
 					var val = targ[pos];
 					// Handle percentage values
 					attr[key] = val.slice && val.slice(-1) == '%' ?
@@ -893,14 +921,14 @@ $.fn.serializeObject = function()
 				}
 
 				// Number or 'number'
-				if( /^\d+$/.test(attr[key]) )
+				if ( /^\d+$/.test(attr[key]) )
 					// Check the limits
 					attr[key] = attr[key] <= 0 ? 0 : Math.min( attr[key], max );
 
 				// Queueing axes
-				if( !i && settings.queue ){
+				if ( !i && settings.queue ) {
 					// Don't waste time animating, if there's no need.
-					if( old != attr[key] )
+					if ( old != attr[key] )
 						// Intermediate animation
 						animate( settings.onAfterFirst );
 					// Don't animate this axis again in the next iteration.
@@ -910,8 +938,8 @@ $.fn.serializeObject = function()
 
 			animate( settings.onAfter );
 
-			function animate( callback ){
-				$elem.animate( attr, duration, settings.easing, callback && function(){
+			function animate( callback ) {
+				$elem.animate( attr, duration, settings.easing, callback && function() {
 					callback.call(this, target, settings);
 				});
 			};
@@ -921,11 +949,11 @@ $.fn.serializeObject = function()
 
 	// Max scrolling position, works on quirks mode
 	// It only fails (not too badly) on IE, quirks mode.
-	$scrollTo.max = function( elem, axis ){
+	$scrollTo.max = function( elem, axis ) {
 		var Dim = axis == 'x' ? 'Width' : 'Height',
 			scroll = 'scroll'+Dim;
 
-		if( !$(elem).is('html,body') )
+		if ( !$(elem).is('html,body') )
 			return elem[scroll] - $(elem)[Dim.toLowerCase()]();
 
 		var size = 'client' + Dim,
@@ -937,7 +965,7 @@ $.fn.serializeObject = function()
 
 	};
 
-	function both( val ){
+	function both( val ) {
 		return typeof val == 'object' ? val : { top:val, left:val };
 	};
 
@@ -959,18 +987,15 @@ jQuery.fn.topLink = function(settings) {
 		var el = $(this);
 		el.css('display','none'); //in case the user forgot
 		$(window).scroll(function() {
-			if(!jQuery.support.hrefNormalized) {
+			if (!jQuery.support.hrefNormalized) {
 				el.css({
 					'position': 'absolute',
 					'top': $(window).scrollTop() + $(window).height() - settings.ieOffset
 				});
 			}
-			if($(window).scrollTop() >= settings.min)
-			{
+			if ($(window).scrollTop() >= settings.min) {
 				el.fadeIn(settings.fadeSpeed);
-			}
-			else
-			{
+			} else {
 				el.fadeOut(settings.fadeSpeed);
 			}
 		});
@@ -994,10 +1019,10 @@ jQuery.fn.filterOn = function(selector, values) {
             $.each(options, function(i) {
                 var option = options[i];
                 //проверяем нужен ли элемент при данном варианте
-                if($.inArray(option.value, haystack) !== -1) {
+                if ($.inArray(option.value, haystack) !== -1) {
                     var option_el = $('<option>').text(option.text).val(option.value);
                     //проверяем был ли выбран элемент
-                    if ($.inArray(option.value, selected) !== -1){
+                    if ($.inArray(option.value, selected) !== -1) {
                         option_el.attr('selected', 'selected');
                     };
                     $(select).append(option_el);

@@ -80,16 +80,16 @@
             }
         }
         var drawControl = new L.Control.Draw(draw_control_options);
-        function add_draw_control(map, control){
+        function add_draw_control(map, control) {
             map.addControl(control);
-            $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+            $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function() {
                 if (requestion_point) {
                     map.panTo(requestion_point);
                 }
             })
         }
 
-        $(document).ready(function(){
+        $(document).ready(function() {
             // прячем родной m2m django виджет
             $('#id_areas').hide();
 
@@ -101,9 +101,34 @@
             });
 
             delete_special_benefits();
-            
+
             {% if use_districts %}
-                $('#areas_field').hide();
+                if (!$('#id_district').val()) {
+                    $('#areas_field').hide();
+                }
+            {% endif %}
+
+            // отображаем все выбранные группы ДОУ
+            if ($('#id_areas').val()) {
+                $('#id_areas').val().forEach(function (area_id) {
+                    add_area_field($("#add_sadikgroup"), area_id, areas_all[area_id-1].name);
+                    areas_ids.push(parseInt(area_id));
+                });
+                $('#areas_select_first').hide();
+            }
+
+            {% if form.location.value %}
+                requestion_point = {{ form.location.value|get_coords_from_pointfield }};
+                requestion_marker = L.marker(requestion_point, {
+                    draggable: true,
+                    title: 'Маркер положения заявки',
+                    zIndexOffset: 1001,
+                });
+                requestion_marker.on('dragend', function() {
+                    lat_lng = this.getLatLng();
+                    requestion_point = [lat_lng.lat, lat_lng.lng];
+                    $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                });
             {% endif %}
 
             if (requestion_marker) {
@@ -124,43 +149,45 @@
             var points = L.layerGroup([]);
 
             map.addLayer(drawnItems);
-            if (requestion_marker){
+            if (requestion_marker) {
                 drawnItems.addLayer(requestion_marker);
             }
 
-            add_draw_control(map, drawControl);
+            if (!requestion_marker) {
+                add_draw_control(map, drawControl);
 
-            map.on('draw:created', function (e) {
-                var type = e.layerType,
-                    layer = e.layer;
-                //убрать элемент добавления маркера
-                map.removeControl(drawControl);
+                map.on('draw:created', function (e) {
+                    var type = e.layerType,
+                        layer = e.layer;
+                    //убрать элемент добавления маркера
+                    map.removeControl(drawControl);
 
-                drawnItems.clearLayers();
-                lat_lng = layer.getLatLng();
-                requestion_point = [lat_lng.lat, lat_lng.lng];
-                // добавляем маркер заявки
-                requestion_marker = L.marker(requestion_point, {
-                    draggable: true,
-                    title: 'Маркер положения заявки',
-                    zIndexOffset: 1001,
-                });
-                // добавляем действие при перемещении маркера заявки
-                requestion_marker.on('dragend', function() {
-                    lat_lng = this.getLatLng();
+                    drawnItems.clearLayers();
+                    lat_lng = layer.getLatLng();
                     requestion_point = [lat_lng.lat, lat_lng.lng];
-                    $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                    // добавляем маркер заявки
+                    requestion_marker = L.marker(requestion_point, {
+                        draggable: true,
+                        title: 'Маркер положения заявки',
+                        zIndexOffset: 1001,
+                    });
+                    // добавляем действие при перемещении маркера заявки
+                    requestion_marker.on('dragend', function() {
+                        lat_lng = this.getLatLng();
+                        requestion_point = [lat_lng.lat, lat_lng.lng];
+                        $('.requestion-form #id_location').val("POINT ("+lat_lng.lng+" "+lat_lng.lat+")");
+                    });
+                    drawnItems.addLayer(requestion_marker);
+                    $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")");
+                    $('#req_mark').parent().show();
                 });
-                drawnItems.addLayer(requestion_marker);
-                $('.requestion-form #id_location').val("POINT ("+ lat_lng.lng + " " + lat_lng.lat + ")");
-                $('#req_mark').parent().show();
-            });
+            }
 
-            renderMarkers(sadik_location_data, map)
+            renderMarkers(sadik_location_data, map);
             // изменение приоритетных ДОУ
             $("#id_pref_sadiks").change(function(e, data) {
                 var value = parseInt(data.value);
-                if (data.type == 'add'){
+                if (data.type == 'add') {
                     pref_sadiks_ids.push(value);
                     renderMarkers(sadik_location_data, map)
                     map.panTo(sadik_location_data[value].location.slice().reverse())
@@ -171,15 +198,15 @@
                     renderMarkers(sadik_location_data, map)
                 }
             });
-             
-            $('#id_district').prop('selectedIndex', 0);
 
-            // tooltip к полю "Группы ДОУ"
-            $("#pref_dou_groups").popover({
-                title: "Группы ДОУ",
-                content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
-                "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
-            });
+            {% if request.user.is_operator %}
+                // tooltip к полю "Группы ДОУ"
+                $("#pref_dou_groups").popover({
+                    title: "Группы ДОУ",
+                    content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
+                    "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
+                });
+            {% endif %}
 
             $('#id_template').regexpValidate('#id_document_number');
 
@@ -187,7 +214,7 @@
 
             $('#id_kinship_type').kinshipFieldHandler();
         }) // конец $(document).ready()
-        
+
         // при выборе района прячем поле с районом, показываем ТО
         $(document).on("change", "#id_district", function () {
             var id = $(this).val();
@@ -195,12 +222,12 @@
             $("#areas_field .field-value").remove();
             $(".kidgs_list").remove();
             areas_ids = [];
-            $('#id_areas option:selected').each(function (){
+            $('#id_areas option:selected').each(function () {
                 this.selected=false;
             });
             areas_all.forEach(function (area) {
                 if (area.district_id == id) {
-                    add_area_field($("#add_sg"), area.id, area.name);
+                    add_area_field($("#add_sadikgroup"), area.id, area.name);
                     areas_ids.push(area.id);
                     $('#id_areas [value='+area.id+']').attr("selected", "selected");
                 }
@@ -208,9 +235,9 @@
             renderMarkers(sadik_location_data, map);
         });
 
-        $('#id_areas, #id_distribute_in_any_sadik').change(function(){
-            if ($("#id_distribute_in_any_sadik").is(':checked')){
-                if ($("#id_areas").val()){
+        $('#id_areas, #id_distribute_in_any_sadik').change(function() {
+            if ($("#id_distribute_in_any_sadik").is(':checked')) {
+                if ($("#id_areas").val()) {
                     areas_ids = [parseInt($("#id_areas").val())]
                 } else {
                     areas_ids = []
@@ -285,27 +312,22 @@
                     {% with form.child_middle_name as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    {% with form.birth_date as field %}
+                    {% with form.sex as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    {% with form.sex as field %}
+                    {% with form.birth_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.birthplace as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    {% with form.child_snils as field %}
+                    {% with form.admission_date as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
-                    <div class="select-with-text-option">
-                        {% with form.kinship_type as field %}
-                            {% include "account/include/requestion-form-field.html" %}
-                        {% endwith %}
-                        {% with form.kinship as field %}
-                            {% include "account/include/requestion-form-field.html" %}
-                        {% endwith %}
-                    </div>
-                    {% with form.admission_date as field %}
+                    {% with form.kinship_type as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.kinship as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                 </div>
@@ -317,6 +339,9 @@
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     {% with form.document_number as field %}
+                        {% include "account/include/requestion-form-field.html" %}
+                    {% endwith %}
+                    {% with form.child_snils as field %}
                         {% include "account/include/requestion-form-field.html" %}
                     {% endwith %}
                     <div class="small-field">
@@ -341,36 +366,50 @@
                 {% if use_districts %}
                     {% if form.areas.errors %} <span class="error">Пожалуйста, выберите район и соответствующие группы ДОУ для зачисления.</span>{% endif %}
                     {% with form.district as field %}
-                        {% include "account/include/requestion-form-field.html" %}
+                        <div class="field {% if field.errors %}error{% endif %}">
+                            <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+                            <p class="field-value">
+                                {{ field }}
+                            </p>
+                            <p class="hint"></p>
+                        </div>
                     {% endwith %}
                     <div id="areas_field" class="field">
-                        <label id="sg_label" class="field-label">Предпочитаемые группы ДОУ</label> 
-                        <span id="pref_dou_groups" class="icon-question-sign"></span>
+                        <label id="sg_label" class="field-label">{{ form.areas.label }}</label>
+                        {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
                         <div></div>
+                        {% if form.areas.help_text %}<p class="hint hint-multiline">{{ form.areas.help_text }}</p>{% endif %}
                         {{ form.areas }}
-                        <a id="add_sg" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                        <a id="add_sadikgroup" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
                     </div>
                 {% else %}
                     {% with form.areas as field %}
-                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="error">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label> </label> <span id="pref_dou_groups" class="icon-question-sign"></span>
+                      <div class="field {% if field.errors %}error{% endif %}">
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span>
+                        {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}</label>
                         <div></div>
-                        {% if field.help_text %}
-                            <p class="hint">{{ field.help_text }}</p>
-                        {% endif %}
+                        {% if field.help_text %}<p class="hint hint-multiline">{{ field.help_text }}</p>{% endif %}
                         {{ field }}
-                        <select class="areas_all">
+                        <select id="areas_select_first" class="areas_all">
                             <option value selected="selected">----------</option>
                             {% for area in areas_all %}
                             <option value="{{ area.id }}">{{ area }}</option>
                             {% endfor %}
                         </select>
-                        <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                        <a id="add_sadikgroup" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+                      </div>
                     {% endwith %}
                 {% endif %}
                 {% with form.pref_sadiks as field %}
-                    <div class="small-field">
-                        {% include "account/include/requestion-form-field.html" %}
+                  <div class="small-field">
+                    <div class="field {% if field.errors %}error{% endif %}">
+                        <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+                        {% if field.help_text %}<p class="hint hint-multiline">{{ field.help_text }}</p>{% endif %}
+                        <p class="field-value">
+                            {{ field }}
+                        </p>
                     </div>
+                  </div>
                 {% endwith %}
                 </div>
             </div>
@@ -378,22 +417,26 @@
                 <div class="requestion-info">
                 <div class="field {% if form.location.errors %}error{% endif %}">
                     <div id="location-header">
-                        <a class="btn" id="get_coords" {% if form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
-                        <label class="field-label">{{ form.location.label }} {% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</label>
+                        <label class="field-label">{{ form.location.label }}{% if form.location.errors %} <span class="errors">({% for error in form.location.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                        {% if form.location.help_text %}<p class="hint hint-multiline">{{ form.location.help_text }}</p>{% endif %}
                         <div style="overflow: hidden; padding-right: .5em;">
-                        <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
+                            <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+                            <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом">
+                        </div>
                         <div id="coords_alert" class="alert" style="display: none;">
                         </div>
                         <div id="coords_success" class="alert alert-success" style="display: none;">
-                            Теперь при помощи кнопки <i class="icon-map-marker"></i>укажите 
+                            Теперь при помощи кнопки <i class="icon-map-marker"></i>укажите
                             местоположение на карте, или перетащите маркер заявки мышкой на нужное место
                         </div>
                     <div class="hidden">
                         {{ form.location }}
                     </div>
                     <div id="account-requestion-map"></div>
-                    <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
-                    Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
+                    {% if request.user.is_operator %}
+                        <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
+                        Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
+                    {% endif %}
                     </div>
                 </div>
                 <ul class='map-legend'>

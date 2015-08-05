@@ -14,18 +14,18 @@ from sadiki.core.models import Profile, Requestion, Sadik, REQUESTION_IDENTITY,\
     Benefit, PersonalDocument
 from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
     JQueryUIAdmissionDateWidget, JqueryIssueDateWidget, SelectMultipleBenefits
-from sadiki.core.widgets import ChoiceWithTextOptionWidget
+from sadiki.core.widgets import SnilsWidget
+from sadiki.core.validators import passport_series_validator
+from sadiki.core.validators import passport_number_validator
 
 
 class RequestionForm(FormWithDocument):
     template = TemplateFormField(
         destination=REQUESTION_IDENTITY, label=u'Тип документа')
     pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
+        queryset=Sadik.objects.filter(
             active_registration=True).select_related('area'),
-        required=True, widget=SelectMultipleJS(),
-        help_text=u'Этот список не даёт прав на внеочередное зачисление '
-                  u'в выбранные ДОУ')
+        required=True, widget=SelectMultipleJS(),)
     kinship_type = forms.ChoiceField(
         label=u'Степень родства заявителя',
         choices=Requestion.REQUESTER_TYPE_CHOICES)
@@ -45,6 +45,13 @@ class RequestionForm(FormWithDocument):
     def __init__(self, *args, **kwds):
         self.base_fields['areas'].help_text = None
         self.base_fields['location'].label = u'Укажите ваше местоположение'
+        self.base_fields['location'].help_text = (
+            u'Относительно этого '
+            u'местоположения оператор будет подбирать ближайший детский сад '
+            u'из выбранных групп ДОУ, если в приоритетных ДОУ не останется '
+            u'свободных мест. Введите адрес в строку поиска, нажмите кнопку. '
+            u'Далее кликните на иконке маркера и перетащите маркер в нужную '
+            u'точку на карте.')
         self.base_fields['location'].required = True
         self.base_fields['location'].error_messages.update(location_errors)
         self.base_fields['template'].help_text = u"Документ, идентифицирующий\
@@ -55,12 +62,36 @@ class RequestionForm(FormWithDocument):
         self.base_fields['admission_date'].initial = datetime.date.today()
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
+        self.base_fields['child_snils'].widget = SnilsWidget()
+        self.base_fields['pref_sadiks'].label = u'Выберите ДОУ'
+        self.base_fields['pref_sadiks'].help_text = (
+            u'Нежелательно выбирать '
+            u'более 3-х учреждений. Приоритетные детские сады могут находиться'
+            u' в разных группах ДОУ. Список приоритетных ДОУ не даёт прав на '
+            u'внеочередное зачисление в выбранные ДОУ.')
+        self.base_fields['areas'].label = u'Выберите группы ДОУ'
+        self.base_fields['areas'].help_text = (
+            u'Все детские сады муниципалитета объединены '
+            u'в группы по территориальному признаку. Вы можете выбрать '
+            u'несколько групп ДОУ, количество не ограничено. От выбора групп '
+            u'ДОУ будет зависеть участие вашей заявки в комплектовании. При '
+            u'комплектовании ваша заявка будет претендовать только в '
+            u'учреждения выбранных групп ДОУ и приоритетные детские сады. '
+            u'Учреждения выбранной группы ДОУ на карте окрашиваются в желтый '
+            u'цвет. Изменив масштаб карты, можно оценить территорию, '
+            u'охваченную выбранными группами ДОУ.')
+        self.base_fields['district'].label = u'Выберите район'
         super(RequestionForm, self).__init__(*args, **kwds)
 
+    def clean_birthplace(self):
+        return self.cleaned_data.get('birthplace').strip()
+
+    def clean_kinship(self):
+        return self.cleaned_data.get('kinship').strip()
+
     def clean(self, *args, **kwargs):
-        kinship_type = int(self.cleaned_data.get('kinship_type')
-                           or Requestion.REQUESTER_TYPE_OTHER)
-        if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
+        kinship_type = self.cleaned_data.get('kinship_type')
+        if kinship_type and kinship_type != Requestion.REQUESTER_TYPE_OTHER:
             self.cleaned_data['kinship'] = dict(
                 Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
         if not self.cleaned_data['kinship']:
@@ -98,11 +129,25 @@ class ChangeRequestionForm(forms.ModelForm):
         self.base_fields['admission_date'].widget = JQueryUIAdmissionDateWidget()
         self.base_fields['kinship'].label = (u'Укажите, кем приходится'
                                              u' заявитель ребёнку')
+        self.base_fields['child_snils'].widget = SnilsWidget()
+        self.base_fields['location'].help_text = (
+            u'Относительно этого местоположения оператор '
+            u'будет подбирать ближайший детский сад из выбранных групп ДОУ, '
+            u'если в приоритетных ДОУ не останется свободных мест. Для '
+            u'изменения местоположения наведите курсор мыши на маркер и '
+            u'перетащите маркер, зажав левую клавишу мыши. Не забудьте '
+            u'сохранить изменения.')
         super(ChangeRequestionForm, self).__init__(*args, **kwds)
 
+    def clean_birthplace(self):
+        return self.cleaned_data.get('birthplace').strip()
+
+    def clean_kinship(self):
+        return self.cleaned_data.get('kinship').strip()
+
     def clean(self, *args, **kwargs):
-        kinship_type = int(self.cleaned_data['kinship_type'])
-        if kinship_type != Requestion.REQUESTER_TYPE_OTHER:
+        kinship_type = self.cleaned_data.get('kinship_type')
+        if kinship_type and kinship_type != Requestion.REQUESTER_TYPE_OTHER:
             self.cleaned_data['kinship'] = dict(
                 Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
         if (self.cleaned_data['kinship'] == self.instance.kinship
@@ -133,13 +178,33 @@ class BenefitsForm(forms.ModelForm):
 
 class PreferredSadikForm(forms.ModelForm):
     pref_sadiks = SadikWithAreasNameField(
-        label=u'Выберите ДОУ', queryset=Sadik.objects.filter(
+        queryset=Sadik.objects.filter(
             active_registration=True).select_related('area'),
         required=False, widget=SelectMultipleJS())
 
     class Meta:
         model = Requestion
         fields = ('areas', 'pref_sadiks')
+
+    def __init__(self, *args, **kwargs):
+        self.base_fields['areas'].label = u'Предпочитаемые группы ДОУ'
+        self.base_fields['areas'].help_text = (
+            u'Все детские сады муниципалитета '
+            u'объединены в группы по территориальному признаку. Вы можете '
+            u'выбрать несколько групп ДОУ или удалить неподходящие. От выбора '
+            u'групп ДОУ будет зависеть участие вашей заявки в комплектовании. '
+            u'При комплектовании ваша заявка будет претендовать только в '
+            u'учреждения выбранных групп ДОУ и приоритетные детские сады. '
+            u'Учреждения выбранной группы ДОУ на карте окрашиваются в желтый '
+            u'цвет. Изменив масштаб карты, можно оценить территорию, '
+            u'охваченную выбранными группами ДОУ.')
+        self.base_fields['pref_sadiks'].label = u'Приоритетные ДОУ'
+        self.base_fields['pref_sadiks'].help_text = (
+            u'Нежелательно выбирать более 3-х учреждений. '
+            u'Приоритетные детские сады могут находиться в разных группах '
+            u'ДОУ. До момента проведения комплектования вы можете '
+            u'самостоятельно изменить список приоритетных ДОУ.')
+        super(PreferredSadikForm, self).__init__(*args, **kwargs)
 
 
 class SocialProfilePublicForm(ModelForm):
@@ -159,12 +224,37 @@ class PersonalDataForm(ModelForm):
                   'snils', 'town', 'street', 'house']
 
     def __init__(self, *args, **kwargs):
+        self.base_fields['snils'].widget = SnilsWidget()
         super(PersonalDataForm, self).__init__(*args, **kwargs)
         try:
             self.fields['first_name'].initial = self.instance.first_name
             self.fields['last_name'].initial = self.instance.last_name
         except:
             pass
+
+    def clean_first_name(self):
+        return self.cleaned_data.get('first_name').strip()
+
+    def clean_last_name(self):
+        return self.cleaned_data.get('last_name').strip()
+
+    def clean_middle_name(self):
+        return self.cleaned_data.get('middle_name').strip()
+
+    def clean_phone_number(self):
+        return self.cleaned_data.get('phone_number').strip()
+
+    def clean_mobile_number(self):
+        return self.cleaned_data.get('mobile_number').strip()
+
+    def clean_town(self):
+        return self.cleaned_data.get('town').strip()
+
+    def clean_street(self):
+        return self.cleaned_data.get('street').strip()
+
+    def clean_house(self):
+        return self.cleaned_data.get('house').strip()
 
     def save(self, commit=True):
         profile = super(PersonalDataForm, self).save(commit=False)
@@ -187,11 +277,32 @@ class PersonalDocumentForm(ModelForm):
     def clean_profile(self):
         return Profile.objects.get(id=self.cleaned_data['profile'])
 
+    def clean_doc_name(self):
+        return self.cleaned_data.get('doc_name').strip()
+
+    def clean_series(self):
+        series = self.cleaned_data.get('series')
+        if (series and int(self.cleaned_data.get(
+                'doc_type')) == PersonalDocument.DOC_TYPE_PASSPORT):
+            passport_series_validator(series)
+        return series.strip()
+
+    def clean_number(self):
+        number = self.cleaned_data.get('number')
+        if (number and int(self.cleaned_data.get(
+                'doc_type')) == PersonalDocument.DOC_TYPE_PASSPORT):
+            passport_number_validator(number)
+        return number.strip()
+
+    def clean_issued_by(self):
+        return self.cleaned_data.get('issued_by').strip()
+
     def clean(self, *args, **kwargs):
         required_fields = []
         doc_type = int(self.cleaned_data['doc_type'])
         if doc_type != PersonalDocument.DOC_TYPE_OTHER:
-            if not self.cleaned_data.get('series'):
+            if (not self.cleaned_data.get('series')
+                    and not 'series' in self.errors):
                 required_fields.append('series')
             if not self.cleaned_data.get('issued_by'):
                 required_fields.append('issued_by')

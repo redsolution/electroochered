@@ -7,6 +7,7 @@ from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
 from sadiki.account.forms import RequestionForm, ChangeRequestionForm
+from sadiki.account.forms import PreferredSadikForm
 from sadiki.administrator.admin import SadikAdminForm
 from sadiki.anonym.forms import PublicSearchForm, FormWithDocument, QueueFilterForm
 from sadiki.conf_settings import REQUESTION_NUMBER_MASK
@@ -64,6 +65,11 @@ class OperatorRequestionForm(RequestionForm):
     def __init__(self, *args, **kwargs):
         super(OperatorRequestionForm, self).__init__(*args, **kwargs)
         self.fields['location'].label = u'Укажите местоположение заявителя'
+        self.fields['areas'].label = u'Выберите группы ДОУ'
+        self.fields['pref_sadiks'].label = u'Выберите ДОУ'
+        self.fields['location'].help_text = ''
+        self.fields['areas'].help_text = ''
+        self.fields['pref_sadiks'].help_text = ''
 
     def create_document(self, requestion, commit=True):
         document = super(OperatorRequestionForm, self).create_document(
@@ -85,6 +91,15 @@ class OperatorChangeRequestionForm(ChangeRequestionForm):
     def __init__(self, *args, **kwargs):
         super(OperatorChangeRequestionForm, self).__init__(*args, **kwargs)
         self.fields['location'].label = u"Местоположение заявителя"
+        self.fields['location'].help_text = ''
+
+
+class OperatorPreferredSadikForm(PreferredSadikForm):
+
+    def __init__(self, *args, **kwargs):
+        super(OperatorPreferredSadikForm, self).__init__(*args, **kwargs)
+        self.fields['areas'].help_text = ''
+        self.fields['pref_sadiks'].help_text = ''
 
 
 class OperatorSearchForm(PublicSearchForm):
