@@ -28,10 +28,12 @@ class Command(BaseCommand):
             # если есть персональные данные в модуле, сначала переносим их
             if pdata:
                 if not user.first_name and not user.last_name:
-                    user.first_name = pdata.first_name
-                    user.last_name = pdata.last_name
-                    new_data[u'Имя'] = pdata.first_name
-                    new_data[u'Фамилия'] = pdata.last_name
+                    if pdata.first_name:
+                        user.first_name = pdata.first_name
+                        new_data[u'Имя'] = pdata.first_name
+                    if pdata.last_name:
+                        user.last_name = pdata.last_name
+                        new_data[u'Фамилия'] = pdata.last_name
                     profile.middle_name = pdata.second_name
                     new_data[u'Отчество'] = pdata.second_name
                 profile.town = pdata.settlement
