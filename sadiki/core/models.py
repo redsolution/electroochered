@@ -13,9 +13,11 @@ from django.contrib.gis.db.models.fields import PolygonField, PointField
 from django.contrib.gis.geos import Point
 from django.core.validators import MaxValueValidator
 from django.core.exceptions import ObjectDoesNotExist
+from django.forms.models import model_to_dict
 from django.db import models, transaction
 from django.db.models.query_utils import Q
 from django.db.models.signals import m2m_changed, post_save
+
 from ordereddict import OrderedDict
 
 from sadiki.conf_settings import MUNICIPALITY_OCATO
@@ -26,7 +28,7 @@ from sadiki.core.utils import add_crc, calculate_luhn_digit, \
     get_current_distribution_year, get_qs_attr, get_user_by_email, \
     find_closest_kg
 from sadiki.core.validators import birth_date_validator, \
-    registration_date_validator
+    registration_date_validator, snils_validator
 from sadiki.settings import REQUESTER_USERNAME_PREFIX
 from south.modelsinspector import add_introspection_rules
 import datetime
@@ -207,6 +209,9 @@ class EvidienceDocumentQueryset(models.query.QuerySet):
 
     def requestion_identity_documents(self):
         return self.filter(template__destination=REQUESTION_IDENTITY)
+
+    def other_documents(self):
+        return self.exclude(template__destination=REQUESTION_IDENTITY)
 
 
 class EvidienceDocument(models.Model):
@@ -760,26 +765,57 @@ class Profile(models.Model):
 
     user = models.OneToOneField('auth.User', verbose_name=u'Пользователь',
         unique=True)
+
+    @property
+    def first_name(self):
+        try:
+            return self._first_name
+        except AttributeError:
+            return self.user.first_name
+
+    @first_name.setter
+    def first_name(self, value):
+        self._first_name = value
+
+    @property
+    def last_name(self):
+        try:
+            return self._last_name
+        except AttributeError:
+            return self.user.last_name
+
+    @last_name.setter
+    def last_name(self, value):
+        self._last_name = value
+
     # используется для указания принадлежности оператора к территориальной области
-    area = models.ForeignKey('Area',
-        verbose_name=u'Территориальная область к которой относится', null=True)
-    first_name = models.CharField(u'Имя', max_length=255, null=True)
-    email_verified = models.BooleanField(u'E-mail достоверный',
-        default=False)
+    area = models.ForeignKey(
+        'Area',
+        verbose_name=u'Территориальная область к которой относится',
+        null=True)
+    middle_name = models.CharField(u'Отчество', max_length=255,
+                                   blank=True, null=True)
+    email_verified = models.BooleanField(u'E-mail достоверный', default=False)
     phone_number = models.CharField(u'Телефон для связи', max_length=255,
-        blank=False, null=True,
-        help_text=u"Номер телефона для связи")
-    mobile_number = models.CharField(u'Дополнительный телефон',
-        max_length=255, blank=True, null=True,
-        help_text=u"Дополнительный номер телефона для связи")
-    skype = models.CharField(u'Skype',
-        max_length=255, blank=True, null=True,
-        help_text=u"Учетная запись в сервисе Skype")
+                                    blank=True, null=True)
+    mobile_number = models.CharField(u'Дополнительный телефон', max_length=255,
+                                     blank=True, null=True)
+    skype = models.CharField(u'Skype', max_length=255, blank=True, null=True,
+                             help_text=u"Учетная запись в сервисе Skype")
+    snils = models.CharField(u'СНИЛС', max_length=20, blank=True, null=True,
+                             validators=[snils_validator, ],
+                             help_text=u'Формат: 123-456-789 12')
+    town = models.CharField(u'Населённый пункт', max_length=50, null=True)
+    street = models.CharField(u'Улица', max_length=50, null=True)
+    house = models.CharField(u'Номер дома', max_length=10, null=True)
     # для оператора ДОУ указывает подконтрольные ДОУ
     sadiks = models.ManyToManyField('Sadik', null=True)
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
+    pd_processing_permit = models.DateTimeField(
+        u'Дата согласия на обработку персональных данных',
+        blank=True, null=True)
 
     def get_identity_documents(self):
         return EvidienceDocument.objects.documents_for_object(self)
@@ -793,6 +829,14 @@ class Profile(models.Model):
     def is_password_set(self):
         return is_password_usable(self.user.password)
 
+    def set_email_verified(self):
+        self.email_verified = True
+        self.save()
+
+    def set_email_unverified(self):
+        self.email_verified = False
+        self.save()
+
     def social_auth_clean_data(self):
         self.phone_number = None
         self.first_name = None
@@ -803,8 +847,82 @@ class Profile(models.Model):
         self.phone_number = data.get('home_phone')
         self.skype = data.get('skype')
 
+    def to_dict(self):
+        result_dict = model_to_dict(self)
+        result_dict.update({'first_name': self.first_name,
+                            'last_name': self.last_name})
+        personal_documents = [
+            u'{}'.format(personal_document)
+            for personal_document in self.personaldocument_set.order_by('id')
+        ]
+        result_dict.update({'personal_documents': personal_documents})
+        return result_dict
+
+    def save(self, *args, **kwargs):
+        self.user.first_name = self.first_name
+        self.user.last_name = self.last_name
+        self.user.save()
+        return super(Profile, self).save(*args, **kwargs)
+
     def __unicode__(self):
         return self.user.username
+
+
+class PersonalDocument(models.Model):
+    u"""Документ, удостоверяющий личность заявителя"""
+    class Meta:
+        verbose_name = u'Документ заявителя'
+        verbose_name_plural = u'Документы заявителей'
+        unique_together = (('doc_type', 'series', 'number'),)
+
+    DOC_TYPE_PASSPORT = 2
+    DOC_TYPE_OTHER = 1
+
+    DOC_TYPE_CHOICES = (
+        (DOC_TYPE_PASSPORT, u'Паспорт гражданина РФ'),
+        (DOC_TYPE_OTHER, u'Иное'),
+    )
+
+    doc_type = models.IntegerField(u'Тип документа', choices=DOC_TYPE_CHOICES,
+                                   default=DOC_TYPE_PASSPORT)
+    doc_name = models.CharField(u'Название документа',
+                                max_length=30, blank=True, null=True)
+    series = models.CharField(u'Серия документа', max_length=20,
+                              blank=True, null=True)
+    number = models.CharField(u'Номер документа', max_length=50, null=True)
+    issued_date = models.DateField(u'Дата выдачи документа', null=True)
+    issued_by = models.CharField(u'Кем выдан', max_length=250,
+                                 blank=True, null=True)
+    profile = models.ForeignKey('Profile', verbose_name=u'Профиль заявителя')
+
+    def to_dict(self):
+        result_dict = model_to_dict(self)
+        result_dict.update({'doc_type': self.get_doc_type_display()})
+        return result_dict
+
+    def unique_error_message(self, model_class, unique_check):
+        if (model_class == type(self)
+                and unique_check == ('doc_type', 'series', 'number')):
+            return (u'Документ заявителя с такими значениями полей: '
+                    u'Тип, Серия и Номер — уже зарегистрирован в системе.')
+        else:
+            return super(PersonalDocument, self).unique_error_message(
+                model_class, unique_check)
+
+    def __unicode__(self):
+        format_string = u'{}, {} {}, выдан {} {}'
+        if self.doc_type == PersonalDocument.DOC_TYPE_OTHER:
+            doc_name = self.doc_name
+        else:
+            doc_name = self.get_doc_type_display()
+        return format_string.format(
+            doc_name,
+            self.series,
+            self.number,
+            self.issued_date.strftime('%d.%m.%Y'),
+            self.issued_by,
+        )
+
 
 NOT_CONFIRMED_STATUSES = (
     STATUS_WAIT_REVIEW,
@@ -1015,13 +1133,35 @@ class Requestion(models.Model):
         u'Дата рождения ребёнка', validators=[birth_date_validator])
     # сейчас в формах имя пользователя ограничено 20 символами
     name = models.CharField(
-        u'имя ребёнка', max_length=255, null=True,
-        validators=[validate_no_spaces, ],
-        help_text=u"В поле достаточно ввести только имя ребёнка. "
-                  u"Фамилию и отчество вводить не нужно!")
+        u'Имя ребёнка', max_length=255, null=True,
+        validators=[validate_no_spaces, ],)
+    child_middle_name = models.CharField(
+        u'Отчество ребёнка', max_length=50, blank=True, null=True,
+        validators=[validate_no_spaces, ],)
+    child_last_name = models.CharField(
+        u'Фамилия ребёнка', max_length=50, null=True,
+        validators=[validate_no_spaces, ],)
     sex = models.CharField(
         max_length=1, verbose_name=u'Пол ребёнка',
         choices=SEX_CHOICES, null=True)
+    kinship = models.CharField(
+        u'Степень родства заявителя', max_length=50, blank=True, null=True)
+
+    @property
+    def kinship_type(self):
+        if not self.kinship:
+            return '';
+        for kinship_id, kinship_name in self.REQUESTER_TYPE_CHOICES:
+            if self.kinship == kinship_name:
+                return kinship_id
+        return self.REQUESTER_TYPE_OTHER
+
+    birthplace = models.CharField(
+        u'Место рождения ребёнка', max_length=50, null=True)
+    child_snils = models.CharField(
+        u'СНИЛС ребёнка', max_length=20, blank=True, null=True,
+        validators=[snils_validator, ],
+        help_text=u'Формат: 123-456-789 12')
     cast = models.IntegerField(
         verbose_name=u'Тип заявки',
         choices=REQUESTION_TYPE_CHOICES, default=REQUESTION_TYPE_NORMAL)
@@ -1072,7 +1212,26 @@ class Requestion(models.Model):
             место в любом детском саду в выбранных территориальных областях,
             в случае, когда в приоритетных ДОУ не окажется места""")
 
+    REQUESTER_TYPE_MOTHER = '1'
+    REQUESTER_TYPE_FATHER = '2'
+    REQUESTER_TYPE_OTHER = '0'
+
+    REQUESTER_TYPE_CHOICES = (
+        ('', '---------'),
+        (REQUESTER_TYPE_MOTHER, u'Мать'),
+        (REQUESTER_TYPE_FATHER, u'Отец'),
+        (REQUESTER_TYPE_OTHER, u'Иное'),
+    )
+
     objects = query_set_factory(RequestionQuerySet)
+
+    def set_kinship(self, kinship_type):
+        kinship_type = str(kinship_type)
+        kinship_dict = dict(self.REQUESTER_TYPE_CHOICES)
+        if not (kinship_type and kinship_type in kinship_dict):
+            kinship_type = self.REQUESTER_TYPE_OTHER
+        self.kinship = kinship_dict[kinship_type]
+        self.save()
 
     def get_requestion_number(self):
         id_with_crc = add_crc(self.id)

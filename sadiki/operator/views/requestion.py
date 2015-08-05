@@ -32,6 +32,7 @@ from sadiki.core.utils import check_url, get_unique_username, get_coords_from_ad
 from sadiki.core.workflow import REQUESTION_REGISTRATION_BY_OPERATOR, \
     CHANGE_REQUESTION_BY_OPERATOR, Transition, workflow, CREATE_PROFILE,\
     CHANGE_DOCUMENTS_BY_OPERATOR, CHANGE_REQUESTION_LOCATION
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA_BY_OPERATOR
 from sadiki.logger.models import Logger
 from sadiki.operator.forms import OperatorRequestionForm, OperatorSearchForm, \
     RequestionIdentityDocumentForm, \
@@ -44,6 +45,7 @@ from sadiki.operator.views.base import OperatorPermissionMixin, \
 from sadiki.core.exceptions import TransitionNotRegistered
 from sadiki.core.views_base import GenerateBlankBase, generate_pdf
 from sadiki.operator.forms import ConfirmationForm, QueueOperatorFilterForm
+from sadiki.operator.forms import OperatorPreferredSadikForm
 from sadiki.core.templatetags.sadiki_core_tags import FakeWSGIRequest
 from sadiki.core.exceptions import TransitionNotAllowed
 
@@ -170,8 +172,13 @@ class ProfileInfo(OperatorPermissionMixin, AccountFrontPage):
     template_name = "operator/profile_info.html"
 
     def dispatch(self, request, profile_id):
-        profile = get_object_or_404(Profile, id=profile_id)
-        return super(AccountFrontPage, self).dispatch(request, profile=profile)
+        kwargs = {
+            'profile': get_object_or_404(Profile, id=profile_id),
+            'redirect_to': reverse('operator_profile_info',
+                                   kwargs={'profile_id': profile_id}),
+            'action_flag': CHANGE_PERSONAL_DATA_BY_OPERATOR,
+        }
+        return super(AccountFrontPage, self).dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super(ProfileInfo, self).get_context_data(**kwargs)
@@ -186,6 +193,7 @@ class RequestionInfo(OperatorRequestionMixin, AccountRequestionInfo):
     template_name = "operator/requestion_info.html"
     logger_action = CHANGE_REQUESTION_BY_OPERATOR
     change_requestion_form = OperatorChangeRequestionForm
+    preferred_sadik_form = OperatorPreferredSadikForm
 
     def redirect_to(self, requestion):
         return reverse('operator_requestion_info', kwargs={'requestion_id': requestion.id})

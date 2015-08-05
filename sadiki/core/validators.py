@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.conf import settings
 import datetime
 
@@ -18,3 +19,19 @@ def registration_date_validator(value):
     current_date = datetime.date.today()
     if value.date() > current_date:
         raise ValidationError(u"Дата регистрации не может превышать текущую дату")
+
+
+snils_validator = RegexValidator(
+    '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$',
+    message=u'неверный формат'
+)
+
+passport_series_validator = RegexValidator(
+    '^[0-9]{4}$',
+    message=u'неверный формат',
+)
+
+passport_number_validator = RegexValidator(
+    '^[0-9]{6}$',
+    message=u'неверный формат',
+)

@@ -4,7 +4,7 @@ import datetime
 from time import strftime
 
 from django.forms.util import flatatt
-from django.forms.widgets import MultiWidget, DateInput, TextInput
+from django.forms.widgets import MultiWidget, DateInput, TextInput, Widget
 from django import forms
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -19,6 +19,66 @@ DEFAULT_HEIGHT = 300
 
 DEFAULT_LAT = 61.401951
 DEFAULT_LNG = 55.160478
+
+
+class ChoiceWithTextOptionWidget(Widget):
+
+    def __init__(self, *args, **kwargs):
+        choices = kwargs.pop('choices')
+        super(ChoiceWithTextOptionWidget, self).__init__(*args, **kwargs)
+        self.choices = [choice[1] for choice in choices]
+
+    def render(self, name, value, attrs=None):
+        displayed_value = value
+        if value is None:
+            selected_choice = self.choices[0]
+            displayed_value = selected_choice
+        elif not value:
+            selected_choice = self.choices[-1]
+        elif value not in self.choices[:-1]:
+            selected_choice = self.choices[-1]
+        else:
+            selected_choice = value
+        output = [u'<select id="id_select_{name}">'.format(name=name)]
+        for choice in self.choices:
+            if choice == selected_choice:
+                selected_attr = u'selected="selected"'
+            else:
+                selected_attr = u''
+            option = u'<option value="{choice}" {selected}>{choice}</option>'
+            output.append(option.format(choice=choice, selected=selected_attr))
+        output.append(u'</select>')
+
+        if selected_choice != self.choices[-1]:
+            hidden_class = u'class="hidden"'
+        else:
+            hidden_class = u''
+        text_input = (u'<input type="text" name="{name}" id="id_{name}" '
+                      u'placeholder="заполните вручную" '
+                      u'value="{value}" {hidden} />')
+        output.append(text_input.format(name=name, value=displayed_value,
+                                        hidden=hidden_class))
+        js = u'''
+        <script type="text/javascript">
+            $("#id_select_{name}").change(function() {{
+                if ($(this).val() == "{other_choice}") {{
+                    $("#id_{name}").val("");
+                    $("#id_{name}").removeClass("hidden");
+                }} else {{
+                    $("#id_{name}").addClass("hidden");
+                    $("#id_{name}").val($(this).val());
+                }}
+            }});
+        </script>
+        '''.format(name=name, other_choice=self.choices[-1])
+        output.append(js)
+        return mark_safe('\n'.join(output))
+
+
+class SnilsWidget(TextInput):
+    def __init__(self):
+        attrs = {'data-mask': '999-999-999 99'}
+        return super(SnilsWidget, self).__init__(attrs=attrs)
 
 
 class DateRangeWidget(MultiWidget):
@@ -63,9 +123,9 @@ class JqueryUIDateWidget(DateInput):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
-            var datepicker_conf = {{maxDate: new Date(),
-                                    dateFormat: '{format:>s}'}};
+            $(function() {{
+                var datepicker_conf = {{maxDate: new Date(),
+                                        dateFormat: '{format:>s}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
@@ -86,12 +146,11 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
+            $(function() {{
                 var datepicker_conf = {{minDate: new Date(),
-                                        dateFormat: '{format:>s}',
-                                        }};
-                    $("#id_{name:>s}").datepicker(datepicker_conf);
-                }});
+                                        dateFormat: '{format:>s}'}};
+                $("#id_{name:>s}").datepicker(datepicker_conf);
+            }});
         //]]>
         </script> '''.format(name=name, format=settings.JS_DATE_FORMAT)
         html = super(JqueryUIDateWidget, self).render(name, value, *args,
@@ -103,6 +162,27 @@ class JqueryUIFutureDateWidget(JqueryUIDateWidget):
             attrs, default_class, **kwargs)
 
 
+class JqueryIssueDateWidget(JqueryUIDateWidget):
+    def render(self, name, value, *args, **kwargs):
+        static_url = static('img/icon_edit.fw.png')
+        js = '''
+        <script type="text/javascript">
+        //<![CDATA[
+            $(function() {{
+                var datepicker_conf = {{maxDate: new Date(),
+                                        minDate: new Date(1990, 1, 1),
+                                        dateFormat: '{format:>s}',
+                                        buttonImage: '{img_url}'}};
+                $("#id_{name:>s}").datepicker(datepicker_conf);
+            }});
+        //]]>
+        </script> '''.format(name=name,
+                             format=settings.JS_DATE_FORMAT, img_url=static_url)
+        html = super(JqueryUIDateWidget, self).render(name, value, *args,
+                                                      **kwargs)
+        return mark_safe(html + js)
+
+
 class JQueryUIAdmissionDateWidget(JqueryUIDateWidget):
     def render(self, name, value, *args, **kwargs):
         max_year = datetime.date.today().year + 2
@@ -110,11 +190,11 @@ class JQueryUIAdmissionDateWidget(JqueryUIDateWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
-            var datepicker_conf = {{maxDate: new Date({year}, 11, 31),
-                                    minDate: new Date(),
-                                    dateFormat: '{format:>s}',
-                                    buttonImage: '{img_url}'}};
+            $(function() {{
+                var datepicker_conf = {{maxDate: new Date({year}, 11, 31),
+                                        minDate: new Date(),
+                                        dateFormat: '{format:>s}',
+                                        buttonImage: '{img_url}'}};
                 $("#id_{name:>s}").datepicker(datepicker_conf);
             }});
         //]]>
@@ -169,11 +249,11 @@ class JqSplitDateTimeWidget(MultiWidget):
         js = '''
         <script type="text/javascript">
         //<![CDATA[
-            $(function(){{
+            $(function() {{
                 var datepicker_conf = {{maxDate: new Date(),
                                         dateFormat: '{format:>s}'}};
-                    $("#id_{name:>s}_0").datepicker(datepicker_conf);
-                }});
+                $("#id_{name:>s}_0").datepicker(datepicker_conf);
+            }});
         //]]>
         </script> '''.format(name=name, format=settings.JS_DATE_FORMAT)
         html = super(JqSplitDateTimeWidget, self).render(name, value, *args,
@@ -237,7 +317,7 @@ class SelectMultipleJS(forms.SelectMultiple):
             js = u"""
             <script type="text/javascript">
             //<![CDATA[
-            $(function(){
+            $(function() {
                 try {
                     $('#id_%s').bsmSelect({removeLabel: 'Удалить', title: '------'});
                 } catch(err) {if (console) {console.log(err);}}

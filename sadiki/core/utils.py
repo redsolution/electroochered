@@ -531,3 +531,9 @@ def active_child_exist(birth_cert):
         if is_active_child_status(child_data['data']['status']):
             return True
     return False
+
+
+def remove_empty_personal_data_values(data):
+    target_keys = [key for key in data if data[key] == '' or data[key] == None]
+    for key in target_keys:
+        data.pop(key)

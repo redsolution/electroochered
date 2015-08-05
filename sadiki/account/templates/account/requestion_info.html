@@ -92,6 +92,7 @@
             function field_changed(element) {
                 if (!$(element).find('label span.value-changed').length){
                     $(element).children("label").append('<span class="value-changed"> (Изменено)</span>');
+                    $(element).find("label span.hint").text('');
                     $(element).children("label").addClass('changed');
                 }
                 // submit активный
@@ -103,7 +104,7 @@
                 window.onbeforeunload = confirmmsg;
             }
 
-            $(document).ready(function(){
+            $(document).ready(function() {
                 if (requestion_marker) {
                     var map_center = requestion_point
                 } else {
@@ -129,9 +130,9 @@
                     addDrawControl(map, drawControl);
                 }
 
-                function addDrawControl(map, control){
+                function addDrawControl(map, control) {
                     map.addControl(control);
-                    $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function(){
+                    $('.leaflet-draw-edit-edit, .leaflet-draw-draw-marker').click(function() {
                         if (requestion_point) {
                                 map.panTo(requestion_point);
                         } else {
@@ -163,7 +164,7 @@
                 // изменение приоритетных ДОУ
                 $("#id_pref_sadiks").change(function(e, data) {
                     var value = parseInt(data.value);
-                    if (data.type == 'add'){
+                    if (data.type == 'add') {
                         pref_sadiks_ids.push(value);
                         renderMarkers(sadik_location_data, map)
                         map.panTo(sadik_location_data[value].location.slice().reverse())
@@ -202,9 +203,9 @@
             {% endif %}
             });
 
-            $('#id_areas, #id_distribute_in_any_sadik').change(function(){
-                if ($("#id_distribute_in_any_sadik").is(':checked')){
-                    if ($("#id_areas").val()){
+            $('#id_areas, #id_distribute_in_any_sadik').change(function() {
+                if ($("#id_distribute_in_any_sadik").is(':checked')) {
+                    if ($("#id_areas").val()) {
                         areas_ids = $("#id_areas").val().map(function(i) {return +i;});
                     } else {
                         areas_ids = []
@@ -218,7 +219,7 @@
         {% endwith %}
 
         //при отправке формы нужно убрать запрос на обновление страницы
-        function form_submit(f){
+        function form_submit(f) {
             window.onbeforeunload = null;
             $('#requestion-form button:button').attr('disabled', true);
             f.submit();
@@ -237,24 +238,25 @@
         }
 
         //обработка нажатия на кнопку редактирвания поля
-        function change_field(element){
+        function change_field(element) {
             var parent = $(element.parentElement);
             parent.children('a').hide();
             parent.children('label').hide();
             parent.children('input, select').show();
             parent.children('input, select').focus();
             parent.children('input').blur(function() {
-                parent.children('label').html(parent.children('input').val())
+                parent.children('label').html(parent.children('input').val());
                 parent.children('a').show();
                 parent.children('label').show();
                 parent.children('input').hide();
             })
             parent.children('select').blur(function() {
-                parent.children('label').html(parent.find("select option:selected").text())
+                parent.children('label').html(parent.find("select option:selected").text());
                 parent.children('a').show();
                 parent.children('label').show();
                 parent.children('select').hide();
             });
+            parent.children('label').removeClass('null-field-value');
         }
 
 
@@ -281,15 +283,27 @@
             field_changed($(this).parents('.field'));
         }
 
-        $(document).ready(function(){
+        $(document).ready(function() {
             // прячем родной m2m django виджет
             $('#id_areas').hide();
+
+            // отображаем все выбранные группы ДОУ
+            if ($('#id_areas').val()) {
+                areas_ids = [];
+                $('#id_areas').val().forEach(function (area_id) {
+                    add_area_field($("#add_sadikgroup"), area_id, areas_all[area_id-1].name);
+                    areas_ids.push(parseInt(area_id));
+                });
+                $('#areas_select_first').hide();
+                renderMarkers(sadik_location_data, map);
+            }
+
             // сообщение о том, что поле было изменено + запрос при закрытии окна
-            $('input, select').not('#address_text').bind('change', function(){
+            $('input, select').not('#address_text').bind('change', function() {
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
-            $('p').bind('remove', function(){
+            $('p').bind('remove', function() {
                 var container_el = $(this).parents('.field');
                 field_changed(container_el);
             })
@@ -309,17 +323,24 @@
             // поднимаем картинку виджета выбора даты поступления
             $('#id_admission_date').next().css('margin-top', '-5px');
 
+            {% if request.user.is_operator %}
+                // tooltip к полю "Группы ДОУ"
+                $("#pref_dou_groups").popover({
+                    title: "Группы ДОУ",
+                    content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
+                    "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
+                });
+            {% endif %}
+
             $("#queue_explain").popover({
                 title: "Положние заявки в очереди",
                 content: '<p>В число "Заявок перед вами" входят заявки со статусами Очередник-не подтвержден, Очередник, Выделено место, На комплектовании.</p><br>' +
                          '<p>В число "Из них льготников" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p><br>' +
                          '<p>В число "Документально подтвержденных" входят заявки со статусами Очередник, Выделено место, На комплектовании.</p>',
                 placement: "top"});
-            $("#pref_dou_groups").popover({
-                title: "Группы ДОУ",
-                content: "<p>Группа ДОУ - совокупность дошкольных образовательных учреждений, объединенных по территориальному признаку.</p>" +
-                "<p>Для заявки может быть выбрано несколько групп. При распределении заявка будет претендовать на свободное место в ближайшем ДОУ из выбранных групп.</p>"
-            });
+            $('#id_child_snils').snilsValidate();
+
+            $('#id_kinship_type').kinshipFieldHandler();
         });
 
         $("#requestionform_submit").click(function() {
@@ -343,7 +364,9 @@
         {% endif %}
         </div>
     {% endblock top_block %}
-<form id="requestion-form" action='.' method="post" class="requestion-form {% if not can_change_requestion %}form-disabled{% endif %}" onsubmit="form_submit(this); return false">
+<form id="requestion-form" action='.' method="post"
+      class="requestion-form form-filled{% if not can_change_requestion %} form-disabled{% endif %}"
+      onsubmit="form_submit(this); return false">
 <div class="row">
     {% csrf_token %}
     {{ pref_sadiks_form.media }}
@@ -355,6 +378,22 @@
     <div class="span5">
     <div class="requestion-info">
         <div class="block-head">Информация о заявке:</div>
+        {% with change_requestion_form.child_last_name as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                {% if not field.value or field.errors %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
+                    </p>
+                {% else %}
+                    <p class="field-value hidden-input">
+                        <label class="value">{{ field.value }}</label>
+                        {{ field }}
+                        <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% endif %}
+            </div>
+        {% endwith %}
         <div class="{% if change_requestion_form.name.errors %}error {% endif %}field">
             <label class="field-label">{{ change_requestion_form.name.label }}{% if change_requestion_form.name.errors %}<span class="value-changed"> ({{ change_requestion_form.name.errors|striptags }})</span>{% endif %}</label>
             <p class="field-value hidden-input">
@@ -363,6 +402,22 @@
                 <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
             </p>
         </div>
+        {% with change_requestion_form.child_middle_name as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span><span class="hint">{% if not field.field.required %} (при наличии){% endif %}</span></label>
+                {% if not field.value or field.errors %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
+                    </p>
+                {% else %}
+                    <p class="field-value hidden-input">
+                        <label class="value">{{ field.value }}</label>
+                        {{ field }}
+                        <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% endif %}
+            </div>
+        {% endwith %}
         <div class="{% if change_requestion_form.sex.errors %}error {% endif %}field">
             <label class="field-label">{{ change_requestion_form.sex.label }}{% if change_requestion_form.sex.errors %}<span class="value-changed"> ({{ change_requestion_form.sex.errors|striptags }})</span>{% endif %}</label>
             <p class="field-value hidden-input">
@@ -372,15 +427,58 @@
             </p>
         </div>
         <div class="field">
-            <label class="field-label">Дата регистрации</label>
-            <p class="field-value">
-                <span class="value">{{ requestion.registration_datetime }}</span>
-            </p>
-        </div>
-        <div class="field">
             <label class="field-label">Дата рождения</label>
             <p class="field-value">
                 <span class="value">{{ requestion.birth_date }}</span>
+            </p>
+        </div>
+        {% with change_requestion_form.birthplace as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                {% if not field.value or field.errors %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
+                    </p>
+                {% else %}
+                    <p class="field-value hidden-input">
+                        <label class="value">{{ field.value }}</label>
+                        {{ field }}
+                        <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% endif %}
+            </div>
+        {% endwith %}
+        <div class="field">
+            <label class="field-label">Желаемая дата зачисления</label>
+            <p class="field-value hidden-input">
+                <label id="admission_date_label" class="value">{{ requestion.admission_date }}</label>
+                {{ change_requestion_form.admission_date }}
+            </p>
+        </div>
+        {% with change_requestion_form.kinship_type as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                <p class="field-value hidden-input">
+                    <label class="value{% if not field.value %} null-field-value{% endif %}">{{ field|form_field_verbose }}</label>
+                    {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                </p>
+            </div>
+        {% endwith %}
+        {% with change_requestion_form.kinship as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span></label>
+                <p class="field-value hidden-input">
+                    <label class="value">{{ field.value }}</label>
+                    {{ field }}
+                    <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                </p>
+            </div>
+        {% endwith %}
+        <div class="field">
+            <label class="field-label">Дата регистрации</label>
+            <p class="field-value">
+                <span class="value">{{ requestion.registration_datetime }}</span>
             </p>
         </div>
         <div class="field">
@@ -389,14 +487,6 @@
                 <span class="value">{{ requestion.age_groups.0|default:"Ребёнок не попадает ни в одну возрастную категорию." }}</span>
             </p>
         </div>
-        <div class="field">
-            <label class="field-label">Желаемая дата зачисления</label>
-            <p class="field-value hidden-input">
-                <label id="admission_date_label" class="value">{{ requestion.admission_date }}</label>
-                {{ change_requestion_form.admission_date }}
-            </p>
-        </div>
-
         <div class="hidden">
             {{ change_requestion_form.location }}
         </div>
@@ -423,7 +513,48 @@
         </div>
         <div class="block-head top-indent">Документы:</div>
         <div class="field">
-            {% for document in requestion.evidience_documents %}
+            {% for document in requestion.evidience_documents.requestion_identity_documents %}
+            <label class="field-label">{{ document.template }}</label>
+            <div>
+                <span class="document-info">
+                {% if not document.confirmed %}
+                    <img src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-not-approved">Документ не подтвержден оператором</span>
+                    </div>
+                {% else %}
+                    <img src="{{ STATIC_URL }}img/icon_approved.fw.png"/>
+                    <div class="field-value">
+                        {{ document.document_number }}
+                        <span class="status-approved">Документ подтвержден</span>
+                    </div>
+                {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% with change_requestion_form.child_snils as field %}
+            <div class="field {% if field.errors %}error{% endif %}">
+                <label class="field-label">{{ field.label }}{% if field.errors %} <span class="errors">({% for error in field.errors %}{{ error }}{% endfor %}){% endif %}</span><span class="hint">{% if not field.field.required %} (при наличии){% endif %}</span></label>
+                {% if not field.value or field.errors %}
+                    <p class="field-value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if can_change_requestion %}{{ field }}{% else %}Не указано{% endif %}
+                    </p>
+                {% else %}
+                    <p class="field-value hidden-input">
+                        <label class="value">{{ field.value }}</label>
+                        {{ field }}
+                        <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
+                    </p>
+                {% endif %}
+                {% if can_change_requestion %}
+                    <p class="hint">{{ field.help_text }}</p>
+                {% endif %}
+            </div>
+        {% endwith %}
+        <div class="field">
+            {% for document in requestion.evidience_documents.other_documents %}
             <label class="field-label">{{ document.template }}</label>
             <div>
                 <span class="document-info">
@@ -445,7 +576,7 @@
             {% endfor %}
         </div>
         <div class="field">
-            <label class="field-label">Льготы</label>
+            <label class="field-label">Льготы<span class="hint"> (при наличии)</span></label>
             {% if can_change_benefits %}
                 {{ change_benefits_form.benefits }}
             {% else %}
@@ -480,39 +611,34 @@
     <div class="span5">
         <div class="requestion-info">
             {% if use_districts %}
-            <div id="district_div">
+            <div id="district_div" class="field">
                 <label class="field-label">Район</label>
                 <p class="field-value hidden-input">
-                    <label class="value">{{ requestion.district }}</label>
+                    <label class="value{% if not can_change_requestion %} null-field-value{% endif %}">
+                        {% if requestion.district %}{{ requestion.district }}{% else %}Не указан{% endif %}
+                    </label>
                     {{ change_requestion_form.district }}
                     <a class="editor" href="#" onclick="change_field(this); return false"><img src="{{ STATIC_URL }}img/icon_edit.fw.png"/></a>
                 </p>
+                <p class="hint"></p>
             </div>
             {% endif %}
         <div class="{% if pref_sadiks_form.areas.errors %}error {% endif %}field">
-            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label> <span id="pref_dou_groups" class="icon-question-sign"></span>
-            {% for area in requestion.areas.all %}
-                {% if pref_sadiks_form.areas.value %}
-                <p class="field-value hidden-input">
-                    <a id="area_map_anchor" class="icon-map-marker" href="#" onclick="center_area({{ area.id }}); return false"></a>
-                    <a id="{{ area.id }}" class="value value-anchor" href="#" onclick="show_kidgardens(this); return false">
-                            {{ area|default:"Весь муниципалитет" }}
-                    </a> <span class="caret caret-right caret-margins"></span>
-                    <a class="editor" href="#" onclick="del_field(this); return false"
-                        data-toggle="tooltip" title="Удалить группу ДОУ">
-                        <i id="area-close" class="icon-remove"></i>
-                    </a>
-                </p>
-                {% endif %}
-                <ul class="kidgs_list unstyled">
-                </ul>
-            {% endfor %}
-            <div></div>
+            <label class="field-label">{{ pref_sadiks_form.areas.label }}{% if pref_sadiks_form.areas.errors %}<span class="value-changed"> ({{ pref_sadiks_form.areas.errors|striptags }})</span>{% endif %}</label>
+            {% if request.user.is_operator %}<span id="pref_dou_groups" class="icon-question-sign"></span>{% endif %}
+            {% if pref_sadiks_form.areas.help_text %}<p class="hint hint-multiline">{{ pref_sadiks_form.areas.help_text }}</p>{% endif %}
+            <select id="areas_select_first" class="areas_all">
+                <option value selected="selected">----------</option>
+                {% for area in areas_all %}
+                <option value="{{ area.id }}">{{ area }}</option>
+                {% endfor %}
+            </select>
             {{ pref_sadiks_form.areas }}
-            <a class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
+            <a id="add_sadikgroup" class="editor" href="#" onclick="add_area(this); return false"><i class="icon-plus"></i>Добавить группу ДОУ</a>
         </div>
         <div class="field">
-            <label class="field-label">Приоритетные ДОУ</label>
+            <label class="field-label">{{ pref_sadiks_form.pref_sadiks.label }}</label>
+            {% if pref_sadiks_form.pref_sadiks.help_text %}<p class="hint hint-multiline">{{ pref_sadiks_form.pref_sadiks.help_text }}</p>{% endif %}
             {% if can_change_requestion %}
                 {{ pref_sadiks_form.pref_sadiks }}
             {% else %}
@@ -534,18 +660,21 @@
     <div class="span6">
         <div class="requestion-info">
         <div id="location-header" class="{% if change_requestion_form.location.errors %}error {% endif %}field">
-            <a class="btn" id="get_coords" {% if change_requestion_form.location.errors %}style="margin-top: 19px;" {% endif %}onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
-            <label class="field-label">{{ change_requestion_form.location.label }} {% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+            <label class="field-label">{{ change_requestion_form.location.label }}{% if change_requestion_form.location.errors %} <span class="errors">({% for error in change_requestion_form.location.errors %}{{ error }}{% endfor %})</span>{% endif %}</label>
+            {% if change_requestion_form.location.help_text %}<p class="hint hint-multiline">{{ change_requestion_form.location.help_text }}</p>{% endif %}
             <div style="overflow: hidden; padding-right: .5em;">
-            <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
+                <a class="btn" id="get_coords" onclick="requestion.get_coords('{% url get_coords_from_address %}')">Найти адрес на карте</a>
+                <input type="text" id="address_text" placeholder="Введите адрес: город, улица, дом"></div>
             <div id="coords_alert" class="alert" style="display: none;">
             </div>
             <div id="coords_success" class="alert alert-success" style="display: none;">
                 Теперь при помощи мышки перетащите маркер заявки на новое местоположение на карте
             </div>
             <div id="account-requestion-map"></div>
-            <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
-            Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
+            {% if request.user.is_operator %}
+                <p class="hint">Относительно этого местоположения оператор будет подбирать ближайшие ДОУ, если на момент распределения заявки в приоритетных садах не будет свободных мест.<br>
+                Для изменения местоположения заявки просто перетащите маркер мышкой.</p>
+            {% endif %}
         </div>
         </div>
         <ul class='map-legend'>

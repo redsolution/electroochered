@@ -287,11 +287,23 @@ register.tag(QueueTooltips)
 def get_field_verbose_name(instance, arg):
     return capfirst(instance._meta.get_field(arg).verbose_name)
 
+
 @register.filter
 def form_field_verbose(field):
     if hasattr(field.field, 'choices'):
-        if not field.value() and not field.value() in field.field.choices:
+        # работает как для целочисленных, так и для строковых полей.
+        field_value = unicode(field.value())
+        choices_dict = {unicode(key): value
+                        for key, value in field.field.choices}
+        if not (field_value and field_value in choices_dict):
             return u"Не указано"
         else:
-            return dict(field.field.choices)[field.value()]
+            return choices_dict[field_value]
     return field.value
+
+
+@register.filter
+def get_coords_from_pointfield(field_value):
+    result = '[{x}, {y}]'
+    y, x = field_value.replace('POINT (', '').replace(')', '').split(' ')
+    return result.format(x=x, y=y)

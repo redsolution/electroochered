@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
+from django.forms.models import modelformset_factory
 from django.forms.util import ErrorList
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
@@ -12,13 +13,14 @@ from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView, View
 from django.utils import simplejson
 
-from sadiki.account.forms import RequestionForm, \
-    BenefitsForm, ChangeRequestionForm,\
-    PreferredSadikForm, SocialProfilePublicForm, EmailAddForm
+from sadiki.account.forms import RequestionForm, PersonalDataForm, \
+    PersonalDocumentForm, BenefitsForm, ChangeRequestionForm,\
+    PreferredSadikForm, SocialProfilePublicForm, EmailAddForm, \
+    BasePersonalDocumentFormset
 from sadiki.account.utils import get_plugin_menu_items, get_profile_additions
 import sadiki.authorisation.views
 from sadiki.core.exceptions import TransitionNotAllowed
-from sadiki.core.models import Requestion, Benefit, \
+from sadiki.core.models import PersonalDocument, Requestion, Benefit, \
     STATUS_REQUESTER_NOT_CONFIRMED, Area, District, \
     STATUS_REQUESTER, AgeGroup, STATUS_DISTRIBUTED, STATUS_NOT_APPEAR, STATUS_NOT_APPEAR_EXPIRE, Sadik, EvidienceDocument, BENEFIT_DOCUMENT, \
     STATUS_DECISION, STATUS_ON_DISTRIBUTION, STATUS_ON_TEMP_DISTRIBUTION
@@ -26,6 +28,7 @@ from sadiki.core.permissions import RequirePermissionsMixin
 from sadiki.core.utils import get_openlayers_js, get_current_distribution_year,\
     get_coords_from_address, get_random_token, find_closest_kg
 from sadiki.core.workflow import REQUESTION_ADD_BY_REQUESTER, ACCOUNT_CHANGE_REQUESTION
+from sadiki.core.workflow import CHANGE_PERSONAL_DATA
 from sadiki.logger.models import Logger
 from sadiki.core.views_base import GenerateBlankBase
 from sadiki.logger.utils import add_special_transitions_to_requestions
@@ -84,18 +87,33 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
-        return super(AccountFrontPage, self).dispatch(request, profile=profile)
+        kwargs = {
+            'profile': request.user.get_profile(),
+            'redirect_to': reverse('frontpage'),
+            'action_flag': CHANGE_PERSONAL_DATA,
+        }
+        return super(AccountFrontPage, self).dispatch(request, **kwargs)
 
     def get_context_data(self, **kwargs):
         profile = kwargs.get('profile')
         form = EmailAddForm()
         profile_change_form = SocialProfilePublicForm(instance=profile)
+        pdata_form = PersonalDataForm(instance=profile)
+        # На текущий момент поддерживается только один документ
+        # поэтому показываем на странице только документ с наименьшим id
+        user_documents = profile.personaldocument_set.order_by('id')
+        if user_documents.exists():
+            document_form = PersonalDocumentForm(instance=user_documents[0])
+        else:
+            document_form = PersonalDocumentForm(
+                initial={'profile': profile.id})
         context = {
             'params': kwargs,
             'profile': profile,
             'form': form,
             'profile_change_form': profile_change_form,
+            'pdata_form': pdata_form,
+            'doc_form': document_form,
             'plugin_menu_items': get_plugin_menu_items(),
             'profile_additions': get_profile_additions(),
         }
@@ -103,6 +121,59 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
         if vkontakte_associations:
             context.update({'vkontakte_association': vkontakte_associations[0]})
         return context
+
+    def post(self, request, **kwargs):
+        profile = kwargs.get('profile')
+        redirect_to = kwargs.get('redirect_to')
+        action_flag = kwargs.get('action_flag')
+        old_pdata = profile.to_dict()
+        context = self.get_context_data(profile=profile)
+        pdata_form = PersonalDataForm(request.POST, instance=profile)
+        # можем изменять только документ с наименьшим id
+        user_documents = profile.personaldocument_set.order_by('id')
+        if user_documents.exists():
+            document_instance = user_documents[0]
+        else:
+            document_instance = None
+        document_form = PersonalDocumentForm(request.POST,
+                                             instance=document_instance)
+        if not (pdata_form.is_valid() and document_form.is_valid()):
+            messages.error(request, u'Персональные данные не были сохранены. '
+                           u'Пожалуйста, исправьте ошибки, выделенные красным')
+            context.update({'pdata_form': pdata_form,
+                            'doc_form': document_form})
+            return self.render_to_response(context)
+        elif pdata_form.has_changed() or document_form.has_changed():
+            pdata_form.save()
+            document_form.save()
+            messages.success(request,
+                             u'Персональные данные успешно сохранены')
+            new_pdata = profile.to_dict()
+            Logger.objects.create_for_action(
+                action_flag,
+                context_dict={'old_pdata': old_pdata,
+                              'new_pdata': new_pdata},
+                extra={'user': request.user, 'obj': profile},
+            )
+        return HttpResponseRedirect(redirect_to)
+
+    def get_documents_formset(self, profile):
+        choices = PersonalDocument.DOC_TYPE_CHOICES
+        documents_set = profile.personaldocument_set
+        initial_values = []
+        for choice in choices:
+            if not documents_set.filter(doc_type=choice[0]).exists():
+                initial_values.append({'doc_type': choice[0],
+                                       'profile': profile.id})
+        PersonalDocumentFormset = modelformset_factory(
+            PersonalDocument,
+            form=PersonalDocumentForm,
+            formset=BasePersonalDocumentFormset,
+            extra=len(initial_values),
+        )
+        formset = PersonalDocumentFormset(initial=initial_values,
+                                          queryset=documents_set.all())
+        return formset
 
 
 class EmailChange(AccountPermissionMixin, View):
@@ -286,6 +357,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
     template_name = 'account/requestion_info.html'
     logger_action = ACCOUNT_CHANGE_REQUESTION
     change_requestion_form = ChangeRequestionForm
+    preferred_sadik_form = PreferredSadikForm
 
     def can_change_benefits(self, requestion):
         return requestion.status == STATUS_REQUESTER_NOT_CONFIRMED
@@ -302,9 +374,11 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
 
     def get(self, request, requestion):
         context = self.get_context_data(requestion)
-        change_requestion_form = self.change_requestion_form(instance=requestion)
+        change_requestion_form = self.change_requestion_form(
+            instance=requestion,
+            initial={'kinship_type': requestion.kinship_type})
         change_benefits_form = BenefitsForm(instance=requestion)
-        pref_sadiks_form = PreferredSadikForm(instance=requestion)
+        pref_sadiks_form = self.preferred_sadik_form(instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(
@@ -326,7 +400,8 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
         change_requestion_form = self.change_requestion_form(
             request.POST, instance=requestion)
         change_benefits_form = BenefitsForm(request.POST, instance=requestion)
-        pref_sadiks_form = PreferredSadikForm(request.POST, instance=requestion)
+        pref_sadiks_form = self.preferred_sadik_form(request.POST,
+                                                     instance=requestion)
         DocumentFormset = self.get_documents_formset()
         if DocumentFormset:
             formset = self.get_documents_formset()(request.POST,
