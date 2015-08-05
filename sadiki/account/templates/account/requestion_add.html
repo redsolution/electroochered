@@ -111,7 +111,8 @@
             // отображаем все выбранные группы ДОУ
             if ($('#id_areas').val()) {
                 $('#id_areas').val().forEach(function (area_id) {
-                    add_area_field($("#add_sadikgroup"), area_id, areas_all[area_id-1].name);
+                    var area_name = areas_all.filter(function(obj) {return obj.id === parseInt(area_id)})[0].name;
+                    add_area_field($("#add_sadikgroup"), area_id, area_name);
                     areas_ids.push(parseInt(area_id));
                 });
                 $('#areas_select_first').hide();
