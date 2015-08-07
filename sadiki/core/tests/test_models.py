@@ -4,9 +4,9 @@ from django.test import TestCase
 from django.core import management
 from django.core.exceptions import ValidationError
 from django.conf import settings
-from django.contrib.auth.models import Permission, Group
+from django.contrib.auth.models import Permission, Group, User
 
-from sadiki.core.models import Requestion, BenefitCategory, Benefit, \
+from sadiki.core.models import Requestion, Profile, BenefitCategory, Benefit, \
     Sadik, REQUESTION_TYPE_IMPORTED, REQUESTION_TYPE_CORRECTED, \
     REQUESTION_TYPE_NORMAL, STATUS_REJECTED, SadikGroup, Address, \
     STATUS_REQUESTER_NOT_CONFIRMED, STATUS_REQUESTER
@@ -140,6 +140,70 @@ class RequestionTestCase(TestCase):
         self.assertEqual(self.requestion.status, STATUS_REQUESTER)
         self.assertEqual(
             self.requestion.previous_status, STATUS_REQUESTER_NOT_CONFIRMED)
+
+
+class ProfileTestCase(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create(username='requester')
+        self.profile = Profile.objects.create(user=self.user)
+
+    def test_save_method(self):
+        self.assertFalse(self.user.first_name)
+        self.assertFalse(self.user.last_name)
+        self.assertFalse(self.profile.middle_name)
+        self.profile.first_name = 'Vasya'
+        self.profile.last_name = 'Ivanov'
+        self.profile.middle_name = 'Petrovich'
+        self.profile.save()
+        self.assertEqual(self.user.first_name, 'Vasya')
+        self.assertEqual(self.user.last_name, 'Ivanov')
+        self.assertEqual(self.profile.middle_name, 'Petrovich')
+
+    def test_social_auth_methods(self):
+        self.profile.phone_number = '123456'
+        self.profile.skype = '567'
+        self.profile.save()
+        self.assertFalse(self.profile.first_name)
+        self.assertEqual(self.profile.phone_number, '123456')
+        self.assertEqual(self.profile.skype, '567')
+        self.assertFalse(self.profile.mobile_number)
+        vk_data = {'first_name': 'Vasya', 'home_phone': '555', 'skype': '123'}
+        self.profile.update_vkontakte_data(vk_data)
+        # Обновляем имя, телефон и скайп. Скайп перезаписывается,
+        # а телефон сохраняется в mobile_number, так как phone_number занят
+        self.assertEqual(self.profile.first_name, 'Vasya')
+        self.assertEqual(self.profile.phone_number, '123456')
+        self.assertEqual(self.profile.mobile_number, '555')
+        self.assertEqual(self.profile.skype, '123')
+
+        self.profile.first_name = ''
+        self.profile.middle_name = 'Ivanovich'
+        self.profile.save()
+        self.assertFalse(self.profile.first_name)
+        self.assertEqual(self.profile.middle_name, 'Ivanovich')
+        vk_data = {'first_name': 'Vasya', 'home_phone': '777', 'skype': '888'}
+        self.profile.update_vkontakte_data(vk_data)
+        # Если отчество уже заполнено, имя из ВК игнорируется
+        # Также игнорируется телефон, т.к. оба поля уже заполнены.
+        self.assertFalse(self.profile.first_name)
+        self.assertEqual(self.profile.phone_number, '123456')
+        self.assertEqual(self.profile.mobile_number, '555')
+        self.assertEqual(self.profile.skype, '888')
+
+        # Тест метода очистки данных. Удаляется только скайп
+        self.profile.first_name = 'Vasya'
+        self.profile.save()
+        self.assertEqual(self.profile.first_name, 'Vasya')
+        self.profile.social_auth_clean_data()
+        self.assertEqual(self.profile.first_name, 'Vasya')
+        self.assertEqual(self.profile.phone_number, '123456')
+        self.assertEqual(self.profile.mobile_number, '555')
+        self.assertFalse(self.profile.skype)
+
+    def tearDown(self):
+        Profile.objects.all().delete()
+        User.objects.all().delete()
 
 
 class BenefitTestCase(TestCase):

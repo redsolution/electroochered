@@ -31,11 +31,7 @@ class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
     def post(self, request, profile):
         if request.is_ajax():
             field = request.POST.get("field")
-            if field == "first_name":
-                profile.first_name = None
-            elif field == "phone_number":
-                profile.phone_number = None
-            elif field == "skype":
+            if field == "skype":
                 profile.skype = None
             else:
                 return HttpResponse(content=json.dumps({'ok': False}),
@@ -88,10 +84,15 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             field = request.POST.get("field")
             if field == "first_name":
                 field_value = data.get('first_name')
-                profile.first_name = field_value
+                if field_value and not (profile.first_name or profile.last_name
+                                        or profile.middle_name):
+                    profile.first_name = field_value
             elif field == "phone_number":
                 field_value = data.get('home_phone')
-                profile.phone_number = field_value
+                if not profile.phone_number:
+                    profile.phone_number = field_value
+                elif not profile.mobile_number:
+                    profile.mobile_number = field_value
             elif field == "skype":
                 field_value = data.get('skype')
                 profile.skype = field_value
@@ -130,7 +131,6 @@ class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
             backend.disconnect(request.user, association.id)
             profile = request.user.profile
             profile.social_auth_clean_data()
-            profile.save()
         return HttpResponseRedirect(redirect_to)
 
 
@@ -145,7 +145,6 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
                 backend.disconnect(user, association_id)
                 profile = user.profile
                 profile.social_auth_clean_data()
-                profile.save()
             else:
                 return HttpResponseForbidden(u'Вы можете работать только с заявителями')
         return HttpResponseRedirect(redirect_to)
