@@ -838,14 +838,21 @@ class Profile(models.Model):
         self.save()
 
     def social_auth_clean_data(self):
-        self.phone_number = None
-        self.first_name = None
         self.skype = None
+        self.save()
 
     def update_vkontakte_data(self, data):
-        self.first_name = data.get('first_name')
-        self.phone_number = data.get('home_phone')
+        vk_first_name = data.get('first_name')
+        if vk_first_name and not (self.first_name or self.last_name
+                                  or self.middle_name):
+            self.first_name = vk_first_name
+        vk_phone_number = data.get('home_phone')
+        if not self.phone_number:
+            self.phone_number = vk_phone_number
+        elif not self.mobile_number:
+            self.mobile_number = vk_phone_number
         self.skype = data.get('skype')
+        self.save()
 
     def to_dict(self):
         result_dict = model_to_dict(self)
