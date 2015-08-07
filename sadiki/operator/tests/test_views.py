@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import datetime
+
 from django.test import TestCase
 from django.conf import settings
 from django.core import management
@@ -156,3 +158,40 @@ class CoreViewsTest(TestCase):
         self.assertEqual(len(self.client.session['token']), 3)
 
         settings.TEST_MODE = False
+
+    # тест поиска профилей по имени, пока банальная проверка на status code 200
+    def test_profile_search(self):
+        for num in range(0, 5):
+            user = User.objects.create(username='requester_{}'.format(num))
+            profile = Profile.objects.create(user=user)
+            profile.first_name = u'Иван'
+            profile.save()
+        for num in range(10, 15):
+            user = User.objects.create(username='requester_{}'.format(num))
+            profile = Profile.objects.create(user=user)
+            profile.first_name = u'Андрей'
+            profile.save()
+        self.assertTrue(self.client.login(username=self.operator.username,
+                                          password='password'))
+        requestion = Requestion.objects.create(
+            profile=self.requester.profile,
+            birth_date=datetime.date.today())
+        profile_search_url = reverse('find_profile_for_requestion',
+                                     args=(requestion.id,))
+        # ищем по имени заявителя, которое должно найтись
+        search_form_data = {'parent_first_name': u'Иван'}
+        response = self.client.post(profile_search_url, search_form_data)
+        self.assertEqual(response.status_code, 200)
+        # ищем по несуществующему имени заявителя
+        search_form_data = {'parent_first_name': u'Вася'}
+        response = self.client.post(profile_search_url, search_form_data)
+        self.assertEqual(response.status_code, 200)
+        # ищем только по имени User
+        search_form_data = {'username': 'requester_2'}
+        response = self.client.post(profile_search_url, search_form_data)
+        self.assertEqual(response.status_code, 200)
+        # ищем по имени заявителя и имени User одновременно
+        search_form_data = {'username': 'requester_12',
+                            'parent_first_name': u'Андрей'}
+        response = self.client.post(profile_search_url, search_form_data)
+        self.assertEqual(response.status_code, 200)
