@@ -302,7 +302,7 @@ class ProfileSearchForm(forms.Form):
     field_map = {
         'username': 'user__username__exact',
         'requestion_number': 'requestion__requestion_number__exact',
-        'parent_first_name': 'first_name__icontains',
+        'parent_first_name': 'user__first_name__icontains',
     }
 
     def __init__(self, *args, **kwds):

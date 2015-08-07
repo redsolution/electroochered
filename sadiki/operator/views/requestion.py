@@ -495,7 +495,7 @@ class FindProfileForRequestion(OperatorRequestionCheckIdentityMixin,
     field_weights = {
         'user__username__exact': 3,
         'requestion__requestion_number__exact': 5,
-        'first_name__icontains': 1,
+        'user__first_name__icontains': 1,
     }
 
     def get_context_data(self, **kwargs):
