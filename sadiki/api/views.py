@@ -10,7 +10,6 @@ from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.template.context import RequestContext
-from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
@@ -214,7 +213,7 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
 
 def get_distributions(request):
     data = Distribution.objects.all().values_list('id', flat=True)
-    return HttpResponse(simplejson.dumps(list(data)), mimetype='text/json')
+    return HttpResponse(json.dumps(list(data)), mimetype='text/json')
 
 
 @csrf_exempt
@@ -231,7 +230,7 @@ def get_distribution(request):
         raise Http404
     distribution_qs = Distribution.objects.filter(pk=_id)
     if len(distribution_qs) != 1:
-        return HttpResponse(simplejson.dumps([0, ]), mimetype='text/json')
+        return HttpResponse(json.dumps([0, ]), mimetype='text/json')
     dist = distribution_qs[0]
     results = []
     sadiks_ids = Requestion.objects.filter(
@@ -279,7 +278,7 @@ def get_child(request):
         requestions = Requestion.objects.filter(id__in=requestion_ids)
         data = add_requestions_data(requestions, request)
         response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
-        return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+        return HttpResponse(json.dumps(response), mimetype='text/json')
     raise Http404
 
 
@@ -339,14 +338,14 @@ def get_kindergartens(request):
             'site': sadik.site,
         })
     response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+    return HttpResponse(json.dumps(response), mimetype='text/json')
 
 
 def get_evidience_documents(request):
     documents = EvidienceDocumentTemplate.objects.filter(
         destination__exact=REQUESTION_IDENTITY
     ).values('id', 'name', 'regex')
-    return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
+    return HttpResponse(json.dumps(list(documents), ensure_ascii=False),
                         mimetype='application/json')
 
 

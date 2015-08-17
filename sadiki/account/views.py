@@ -11,7 +11,6 @@ from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpRespon
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView, View
-from django.utils import simplejson
 
 from sadiki.account.forms import RequestionForm, PersonalDataForm, \
     PersonalDocumentForm, BenefitsForm, ChangeRequestionForm,\
@@ -50,7 +49,7 @@ def get_json_sadiks_location_data():
                 'number': sadik.number,
                 'url': reverse('sadik_info', args=[sadik.id, ]),
             }})
-    return simplejson.dumps(sadiks_location_data)
+    return json.dumps(sadiks_location_data)
 
 
 class AccountPermissionMixin(RequirePermissionsMixin):
@@ -514,7 +513,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
             'sadiks_location_data': get_json_sadiks_location_data(),
             'pref_sadiks_ids': pref_sadiks_ids,
-            'areas_ids': simplejson.dumps([
+            'areas_ids': json.dumps([
                 req for req in requestion.areas.all().values_list(
                     'id', flat=True)]),
             'can_change_benefits': self.can_change_benefits(requestion),

@@ -3,7 +3,6 @@ import json
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse, HttpResponseBadRequest
-from django.utils import simplejson
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import TemplateView, View
 from sadiki.conf_settings import DEFAULT_IMPORT_DOCUMENT_NAME
@@ -51,7 +50,7 @@ def sadiki_json(request):
                 'number': sadik.number,
                 'url': reverse('sadik_info', args=[sadik.id, ])
             })
-    return HttpResponse(simplejson.dumps(data), mimetype='text/json')
+    return HttpResponse(json.dumps(data), mimetype='text/json')
 
 
 class VkontakteFrame(TemplateView):
