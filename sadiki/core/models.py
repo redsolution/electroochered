@@ -1842,8 +1842,6 @@ m2m_changed.connect(update_benefit_category, sender=Requestion.benefits.through)
 
 User.__bases__ += (UserFunctions,)
 
-del User.get_absolute_url
-
 add_introspection_rules([], ["^sadiki\.core\.fields\.BooleanNextYearField"])
 add_introspection_rules([], ["^sadiki\.core\.fields\.YearChoiceField"])
 add_introspection_rules([], ["^sadiki\.core\.fields\.SplitDayMonthField"])
