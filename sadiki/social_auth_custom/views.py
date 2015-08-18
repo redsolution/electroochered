@@ -14,7 +14,7 @@ from sadiki.core.models import Profile
 from sadiki.core.utils import check_url
 from sadiki.operator.views.base import OperatorPermissionMixin
 from social_auth.backends import get_backend
-from social_auth.backends.contrib.vkontakte import VK_DEFAULT_DATA, vkontakte_api
+from social_auth.backends.contrib.vkontakte import VK_DEFAULT_DATA, vk_api
 from social_auth.decorators import dsa_view
 from social_auth.exceptions import WrongBackend
 from social_auth.utils import setting
@@ -76,7 +76,7 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             params = {'access_token': access_token,
                       'fields': fields,
                       'uids': uid}
-            raw_data = vkontakte_api('users.get', params).get('response')
+            raw_data = vk_api('users.get', params).get('response')
             if not raw_data:
                 return HttpResponse(content=json.dumps({'ok': True}),
                                     mimetype='text/javascript')
