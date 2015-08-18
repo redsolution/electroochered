@@ -171,7 +171,7 @@ class StartDistributionYear(SupervisorBases):
         return RequirePermissionsMixin.dispatch(self, request,
                                                 redirect_to=redirect_to)
 
-    @transaction.commit_manually
+    @transaction.atomic
     def post(self, request, redirect_to=None):
         if request.POST.get('confirmation') == 'yes':
             # закрываем все возрастные группы на текущий год

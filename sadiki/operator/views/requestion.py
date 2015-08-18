@@ -410,7 +410,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
         return self.render_to_response(context)
 
-    @method_decorator(transaction.commit_manually)
+    @method_decorator(transaction.atomic)
     def post(self, request, requestion, *args, **kwargs):
         u"""По post-запросу применяем изменение статуса заявки. Autocommit
         отключаем, чтобы иметь возможность отображаеть сообщение об ошибке,
