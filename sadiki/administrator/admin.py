@@ -136,8 +136,8 @@ class SadikiAdminSite(AdminSite):
 
     actions = []
 
-    def __init__(self, name='sadik_admin', app_name='admin'):
-        super(SadikiAdminSite, self).__init__(name, app_name)
+    def __init__(self, name='sadik_admin'):
+        super(SadikiAdminSite, self).__init__(name)
 
     def has_permission(self, request):
         return request.user.is_active and request.user.is_administrator()
