@@ -1,241 +1,47 @@
 # -*- coding: utf-8 -*-
-import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+from django.conf import settings
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'Logger'
-        db.create_table('logger_logger', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'], null=True)),
-            ('datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'], null=True)),
-            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')(null=True)),
-            ('vacancy', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Vacancies'], null=True)),
-            ('action_flag', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('logger', ['Logger'])
+    dependencies = [
+        ('contenttypes', '0002_remove_content_type_name'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('core', '0001_initial'),
+    ]
 
-        # Adding M2M table for field added_pref_sadiks on 'Logger'
-        db.create_table('logger_logger_added_pref_sadiks', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('logger', models.ForeignKey(orm['logger.logger'], null=False)),
-            ('sadik', models.ForeignKey(orm['core.sadik'], null=False))
-        ))
-        db.create_unique('logger_logger_added_pref_sadiks', ['logger_id', 'sadik_id'])
-
-        # Adding M2M table for field removed_pref_sadiks on 'Logger'
-        db.create_table('logger_logger_removed_pref_sadiks', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('logger', models.ForeignKey(orm['logger.logger'], null=False)),
-            ('sadik', models.ForeignKey(orm['core.sadik'], null=False))
-        ))
-        db.create_unique('logger_logger_removed_pref_sadiks', ['logger_id', 'sadik_id'])
-
-        # Adding M2M table for field age_groups on 'Logger'
-        db.create_table('logger_logger_age_groups', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('logger', models.ForeignKey(orm['logger.logger'], null=False)),
-            ('agegroup', models.ForeignKey(orm['core.agegroup'], null=False))
-        ))
-        db.create_unique('logger_logger_age_groups', ['logger_id', 'agegroup_id'])
-
-        # Adding model 'LoggerMessage'
-        db.create_table('logger_loggermessage', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('message', self.gf('django.db.models.fields.TextField')()),
-            ('level', self.gf('django.db.models.fields.PositiveIntegerField')(default=40, db_index=True, blank=True)),
-            ('logger', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['logger.Logger'])),
-        ))
-        db.send_create_signal('logger', ['LoggerMessage'])
-
-        # Adding model 'Report'
-        db.create_table('logger_report', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('type', self.gf('django.db.models.fields.IntegerField')()),
-            ('from_date', self.gf('django.db.models.fields.DateField')()),
-            ('to_date', self.gf('django.db.models.fields.DateField')()),
-            ('data', self.gf('django.db.models.fields.TextField')()),
-            ('age_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.AgeGroup'], null=True)),
-            ('decision_type', self.gf('django.db.models.fields.IntegerField')(null=True)),
-        ))
-        db.send_create_signal('logger', ['Report'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'Logger'
-        db.delete_table('logger_logger')
-
-        # Removing M2M table for field added_pref_sadiks on 'Logger'
-        db.delete_table('logger_logger_added_pref_sadiks')
-
-        # Removing M2M table for field removed_pref_sadiks on 'Logger'
-        db.delete_table('logger_logger_removed_pref_sadiks')
-
-        # Removing M2M table for field age_groups on 'Logger'
-        db.delete_table('logger_logger_age_groups')
-
-        # Deleting model 'LoggerMessage'
-        db.delete_table('logger_loggermessage')
-
-        # Deleting model 'Report'
-        db.delete_table('logger_report')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'core.address': {
-            'Meta': {'object_name': 'Address'},
-            'block_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'building_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'coords': ('django.contrib.gis.db.models.fields.PointField', [], {'null': 'True', 'blank': 'True'}),
-            'extra_info': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'kladr': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'ocato': ('django.db.models.fields.CharField', [], {'max_length': '11', 'null': 'True', 'blank': 'True'}),
-            'postindex': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'street': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'})
-        },
-        'core.agegroup': {
-            'Meta': {'ordering': "['from_age']", 'object_name': 'AgeGroup'},
-            'from_age': ('django.db.models.fields.IntegerField', [], {}),
-            'from_date': ('sadiki.core.fields.SplitDayMonthField', [], {'max_length': '10'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'next_age_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.AgeGroup']", 'null': 'True', 'blank': 'True'}),
-            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
-            'to_age': ('django.db.models.fields.IntegerField', [], {}),
-            'to_date': ('sadiki.core.fields.SplitDayMonthField', [], {'max_length': '10'})
-        },
-        'core.area': {
-            'Meta': {'object_name': 'Area'},
-            'address': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Address']"}),
-            'bounds': ('django.contrib.gis.db.models.fields.PolygonField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'ocato': ('django.db.models.fields.CharField', [], {'max_length': '11'})
-        },
-        'core.distribution': {
-            'Meta': {'object_name': 'Distribution'},
-            'end_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'init_datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'start_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'status': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'year': ('django.db.models.fields.DateField', [], {})
-        },
-        'core.sadik': {
-            'Meta': {'ordering': "['number']", 'object_name': 'Sadik'},
-            'active_distribution': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'active_registration': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'address': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Address']"}),
-            'age_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.AgeGroup']", 'symmetrical': 'False'}),
-            'area': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Area']"}),
-            'cast': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'email': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'extended_info': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'head_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'number': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'phone': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'route_info': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'site': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'tech_level': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'training_program': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'core.sadikgroup': {
-            'Meta': {'ordering': "['-min_birth_date']", 'object_name': 'SadikGroup'},
-            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'age_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.AgeGroup']", 'null': 'True', 'blank': 'True'}),
-            'capacity': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'cast': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'distributions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Distribution']", 'through': "orm['core.Vacancies']", 'symmetrical': 'False'}),
-            'free_places': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'max_birth_date': ('django.db.models.fields.DateField', [], {}),
-            'min_birth_date': ('django.db.models.fields.DateField', [], {}),
-            'other_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'sadik': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'groups'", 'to': "orm['core.Sadik']"}),
-            'year': ('django.db.models.fields.DateField', [], {})
-        },
-        'core.vacancies': {
-            'Meta': {'object_name': 'Vacancies'},
-            'distribution': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Distribution']", 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'sadik_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.SadikGroup']"}),
-            'status': ('django.db.models.fields.IntegerField', [], {'null': 'True'})
-        },
-        'logger.logger': {
-            'Meta': {'object_name': 'Logger'},
-            'action_flag': ('django.db.models.fields.IntegerField', [], {}),
-            'added_pref_sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'logger_added'", 'symmetrical': 'False', 'to': "orm['core.Sadik']"}),
-            'age_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.AgeGroup']", 'symmetrical': 'False'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True'}),
-            'datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True'}),
-            'removed_pref_sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'related_name': "'logger_removed'", 'symmetrical': 'False', 'to': "orm['core.Sadik']"}),
-            'user': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['auth.User']", 'null': 'True'}),
-            'vacancy': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Vacancies']", 'null': 'True'})
-        },
-        'logger.loggermessage': {
-            'Meta': {'ordering': "['-level']", 'object_name': 'LoggerMessage'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'level': ('django.db.models.fields.PositiveIntegerField', [], {'default': '40', 'db_index': 'True', 'blank': 'True'}),
-            'logger': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['logger.Logger']"}),
-            'message': ('django.db.models.fields.TextField', [], {})
-        },
-        'logger.report': {
-            'Meta': {'object_name': 'Report'},
-            'age_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.AgeGroup']", 'null': 'True'}),
-            'data': ('django.db.models.fields.TextField', [], {}),
-            'decision_type': ('django.db.models.fields.IntegerField', [], {'null': 'True'}),
-            'from_date': ('django.db.models.fields.DateField', [], {}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'to_date': ('django.db.models.fields.DateField', [], {}),
-            'type': ('django.db.models.fields.IntegerField', [], {})
-        }
-    }
-
-    complete_apps = ['logger']
+    operations = [
+        migrations.CreateModel(
+            name='Logger',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('reason', models.TextField(help_text='\u0412\u043d\u0438\u043c\u0430\u043d\u0438\u0435! \u042d\u0442\u0430 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f \u0431\u0443\u0434\u0435\u0442 \u043f\u0443\u0431\u043b\u0438\u0447\u043d\u043e \u0434\u043e\u0441\u0442\u0443\u043f\u043d\u043e\u0439, \u0441\u0442\u0430\u0440\u0430\u0439\u0442\u0435\u0441\u044c \u043d\u0435 \u0443\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435', null=True, verbose_name='\u041e\u0441\u043d\u043e\u0432\u0430\u043d\u0438\u0435')),
+                ('datetime', models.DateTimeField(auto_now_add=True, verbose_name='\u0434\u0430\u0442\u0430 \u0441\u043e\u0437\u0434\u0430\u043d\u0438\u044f')),
+                ('object_id', models.PositiveIntegerField(null=True)),
+                ('action_flag', models.IntegerField(verbose_name='\u041f\u0440\u043e\u0438\u0437\u0432\u0435\u0434\u0435\u043d\u043d\u043e\u0435 \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u0435', choices=[(2, '\u0421\u0430\u043c\u043e\u0441\u0442\u043e\u044f\u0442\u0435\u043b\u044c\u043d\u0430\u044f \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f'), (1, '\u0418\u043c\u043f\u043e\u0440\u0442 \u0437\u0430\u044f\u0432\u043a\u0438'), (0, '\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u0447\u0435\u0440\u0435\u0437 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u0430'), (3, '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438'), (66, '\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0438\u0437 \u0434\u0440\u0443\u0433\u043e\u0433\u043e \u043c\u0443\u043d\u0438\u0446\u0438\u043f\u0430\u043b\u0438\u0442\u0435\u0442\u0430'), (5, '\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0432 \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0435'), (301, '\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0438\u0437 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0433\u043e \u043f\u0440\u0435\u0431\u044b\u0432\u0430\u043d\u0438\u044f \u0432 \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0435'), (6, '\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043c\u0435\u0441\u0442\u0430 \u0432 \u0414\u041e\u0423'), (9, '\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043c\u0435\u0441\u0442\u0430 \u0432 \u0414\u041e\u0423 \u043f\u043e \u0440\u0435\u0437\u043e\u043b\u044e\u0446\u0438\u0438 \u043d\u0430\u0447\u0430\u043b\u044c\u043d\u0438\u043a\u0430'), (304, '\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043c\u0435\u0441\u0442\u0430 \u0432 \u0414\u041e\u0423 \u043f\u043e \u0440\u0435\u0437\u043e\u043b\u044e\u0446\u0438\u0438 \u043d\u0430\u0447\u0430\u043b\u044c\u043d\u0438\u043a\u0430'), (7, '\u0412\u043e\u0437\u0432\u0440\u0430\u0442 \u0432 \u043e\u0447\u0435\u0440\u0435\u0434\u044c \u043d\u0435\u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u043d\u044b\u0445'), (303, '\u0412\u043e\u0437\u0432\u0440\u0430\u0442 \u0432 \u0433\u0440\u0443\u043f\u043f\u044b \u041a\u041f \u043d\u0435\u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u043d\u044b\u0445'), (16, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435'), (61, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435 \u0447\u0435\u0440\u0435\u0437 \u0441\u0438\u0441\u0442\u0435\u043c\u0443 \u042d\u043b\u0435\u043a\u0442\u0440\u043e\u0421\u0430\u0434'), (18, '\u041d\u0435\u044f\u0432\u043a\u0430 \u0432 \u0414\u041e\u0423'), (19, '\u042f\u0432\u043a\u0430 \u0432 \u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0432\u0440\u0435\u043c\u044f \u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u044e\u0449\u0438\u0445'), (38, '\u0421\u043d\u044f\u0442\u0438\u0435 \u0441 \u0443\u0447\u0451\u0442\u0430'), (40, '\u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0432 \u043e\u0447\u0435\u0440\u0435\u0434\u0438'), (39, '\u041e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438'), (50, '\u0418\u0441\u0442\u0435\u0447\u0435\u043d\u0438\u0435 \u0441\u0440\u043e\u043a\u043e\u0432 \u043d\u0430 \u043e\u0431\u0436\u0430\u043b\u043e\u0432\u0430\u043d\u0438\u0435 \u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0438\u044f'), (41, '\u0421\u043d\u044f\u0442\u0438\u0435 \u0441 \u0443\u0447\u0451\u0442\u0430 \u043f\u043e \u0438\u0441\u0442\u0435\u0447\u0435\u043d\u0438\u044e \u0441\u0440\u043e\u043a\u0430 \u043d\u0430 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u043a\u043e\u043d\u0442\u0430\u043a\u0442\u0430'), (43, '\u0410\u0440\u0445\u0438\u0432\u0430\u0446\u0438\u044f \u0441\u043d\u044f\u0442\u044b\u0445 \u0441 \u0443\u0447\u0451\u0442\u0430'), (44, '\u0410\u0440\u0445\u0438\u0432\u0430\u0446\u0438\u044f \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u043d\u044b\u0445'), (46, '\u041e\u0442\u043a\u0430\u0437 \u043e\u0442 \u043c\u0435\u0441\u0442\u0430 \u0432 \u0414\u041e\u0423'), (52, '\u0412\u043e\u0441\u0441\u0442\u0430\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435 \u0432 \u043e\u0447\u0435\u0440\u0435\u0434\u0438 \u043f\u043e\u0441\u043b\u0435 \u043d\u0435\u044f\u0432\u043a\u0438'), (53, '\u041e\u0442\u043a\u0430\u0437 \u043e\u0442 \u043c\u0435\u0441\u0442\u0430 \u0432 \u0414\u041e\u0423 \u043f\u043e\u0441\u043b\u0435 \u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0438\u044f'), (55, '\u0418\u0441\u0442\u0435\u0447\u0435\u043d\u0438\u0435 \u0441\u0440\u043e\u043a\u043e\u0432 \u043d\u0430 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u043e\u0432'), (67, '\u041f\u043e\u0432\u0442\u043e\u0440\u043d\u0430\u044f \u043f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u043d\u0430 \u0443\u0447\u0435\u0442'), (68, '\u041f\u043e\u0432\u0442\u043e\u0440\u043d\u0430\u044f \u043f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u043d\u0430 \u0443\u0447\u0435\u0442'), (300, '\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0432 \u0433\u0440\u0443\u043f\u043f\u0443 \u043a\u0440\u0430\u0442\u043a\u043e\u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0433\u043e \u043f\u0440\u0435\u0431\u044b\u0432\u0430\u043d\u0438\u044f'), (302, '\u041f\u0435\u0440\u0435\u0432\u043e\u0434 \u0438\u0437 \u0433\u0440\u0443\u043f\u043f\u044b \u043a\u0440\u0430\u0442\u043a\u043e\u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0433\u043e \u043f\u0440\u0435\u0431\u044b\u0432\u0430\u043d\u0438\u044f \u0432 \u043e\u0447\u0435\u0440\u0435\u0434\u044c'), (70, '\u0412\u044b\u043f\u0443\u0441\u043a \u0438\u0437 \u0414\u041e\u0423'), (69, '\u0412\u044b\u043f\u0443\u0441\u043a \u0438\u0437 \u0414\u041e\u0423'), (71, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u043c'), (90, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u043c'), (72, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (73, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0416\u0414\u041f'), (74, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0416\u0414\u041f \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (75, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u043c'), (76, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (77, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u044b\u0445 \u0414\u041e\u0423 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u043c'), (78, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u044b\u0445 \u0414\u041e\u0423 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (79, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0434\u0430\u0442\u044b \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438'), (80, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0434\u0430\u0442\u044b \u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f'), (81, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043b\u044c\u0433\u043e\u0442'), (82, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043b\u044c\u0433\u043e\u0442 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (83, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u043e\u0432'), (84, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u043e\u0432 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (85, '\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u0444\u0438\u043b\u044f'), (86, '\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (87, '\u0418\u043c\u043f\u043e\u0440\u0442 \u043f\u0440\u043e\u0444\u0438\u043b\u044f'), (88, '\u041f\u0440\u0438\u043a\u0440\u0435\u043f\u043b\u0435\u043d\u0438\u0435 \u0437\u0430\u044f\u0432\u043a\u0438 \u043a \u043f\u0440\u043e\u0444\u0438\u043b\u044e'), (89, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u044f \u0437\u0430\u044f\u0432\u043a\u0438 \u0432\u043e \u0432\u0440\u0435\u043c\u044f \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f'), (42, '\u0421\u043d\u044f\u0442\u0438\u0435 \u0441 \u0443\u0447\u0435\u0442\u0430 \u043f\u043e \u043f\u0440\u0438\u0447\u0438\u043d\u0435 \u043d\u0435\u044f\u0432\u043a\u0438'), (51, '\u0418\u0441\u0442\u0435\u0447\u0435\u043d\u0438\u0435 \u0441\u0440\u043e\u043a\u043e\u0432 \u043e\u0431\u0436\u0430\u043b\u043e\u0432\u0430\u043d\u0438\u044f'), (58, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435 \u043f\u043e \u0440\u0435\u0437\u043e\u043b\u044e\u0446\u0438\u0438 \u041d\u0430\u0447\u0430\u043b\u044c\u043d\u0438\u043a\u0430'), (100, '\u041d\u0430\u0447\u0430\u043b\u043e \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f'), (103, '\u041d\u0430\u0447\u0430\u043b\u043e \u0430\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u043e\u0433\u043e \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u044f'), (101, '\u041d\u0430\u0447\u0430\u043b\u043e \u0440\u0443\u0447\u043d\u043e\u0433\u043e \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u044f'), (102, '\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u0435 \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f'), (104, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043c\u0435\u0441\u0442 \u0432 \u0433\u0440\u0443\u043f\u043f\u0443 \u0414\u041e\u0423'), (105, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u0438 \u043e \u0414\u041e\u0423'), (106, '\u041d\u0430\u0447\u0430\u043b\u043e \u043d\u043e\u0432\u043e\u0433\u043e \u0443\u0447\u0435\u0431\u043d\u043e\u0433\u043e \u0433\u043e\u0434\u0430'), (110, '\u0417\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043e \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043c\u0435\u0441\u0442\u0430'), (200, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u043c'), (201, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (202, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445 \u0437\u0430\u044f\u0432\u043a\u0438 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0435\u043c'), (203, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445 \u0437\u0430\u044f\u0432\u043a\u0438 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u043e\u043c'), (204, '\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u0435 \u043f\u043e\u0447\u0442\u043e\u0432\u043e\u0433\u043e \u044f\u0449\u0438\u043a\u0430'), (220, '\u041f\u0435\u0440\u0435\u043d\u043e\u0441 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u0432 \u0441\u0432\u044f\u0437\u0438 \u0441 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435\u043c \u0434\u043e v1.9'), (221, '\u041f\u0435\u0440\u0435\u043d\u043e\u0441 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445 \u0440\u0435\u0431\u0451\u043d\u043a\u0430 \u0432 \u0441\u0432\u044f\u0437\u0438 \u0441 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u0438\u0435\u043c \u0434\u043e v1.9'), (500, '\u0421\u043e\u0437\u0434\u0430\u043d\u0438\u0435 \u043d\u043e\u0432\u043e\u0433\u043e \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u043f\u0440\u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438 \u0447\u0435\u0440\u0435\u0437 \u0415\u0421\u0418\u0410'), (501, '\u0421\u0432\u044f\u0437\u044b\u0432\u0430\u043d\u0438\u0435 \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u0441 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u043e\u043c \u0415\u0421\u0418\u0410'), (502, '\u0420\u0430\u0437\u0440\u044b\u0432 \u0441\u0432\u044f\u0437\u0438 \u043f\u0440\u043e\u0444\u0438\u043b\u044f \u0441 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u043e\u043c \u0415\u0421\u0418\u0410'), (503, '\u0418\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u0435 \u043f\u0435\u0440\u0441. \u0434\u0430\u043d\u043d\u044b\u0445 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044f \u043f\u0440\u0438 \u0430\u0432\u0442\u043e\u0440\u0438\u0437\u0430\u0446\u0438\u0438 \u0447\u0435\u0440\u0435\u0437 \u0415\u0421\u0418\u0410')])),
+                ('distribution_type', models.IntegerField(null=True, verbose_name='\u0422\u0438\u043f \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f', choices=[(0, '\u041e\u0431\u044b\u0447\u043d\u043e\u0435 \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435'), (1, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435 \u043d\u0430 \u043f\u043e\u0441\u0442\u043e\u044f\u043d\u043d\u043e\u0439 \u043e\u0441\u043d\u043e\u0432\u0435')])),
+                ('added_pref_sadiks', models.ManyToManyField(related_name='logger_added', to='core.Sadik')),
+                ('age_groups', models.ManyToManyField(to='core.AgeGroup')),
+                ('content_type', models.ForeignKey(to='contenttypes.ContentType', null=True)),
+                ('profile', models.ForeignKey(to='core.Profile', null=True)),
+                ('removed_pref_sadiks', models.ManyToManyField(related_name='logger_removed', to='core.Sadik')),
+                ('user', models.ForeignKey(verbose_name='\u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c', to=settings.AUTH_USER_MODEL, null=True)),
+                ('vacancy', models.ForeignKey(to='core.Vacancies', null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='LoggerMessage',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('message', models.TextField(verbose_name='\u0441\u043e\u043e\u0431\u0449\u0435\u043d\u0438\u0435')),
+                ('level', models.PositiveIntegerField(default=40, blank=True, verbose_name='\u0443\u0440\u043e\u0432\u0435\u043d\u044c \u0434\u043e\u0441\u0442\u0443\u043f\u0430', db_index=True, choices=[(10, '\u041f\u0443\u0431\u043b\u0438\u0447\u043d\u044b\u0439'), (20, '\u0410\u0432\u0442\u043e\u0440\u0438\u0437\u043e\u0432\u0430\u043d\u043d\u044b\u0435 \u043f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u0438'), (30, '\u041e\u043f\u0435\u0440\u0430\u0442\u043e\u0440')])),
+                ('logger', models.ForeignKey(to='logger.Logger')),
+            ],
+            options={
+                'ordering': ['-level'],
+            },
+        ),
+    ]
