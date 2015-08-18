@@ -7,8 +7,6 @@ from sadiki.administrator.admin import site as sadiki_admin_site
 from sadiki.core.views import VkontakteFrame
 from sadiki.plugins import plugins, SadikiPlugin
 
-admin.autodiscover()
-
 handler500  # Pyflakes
 handler404
 
