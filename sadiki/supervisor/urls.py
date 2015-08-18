@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from sadiki.supervisor.views import FrontPage, ChangeRegistrationDateTime, \
     ChangeBirthDate, RequestionSearch, \
     RequestionInfo, StartDistributionYear, DistributionYearInfo, RequestionStatusChange

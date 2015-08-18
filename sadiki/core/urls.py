@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- 
-from django.conf.urls.defaults import patterns, url, include
+from django.conf.urls import patterns, url, include
 from django.contrib import admin
 from .views import Frontpage, sadiki_json, registration, queue, search, import_params, \
     GetCoordsFromAddress
