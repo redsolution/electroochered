@@ -140,20 +140,6 @@ def add_requestion_type(requestion_type, description, needs_location_confirmed=F
         REQUESTION_TYPE_NEEDS_LOCATION_CONFIRMATION.append(requestion_type)
 
 
-def query_set_factory(query_set_class):
-    u"""позволяет привязать методы как менеджера модели, так и для QuerySet"""
-    class ChainedManager(models.Manager):
-
-        def get_query_set(self):
-            return query_set_class(self.model)
-
-        def __getattr__(self, attr, *args):
-            try:
-                return getattr(self.__class__, attr, *args)
-            except AttributeError:
-                return getattr(self.get_query_set(), attr, *args)
-    return ChainedManager()
-
 PROFILE_IDENTITY = 0
 REQUESTION_IDENTITY = 1
 BENEFIT_DOCUMENT = 2
@@ -230,7 +216,7 @@ class EvidienceDocument(models.Model):
     fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
                                default=False)
 
-    objects = query_set_factory(EvidienceDocumentQueryset)
+    objects = EvidienceDocumentQueryset.as_manager()
 
     def make_other_appocryphal(self):
         # документы для льгот могут быть с совпадающими номерами
@@ -275,7 +261,7 @@ class BenefitCategory(models.Model):
     immediately_distribution_active = models.BooleanField(
         verbose_name=u"Учавствует в немедленном зачислении", default=False)
 
-    objects = query_set_factory(BenefitCategoryQueryset)
+    objects = BenefitCategoryQueryset.as_manager()
 
     def __unicode__(self):
         return self.name
@@ -438,7 +424,7 @@ class Sadik(models.Model):
         verbose_name=u'принимает участие в распределении', default=True)
     age_groups = models.ManyToManyField("AgeGroup",
         verbose_name=u"Возрастные группы")
-    objects = query_set_factory(SadikQueryset)
+    objects = SadikQueryset.as_manager()
 
     def get_number(self):
         result = re.match(ur'^\D*(\d+)\D*$', self.short_name)
@@ -577,7 +563,7 @@ class SadikGroup(models.Model):
     active = models.BooleanField(verbose_name=u'Активна', default=True,
         help_text=u'Если группа активна, то в неё можно зачислять детей')
 
-    objects = query_set_factory(SadikGroupQueryset)
+    objects = SadikGroupQueryset.as_manager()
 
     def set_default_age(self, age_group):
         # вычисляем возрастные ограничения
@@ -721,7 +707,7 @@ class Distribution(models.Model):
         default=DISTRIBUTION_STATUS_INITIAL)
     year = models.DateField(verbose_name=u'Год распределения')
 
-    objects = query_set_factory(DistributionQuerySet)
+    objects = DistributionQuerySet.as_manager()
 
     def is_initial(self):
         return self.status == DISTRIBUTION_STATUS_INITIAL
@@ -1229,7 +1215,7 @@ class Requestion(models.Model):
         (REQUESTER_TYPE_OTHER, u'Иное'),
     )
 
-    objects = query_set_factory(RequestionQuerySet)
+    objects = RequestionQuerySet.as_manager()
 
     def set_kinship(self, kinship_type):
         kinship_type = str(kinship_type)
@@ -1696,7 +1682,7 @@ class Preference(models.Model):
     datetime = models.DateTimeField(
         verbose_name=u"Дата и время последнего изменения")
     value = models.CharField(verbose_name=u"Значение", max_length=255)
-    objects = query_set_factory(PreferenceQuerySet)
+    objects = PreferenceQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
 #        смотрим к какому разделу относится ключ

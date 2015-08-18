@@ -6,8 +6,7 @@ from django.db import models
 from django.db.models.query_utils import Q
 from django.template.context import Context
 from django.template.loader import render_to_string
-from sadiki.core.models import query_set_factory, Requestion, \
-    DISTRIBUTION_TYPE_CHOICES
+from sadiki.core.models import Requestion, DISTRIBUTION_TYPE_CHOICES
 from sadiki.core.utils import scheme_and_domain
 import logging
 import re
@@ -176,7 +175,7 @@ class LoggerMessage(models.Model):
         choices=LOG_LEVELS, default=logging.ERROR, blank=True, db_index=True)
     logger = models.ForeignKey(Logger)
 
-    objects = query_set_factory(LoggerMessageQuerySet)
+    objects = LoggerMessageQuerySet.as_manager()
 
     class Meta:
         ordering = ['-level']
