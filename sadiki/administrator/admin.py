@@ -234,6 +234,7 @@ class OperatorAdminChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(OperatorAdminChangeForm, self).__init__(*args, **kwargs)
@@ -348,6 +349,7 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
 
 class AreaAdminForm(forms.ModelForm):
     model = Sadik
+    fields = '__all__'
 
     def clean_name(self):
         return clean_str(self.cleaned_data.get('name'))
@@ -366,6 +368,7 @@ class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
 
     class Meta:
         model = Sadik
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         self.base_fields['age_groups'].widget = CheckboxSelectMultiple()
@@ -427,6 +430,8 @@ class BenefitCategoryAdminForm(forms.ModelForm):
         model = BenefitCategory
         if settings.IMMEDIATELY_DISTRIBUTION == IMMEDIATELY_DISTRIBUTION_NO:
             exclude = ('immediately_distribution_active',)
+        else:
+            exclude = ()
 
     def clean_priority(self):
         priority = self.cleaned_data.get('priority')
@@ -453,6 +458,7 @@ class BenefitCategoryAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 class BenefitAdminForm(forms.ModelForm):
     class Meta:
         model = Benefit
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(BenefitAdminForm, self).__init__(*args, **kwargs)
@@ -486,6 +492,7 @@ class AgeGroupForm(forms.ModelForm):
 
     class Meta:
         model = AgeGroup
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(AgeGroupForm, self).__init__(*args, **kwargs)
@@ -531,6 +538,7 @@ class AgeGroupAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 class ChunkAdminForm(forms.ModelForm):
     class Meta:
         model = Chunk
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(ChunkAdminForm, self).__init__(*args, **kwargs)
@@ -573,6 +581,7 @@ class ChunkAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 class PreferenceAdminForm(forms.ModelForm):
     class Meta:
         model = Preference
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         available_choices = []

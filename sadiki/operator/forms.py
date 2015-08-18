@@ -147,6 +147,7 @@ def get_sadik_group_form(sadik):
 
         class Meta:
             model = SadikGroup
+            fields = '__all__'
 
         def save(self, commit=True):
             free_places = self.cleaned_data.get('free_places')
@@ -382,6 +383,7 @@ class DocumentForm(forms.ModelForm):
 
     class Meta:
         model = EvidienceDocument
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(DocumentForm, self).__init__(*args, **kwargs)
