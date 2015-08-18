@@ -30,7 +30,6 @@ from sadiki.core.utils import add_crc, calculate_luhn_digit, \
 from sadiki.core.validators import birth_date_validator, \
     registration_date_validator, snils_validator
 from sadiki.settings import REQUESTER_USERNAME_PREFIX
-from south.modelsinspector import add_introspection_rules
 import datetime
 import re
 
@@ -1841,7 +1840,3 @@ def update_benefit_category(action, instance, **kwargs):
 m2m_changed.connect(update_benefit_category, sender=Requestion.benefits.through)
 
 User.__bases__ += (UserFunctions,)
-
-add_introspection_rules([], ["^sadiki\.core\.fields\.BooleanNextYearField"])
-add_introspection_rules([], ["^sadiki\.core\.fields\.YearChoiceField"])
-add_introspection_rules([], ["^sadiki\.core\.fields\.SplitDayMonthField"])

@@ -6,7 +6,6 @@ from django.utils import formats, dates
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 from sadiki.core.widgets import BooleanNextYearWidget, AreaWidget, DateRangeWidget
-from south.modelsinspector import add_introspection_rules
 from time import strptime
 from widgets import JqSplitDateTimeWidget, YearChoiceDateWigdet
 import datetime
@@ -250,7 +249,3 @@ class SadikWithAreasNameField(forms.ModelMultipleChoiceField):
 def validate_no_spaces(value):
     if value and u' ' in value:
         raise ValidationError(u"Поле не должно содержать пробелов")
-
-
-add_introspection_rules([], ["^sadiki\.core\.fields\.AreaChoiceField"])
-add_introspection_rules([], ["^sadiki\.core\.fields\.SplitDatMonthField"])
