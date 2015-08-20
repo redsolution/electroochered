@@ -158,7 +158,7 @@ class LoggerMessageQuerySet(models.query.QuerySet):
             elif user.is_requester():
                 level_log = ACCOUNT_LOG
                 # для пользователя показываем только его заявки
-                user_requestions_ids = user.get_profile().requestion_set.all().values_list('id', flat=True)
+                user_requestions_ids = user.profile.requestion_set.all().values_list('id', flat=True)
                 return self.filter(
                     Q(level=level_log, logger__object_id__in=user_requestions_ids,
                         logger__content_type=ContentType.objects.get_for_model(Requestion)) |

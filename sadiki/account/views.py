@@ -87,7 +87,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
     @method_decorator(login_required)
     def dispatch(self, request):
         kwargs = {
-            'profile': request.user.get_profile(),
+            'profile': request.user.profile,
             'redirect_to': reverse('frontpage'),
             'action_flag': CHANGE_PERSONAL_DATA,
         }
@@ -179,7 +179,7 @@ class EmailChange(AccountPermissionMixin, View):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(EmailChange, self).dispatch(request, profile)
 
     def post(self, request, profile):
@@ -214,7 +214,7 @@ class SocialProfilePublic(AccountPermissionMixin, View):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(SocialProfilePublic, self).dispatch(request, profile)
 
     def post(self, request, profile):
@@ -256,7 +256,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(RequestionAdd, self).dispatch(request, profile=profile)
 
     def get_documents_formset(self):

@@ -33,7 +33,7 @@ def check_single_association(backend, details, response, user=None,
 def update_user_info(backend, details, response, user=None, is_new=False,
                         *args, **kwargs):
     """Complete auth process. Return authenticated user or None."""
-    profile = user.get_profile()
+    profile = user.profile
     new_association = kwargs.get('new_association')
     if new_association:
         # если идет привязка к аккаунту, то получаем данные

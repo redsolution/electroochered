@@ -83,7 +83,7 @@ class CoreViewsTest(TestCase):
         """
 
         self.assertFalse(self.requester.email)
-        profile = self.requester.get_profile()
+        profile = self.requester.profile
         self.assertFalse(profile.email_verified)
         login = self.client.login(username=self.requester.username,
                                   password='123456q')
@@ -97,7 +97,7 @@ class CoreViewsTest(TestCase):
             **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
         self.assertEqual(response.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertEqual(u.email, email)
         self.assertEqual(response.content, '{"ok": true}')
         self.assertFalse(profile.email_verified)
@@ -114,7 +114,7 @@ class CoreViewsTest(TestCase):
                                              args=[profile.id]))
         self.assertEqual(op_confirm.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertTrue(profile.email_verified)
 
         # change email by operator
@@ -126,7 +126,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(op_change.status_code, 200)
         self.assertEqual(response.content, '{"ok": true}')
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertTrue(profile.email_verified)
         self.assertEqual(u.email, email_by_op)
         self.client.logout()
@@ -142,7 +142,7 @@ class CoreViewsTest(TestCase):
             **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
         self.assertEqual(response.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertEqual(u.email, changed_email)
         self.assertEqual(response.content, '{"ok": true}')
         self.assertFalse(profile.email_verified)
@@ -155,7 +155,7 @@ class CoreViewsTest(TestCase):
                                                args=[key.key]))
         self.assertTrue(ver_response.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertTrue(profile.email_verified)
         self.assertEqual(u.email, changed_email)
         self.client.logout()
@@ -178,7 +178,7 @@ class CoreViewsTest(TestCase):
 
         # impossible login with unverified email
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertFalse(profile.email_verified)
         self.assertFalse(self.client.login(username=email,
                                            password='123456q'))

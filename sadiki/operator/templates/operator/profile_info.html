@@ -82,7 +82,7 @@
 
 {% block content %}
     <div class="notification-area">
-        {% if profile.get_profile.requestion_set.not_confirmed.exists %}
+        {% if profile.requestion_set.not_confirmed.exists %}
             <div class="alert alert-error">Вам необходимо в ближайшее время подтвердить заявки, обратившись в управление образования.</div>
         {% endif %}
     </div>

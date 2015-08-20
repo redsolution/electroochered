@@ -25,7 +25,7 @@ from social_auth.views import associate_complete, complete_process, auth_process
 class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
 
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(AccountSocialAuthDataRemove, self).dispatch(request, profile)
 
     def post(self, request, profile):
@@ -47,7 +47,7 @@ class OperatorSocialAuthDataRemove(OperatorPermissionMixin, AccountSocialAuthDat
 
     def dispatch(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        profile = user.get_profile()
+        profile = user.profile
         return super(AccountSocialAuthDataRemove, self).dispatch(request, profile)
 
 
@@ -69,7 +69,7 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
 
     def post(self, request, user, user_social_auth):
         if request.is_ajax():
-            profile = user.get_profile()
+            profile = user.profile
             access_token = user_social_auth.tokens.get('access_token')
             uid = user_social_auth.uid
             fields = ','.join(VK_DEFAULT_DATA + setting('VK_EXTRA_DATA', []))

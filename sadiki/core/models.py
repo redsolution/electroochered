@@ -1751,7 +1751,7 @@ class UserFunctions:
         if isinstance(areas, Area):
             areas = (areas,)
         try:
-            user_area = self.get_profile().area
+            user_area = self.profile.area
         except Profile.DoesNotExist:
             return False
         else:

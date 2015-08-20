@@ -322,7 +322,7 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     def save_model(self, request, obj, form, change):
         obj.save()
         try:
-            obj.get_profile()
+            obj.profile
         except Profile.DoesNotExist:
             Profile.objects.create(user=obj)
 #        список групп, которые нужно назначить пользователю

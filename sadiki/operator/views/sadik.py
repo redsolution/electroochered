@@ -28,7 +28,7 @@ class SadikOperatorSadikMixin(SadikOperatorPermissionMixin):
     def check_permissions(self, request, sadik):
 #        у оператора должны быть права или на ДОУ или на область
         return (super(SadikOperatorSadikMixin, self).check_permissions(request, sadik)
-            and request.user.get_profile().sadik_available(sadik))
+            and request.user.profile.sadik_available(sadik))
 
     def dispatch(self, request, sadik_id):
         sadik = get_object_or_404(Sadik, id=sadik_id)
@@ -42,7 +42,7 @@ class SadikListWithGroups(SadikOperatorPermissionMixin, TemplateView):
     def get(self, request):
         distribution = Distribution.objects.active()
         context = {'distribution': distribution}
-        profile = request.user.get_profile()
+        profile = request.user.profile
 #        получаем все ДОУ у которых есть возможность участвовать в распределении
         sadiks = Sadik.objects.filter_for_profile(profile)
         sadiks_dict = sadiks.add_related_groups()
@@ -148,7 +148,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
     def get(self, request, sadik_id):
         # получаем ДОУ для данного района в которых есть заявки
         # с выделенными местами
-        profile = request.user.get_profile()
+        profile = request.user.profile
         sadiks_query = Sadik.objects.filter(
             groups__vacancies__requestion__status__in=(
                 STATUS_DECISION, STATUS_ABSENT, STATUS_NOT_APPEAR,
