@@ -13,7 +13,7 @@
             <a href="{{ account_frontpage }}">Мой профиль</a>
         </li>
         {% for requestion in request.user.get_profile.requestion_set.all|dictsort:"id" %}
-            {% url account_requestion_info requestion.id as account_requestion_info_url %}
+            {% url 'account_requestion_info' requestion.id as account_requestion_info_url %}
             <li {% if request.path == account_requestion_info_url %}class="active"{% endif %}>
                 <a href="{{ account_requestion_info_url }}">{{ requestion.requestion_number }}</a>
             </li>

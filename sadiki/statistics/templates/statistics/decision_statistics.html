@@ -5,7 +5,7 @@
     <h1>Количество распределенных мест по группам</h1>
     
     {% for year in years %}
-        <a class="btn {% if year == current_year %}btn-primary{% endif %}" href="{% url decision_statistics year %}">{{ year }}</a>
+        <a class="btn {% if year == current_year %}btn-primary{% endif %}" href="{% url 'decision_statistics' year %}">{{ year }}</a>
     {% endfor %}
     <p>количество мест на начало распределения/количество распределенных мест</p>
     <table class="table table-striped table-bordered table-condensed">

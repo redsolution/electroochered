@@ -14,7 +14,7 @@
     {# диалоговое окно сброса пароля #}
     <script type="text/javascript">
         function confirm_mail_by_op() {
-            $.get('{% url confirm_profile_email profile.id %}');
+            $.get('{% url "confirm_profile_email" profile.id %}');
             $('#mail_confirm_sent').show();
             $('#confirm_mail_button').hide();
             $('#filled_email_label').children('span').hide();
@@ -22,7 +22,7 @@
         }
 
     function operatorEmailSubmit() {
-        var url = '{% url change_profile_email profile.id %}';
+        var url = '{% url "change_profile_email" profile.id %}';
         if ($('#id_email').val() === email_string) {
             mailEditToLabel();
             return false;
@@ -101,7 +101,7 @@
                     <img title="Пароль не задан" src="{{ STATIC_URL }}img/icon_not_approved.fw.png"/>
                     <span class="value">Пароль не задан</span>
                 {% endif %}
-                <form id="reset_password_form" action="{% url generate_profile_password profile_id=profile.id %}" method="post" target="_blank">{% csrf_token %}
+                <form id="reset_password_form" action="{% url 'generate_profile_password' profile_id=profile.id %}" method="post" target="_blank">{% csrf_token %}
                     {{ reset_password_form.as_ul }}
                 </form>
                 <button id="reset_password_btn" class="btn">Сгенерировать новый пароль</button>
@@ -269,13 +269,13 @@
         <div class="vkontakte-info">
             <div class="block-head">Профиль ВКонтакте:</div>
             {% if vkontakte_association %}
-                {% url operator_social_data_update user_id=profile.user.id as social_data_update_url %}
-                {% url operator_social_data_remove user_id=profile.user.id as social_data_remove_url %}
+                {% url 'operator_social_data_update' user_id=profile.user.id as social_data_update_url %}
+                {% url 'operator_social_data_remove' user_id=profile.user.id as social_data_remove_url %}
                 <div class="vkontakte-profile clearfix">
                 <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ vkontakte_association.uid }}"><img src="{{ STATIC_URL }}img/vkontakte.png"/> http://vk.com/id{{ vkontakte_association.uid }}</a>
                 {% if profile.user.password and profile.user.has_usable_password %}
-                    {% url operator_social_auth_disconnect_individual backend=vkontakte_association.provider association_id=vkontakte_association.id as social_auth_disconnect_url %}
-                    {% url operator_profile_info profile_id=profile.id as redirect_url %}
+                    {% url 'operator_social_auth_disconnect_individual' backend=vkontakte_association.provider association_id=vkontakte_association.id as social_auth_disconnect_url %}
+                    {% url 'operator_profile_info' profile_id=profile.id as redirect_url %}
                     <a class="vkontakte-remove action-link" href="{{ social_auth_disconnect_url }}?next={{ redirect_url }}"><img src="{{ STATIC_URL }}img/remove.png"/>Отвязать аккаунт</a>
                 {% else %}
                     <div class="alert alert-error">Чтобы отвязать учетную запись ВКонтакте необходимо задать пароль</div>
@@ -284,7 +284,7 @@
                 <div class="small-field">
                     <div class="field">
                     <label class="field-label">Ссылка на профиль в публичной очереди:</label>
-                    {% url operator_social_profile_public profile_id=profile.id as social_profile_public_url %}
+                    {% url 'operator_social_profile_public' profile_id=profile.id as social_profile_public_url %}
                     <form id="profile-form" action="{{ social_profile_public_url }}">
                         <div class="field-value">
                         {% with profile_change_form.social_auth_public as field%}
@@ -321,7 +321,7 @@
             {% for requestion in profile.requestion_set.all|dictsort:"id" %}
                 <div class="requestion-block {% cycle "white" "gray" %}">
                 <label class="field-label">№ заявки:</label>
-                {% url operator_requestion_info requestion_id=requestion.id as requestion_url %}
+                {% url 'operator_requestion_info' requestion_id=requestion.id as requestion_url %}
                 <p class="field-value"><a href="{{ requestion_url }}">{{ requestion.requestion_number }}</a></p>
                 <label class="field-label">Имя:</label>
                 <p class="field-value">{{ requestion.name }}</p>
@@ -339,7 +339,7 @@
                 {% endif %}
                 </div>
             {% endfor %}
-            {% url operator_requestion_add profile_id=profile.id as requestion_add_url %}
+            {% url 'operator_requestion_add' profile_id=profile.id as requestion_add_url %}
             <a class="link-with-image requestion-add action-link" href="{{ requestion_add_url }}">
                 <img src="{{ STATIC_URL }}img/icon_add.fw.png"/>
                 Добавить заявку

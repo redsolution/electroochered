@@ -54,7 +54,7 @@
                     {% for requestion in results %}
                     <tr>
                         <td>{{ forloop.counter }}</td>
-                        <td><a href="{% url requestion_logs requestion.id %}">{{ requestion.requestion_number }}</a></td>
+                        <td><a href="{% url 'requestion_logs' requestion.id %}">{{ requestion.requestion_number }}</a></td>
                         <td>{{ requestion.birth_date }}</td>
                         <td>{{ requestion.registration_datetime }}</td>
                         <td>{{ requestion.benefit_category }}</td>

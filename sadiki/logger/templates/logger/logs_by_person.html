@@ -26,7 +26,7 @@
 		<tr>
             <td>{{ forloop.counter|add:offset }}</td>
             <td>{{ log.0.datetime }}</td>
-            <td>{% if log.2 %}<a href="{% url requestion_logs log.2.id %}">{{ log.2 }}</a>{% endif %}</td>
+            <td>{% if log.2 %}<a href="{% url 'requestion_logs' log.2.id %}">{{ log.2 }}</a>{% endif %}</td>
             <td>{{ log.0.get_action_flag_display }}</td>
             <td>
             	{% for logmessage in log.1 %}{{ logmessage.message }}<br>{% endfor %}

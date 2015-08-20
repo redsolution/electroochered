@@ -1,28 +1,28 @@
 {% load sadiki_core_tags %}
 
-{% url sadik_list as sadik_list_url %}
+{% url 'sadik_list' as sadik_list_url %}
 <ul class="content-menu">
     <li {% if request.path == sadik_list_url %}class="active"{% endif %}>
         <a href="{{ sadik_list_url }}">Список ДОУ</a>
     </li>
-    {% url sadiki_map as sadiki_map_url %}
+    {% url 'sadiki_map' as sadiki_map_url %}
     <li {% if request.path == sadiki_map_url %}class="active"{% endif %}>
         <a href="{{ sadiki_map_url }}">Карта ДОУ</a>
     </li>
     {% if sadik %}
-        {% url sadik_info sadik_id=sadik.id as sadik_url %}
+        {% url 'sadik_info' sadik_id=sadik.id as sadik_url %}
         <li {% if request.path == sadik_url %}class="active"{% endif %}>
             <a href="{{ sadik_url }}">{{ sadik }}</a>
         </li>
-        {% url sadik_info_change sadik_id=sadik.id as sadik_info_change_url %}
+        {% url 'sadik_info_change' sadik_id=sadik.id as sadik_info_change_url %}
         {% if request.user.is_sadik_operator %}
         <li {% if request.path == sadik_info_change_url %}class="active"{% endif %}>
             <a href="{{ sadik_info_change_url }}">Изменение {{ sadik }}</a>
         </li>
         {% endif %}
-        {% url requestion_list_enroll sadik_id=sadik.id as requestion_list_enroll_url %}
+        {% url 'requestion_list_enroll' sadik_id=sadik.id as requestion_list_enroll_url %}
     {% else %}
-        {% url requestion_list_enroll as requestion_list_enroll_url %}
+        {% url 'requestion_list_enroll' as requestion_list_enroll_url %}
     {% endif %}
     {% if requestion_list_enroll_url|check_url_availability:request.user %}
         <li {% if request.path == requestion_list_enroll_url %}class="active"{% endif %}>

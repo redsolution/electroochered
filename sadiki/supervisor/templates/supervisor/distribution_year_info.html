@@ -11,6 +11,6 @@
             процедурой комплектования.</span></p>
     {% endif %}
     <p><span class="error">Внимание! Переход на новый учебный год нельзя будет отменить.</span></p>
-    {% url start_distribution_year as start_distribution_year_url %}
+    {% url 'start_distribution_year' as start_distribution_year_url %}
     {% action_button_for_url start_distribution_year_url options text="Начать новый год" %}
 {% endblock %}

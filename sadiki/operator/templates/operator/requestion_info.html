@@ -14,16 +14,16 @@
     {# генерация бланков #}
     <div class="row requestion_blanks">
         <div class="span11">
-        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=registration">
+        <a target="_blank" class="btn" href="{% url 'operator_generate_blank' requestion_id=requestion.id %}?type=registration">
             Заявление на регистрацию
         </a>
-        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_info">
+        <a target="_blank" class="btn" href="{% url 'operator_generate_blank' requestion_id=requestion.id %}?type=change_info">
             Заявление на изменение данных
         </a>
-        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=change_preferred_sadiks">
+        <a target="_blank" class="btn" href="{% url 'operator_generate_blank' requestion_id=requestion.id %}?type=change_preferred_sadiks">
             Заявление на изменение приоритетных ДОУ
         </a>
-        <a target="_blank" class="btn" href="{% url operator_generate_blank requestion_id=requestion.id %}?type=remove_registration">
+        <a target="_blank" class="btn" href="{% url 'operator_generate_blank' requestion_id=requestion.id %}?type=remove_registration">
             Заявление на cнятие с учета
         </a>
         </div>
@@ -37,7 +37,7 @@
             {% if requestion.is_fake_identity_documents %}
                 <div class="alert alert-error">
                     У заявки указан временный номер документа, чтобы изменить заявку, нужно
-                    <a href="{% url operator_requestion_set_identity_document requestion_id=requestion.id %}?next={{ request.get_full_path|urlencode }}">указать</a>
+                    <a href="{% url 'operator_requestion_set_identity_document' requestion_id=requestion.id %}?next={{ request.get_full_path|urlencode }}">указать</a>
                     номер документа.
                 </div>
             {% else %}
@@ -47,18 +47,18 @@
         {% endif %}
         {% with requestion.get_vacancy_distributed as vacancy_distributed %}
             {% if vacancy_distributed %}
-                <div class="alert alert-success">Заявка зачислена в <a href="{% url sadik_info sadik_id=vacancy_distributed.sadik_group.sadik.id %}">{{ vacancy_distributed.sadik_group.sadik }}</a></div>
+                <div class="alert alert-success">Заявка зачислена в <a href="{% url 'sadik_info' sadik_id=vacancy_distributed.sadik_group.sadik.id %}">{{ vacancy_distributed.sadik_group.sadik }}</a></div>
             {% else %}
                 {% with requestion.get_vacancy_temp_distributed as vacancy_temp_distributed %}
                     {% if vacancy_temp_distributed %}
-                        <div class="alert alert-success">Заявка временно зачислена в <a href="{% url sadik_info sadik_id=vacancy_temp_distributed.sadik_group.sadik.id %}">{{ vacancy_temp_distributed.sadik_group.sadik }}</a></div>
+                        <div class="alert alert-success">Заявка временно зачислена в <a href="{% url 'sadik_info' sadik_id=vacancy_temp_distributed.sadik_group.sadik.id %}">{{ vacancy_temp_distributed.sadik_group.sadik }}</a></div>
                     {% endif %}
                 {% endwith %}
             {% endif %}
         {% endwith %}
         {% with requestion.get_vacancy_decision as vacancy_decision %}
             {% if vacancy_decision %}
-                <div class="alert alert-success">Происходит процесс распределения в <a href="{% url sadik_info sadik_id=vacancy_decision.sadik_group.sadik.id %}">{{ vacancy_decision.sadik_group.sadik }}</a></div>
+                <div class="alert alert-success">Происходит процесс распределения в <a href="{% url 'sadik_info' sadik_id=vacancy_decision.sadik_group.sadik.id %}">{{ vacancy_decision.sadik_group.sadik }}</a></div>
             {% endif %}
         {% endwith %}
     </div>
@@ -158,10 +158,10 @@
         <h2 class="page-header">Действия с заявкой</h2>
         <div class="btn-group">
             {% for transition in requestion.available_transitions %}
-                {% url operator_requestion_status_change requestion.id transition.dst as status_change_url %}
+                {% url 'operator_requestion_status_change' requestion.id transition.dst as status_change_url %}
                 {% action_button_for_url status_change_url options text=transition.comment hide_disabled=1 %}
             {% endfor %}
-            {% url find_profile_for_requestion requestion_id=requestion.id as find_profile_for_requestion_url %}
+            {% url 'find_profile_for_requestion' requestion_id=requestion.id as find_profile_for_requestion_url %}
             {% if find_profile_for_requestion_url|check_url_availability:request.user %}
                 <a href="{{ find_profile_for_requestion_url }}" class="btn"><i class="icon-pencil"></i> Прикрепить к другому профилю</a>
             {% endif %}

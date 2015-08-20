@@ -31,7 +31,7 @@
                     {% endif %}
                 {% endwith %}
                 </div>
-                {% block requestion_number %}<a href="{% url requestion_logs requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
+                {% block requestion_number %}<a href="{% url 'requestion_logs' requestion.id %}"> {{ requestion.requestion_number }}</a>{% endblock %}
             </td>
             <td>{{ requestion.areas.all.0 }}
                 {% if requestion.areas.all|length > 1 %}<a href="#" rel="popover"
@@ -52,11 +52,11 @@
                 {{ requestion.get_status_display }}
                 {% if requestion.status == STATUS_DECISION %}
                 в {{ requestion.sadik_name }}
-                <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a>
+                <a href="{% url 'sadik_info' sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home"></i></a>
                 {% else %}
                     {% if requestion.status == STATUS_DISTRIBUTED or requestion.status == STATUS_DISTRIBUTED_FROM_ES %}
                         в {{ requestion.sadik_name }}
-                        <a href="{% url sadik_info sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home green"></i></a>
+                        <a href="{% url 'sadik_info' sadik_id=requestion.distribute_in_sadik_id %}" title="{{ requestion.sadik_name }}"><i class="icon-home green"></i></a>
                     {% endif %}
                 {% endif %}
             </td>

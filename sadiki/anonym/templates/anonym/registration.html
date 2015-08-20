@@ -40,7 +40,7 @@
                     <img src="{{ STATIC_URL }}img/esia-large.png"/>
                 </div>
                 <div class="registration">
-                    <a class="auth-link" href="{% url esia_authenticate %}">
+                    <a class="auth-link" href="{% url 'esia_authenticate' %}">
                         ЕСИА
                     </a>
                     <p class="hint">Регистрация через Единую Систему Идентификации и Аутентификации (ЕСИА).
@@ -54,7 +54,7 @@
                     <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
                 </div>
                 <div class="registration">
-                    <a class="auth-link" href="{% url socialauth_registration_begin 'vkontakte-oauth2' %}">
+                    <a class="auth-link" href="{% url 'socialauth_registration_begin' 'vkontakte-oauth2' %}">
                         ВКонтакте
                     </a>
                     <p class="hint">Если у вас есть профиль в социальной сети ВКонтакте, вы можете использовать

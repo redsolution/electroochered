@@ -4,12 +4,12 @@
             <li class="dropdown">
                 <ul class="dropdown-menu">
                     {% if request.user.password and request.user.has_usable_password %}
-                        <li><a href="{% url passwd %}"><i class="icon-key"></i> Смена пароля</a></li>
+                        <li><a href="{% url 'passwd' %}"><i class="icon-key"></i> Смена пароля</a></li>
                     {% else %}
-                        <li><a href="{% url passwd_set %}"><i class="icon-key"></i> Задать пароль</a></li>
+                        <li><a href="{% url 'passwd_set' %}"><i class="icon-key"></i> Задать пароль</a></li>
                     {% endif %}
                     <li class="divider"></li>
-                    <li><a href="{% url logout %}"><i class="icon-off"></i> Выход</a></li>
+                    <li><a href="{% url 'logout' %}"><i class="icon-off"></i> Выход</a></li>
                 </ul>
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
                     <img class="avatar" src="{{ STATIC_URL }}img/avatar.png"/>
@@ -21,10 +21,10 @@
             <li class="dropdown">
                 <ul class="dropdown-menu">
                     {% if 'smevfms' in special_apps %}
-                        <li><a href="{% url fms_task_list %}"><i class="icon-file"></i> Запрос в ФМС</a></li>
+                        <li><a href="{% url 'fms_task_list' %}"><i class="icon-file"></i> Запрос в ФМС</a></li>
                     {% endif %}
                     {% if 'smevzags' in special_apps %}
-                        <li><a href="{% url zags_task_list %}"><i class="icon-file"></i> Запрос в ЗАГС</a></li>
+                        <li><a href="{% url 'zags_task_list' %}"><i class="icon-file"></i> Запрос в ЗАГС</a></li>
                     {% endif %}
                 </ul>
                 <a class="dropdown-toggle" data-toggle="dropdown" href="#">
@@ -37,7 +37,7 @@
         </ul>
         {% else %}
         <ul class="signup">
-            <li><a href="{% url login %}">Войти в систему</a></li>
+            <li><a href="{% url 'login' %}">Войти в систему</a></li>
         </ul>
         {% endif %}
 </div>
