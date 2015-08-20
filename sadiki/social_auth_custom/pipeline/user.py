@@ -39,7 +39,6 @@ def update_user_info(backend, details, response, user=None, is_new=False,
         # если идет привязка к аккаунту, то получаем данные
         if backend.name == 'vkontakte-oauth2':
             profile.update_vkontakte_data(response)
-            profile.save()
     return None
 
 
