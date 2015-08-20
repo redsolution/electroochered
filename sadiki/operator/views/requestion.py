@@ -69,7 +69,7 @@ class Queue(OperatorPermissionMixin, AnonymQueue):
         """
         request = args[0]
         if request.GET.get('type') == 'xls':
-            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            response = HttpResponse(content_type='application/vnd.ms-excel')
             queryset, form = self.process_filter_form(self.queryset, request.GET)
             num = queryset.count()
             if num < 5000:
@@ -578,7 +578,8 @@ class GenerateProfilePassword(OperatorPermissionMixin, View):
             result = generate_pdf(template_name='operator/blanks/reset_password.html',
                                   context_dict={'password': password, 'media_root': settings.MEDIA_ROOT,
                                                 'profile': profile})
-            response = HttpResponse(result.getvalue(), mimetype='application/pdf')
+            response = HttpResponse(result.getvalue(),
+                                    content_type='application/pdf')
             return response
 
 
@@ -607,9 +608,9 @@ class ChangeRequestionLocation(OperatorPermissionMixin, View):
                     'requestion': requestion},
                         extra={'user': request.user, 'obj': requestion})
                 return HttpResponse(content=json.dumps({'ok': True}),
-                        mimetype='text/javascript')
+                                    content_type='text/javascript')
             return HttpResponse(content=json.dumps({'ok': False}),
-                        mimetype='text/javascript')
+                                content_type='text/javascript')
 
         else:
             return HttpResponseBadRequest()

@@ -192,7 +192,7 @@ class EmailChange(AccountPermissionMixin, View):
                     form._errors['email'] = ErrorList([u'Данный почтовый адрес уже занят'])
                     return HttpResponse(content=json.dumps(
                         {'ok': False, 'errors': form.errors}),
-                        mimetype='text/javascript')
+                        content_type='text/javascript')
                 profile.user.email = request.POST['email']
                 profile.user.save()
                 if request.user.is_operator():
@@ -203,11 +203,11 @@ class EmailChange(AccountPermissionMixin, View):
                     profile.save()
                     sadiki.authorisation.views.send_confirm_letter(request)
             return HttpResponse(content=json.dumps({'ok': True}),
-                                mimetype='text/javascript')
+                                content_type='text/javascript')
 
         return HttpResponse(content=json.dumps(
             {'ok': False, 'errors': form.errors}),
-            mimetype='text/javascript')
+            content_type='text/javascript')
 
 
 class SocialProfilePublic(AccountPermissionMixin, View):
@@ -224,9 +224,9 @@ class SocialProfilePublic(AccountPermissionMixin, View):
         if form.is_valid():
             form.save()
             return HttpResponse(content=json.dumps({'ok': False}),
-                                mimetype='text/javascript')
+                                content_type='text/javascript')
         return HttpResponse(content=json.dumps({'ok': False}),
-                            mimetype='text/javascript')
+                            content_type='text/javascript')
 
 
 class RequestionAdd(AccountPermissionMixin, TemplateView):

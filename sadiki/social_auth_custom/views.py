@@ -35,10 +35,10 @@ class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
                 profile.skype = None
             else:
                 return HttpResponse(content=json.dumps({'ok': False}),
-                        mimetype='text/javascript')
+                                    content_type='text/javascript')
             profile.save()
             return HttpResponse(content=json.dumps({'ok': True}),
-                    mimetype='text/javascript')
+                                content_type='text/javascript')
         else:
             return HttpResponseBadRequest()
 
@@ -79,7 +79,7 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             raw_data = vk_api('users.get', params).get('response')
             if not raw_data:
                 return HttpResponse(content=json.dumps({'ok': True}),
-                                    mimetype='text/javascript')
+                                    content_type='text/javascript')
             data = raw_data[0]
             field = request.POST.get("field")
             if field == "first_name":
@@ -98,11 +98,11 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
                 profile.skype = field_value
             else:
                 return HttpResponse(content=json.dumps({'ok': False}),
-                                    mimetype='text/javascript')
+                                    content_type='text/javascript')
             profile.save()
-            return HttpResponse(content=json.dumps(
-                {'ok': True, 'field_value': field_value}),
-                mimetype='text/javascript')
+            return HttpResponse(
+                content=json.dumps({'ok': True, 'field_value': field_value}),
+                content_type='text/javascript')
         else:
             return HttpResponseBadRequest()
 

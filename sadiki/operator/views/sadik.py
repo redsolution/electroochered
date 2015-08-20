@@ -211,7 +211,7 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
         sadik = Sadik.objects.get(id=sadik_id)
         groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
 
-        response = HttpResponse(mimetype='application/vnd.ms-excel')
+        response = HttpResponse(content_type='application/vnd.ms-excel')
         file_name = u'Sadik_%s' % sadik.number
         response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
         import xlwt

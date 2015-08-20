@@ -50,7 +50,7 @@ def sadiki_json(request):
                 'number': sadik.number,
                 'url': reverse('sadik_info', args=[sadik.id, ])
             })
-    return HttpResponse(json.dumps(data), mimetype='text/json')
+    return HttpResponse(json.dumps(data), content_type='text/json')
 
 
 class VkontakteFrame(TemplateView):
@@ -101,7 +101,7 @@ def import_params(request):
         import_involved=True, destination=REQUESTION_IDENTITY).values('name', 'regex'))
     data['AGE_GROUPS'] = list(AgeGroup.objects.all().values_list('name', flat=True))
     data["REGION_NAME"] = settings.REGION_NAME
-    return HttpResponse(json.dumps(data), mimetype='text/json')
+    return HttpResponse(json.dumps(data), content_type='text/json')
 
 
 class GetCoordsFromAddress(View):
@@ -111,8 +111,8 @@ class GetCoordsFromAddress(View):
             coords = sadiki.core.utils.get_coords_from_address(request.GET['address'])
             if coords:
                 return HttpResponse(content=json.dumps({'ok': True, 'coords': coords}),
-                                    mimetype='text/javascript')
+                                    content_type='text/javascript')
             return HttpResponse(content=json.dumps({'ok': False}),
-                                mimetype='text/javascript')
+                                content_type='text/javascript')
         else:
             return HttpResponseBadRequest()
