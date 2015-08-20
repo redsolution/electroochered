@@ -398,7 +398,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         try:
             template = loader.get_template(
                 'operator/status_change/{}.html'.format(self.transition.index))
-            return template.name
+            return template.template.name
         except TemplateDoesNotExist:
             return None
 
