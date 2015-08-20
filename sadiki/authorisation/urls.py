@@ -12,7 +12,7 @@ urlpatterns = patterns(
         {'template_name': 'authorisation/passwd.html'}, name='passwd'),
     url(r'^passwd/done/$', 'password_change_done',
         {'template_name': 'authorisation/passwd_done.html'},
-        name='passwd_done'),
+        name='password_change_done'),
     url(r'^logout/$', 'logout', {'next_page': '/', }, name="logout"),
 )
 
