@@ -19,7 +19,7 @@ class VerificationKeyManager(models.Manager):
             salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
             key = hashlib.sha1(salt + user.username).hexdigest()
             try:
-                self.get_query_set().get(key=key)
+                self.get_queryset().get(key=key)
             except self.model.DoesNotExist:
                 break
 
