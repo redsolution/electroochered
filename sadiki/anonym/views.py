@@ -185,7 +185,7 @@ class Queue(RequirePermissionsMixin, ListView):
             return queryset.queue(), self.form()
 
     def get_context_data(self, **kwargs):
-        queryset = kwargs.pop('object_list')
+        queryset = kwargs.pop('object_list', self.object_list)
         # Отработать форму фильтрации
         page_number = self.request.GET.get('page', None)
 
