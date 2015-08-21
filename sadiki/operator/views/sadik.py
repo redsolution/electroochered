@@ -184,7 +184,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
                     status__in=(STATUS_DECISION, STATUS_NOT_APPEAR,
                                 STATUS_NOT_APPEAR_EXPIRE),
                     distributed_in_vacancy__sadik_group__sadik=sadik
-                ).select_related('distribute_in_group', 'profile').order_by(
+                ).select_related('profile').order_by(
                     '-benefit_category__priority',
                     'registration_datetime', 'id')
                 requestions_for_group = requestions_for_sadik.filter(
