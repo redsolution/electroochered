@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import datetime
 
 from django.test import TestCase
@@ -23,6 +24,9 @@ class CoreViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        for fixture_filename in cls.fixtures:
+            fixture_file = os.path.join(settings.PROJECT_DIR, fixture_filename)
+            management.call_command('loaddata', fixture_file)
         management.call_command('update_initial_data')
 
     @classmethod

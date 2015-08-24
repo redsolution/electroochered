@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import os
 import random
 import datetime
 from django.test import TestCase, Client
 from django.core import management
+from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -30,6 +32,9 @@ class CoreViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        for fixture_filename in cls.fixtures:
+            fixture_file = os.path.join(settings.PROJECT_DIR, fixture_filename)
+            management.call_command('loaddata', fixture_file)
         management.call_command('update_initial_data')
 
     @classmethod
