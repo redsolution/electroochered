@@ -17,6 +17,7 @@ from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT, NOT_CONFIRMED_STATUSES
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
 from sadiki.core.widgets import JqueryUIDateWidget, LeafletMap
+from sadiki.core.utils import reorder_fields
 
 
 def select_list_from_qs(queryset, requestion):
@@ -31,7 +32,7 @@ def select_list_from_qs(queryset, requestion):
 class QueueOperatorFilterForm(QueueFilterForm):
     def __init__(self, *args, **kwargs):
         super(QueueOperatorFilterForm, self).__init__(*args, **kwargs)
-        self.fields.keyOrder = [
+        fields_order = [
             'requestion_number',
             'status',
             'area',
@@ -42,6 +43,7 @@ class QueueOperatorFilterForm(QueueFilterForm):
             'decision_date',
             'without_facilities',
         ]
+        self.fields = reorder_fields(self.fields, fields_order)
         admission_date_choices = [
             (year, year.year) for year in
             Requestion.objects.queue().dates('admission_date', 'year')]

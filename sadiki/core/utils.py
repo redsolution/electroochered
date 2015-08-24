@@ -8,6 +8,7 @@ import urllib2
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
+from collections import OrderedDict
 import math
 
 from django import forms
@@ -531,6 +532,13 @@ def active_child_exist(birth_cert):
         if is_active_child_status(child_data['data']['status']):
             return True
     return False
+
+
+def reorder_fields(fields, order):
+    for key, value in fields.items():
+        if key not in order:
+            del fields[key]
+    return OrderedDict(sorted(fields.items(), key=lambda k: order.index(k[0])))
 
 
 def remove_empty_personal_data_values(data):
