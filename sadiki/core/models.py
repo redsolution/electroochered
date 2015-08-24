@@ -278,8 +278,8 @@ BENEFIT_STATUS_CHOICES = (
 
 class BenefitsEnabled(models.Manager):
     """Возвращаем только активные льготы"""
-    def get_query_set(self):
-        return super(BenefitsEnabled, self).get_query_set().filter(
+    def get_queryset(self):
+        return super(BenefitsEnabled, self).get_queryset().filter(
             disabled=False)
 
 
