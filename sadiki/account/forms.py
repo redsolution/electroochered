@@ -5,7 +5,7 @@ from django import forms
 from django.conf import settings
 from django.forms.models import ModelForm
 from django.forms.models import BaseModelFormSet
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.contrib.auth.models import User
 from sadiki.anonym.forms import FormWithDocument, TemplateFormField
 from sadiki.core.fields import SadikWithAreasNameField
