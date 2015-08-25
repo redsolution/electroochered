@@ -121,7 +121,7 @@ class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
     template_name = 'social_auth/disconnect.html'
 
     def dispatch(self, request, backend, association_id):
-        redirect_to = request.REQUEST.get('next', '')
+        redirect_to = request.POST.get('next', '')
         redirect_to = check_url(redirect_to, reverse('frontpage'))
         return super(AccountSocialAuthDisconnect, self).dispatch(request, backend, association_id, redirect_to=redirect_to)
 

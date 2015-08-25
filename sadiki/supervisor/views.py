@@ -166,7 +166,7 @@ class StartDistributionYear(SupervisorBases):
             # and not Requestion.objects.enrollment_in_progress().exists())
 
     def dispatch(self, request):
-        redirect_to = request.REQUEST.get('next', '')
+        redirect_to = request.POST.get('next', '')
         redirect_to = check_url(redirect_to, reverse('supervisor_frontpage'))
         return RequirePermissionsMixin.dispatch(self, request,
                                                 redirect_to=redirect_to)

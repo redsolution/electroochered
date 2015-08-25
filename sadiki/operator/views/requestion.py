@@ -225,7 +225,10 @@ class SetIdentityDocument(OperatorRequestionMixin, TemplateView):
     template_name = u"operator/set_identity_document.html"
 
     def dispatch(self, request, requestion_id):
-        redirect_to = request.REQUEST.get('next', '')
+        if request.method == 'GET':
+            redirect_to = request.GET.get('next', '')
+        else:
+            redirect_to = request.POST.get('next', '')
         self.redirect_to = check_url(redirect_to,
             reverse('operator_requestion_info',
                     kwargs={'requestion_id': requestion_id}))
@@ -313,8 +316,10 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         Метод переопределен, чтобы сохранить в атрибутах ``transition``
         """
         requestion = get_object_or_404(Requestion, id=requestion_id)
-
-        redirect_to = request.REQUEST.get('next', '')
+        if request.method == 'GET':
+            redirect_to = request.GET.get('next', '')
+        else:
+            redirect_to = request.POST.get('next', '')
         self.redirect_to = check_url(
             redirect_to, self.default_redirect_to(request, requestion))
 
