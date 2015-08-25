@@ -535,9 +535,11 @@ def active_child_exist(birth_cert):
 
 
 def reorder_fields(fields, order):
-    for key, value in fields.items():
-        if key not in order:
-            del fields[key]
+    u"""
+    Переопределяет порядок полей формы.
+    Поля, не указанные в order, будут размещены в конце.
+    """
+    order.extend([key for key in fields.keys() if key not in order])
     return OrderedDict(sorted(fields.items(), key=lambda k: order.index(k[0])))
 
 
