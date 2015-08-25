@@ -162,7 +162,7 @@ class SadikiAdminSite(AdminSite):
                 # Check whether user has any perm for this module.
                 # If so, add the module to the model_list.
                 if True in perms.values():
-                    info = (app_label, model._meta.module_name)
+                    info = (app_label, model._meta.model_name)
                     model_dict = {
                         'name': capfirst(model._meta.verbose_name_plural),
                         'perms': perms,
@@ -288,7 +288,7 @@ def verbose_user_type(obj):
 verbose_user_type.short_description = 'Тип учетной записи'
 
 
-class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
+class CustomUserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     change_form_template = "adm/user/operator_change_template.html"
     fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
@@ -308,12 +308,12 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
                  'all': ('css/admin_override.css',)
             }
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         """
         Returns a QuerySet of all model instances that can be edited by the
         admin site. This is used by changelist_view.
         """
-        qs = super(UserAdmin, self).queryset(self)
+        qs = super(CustomUserAdmin, self).get_queryset(self)
         return qs.filter(groups__name__in=(
             OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,
             SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME)
@@ -607,7 +607,7 @@ class PreferenceAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         return qs.filter(section=PREFERENCE_SECTION_MUNICIPALITY)
 
 
-site.register(User, UserAdmin)
+site.register(User, CustomUserAdmin)
 site.register(Sadik, SadikAdmin)
 site.register(Area, AreaAdmin)
 site.register(EvidienceDocumentTemplate, EvidienceDocumentTemplateAdmin)
