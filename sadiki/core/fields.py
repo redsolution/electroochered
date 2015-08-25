@@ -147,7 +147,7 @@ class BooleanNextYearField(models.DateField):
 class TemplateFormField(forms.ModelChoiceField):
 
     def __init__(self, destination, queryset=None, empty_label=u"---------",
-            cache_choices=False, required=True, widget=None, label=None,
+            required=True, widget=None, label=None,
             initial=None, help_text=None, to_field_name=None, *args, **kwargs):
 #        нам нужен первый элемент
         from sadiki.core.models import EvidienceDocumentTemplate
@@ -157,7 +157,7 @@ class TemplateFormField(forms.ModelChoiceField):
         if queryset.count() == 1:
             initial = queryset[0].id
         super(TemplateFormField, self).__init__(queryset, empty_label,
-            cache_choices, required, widget, label, initial, help_text,
+            required, widget, label, initial, help_text,
             to_field_name, *args, **kwargs)
 
 
@@ -167,12 +167,11 @@ class AreaFormField(forms.ModelChoiceField):
         'required': _(u'Укажите территориальную область'),
     }
 
-    def __init__(self, queryset, empty_label=u"---------", cache_choices=False,
+    def __init__(self, queryset, empty_label=u"---------",
                  required=True, widget=None, label=None, initial=None,
                  *args, **kwargs):
         super(AreaFormField, self).__init__(queryset, empty_label,
-            cache_choices, required, widget, label,
-            initial, *args, **kwargs)
+            required, widget, label, initial, *args, **kwargs)
 
     def to_python(self, value):
         # виджет должен возвращать значение совпадающее с начальным, иначе поле будет считаться измененным
