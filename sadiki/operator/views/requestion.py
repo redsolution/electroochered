@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission, User
-from django.contrib.contenttypes.generic import generic_inlineformset_factory
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.forms.models import ModelFormMetaclass

@@ -2,7 +2,7 @@
 import re
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db import models
@@ -128,7 +128,7 @@ class Logger(models.Model):
     datetime = models.DateTimeField(u"дата создания", auto_now_add=True)
     content_type = models.ForeignKey(ContentType, null=True)
     object_id = models.PositiveIntegerField(null=True)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     added_pref_sadiks = models.ManyToManyField(
         'core.Sadik',
         related_name='logger_added')

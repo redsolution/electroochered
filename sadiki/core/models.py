@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import is_password_usable
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
@@ -212,7 +212,7 @@ class EvidienceDocument(models.Model):
         verbose_name=u'Подтвержден', default=None)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
                                default=False)
 
