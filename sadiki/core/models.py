@@ -304,8 +304,7 @@ class Benefit(models.Model):
     evidience_documents = models.ManyToManyField(
         EvidienceDocumentTemplate, verbose_name=u"Необходимые документы")
     sadik_related = models.ManyToManyField(
-        "Sadik", verbose_name=u"ДОУ в которых есть группы", blank=True,
-        null=True,)
+        "Sadik", verbose_name=u"ДОУ в которых есть группы", blank=True)
     disabled = models.BooleanField(
         default=False, verbose_name=u"Отключить",
         help_text=u"Отключение не удаляет льготу у заявок, а только не дает "
@@ -794,7 +793,7 @@ class Profile(models.Model):
     street = models.CharField(u'Улица', max_length=50, null=True)
     house = models.CharField(u'Номер дома', max_length=10, null=True)
     # для оператора ДОУ указывает подконтрольные ДОУ
-    sadiks = models.ManyToManyField('Sadik', null=True)
+    sadiks = models.ManyToManyField('Sadik')
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
