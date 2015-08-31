@@ -13,7 +13,7 @@ from django.template.context import RequestContext
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from rest_framework.renderers import UnicodeJSONRenderer
+from rest_framework.renderers import JSONRenderer as UnicodeJSONRenderer
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
