@@ -554,6 +554,9 @@ class CoreViewsTest(TestCase):
                                   'snils': '444-333222 11'})
         response = self.client.post(account_frontpage_url , profile_form_data)
         self.assertEqual(response.status_code, 200)
+        # возвращаем старые данные для следующего теста
+        profile_form_data.update({'snils': '123-123-123-44',
+                                  'first_name': 'Mary'})
         # проверяем ошибки форм
         pdata_form = response.context['pdata_form']
         doc_form = response.context['doc_form']
@@ -578,6 +581,27 @@ class CoreViewsTest(TestCase):
         self.assertEqual(profile_document.number, '654321')
         self.assertEqual(profile_document.issued_date,
                          datetime.date(2012, 3, 30))
+        # проверяем отсутствие логов
+        logs = Logger.objects.filter(
+            action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
+        self.assertFalse(logs.exists())
+
+        # пытаемся добавить в один номер телефона посторонние символы
+        # а в другом оставляем только допустимые символы
+        profile_form_data.update({'phone_number': '123abc456',
+                                  'mobile_number': '+7(922) 345-67-89 '})
+        response = self.client.post(account_frontpage_url , profile_form_data)
+        self.assertEqual(response.status_code, 200)
+        # возвращаем старые данные для следующего теста
+        profile_form_data.update({'phone_number': '', 'mobile_number': ''})
+        # проверяем ошибки форм
+        pdata_form = response.context['pdata_form']
+        self.assertNotIn('mobile_number', pdata_form.errors)
+        self.assertIn('phone_number', pdata_form.errors)
+        # проверяем, что телефоны не сохранились
+        changed_profile = Profile.objects.get(id=profile.id)
+        self.assertFalse(changed_profile.mobile_number)
+        self.assertFalse(changed_profile.phone_number)
         # проверяем отсутствие логов
         logs = Logger.objects.filter(
             action_flag=CHANGE_PERSONAL_DATA).order_by('-datetime')
