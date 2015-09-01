@@ -16,7 +16,7 @@ from sadiki.core.widgets import JqueryUIDateWidget, SelectMultipleJS, \
     JQueryUIAdmissionDateWidget, JqueryIssueDateWidget, SelectMultipleBenefits
 from sadiki.core.widgets import SnilsWidget
 from sadiki.core.validators import passport_series_validator
-from sadiki.core.validators import passport_number_validator
+from sadiki.core.validators import passport_number_validator, phone_validator
 
 
 class RequestionForm(FormWithDocument):
@@ -242,10 +242,14 @@ class PersonalDataForm(ModelForm):
         return self.cleaned_data.get('middle_name').strip()
 
     def clean_phone_number(self):
-        return self.cleaned_data.get('phone_number').strip()
+        phone_number = self.cleaned_data.get('phone_number').strip()
+        phone_validator(phone_number)
+        return phone_number
 
     def clean_mobile_number(self):
-        return self.cleaned_data.get('mobile_number').strip()
+        mobile_number = self.cleaned_data.get('mobile_number').strip()
+        phone_validator(mobile_number)
+        return mobile_number
 
     def clean_town(self):
         return self.cleaned_data.get('town').strip()
