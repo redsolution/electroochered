@@ -110,7 +110,7 @@
               <p><span class="ui-icon ui-icon-alert" style="float: left; margin: 0 7px 20px 0;"></span>Внимание! Вход будет возможен только по новому паролю.</p>
             </div>
 
-            <form method="POST" id="email_form">
+            <form method="POST" id="email_form" action="{% url change_profile_email profile.id %}">
                 {% csrf_token %}
                 <div class="field">
                     <label class="field-label">{{ form.email.label }} </label>

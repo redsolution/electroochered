@@ -233,7 +233,7 @@
                 или электронный почтовый адрес, <a href="{% url 'passwd_set' %}">установите</a> пароль.
             </div>
             {% endif %}
-            <form method="POST" id="email_form">
+            <form method="POST" id="email_form" action="{% url email_change %}">
                 {% csrf_token %}
                 <div class="field">
                     <label class="field-label">{{ form.email.label }} </label>

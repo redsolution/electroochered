@@ -35,3 +35,8 @@ passport_number_validator = RegexValidator(
     '^[0-9]{6}$',
     message=u'неверный формат',
 )
+
+phone_validator = RegexValidator(
+    r'^[\d\-()+ ]*$',
+    message=u'может содержать только цифры, +, -, скобки и пробелы',
+)
