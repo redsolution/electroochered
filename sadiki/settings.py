@@ -3,7 +3,7 @@ import os
 gettext_noop = lambda s: s
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
-TIME_ZONE = None
+TIME_ZONE = 'Asia/Yekaterinburg'
 
 LANGUAGE_CODE = 'ru'
 
@@ -52,16 +52,13 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.gzip.GZipMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-#    'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
-    'django.middleware.transaction.TransactionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.doc.XViewMiddleware',
+    'django.contrib.admindocs.middleware.XViewMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'sadiki.core.middleware.NoCacheMiddleware',
     'sadiki.core.middleware.SettingsJSMiddleware',
-#    'sadiki.core.middleware.LogPIDMiddleware',
     'django.contrib.flatpages.middleware.FlatpageFallbackMiddleware',
     'sadiki.social_auth_custom.middleware.SocialAuthExceptionMiddlewareCustom',
 ]
@@ -91,8 +88,6 @@ INSTALLED_APPS = [
     'sadiki.distribution',
     'sadiki.custom_flatpages',
     'sadiki.social_auth_custom',
-#    'sadiki.feedback',
-    'south',
     'pytils',
     'zenforms',
     'chunks',
