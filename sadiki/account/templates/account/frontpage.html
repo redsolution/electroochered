@@ -394,8 +394,8 @@
             {% block vkontakte_info %}
             <div class="block-head">Профиль ВКонтакте:</div>
             {% if vkontakte_association %}
-                {% url 'account_social_data_update as social_data_update_url' %}
-                {% url 'account_social_data_remove as social_data_remove_url' %}
+                {% url 'account_social_data_update' as social_data_update_url %}
+                {% url 'account_social_data_remove' as social_data_remove_url %}
                 <div class="vkontakte-profile clearfix">
                 <a target="_blank" class="action-link vkontakte-link" href="http://vk.com/id{{ vkontakte_association.uid }}"><img src="{{ STATIC_URL }}img/vkontakte.png"/> http://vk.com/id{{ vkontakte_association.uid }}</a>
                 {% if profile.user.password and profile.user.has_usable_password %}

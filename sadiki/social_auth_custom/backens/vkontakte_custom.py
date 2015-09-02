@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-from social_auth.backends.contrib.vkontakte import VKOAuth2Backend, VKOAuth2
-from social_auth.models import UserSocialAuth
+from social.backends.vk import VKOAuth2
 
 
-class VKontakteOAuth2BackendCustom(VKOAuth2Backend):
-    pass
+class VKOAuth2Custom(VKOAuth2):
+    name = 'vkontakte-oauth2'
 
-class VKontakteOAuth2Custom(VKOAuth2):
-    AUTH_BACKEND = VKontakteOAuth2BackendCustom
+# class VKontakteOAuth2Custom(VKOAuth2):
+#     AUTH_BACKEND = VKontakteOAuth2BackendCustom
 
 # Backend definition
 BACKENDS = {
-    'vkontakte-oauth2': VKontakteOAuth2Custom
+    'vkontakte-oauth2': VKOAuth2Custom
+    'vk-oauth2': VKOAuth2
 }

@@ -4,6 +4,7 @@ import urllib2
 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
@@ -13,13 +14,15 @@ from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Profile
 from sadiki.core.utils import check_url
 from sadiki.operator.views.base import OperatorPermissionMixin
-from social_auth.backends import get_backend
-from social_auth.backends.contrib.vkontakte import VK_DEFAULT_DATA, vk_api
-from social_auth.decorators import dsa_view
-from social_auth.exceptions import WrongBackend
-from social_auth.utils import setting
-from social_auth.db.django_models import UserSocialAuth
-from social_auth.views import associate_complete, complete_process, auth_process
+from social.backends.utils import get_backend
+from social.backends.vk import vk_api
+from social.exceptions import WrongBackend
+from social.apps.django_app.default.models import UserSocialAuth
+from social.apps.django_app.views import auth, complete, disconnect
+
+
+VK_DEFAULT_DATA = ['first_name', 'last_name', 'screen_name',
+                   'nickname', 'photo']
 
 
 class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
@@ -72,7 +75,7 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
             profile = user.profile
             access_token = user_social_auth.tokens.get('access_token')
             uid = user_social_auth.uid
-            fields = ','.join(VK_DEFAULT_DATA + setting('VK_EXTRA_DATA', []))
+            fields = ','.join(VK_DEFAULT_DATA + settings.get('VK_EXTRA_DATA', []))
             params = {'access_token': access_token,
                       'fields': fields,
                       'uids': uid}
@@ -155,10 +158,11 @@ class CustomAuth(View):
         raise NotImplementedError
 
     def get(self, request, backend):
-        request.social_auth_backend = get_backend(backend, request, self.get_redirect(backend))
+        request.social_auth_backend = get_backend(
+            settings.AUTHENTICATION_BACKENDS, backend)
         if request.social_auth_backend is None:
             raise WrongBackend(backend)
-        return auth_process(request, request.social_auth_backend)
+        return auth(request, request.social_auth_backend)
 
 
 class LoginAuth(CustomAuth):
@@ -172,13 +176,12 @@ class RegistrationAuth(CustomAuth):
 
 
 @csrf_exempt
-@dsa_view()
 def custom_complete(request, backend, type):
     if request.user.is_authenticated():
-        return associate_complete(request, backend, type=type)
+        return complete(request, backend, type=type)
     else:
         try:
-            return complete_process(request, backend, type=type)
+            return complete(request, backend, type=type)
         except urllib2.HTTPError:
             msg = u"Ошибка во время авторизации, попробуйте еще раз"
             messages.error(request, msg)

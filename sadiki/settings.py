@@ -93,7 +93,7 @@ INSTALLED_APPS = [
     'chunks',
     'tinymce',
     'trustedhtml',
-    'social_auth',
+    'social.apps.django_app.default',
     'attachment',
     'hex_storage',
     'rest_framework',
@@ -131,10 +131,13 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'sadiki.core.context_processors.municipality_settings',
     'sadiki.core.context_processors.get_notifier',
     'sadiki.core.context_processors.get_special_apps',
+    # 'social.apps.django_app.context_processors.backends',
+    # 'social.apps.django_app.context_processors.login_redirect',
 )
 
 AUTHENTICATION_BACKENDS = (
-    'sadiki.social_auth_custom.backens.vkontakte_custom.VKontakteOAuth2BackendCustom',
+    # 'social.backends.vk.VKOauth2',
+    'sadiki.social_auth_custom.backens.vkontakte_custom.VKOAuth2Custom',
     'django.contrib.auth.backends.ModelBackend',
     'sadiki.authorisation.backends.EmailAuthBackend',
 )
@@ -200,13 +203,13 @@ VK_EXTRA_SCOPE = ['offline', ]
 VK_EXTRA_DATA = ['contacts', 'connections', ]
 
 SOCIAL_AUTH_PIPELINE = (
-    'social_auth.backends.pipeline.social.social_auth_user',
-    'social_auth.backends.pipeline.user.get_username',
+    'social.pipeline.social_auth.social_user',
+    'social.pipeline.user.get_username',
     'sadiki.social_auth_custom.pipeline.user.check_authorisation_type',
     'sadiki.social_auth_custom.pipeline.user.check_single_association',
     'sadiki.social_auth_custom.pipeline.user.create_user',
-    'social_auth.backends.pipeline.social.associate_user',
-    'social_auth.backends.pipeline.social.load_extra_data',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
     'sadiki.social_auth_custom.pipeline.user.update_user_info',
 )
 

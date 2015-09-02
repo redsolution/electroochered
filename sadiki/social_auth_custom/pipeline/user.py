@@ -3,7 +3,7 @@ from django.contrib.auth.models import Permission
 from sadiki.social_auth_custom.pipeline import SingleAssociationException, AlreadyRegisteredException, NotRegisteredException
 from sadiki.core.models import Profile
 from sadiki.core.utils import get_unique_username
-from social_auth.models import UserSocialAuth
+from social.apps.django_app.default.models import UserSocialAuth
 
 
 def check_authorisation_type(backend, details, response, user=None, is_new=False,
