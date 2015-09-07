@@ -12,7 +12,7 @@ from social.utils import social_logger
 from sadiki.social_auth_custom.pipeline import SingleAssociationException
 
 
-class SocialAuthExceptionMiddleware(object):
+class SocialAuthExceptionMiddlewareCustom(object):
     """Middleware that handles Social Auth AuthExceptions by providing the user
     with a message, logging an error, and redirecting to some next location.
 
