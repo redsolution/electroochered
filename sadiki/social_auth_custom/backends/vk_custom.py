@@ -10,6 +10,5 @@ class VKOAuth2Custom(VKOAuth2):
 
 # Backend definition
 BACKENDS = {
-    'vkontakte-oauth2': VKOAuth2Custom
-    'vk-oauth2': VKOAuth2
+    'vkontakte-oauth2': VKOAuth2Custom,
 }

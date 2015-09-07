@@ -131,13 +131,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'sadiki.core.context_processors.municipality_settings',
     'sadiki.core.context_processors.get_notifier',
     'sadiki.core.context_processors.get_special_apps',
-    # 'social.apps.django_app.context_processors.backends',
-    # 'social.apps.django_app.context_processors.login_redirect',
+    'social.apps.django_app.context_processors.backends',
+    'social.apps.django_app.context_processors.login_redirect',
 )
 
 AUTHENTICATION_BACKENDS = (
-    # 'social.backends.vk.VKOauth2',
-    'sadiki.social_auth_custom.backens.vkontakte_custom.VKOAuth2Custom',
+    'sadiki.social_auth_custom.backends.vk_custom.VKOAuth2Custom',
     'django.contrib.auth.backends.ModelBackend',
     'sadiki.authorisation.backends.EmailAuthBackend',
 )
