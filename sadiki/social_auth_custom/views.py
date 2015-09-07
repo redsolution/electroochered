@@ -158,11 +158,7 @@ class CustomAuth(View):
         raise NotImplementedError
 
     def get(self, request, backend):
-        request.social_auth_backend = get_backend(
-            settings.AUTHENTICATION_BACKENDS, backend)
-        if request.social_auth_backend is None:
-            raise WrongBackend(backend)
-        return auth(request, request.social_auth_backend)
+        return auth(request, backend)
 
 
 class LoginAuth(CustomAuth):
