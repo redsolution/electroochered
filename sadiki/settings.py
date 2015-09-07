@@ -201,6 +201,8 @@ SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['username', 'email', 'first_name', 'last_na
 VK_EXTRA_SCOPE = ['offline', ]
 VK_EXTRA_DATA = ['contacts', 'connections', ]
 
+SOCIAL_AUTH_URL_NAMESPACE = 'social_auth'
+
 SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.social_user',
     'social.pipeline.user.get_username',
