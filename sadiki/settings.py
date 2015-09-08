@@ -204,6 +204,9 @@ VK_EXTRA_DATA = ['contacts', 'connections', ]
 SOCIAL_AUTH_URL_NAMESPACE = 'social_auth'
 
 SOCIAL_AUTH_PIPELINE = (
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
     'social.pipeline.social_auth.social_user',
     'social.pipeline.user.get_username',
     'sadiki.social_auth_custom.pipeline.user.check_authorisation_type',

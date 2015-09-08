@@ -12,8 +12,8 @@ def check_authorisation_type(backend, details, response, user=None, is_new=False
     Проверяем правильность выполняемого действия(регистрация, вход, привязка)
     """
     authorisation_type = kwargs.get('type')
-    social_user = kwargs.get('social_user')
-    if authorisation_type == 'login' and not social_user:
+    social = kwargs.get('social')
+    if authorisation_type == 'login' and not social:
         raise NotRegisteredException(u"Ваш профиль ВКонтакте не привязан ни к одной учетной записи в системе.")
     return None
 
@@ -23,9 +23,9 @@ def check_single_association(backend, details, response, user=None,
     u"""
     Проверяем нет ли у пользователя ассоциации для заданного бекэнда
     """
-    social_user = kwargs.get('social_user')
+    social = kwargs.get('social')
     new_association = kwargs.get('new_association')
-    if user and not social_user and user.social_auth.filter(provider=backend.name).exists():
+    if user and not social and user.social.filter(provider=backend.name).exists():
         raise SingleAssociationException(u"Для пользователя может быть задан только один профиль во ВКонтакте.")
     return None
 
