@@ -25,7 +25,7 @@ def check_single_association(backend, details, response, user=None,
     """
     social = kwargs.get('social')
     new_association = kwargs.get('new_association')
-    if user and not social and user.social.filter(provider=backend.name).exists():
+    if user and not social and user.social_auth.filter(provider=backend.name).exists():
         raise SingleAssociationException(u"Для пользователя может быть задан только один профиль во ВКонтакте.")
     return None
 
