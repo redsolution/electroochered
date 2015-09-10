@@ -10,12 +10,11 @@ from social.apps.django_app.utils import psa
 from social.apps.django_app.views import auth, complete
 
 urlpatterns = patterns('',
-    url(r'^login/(?P<backend>[^/]+)/login/$', LoginAuth.as_view(), name='login_begin'),
-    url(r'^login/(?P<backend>[^/]+)/registration/$', RegistrationAuth.as_view(), name='registration_begin'),
+    url(r'^login/(?P<backend>[^/]+)/(?P<action>[^/]+)/$', LoginAuth.as_view(), name='login'),
     url(r'^connect/(?P<backend>[^/]+)/$', login_required(auth), name='connect'),
     url(r'^complete/(?P<backend>[^/]+)/$', complete,
         name='complete'),
-    url(r'^complete/(?P<backend>[^/]+)/(?P<type>[^/]+)/$', custom_complete,
+    url(r'^complete/(?P<backend>[^/]+)/(?P<action>[^/]+)/$', custom_complete,
         name='complete'),
     url(r'^account_disconnect/(?P<backend>[^/]+)/(?P<association_id>[^/]+)/$',
         AccountSocialAuthDisconnect.as_view(), name='account_disconnect_individual'),

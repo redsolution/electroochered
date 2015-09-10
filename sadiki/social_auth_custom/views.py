@@ -153,22 +153,17 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
         return HttpResponseRedirect(redirect_to)
 
 
-class CustomAuth(View):
-    def get_redirect(self, backend):
-        raise NotImplementedError
+class LoginAuth(View):
+    def dispatch(self, request, backend, action):
+        self.action = action
+        return super(LoginAuth, self).dispatch(request, backend, action)
 
-    def get(self, request, backend):
+    def get_redirect(self, backend):
+        return reverse('social_auth:complete',
+                       kwargs={"backend": backend, "action": self.action})
+
+    def get(self, request, backend, action):
         return auth(request, backend)
-
-
-class LoginAuth(CustomAuth):
-    def get_redirect(self, backend):
-        return reverse('socialauth_complete', kwargs={"backend": backend, "type": "login"})
-
-
-class RegistrationAuth(CustomAuth):
-    def get_redirect(self, backend):
-        return reverse('socialauth_complete', kwargs={"backend": backend, "type": "registration"})
 
 
 @csrf_exempt
