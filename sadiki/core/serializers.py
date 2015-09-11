@@ -26,10 +26,8 @@ class AnonymRequestionGeoSerializer(serializers.ModelSerializer):
 
 
 class AgeGroupSerializer(serializers.ModelSerializer):
-    max_birth_date = serializers.DateField(
-        source='max_birth_date', format='%d.%m.%Y')
-    min_birth_date = serializers.DateField(
-        source='min_birth_date', format='%d.%m.%Y')
+    max_birth_date = serializers.DateField(format='%d.%m.%Y')
+    min_birth_date = serializers.DateField(format='%d.%m.%Y')
 
     class Meta:
         model = AgeGroup
