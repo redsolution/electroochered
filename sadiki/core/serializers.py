@@ -4,8 +4,13 @@ from rest_framework import serializers
 from sadiki.core.models import Requestion, Sadik, AgeGroup, SadikGroup
 
 
+class LocationField(serializers.Field):
+    def to_representation(self, value):
+        return list(value)
+
+
 class RequestionGeoSerializer(serializers.ModelSerializer):
-    location = serializers.Field(source='location.tuple')
+    location = LocationField(source='location.tuple')
 
     class Meta:
         model = Requestion
@@ -13,7 +18,7 @@ class RequestionGeoSerializer(serializers.ModelSerializer):
 
 
 class AnonymRequestionGeoSerializer(serializers.ModelSerializer):
-    location = serializers.Field(source='location.tuple')
+    location = LocationField(source='location.tuple')
 
     class Meta:
         model = Requestion
