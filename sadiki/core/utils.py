@@ -534,13 +534,20 @@ def active_child_exist(birth_cert):
     return False
 
 
-def reorder_fields(fields, order):
+def reorder_fields(fields, order, remove=False):
     u"""
     Переопределяет порядок полей формы.
-    Поля, не указанные в order, будут размещены в конце.
+    При remove=False поля, не указанные в order, будут размещены в конце списка
+    При remove=True неуказанные поля будут удалены без возможности наследования
     """
-    order.extend([key for key in fields.keys() if key not in order])
-    return OrderedDict(sorted(fields.items(), key=lambda k: order.index(k[0])))
+    if remove:
+        for field_name, field in fields.items():
+            if field_name not in order:
+                del fields[field_name]
+    else:
+        order.extend([key for key in fields.keys() if key not in order])
+    return OrderedDict(
+        sorted(fields.items(), key=lambda k: order.index(k[0])))
 
 
 def remove_empty_personal_data_values(data):
