@@ -9,6 +9,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.views.generic.base import TemplateView, View
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Profile
@@ -18,7 +19,9 @@ from social.backends.utils import get_backend
 from social.backends.vk import vk_api
 from social.exceptions import WrongBackend
 from social.apps.django_app.default.models import UserSocialAuth
-from social.apps.django_app.views import auth, complete, disconnect
+from social.apps.django_app.views import auth, complete, disconnect, _do_login
+from social.apps.django_app.utils import psa
+from social.actions import do_auth, do_complete
 
 
 VK_DEFAULT_DATA = ['first_name', 'last_name', 'screen_name',
@@ -154,26 +157,14 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
 
 
 class LoginAuth(View):
-    def dispatch(self, request, backend, action):
-        self.action = action
-        return super(LoginAuth, self).dispatch(request, backend, action)
-
-    def get_redirect(self, backend):
-        return reverse('social_auth:complete',
-                       kwargs={"backend": backend, "action": self.action})
-
     def get(self, request, backend, action):
-        return auth(request, backend)
+        @never_cache
+        @psa(reverse('social_auth:custom_complete',
+                     kwargs={'backend': backend, 'action': action}))
+        def custom_auth(request, backend):
+            return do_auth(request.backend)
+        return custom_auth(request, backend)
 
 
-@csrf_exempt
-def custom_complete(request, backend, type):
-    if request.user.is_authenticated():
-        return complete(request, backend, type=type)
-    else:
-        try:
-            return complete(request, backend, type=type)
-        except urllib2.HTTPError:
-            msg = u"Ошибка во время авторизации, попробуйте еще раз"
-            messages.error(request, msg)
-            return HttpResponseRedirect(reverse('login'))
+def custom_complete(request, backend, action):
+    return complete(request, backend, action=action)

@@ -5,7 +5,7 @@ from django.conf.urls import patterns, url, include
 from django.contrib.auth.decorators import login_required
 from sadiki.social_auth_custom.views import AccountSocialAuthDisconnect,\
     OperatorSocialAuthDisconnect, AccountSocialAuthDataUpdate, AccountSocialAuthDataRemove, custom_complete,\
-    LoginAuth, RegistrationAuth, OperatorSocialAuthDataRemove, OperatorSocialAuthDataUpdate
+    LoginAuth, OperatorSocialAuthDataRemove, OperatorSocialAuthDataUpdate
 from social.apps.django_app.utils import psa
 from social.apps.django_app.views import auth, complete
 
@@ -15,7 +15,7 @@ urlpatterns = patterns('',
     url(r'^complete/(?P<backend>[^/]+)/$', complete,
         name='complete'),
     url(r'^complete/(?P<backend>[^/]+)/(?P<action>[^/]+)/$', custom_complete,
-        name='complete'),
+        name='custom_complete'),
     url(r'^account_disconnect/(?P<backend>[^/]+)/(?P<association_id>[^/]+)/$',
         AccountSocialAuthDisconnect.as_view(), name='account_disconnect_individual'),
     url(r'^operator_disconnect/(?P<backend>[^/]+)/(?P<association_id>[^/]+)/$',
