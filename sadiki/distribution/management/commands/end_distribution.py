@@ -43,7 +43,7 @@ class Command(BaseCommand):
                             VACANCY_STATUS_PROVIDED,
                             VACANCY_STATUS_MANUALLY_DISTRIBUTING,
                             VACANCY_STATUS_MANUALLY_CHANGED)
-                ).select_related('sadik'):
+                ).select_related('sadik_group__sadik'):
                     requestion = vacancy.requestion_set.get(
                         status=STATUS_DECISION)
                     # записываем в логи информацию о изменении статуса
