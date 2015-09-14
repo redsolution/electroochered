@@ -243,7 +243,9 @@ def get_distribution(request):
         requestions = Requestion.objects.filter(
             distributed_in_vacancy__distribution=dist,
             distributed_in_vacancy__sadik_group__sadik=sadik,
-            status__in=[STATUS_DECISION, STATUS_DISTRIBUTED])
+            status__in=[
+                STATUS_DECISION, STATUS_DISTRIBUTED, STATUS_DISTRIBUTED_FROM_ES
+            ])
         if options.get('only_decision'):
             requestions = requestions.filter(status=STATUS_DECISION)
         if requestions:
