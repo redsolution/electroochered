@@ -192,7 +192,9 @@ class QueueFilterForm(forms.Form):
             'decision_date',
             'without_facilities',
         ]
-        self.fields = reorder_fields(self.fields, fields_order, remove=True)
+        self.fields = reorder_fields(self.fields, fields_order)
+        if 'not_appeared' in self.fields:
+            del self.fields['not_appeared']
         admission_date_choices = [
             (year.year, year.year) for year in
             Requestion.objects.queue().dates('admission_date', 'year')]
