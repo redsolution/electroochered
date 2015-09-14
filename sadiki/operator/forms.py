@@ -45,7 +45,7 @@ class QueueOperatorFilterForm(QueueFilterForm):
         ]
         self.fields = reorder_fields(self.fields, fields_order)
         admission_date_choices = [
-            (year, year.year) for year in
+            (year.year, year.year) for year in
             Requestion.objects.queue().dates('admission_date', 'year')]
         admission_date_choices = [('', '---------'),] + admission_date_choices
         self.fields['admission_date'].choices = admission_date_choices
