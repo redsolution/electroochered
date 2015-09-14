@@ -195,10 +195,11 @@ class SadikiAdminSite(AdminSite):
         for app in app_list:
             app['models'].sort(key=lambda x: x['name'])
 
-        context = {
-            'title': _('Site administration'),
-            'app_list': app_list,
-        }
+        context = dict(
+            self.each_context(request),
+            title=_('Site administration'),
+            app_list=app_list,
+        )
         context.update(extra_context or {})
         return TemplateResponse(request, self.index_template or
                                 'admin/index.html', context,
