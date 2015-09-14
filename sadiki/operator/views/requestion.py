@@ -423,7 +423,6 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         """
         if request.POST.get('confirmation') == "no":
             messages.info(request, u"Статус заявки не был изменен")
-            transaction.rollback()
             return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
         form = self.get_confirm_form(
@@ -443,11 +442,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                     sender=Requestion, request=request, requestion=requestion,
                     transition=self.transition, form=form)
             except TransitionNotAllowed as e:
-                transaction.rollback()
                 messages.error(request, e.message)
                 return HttpResponseRedirect(self.redirect_to)
             except Exception:
-                transaction.rollback()
                 raise
 
             # если ошибка возникла во время применения изменений, вероятно
@@ -467,11 +464,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                     sender=Requestion, request=request, requestion=requestion,
                     transition=self.transition, form=form)
                 # если все прошло без ошибок - сохраняем
-                transaction.commit()
             # если возникли ошибки в ходе изменения статуса заявки - отображаем
             # и отменяем ранее запланированные изменения
             except TransitionNotRegistered as e:
-                transaction.rollback()
                 if e.requestion == requestion:
                     messages.error(request, e.message)
                 else:
@@ -480,14 +475,11 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u" документом".format(e.requestion)
                     messages.error(request, err_msg)
             except TransitionNotAllowed as e:
-                transaction.rollback()
                 messages.error(request, e.message)
             except Exception:
-                transaction.rollback()
                 raise
             return HttpResponseRedirect(self.redirect_to)
         else:
-            transaction.rollback()
             return self.render_to_response(context)
 
 

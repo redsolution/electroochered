@@ -176,12 +176,10 @@ class StartDistributionYear(SupervisorBases):
         if request.POST.get('confirmation') == 'yes':
             # закрываем все возрастные группы на текущий год
             SadikGroup.objects.active().update(active=False)
-            transaction.commit()
             Logger.objects.create_for_action(
                 START_NEW_YEAR,
                 context_dict={},
                 extra={'user': request.user, 'obj': None})
-            transaction.commit()
         return HttpResponseRedirect(redirect_to)
 
 
