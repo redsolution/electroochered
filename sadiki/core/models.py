@@ -827,8 +827,7 @@ class Profile(models.Model):
 
     def update_vkontakte_data(self, data):
         vk_first_name = data.get('first_name')
-        if vk_first_name and not (self.first_name or self.last_name
-                                  or self.middle_name):
+        if vk_first_name and self.fio_is_changeable():
             self.first_name = vk_first_name
         vk_phone_number = data.get('home_phone')
         if not self.phone_number:
@@ -837,6 +836,9 @@ class Profile(models.Model):
             self.mobile_number = vk_phone_number
         self.skype = data.get('skype')
         self.save()
+
+    def fio_is_changeable(self):
+        return not any((self.first_name, self.middle_name, self.last_name))
 
     def to_dict(self):
         result_dict = model_to_dict(self)
