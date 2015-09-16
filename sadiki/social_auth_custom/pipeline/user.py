@@ -4,6 +4,7 @@ from sadiki.social_auth_custom.pipeline import SingleAssociationException, Alrea
 from sadiki.core.models import Profile
 from sadiki.core.utils import get_unique_username
 from social.apps.django_app.default.models import UserSocialAuth
+from social.exceptions import AuthAlreadyAssociated
 
 
 def social_user(backend, uid, user=None, *args, **kwargs):
@@ -23,6 +24,10 @@ def social_user(backend, uid, user=None, *args, **kwargs):
             action = None   # когда пытаемся повторно привязать тот же аккаунт
     elif user:
         action = 'binding'
+        if user.social_auth.filter(provider=provider).exists():
+            raise SingleAssociationException(
+                u"Для пользователя может быть задан только "
+                u"один профиль во ВКонтакте.")
     else:
         action = 'registration'
     return {'social': social,
@@ -30,18 +35,6 @@ def social_user(backend, uid, user=None, *args, **kwargs):
             'is_new': user is None,
             'new_association': False,
             'action': action}
-
-
-def check_single_association(backend, details, response, user=None,
-                             is_new=False, *args, **kwargs):
-    u"""
-    Проверяем нет ли у пользователя ассоциации для заданного бекэнда
-    """
-    social = kwargs.get('social')
-    new_association = kwargs.get('new_association')
-    if user and not social and user.social_auth.filter(provider=backend.name).exists():
-        raise SingleAssociationException(u"Для пользователя может быть задан только один профиль во ВКонтакте.")
-    return None
 
 
 def create_user(backend, details, response, uid, username, user=None, *args,
