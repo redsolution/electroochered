@@ -54,9 +54,12 @@ class SocialAuthExceptionMiddlewareCustom(object):
                 return redirect(url)
 
     def raise_exception(self, request, exception):
+        u"""
+        Обрабатываем исключения даже в режиме DEBUG
+        """
         strategy = getattr(request, 'social_strategy', None)
         if strategy is not None:
-            return strategy.setting('RAISE_EXCEPTIONS', settings.DEBUG)
+            return strategy.setting('RAISE_EXCEPTIONS', False)
 
     def get_message(self, request, exception):
         return six.text_type(exception)
