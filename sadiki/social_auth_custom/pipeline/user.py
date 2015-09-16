@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.contrib import messages
 from django.contrib.auth.models import Permission
 from sadiki.social_auth_custom.pipeline import SingleAssociationException, AlreadyRegisteredException, NotRegisteredException
 from sadiki.core.models import Profile
@@ -11,6 +12,7 @@ def social_user(backend, uid, user=None, *args, **kwargs):
     u"""
     Определяем тип операции (регистрация, логин, привязка)
     """
+    request = backend.strategy.request
     provider = backend.name
     social = backend.strategy.storage.user.get_social_auth(provider, uid)
     if social:
@@ -19,17 +21,16 @@ def social_user(backend, uid, user=None, *args, **kwargs):
             raise AuthAlreadyAssociated(backend, msg)
         elif not user:
             user = social.user
-            action = 'login'
-        else:
-            action = None   # когда пытаемся повторно привязать тот же аккаунт
+            messages.success(request, u"Вход через ВКонтакте успешно выполнен")
     elif user:
-        action = 'binding'
         if user.social_auth.filter(provider=provider).exists():
             raise SingleAssociationException(
                 u"Для пользователя может быть задан только "
                 u"один профиль во ВКонтакте.")
+        messages.success(request, u"Привязка страницы ВКонтакте к профилю "
+                         u"{} успешно выполнена".format(user.username))
     else:
-        action = 'registration'
+        messages.info(request, u"Вы успешно зарегистрировались в системе")
     return {'social': social,
             'user': user,
             'is_new': user is None,
