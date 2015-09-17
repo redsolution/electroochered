@@ -154,17 +154,3 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
             else:
                 return HttpResponseForbidden(u'Вы можете работать только с заявителями')
         return HttpResponseRedirect(redirect_to)
-
-
-class LoginAuth(View):
-    def get(self, request, backend, action):
-        @never_cache
-        @psa(reverse('social_auth:custom_complete',
-                     kwargs={'backend': backend, 'action': action}))
-        def custom_auth(request, backend):
-            return do_auth(request.backend)
-        return custom_auth(request, backend)
-
-
-def custom_complete(request, backend, action):
-    return complete(request, backend, action=action)
