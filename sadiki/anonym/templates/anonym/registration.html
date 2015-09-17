@@ -54,7 +54,7 @@
                     <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
                 </div>
                 <div class="registration">
-                    <a class="auth-link" href="{% url 'socialauth_registration_begin' 'vkontakte-oauth2' %}">
+                    <a class="auth-link" href="{% url 'social_auth:login' 'vkontakte-oauth2' %}">
                         ВКонтакте
                     </a>
                     <p class="hint">Если у вас есть профиль в социальной сети ВКонтакте, вы можете использовать

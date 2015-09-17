@@ -93,7 +93,7 @@ INSTALLED_APPS = [
     'chunks',
     'tinymce',
     'trustedhtml',
-    'social_auth',
+    'social.apps.django_app.default',
     'attachment',
     'hex_storage',
     'rest_framework',
@@ -131,10 +131,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     'sadiki.core.context_processors.municipality_settings',
     'sadiki.core.context_processors.get_notifier',
     'sadiki.core.context_processors.get_special_apps',
+    'social.apps.django_app.context_processors.backends',
+    'social.apps.django_app.context_processors.login_redirect',
 )
 
 AUTHENTICATION_BACKENDS = (
-    'sadiki.social_auth_custom.backens.vkontakte_custom.VKontakteOAuth2BackendCustom',
+    'sadiki.social_auth_custom.backends.vk_custom.VKOAuth2Custom',
     'django.contrib.auth.backends.ModelBackend',
     'sadiki.authorisation.backends.EmailAuthBackend',
 )
@@ -199,16 +201,28 @@ SOCIAL_AUTH_PROTECTED_USER_FIELDS = ['username', 'email', 'first_name', 'last_na
 VK_EXTRA_SCOPE = ['offline', ]
 VK_EXTRA_DATA = ['contacts', 'connections', ]
 
+SOCIAL_AUTH_URL_NAMESPACE = 'social_auth'
+
 SOCIAL_AUTH_PIPELINE = (
-    'social_auth.backends.pipeline.social.social_auth_user',
-    'social_auth.backends.pipeline.user.get_username',
-    'sadiki.social_auth_custom.pipeline.user.check_authorisation_type',
-    'sadiki.social_auth_custom.pipeline.user.check_single_association',
-    'sadiki.social_auth_custom.pipeline.user.create_user',
-    'social_auth.backends.pipeline.social.associate_user',
-    'social_auth.backends.pipeline.social.load_extra_data',
-    'sadiki.social_auth_custom.pipeline.user.update_user_info',
+    'social.pipeline.social_auth.social_details',
+    'social.pipeline.social_auth.social_uid',
+    'social.pipeline.social_auth.auth_allowed',
+    'sadiki.social_auth_custom.pipeline.auth.social_user',
+    'social.pipeline.user.get_username',
+    'sadiki.social_auth_custom.pipeline.auth.create_user',
+    'social.pipeline.social_auth.associate_user',
+    'social.pipeline.social_auth.load_extra_data',
+    'sadiki.social_auth_custom.pipeline.auth.update_user_info',
 )
+
+SOCIAL_AUTH_DISCONNECT_PIPELINE = (
+    'sadiki.social_auth_custom.pipeline.disconnect.get_user_for_disconnect',
+    'social.pipeline.disconnect.allowed_to_disconnect',
+    'social.pipeline.disconnect.get_entries',
+    'social.pipeline.disconnect.revoke_tokens',
+    'social.pipeline.disconnect.disconnect'
+)
+
 
 LOGIN_ERROR_URL = '/auth/login/'
 

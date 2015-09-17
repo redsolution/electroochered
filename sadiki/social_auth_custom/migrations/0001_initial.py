@@ -7,7 +7,7 @@ from django.db import models, migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('social_auth', '__first__'),
+        ('default', '0003_alter_email_max_length'),
     ]
 
     operations = [
@@ -18,6 +18,6 @@ class Migration(migrations.Migration):
             options={
                 'proxy': True,
             },
-            bases=('social_auth.usersocialauth',),
+            bases=('default.usersocialauth',),
         ),
     ]
