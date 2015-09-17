@@ -10,7 +10,10 @@ from social.exceptions import AuthAlreadyAssociated
 
 def social_user(backend, uid, user=None, *args, **kwargs):
     u"""
-    Определяем тип операции (регистрация, логин, привязка)
+    В этой функции можно отследить тип операции (регистрация, логин, привязка)
+    Посылаем django-сообщения в зависимости от этого типа
+    social указывает на наличие соответствий "пользователь ЭО" <-> "аккаунт ВК"
+    user - текущий пользователь ЭО, инициировавший процесс аутентификации
     """
     request = backend.strategy.request
     provider = backend.name
@@ -34,8 +37,7 @@ def social_user(backend, uid, user=None, *args, **kwargs):
     return {'social': social,
             'user': user,
             'is_new': user is None,
-            'new_association': False,
-            'action': action}
+            'new_association': False}
 
 
 def create_user(backend, details, response, uid, username, user=None, *args,
