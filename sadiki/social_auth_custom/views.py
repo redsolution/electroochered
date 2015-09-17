@@ -15,13 +15,10 @@ from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Profile
 from sadiki.core.utils import check_url
 from sadiki.operator.views.base import OperatorPermissionMixin
-from social.backends.utils import get_backend
 from social.backends.vk import vk_api
 from social.exceptions import WrongBackend
 from social.apps.django_app.default.models import UserSocialAuth
-from social.apps.django_app.views import auth, complete, disconnect, _do_login
-from social.apps.django_app.utils import psa
-from social.actions import do_auth, do_complete
+from social.apps.django_app.views import auth, complete, disconnect
 
 
 VK_DEFAULT_DATA = ['first_name', 'last_name', 'screen_name',
@@ -127,14 +124,14 @@ class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
     template_name = 'social_auth/disconnect.html'
 
     def dispatch(self, request, backend, association_id):
-        redirect_to = request.POST.get('next', '')
+        redirect_to = request.GET.get('next') or request.POST.get('next', '')
         redirect_to = check_url(redirect_to, reverse('frontpage'))
         return super(AccountSocialAuthDisconnect, self).dispatch(request, backend, association_id, redirect_to=redirect_to)
 
     def post(self, request, backend, association_id, redirect_to):
         if request.POST.get('confirmation') == 'yes':
             association = get_object_or_404(UserSocialAuth, id=association_id, user=request.user)
-            backend.disconnect(request.user, association.id)
+            disconnect(request, backend, association_id=association_id)
             profile = request.user.profile
             profile.social_auth_clean_data()
         return HttpResponseRedirect(redirect_to)
@@ -148,7 +145,7 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
             user = association.user
             # оператор может отвязывать профиль только для заявителей
             if user.is_requester():
-                backend.disconnect(user, association_id)
+                disconnect(request, backend, association_id=association_id)
                 profile = user.profile
                 profile.social_auth_clean_data()
             else:

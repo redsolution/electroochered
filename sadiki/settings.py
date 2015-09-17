@@ -207,13 +207,22 @@ SOCIAL_AUTH_PIPELINE = (
     'social.pipeline.social_auth.social_details',
     'social.pipeline.social_auth.social_uid',
     'social.pipeline.social_auth.auth_allowed',
-    'sadiki.social_auth_custom.pipeline.user.social_user',
+    'sadiki.social_auth_custom.pipeline.auth.social_user',
     'social.pipeline.user.get_username',
-    'sadiki.social_auth_custom.pipeline.user.create_user',
+    'sadiki.social_auth_custom.pipeline.auth.create_user',
     'social.pipeline.social_auth.associate_user',
     'social.pipeline.social_auth.load_extra_data',
-    'sadiki.social_auth_custom.pipeline.user.update_user_info',
+    'sadiki.social_auth_custom.pipeline.auth.update_user_info',
 )
+
+SOCIAL_AUTH_DISCONNECT_PIPELINE = (
+    'sadiki.social_auth_custom.pipeline.disconnect.get_user_for_disconnect',
+    'social.pipeline.disconnect.allowed_to_disconnect',
+    'social.pipeline.disconnect.get_entries',
+    'social.pipeline.disconnect.revoke_tokens',
+    'social.pipeline.disconnect.disconnect'
+)
+
 
 LOGIN_ERROR_URL = '/auth/login/'
 
