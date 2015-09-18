@@ -32,9 +32,7 @@ class CoreViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        for fixture_filename in cls.fixtures:
-            fixture_file = os.path.join(settings.PROJECT_DIR, fixture_filename)
-            management.call_command('loaddata', fixture_file)
+        super(CoreViewsTest, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
@@ -44,6 +42,7 @@ class CoreViewsTest(TestCase):
         BenefitCategory.objects.all().delete()
         Sadik.objects.all().delete()
         Address.objects.all().delete()
+        super(CoreViewsTest, cls).tearDownClass()
 
     def setUp(self):
         management.call_command('generate_sadiks', 1)

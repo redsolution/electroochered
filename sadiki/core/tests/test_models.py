@@ -15,13 +15,15 @@ from sadiki.core.tests import utils as test_utils
 
 
 class RequestionTestCase(TestCase):
-    fixtures = ['sadiki/core/fixtures/test_initial.json',]
+    fixtures = [
+        'sadiki/core/fixtures/test_initial.json',
+        'sadiki/core/fixtures/perms.json',
+        'sadiki/core/fixtures/groups.json',
+    ]
 
     @classmethod
     def setUpClass(cls):
-        for fixture_filename in cls.fixtures:
-            fixture_file = os.path.join(settings.PROJECT_DIR, fixture_filename)
-            management.call_command('loaddata', fixture_file)
+        super(RequestionTestCase, cls).setUpClass()
         test_utils.create_objects(test_utils.create_area, 5)
         management.call_command('generate_sadiks', 10)
 
@@ -31,6 +33,7 @@ class RequestionTestCase(TestCase):
         Group.objects.all().delete()
         BenefitCategory.objects.all().delete()
         Address.objects.all().delete()
+        super(RequestionTestCase, cls).tearDownClass()
 
     def setUp(self):
         self.requestion = test_utils.create_requestion(name='Ann')
@@ -211,15 +214,14 @@ class BenefitTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        for fixture_filename in cls.fixtures:
-            fixture_file = os.path.join(settings.PROJECT_DIR, fixture_filename)
-            management.call_command('loaddata', fixture_file)
+        super(BenefitTestCase, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
     def tearDownClass(cls):
         BenefitCategory.objects.all().delete()
         Benefit.objects.all().delete()
+        super(BenefitTestCase, cls).tearDownClass()
 
     def tearDown(self):
         Benefit.objects.all().delete()
