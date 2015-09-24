@@ -166,8 +166,8 @@ TRUSTEDHTML_OBJECT_SITES = [
 
 # ------ TinyMCE ------
 
-TINYMCE_JS_URL = '%s/tinymce/jscripts/tiny_mce/tiny_mce.js' % STATIC_URL
-
+TINYMCE_JS_URL = os.path.join(STATIC_URL, 'tiny_mce/tiny_mce.js')
+TINYMCE_JS_ROOT = os.path.join(STATIC_ROOT, 'tiny_mce')
 TINYMCE_DEFAULT_CONFIG = {
     'mode': 'exact',
     'theme': 'advanced',
