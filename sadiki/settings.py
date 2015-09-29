@@ -191,7 +191,8 @@ ATTACHMENT_FOR_MODELS = []
 ATTACHMENT_IKSPECS = 'sadiki.attachment_ikspecs'
 
 
-POSTGIS_VERSION = (1, 4, 0)
+POSTGIS_TEMPLATE = 'template_gis'
+POSTGIS_VERSION = (1, 5, 3)
 LOCK_DIR = os.path.join(PROJECT_DIR, 'lock')
 
 REQUESTER_USERNAME_PREFIX = 'requester'
