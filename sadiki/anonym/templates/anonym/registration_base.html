@@ -2,8 +2,8 @@
 {% load flatpages sadiki_core_tags %}
 
 {% block content_menu %}
-    {% url anonym_registration as anonym_registration_url %}
-    {% url login as login_url %}
+    {% url 'anonym_registration' as anonym_registration_url %}
+    {% url 'login' as login_url %}
     <ul class="content-menu">
         {% if anonym_registration_url|check_url_availability:request.user %}
             <li {% if request.path == anonym_registration_url %}class="active"{% endif %}>

@@ -6,12 +6,11 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.forms.models import modelformset_factory
-from django.forms.util import ErrorList
+from django.forms.utils import ErrorList
 from django.http import HttpResponseRedirect, HttpResponseBadRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView, View
-from django.utils import simplejson
 
 from sadiki.account.forms import RequestionForm, PersonalDataForm, \
     PersonalDocumentForm, BenefitsForm, ChangeRequestionForm,\
@@ -50,7 +49,7 @@ def get_json_sadiks_location_data():
                 'number': sadik.number,
                 'url': reverse('sadik_info', args=[sadik.id, ]),
             }})
-    return simplejson.dumps(sadiks_location_data)
+    return json.dumps(sadiks_location_data)
 
 
 class AccountPermissionMixin(RequirePermissionsMixin):
@@ -88,7 +87,7 @@ class AccountFrontPage(AccountPermissionMixin, TemplateView):
     @method_decorator(login_required)
     def dispatch(self, request):
         kwargs = {
-            'profile': request.user.get_profile(),
+            'profile': request.user.profile,
             'redirect_to': reverse('frontpage'),
             'action_flag': CHANGE_PERSONAL_DATA,
         }
@@ -180,7 +179,7 @@ class EmailChange(AccountPermissionMixin, View):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(EmailChange, self).dispatch(request, profile)
 
     def post(self, request, profile):
@@ -193,7 +192,7 @@ class EmailChange(AccountPermissionMixin, View):
                     form._errors['email'] = ErrorList([u'Данный почтовый адрес уже занят'])
                     return HttpResponse(content=json.dumps(
                         {'ok': False, 'errors': form.errors}),
-                        mimetype='text/javascript')
+                        content_type='text/javascript')
                 profile.user.email = request.POST['email']
                 profile.user.save()
                 if request.user.is_operator():
@@ -204,18 +203,18 @@ class EmailChange(AccountPermissionMixin, View):
                     profile.save()
                     sadiki.authorisation.views.send_confirm_letter(request)
             return HttpResponse(content=json.dumps({'ok': True}),
-                                mimetype='text/javascript')
+                                content_type='text/javascript')
 
         return HttpResponse(content=json.dumps(
             {'ok': False, 'errors': form.errors}),
-            mimetype='text/javascript')
+            content_type='text/javascript')
 
 
 class SocialProfilePublic(AccountPermissionMixin, View):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(SocialProfilePublic, self).dispatch(request, profile)
 
     def post(self, request, profile):
@@ -225,9 +224,9 @@ class SocialProfilePublic(AccountPermissionMixin, View):
         if form.is_valid():
             form.save()
             return HttpResponse(content=json.dumps({'ok': False}),
-                                mimetype='text/javascript')
+                                content_type='text/javascript')
         return HttpResponse(content=json.dumps({'ok': False}),
-                            mimetype='text/javascript')
+                            content_type='text/javascript')
 
 
 class RequestionAdd(AccountPermissionMixin, TemplateView):
@@ -257,7 +256,7 @@ class RequestionAdd(AccountPermissionMixin, TemplateView):
 
     @method_decorator(login_required)
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(RequestionAdd, self).dispatch(request, profile=profile)
 
     def get_documents_formset(self):
@@ -514,7 +513,7 @@ class RequestionInfo(AccountRequestionMixin, TemplateView):
             'STATUS_REQUESTER_NOT_CONFIRMED': STATUS_REQUESTER_NOT_CONFIRMED,
             'sadiks_location_data': get_json_sadiks_location_data(),
             'pref_sadiks_ids': pref_sadiks_ids,
-            'areas_ids': simplejson.dumps([
+            'areas_ids': json.dumps([
                 req for req in requestion.areas.all().values_list(
                     'id', flat=True)]),
             'can_change_benefits': self.can_change_benefits(requestion),

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
@@ -12,5 +12,5 @@ class Photo(models.Model):
         upload_to='upload/sadik/images/', blank=True)
     content_type = models.ForeignKey(ContentType)
     object_id = models.PositiveIntegerField()
-    content_object = generic.GenericForeignKey()
+    content_object = GenericForeignKey()
 

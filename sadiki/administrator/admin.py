@@ -136,8 +136,8 @@ class SadikiAdminSite(AdminSite):
 
     actions = []
 
-    def __init__(self, name='sadik_admin', app_name='admin'):
-        super(SadikiAdminSite, self).__init__(name, app_name)
+    def __init__(self, name='sadik_admin'):
+        super(SadikiAdminSite, self).__init__(name)
 
     def has_permission(self, request):
         return request.user.is_active and request.user.is_administrator()
@@ -162,7 +162,7 @@ class SadikiAdminSite(AdminSite):
                 # Check whether user has any perm for this module.
                 # If so, add the module to the model_list.
                 if True in perms.values():
-                    info = (app_label, model._meta.module_name)
+                    info = (app_label, model._meta.model_name)
                     model_dict = {
                         'name': capfirst(model._meta.verbose_name_plural),
                         'perms': perms,
@@ -195,10 +195,11 @@ class SadikiAdminSite(AdminSite):
         for app in app_list:
             app['models'].sort(key=lambda x: x['name'])
 
-        context = {
-            'title': _('Site administration'),
-            'app_list': app_list,
-        }
+        context = dict(
+            self.each_context(request),
+            title=_('Site administration'),
+            app_list=app_list,
+        )
         context.update(extra_context or {})
         return TemplateResponse(request, self.index_template or
                                 'admin/index.html', context,
@@ -234,6 +235,7 @@ class OperatorAdminChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(OperatorAdminChangeForm, self).__init__(*args, **kwargs)
@@ -287,7 +289,7 @@ def verbose_user_type(obj):
 verbose_user_type.short_description = 'Тип учетной записи'
 
 
-class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
+class CustomUserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     change_form_template = "adm/user/operator_change_template.html"
     fieldsets = (
         (None, {'fields': ['user_type', 'username', 'first_name', 'last_name',
@@ -307,12 +309,12 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
                  'all': ('css/admin_override.css',)
             }
 
-    def queryset(self, request):
+    def get_queryset(self, request):
         """
         Returns a QuerySet of all model instances that can be edited by the
         admin site. This is used by changelist_view.
         """
-        qs = super(UserAdmin, self).queryset(self)
+        qs = super(CustomUserAdmin, self).get_queryset(self)
         return qs.filter(groups__name__in=(
             OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME,
             SADIK_OPERATOR_GROUP_NAME, ADMINISTRATOR_GROUP_NAME)
@@ -321,7 +323,7 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
     def save_model(self, request, obj, form, change):
         obj.save()
         try:
-            obj.get_profile()
+            obj.profile
         except Profile.DoesNotExist:
             Profile.objects.create(user=obj)
 #        список групп, которые нужно назначить пользователю
@@ -348,6 +350,7 @@ class UserAdmin(ModelAdminWithoutPermissionsMixin, UserAdmin):
 
 class AreaAdminForm(forms.ModelForm):
     model = Sadik
+    fields = '__all__'
 
     def clean_name(self):
         return clean_str(self.cleaned_data.get('name'))
@@ -366,6 +369,7 @@ class SadikAdminForm(AddressWithMapForm, forms.ModelForm):
 
     class Meta:
         model = Sadik
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         self.base_fields['age_groups'].widget = CheckboxSelectMultiple()
@@ -427,6 +431,8 @@ class BenefitCategoryAdminForm(forms.ModelForm):
         model = BenefitCategory
         if settings.IMMEDIATELY_DISTRIBUTION == IMMEDIATELY_DISTRIBUTION_NO:
             exclude = ('immediately_distribution_active',)
+        else:
+            exclude = ()
 
     def clean_priority(self):
         priority = self.cleaned_data.get('priority')
@@ -453,6 +459,7 @@ class BenefitCategoryAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 class BenefitAdminForm(forms.ModelForm):
     class Meta:
         model = Benefit
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(BenefitAdminForm, self).__init__(*args, **kwargs)
@@ -486,6 +493,7 @@ class AgeGroupForm(forms.ModelForm):
 
     class Meta:
         model = AgeGroup
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(AgeGroupForm, self).__init__(*args, **kwargs)
@@ -531,6 +539,7 @@ class AgeGroupAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 class ChunkAdminForm(forms.ModelForm):
     class Meta:
         model = Chunk
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(ChunkAdminForm, self).__init__(*args, **kwargs)
@@ -573,6 +582,7 @@ class ChunkAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
 class PreferenceAdminForm(forms.ModelForm):
     class Meta:
         model = Preference
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         available_choices = []
@@ -598,7 +608,7 @@ class PreferenceAdmin(ModelAdminWithoutPermissionsMixin, admin.ModelAdmin):
         return qs.filter(section=PREFERENCE_SECTION_MUNICIPALITY)
 
 
-site.register(User, UserAdmin)
+site.register(User, CustomUserAdmin)
 site.register(Sadik, SadikAdmin)
 site.register(Area, AreaAdmin)
 site.register(EvidienceDocumentTemplate, EvidienceDocumentTemplateAdmin)

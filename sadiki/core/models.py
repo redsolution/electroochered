@@ -6,7 +6,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import is_password_usable
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.gis.db.models import GeoManager
 from django.contrib.gis.db.models.fields import PolygonField, PointField
@@ -30,7 +30,6 @@ from sadiki.core.utils import add_crc, calculate_luhn_digit, \
 from sadiki.core.validators import birth_date_validator, \
     registration_date_validator, snils_validator
 from sadiki.settings import REQUESTER_USERNAME_PREFIX
-from south.modelsinspector import add_introspection_rules
 import datetime
 import re
 
@@ -141,20 +140,6 @@ def add_requestion_type(requestion_type, description, needs_location_confirmed=F
         REQUESTION_TYPE_NEEDS_LOCATION_CONFIRMATION.append(requestion_type)
 
 
-def query_set_factory(query_set_class):
-    u"""позволяет привязать методы как менеджера модели, так и для QuerySet"""
-    class ChainedManager(models.Manager):
-
-        def get_query_set(self):
-            return query_set_class(self.model)
-
-        def __getattr__(self, attr, *args):
-            try:
-                return getattr(self.__class__, attr, *args)
-            except AttributeError:
-                return getattr(self.get_query_set(), attr, *args)
-    return ChainedManager()
-
 PROFILE_IDENTITY = 0
 REQUESTION_IDENTITY = 1
 BENEFIT_DOCUMENT = 2
@@ -227,11 +212,11 @@ class EvidienceDocument(models.Model):
         verbose_name=u'Подтвержден', default=None)
     content_type = models.ForeignKey(ContentType, blank=True, null=True)
     object_id = models.PositiveIntegerField(blank=True, null=True)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     fake = models.BooleanField(verbose_name=u'Был сгенерирован при импорте',
                                default=False)
 
-    objects = query_set_factory(EvidienceDocumentQueryset)
+    objects = EvidienceDocumentQueryset.as_manager()
 
     def make_other_appocryphal(self):
         # документы для льгот могут быть с совпадающими номерами
@@ -276,7 +261,7 @@ class BenefitCategory(models.Model):
     immediately_distribution_active = models.BooleanField(
         verbose_name=u"Учавствует в немедленном зачислении", default=False)
 
-    objects = query_set_factory(BenefitCategoryQueryset)
+    objects = BenefitCategoryQueryset.as_manager()
 
     def __unicode__(self):
         return self.name
@@ -293,8 +278,8 @@ BENEFIT_STATUS_CHOICES = (
 
 class BenefitsEnabled(models.Manager):
     """Возвращаем только активные льготы"""
-    def get_query_set(self):
-        return super(BenefitsEnabled, self).get_query_set().filter(
+    def get_queryset(self):
+        return super(BenefitsEnabled, self).get_queryset().filter(
             disabled=False)
 
 
@@ -319,8 +304,7 @@ class Benefit(models.Model):
     evidience_documents = models.ManyToManyField(
         EvidienceDocumentTemplate, verbose_name=u"Необходимые документы")
     sadik_related = models.ManyToManyField(
-        "Sadik", verbose_name=u"ДОУ в которых есть группы", blank=True,
-        null=True,)
+        "Sadik", verbose_name=u"ДОУ в которых есть группы", blank=True)
     disabled = models.BooleanField(
         default=False, verbose_name=u"Отключить",
         help_text=u"Отключение не удаляет льготу у заявок, а только не дает "
@@ -439,7 +423,7 @@ class Sadik(models.Model):
         verbose_name=u'принимает участие в распределении', default=True)
     age_groups = models.ManyToManyField("AgeGroup",
         verbose_name=u"Возрастные группы")
-    objects = query_set_factory(SadikQueryset)
+    objects = SadikQueryset.as_manager()
 
     def get_number(self):
         result = re.match(ur'^\D*(\d+)\D*$', self.short_name)
@@ -578,7 +562,7 @@ class SadikGroup(models.Model):
     active = models.BooleanField(verbose_name=u'Активна', default=True,
         help_text=u'Если группа активна, то в неё можно зачислять детей')
 
-    objects = query_set_factory(SadikGroupQueryset)
+    objects = SadikGroupQueryset.as_manager()
 
     def set_default_age(self, age_group):
         # вычисляем возрастные ограничения
@@ -722,7 +706,7 @@ class Distribution(models.Model):
         default=DISTRIBUTION_STATUS_INITIAL)
     year = models.DateField(verbose_name=u'Год распределения')
 
-    objects = query_set_factory(DistributionQuerySet)
+    objects = DistributionQuerySet.as_manager()
 
     def is_initial(self):
         return self.status == DISTRIBUTION_STATUS_INITIAL
@@ -809,7 +793,7 @@ class Profile(models.Model):
     street = models.CharField(u'Улица', max_length=50, null=True)
     house = models.CharField(u'Номер дома', max_length=10, null=True)
     # для оператора ДОУ указывает подконтрольные ДОУ
-    sadiks = models.ManyToManyField('Sadik', null=True)
+    sadiks = models.ManyToManyField('Sadik')
     social_auth_public = models.NullBooleanField(
         u"Показывать мой профиль ВКонтакте в публичной очереди",
         choices=SOCIAL_PUBLIC_CHOICES, blank=True)
@@ -843,8 +827,7 @@ class Profile(models.Model):
 
     def update_vkontakte_data(self, data):
         vk_first_name = data.get('first_name')
-        if vk_first_name and not (self.first_name or self.last_name
-                                  or self.middle_name):
+        if vk_first_name and self.fio_is_changeable():
             self.first_name = vk_first_name
         vk_phone_number = data.get('home_phone')
         if not self.phone_number:
@@ -853,6 +836,9 @@ class Profile(models.Model):
             self.mobile_number = vk_phone_number
         self.skype = data.get('skype')
         self.save()
+
+    def fio_is_changeable(self):
+        return not any((self.first_name, self.middle_name, self.last_name))
 
     def to_dict(self):
         result_dict = model_to_dict(self)
@@ -1230,7 +1216,7 @@ class Requestion(models.Model):
         (REQUESTER_TYPE_OTHER, u'Иное'),
     )
 
-    objects = query_set_factory(RequestionQuerySet)
+    objects = RequestionQuerySet.as_manager()
 
     def set_kinship(self, kinship_type):
         kinship_type = str(kinship_type)
@@ -1697,7 +1683,7 @@ class Preference(models.Model):
     datetime = models.DateTimeField(
         verbose_name=u"Дата и время последнего изменения")
     value = models.CharField(verbose_name=u"Значение", max_length=255)
-    objects = query_set_factory(PreferenceQuerySet)
+    objects = PreferenceQuerySet.as_manager()
 
     def save(self, *args, **kwargs):
 #        смотрим к какому разделу относится ключ
@@ -1766,7 +1752,7 @@ class UserFunctions:
         if isinstance(areas, Area):
             areas = (areas,)
         try:
-            user_area = self.get_profile().area
+            user_area = self.profile.area
         except Profile.DoesNotExist:
             return False
         else:
@@ -1841,9 +1827,3 @@ def update_benefit_category(action, instance, **kwargs):
 m2m_changed.connect(update_benefit_category, sender=Requestion.benefits.through)
 
 User.__bases__ += (UserFunctions,)
-
-del User.get_absolute_url
-
-add_introspection_rules([], ["^sadiki\.core\.fields\.BooleanNextYearField"])
-add_introspection_rules([], ["^sadiki\.core\.fields\.YearChoiceField"])
-add_introspection_rules([], ["^sadiki\.core\.fields\.SplitDayMonthField"])

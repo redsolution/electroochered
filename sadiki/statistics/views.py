@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
+import datetime
+import json
+
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.db.models.expressions import F
 from django.db.models.query_utils import Q
 from django.http import Http404
-from django.utils import simplejson
 from django.views.generic.base import TemplateView
 from sadiki.core.models import Vacancies, Distribution, AgeGroup, Requestion, \
     STATUS_REQUESTER, STATUS_DECISION, STATUS_DISTRIBUTED, \
@@ -14,7 +16,6 @@ from sadiki.core.utils import get_current_distribution_year
 from sadiki.operator.views.base import OperatorPermissionMixin
 from sadiki.statistics.models import StatisticsArchive, DECISION_STATISTICS, \
     DISTRIBUTION_STATISTICS
-import datetime
 
 
 def get_decision_statistics_data():
@@ -114,7 +115,7 @@ class Statistics(OperatorPermissionMixin, TemplateView):
         else:
             statistic_record = StatisticsArchive.objects.filter(
                 record_type=DECISION_STATISTICS, year__year=year)[0]
-            context = simplejson.loads(statistic_record.data)
+            context = json.loads(statistic_record.data)
         context.update({'current_year': year, 'years': years})
         return self.render_to_response(context)
 

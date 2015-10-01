@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+import hashlib
+
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.template.loader import render_to_string
-from django.utils.hashcompat import sha_constructor
 from sadiki.core.utils import scheme_and_domain
 from settings import VERIFICATION_KEY_DAYS
 import datetime
@@ -15,10 +16,10 @@ class VerificationKeyManager(models.Manager):
     def create_key(self, user):
         u"""В базе данных создается новый ключ для пользователя"""
         while True:
-            salt = sha_constructor(str(random.random())).hexdigest()[:5]
-            key = sha_constructor(salt + user.username).hexdigest()
+            salt = hashlib.sha1(str(random.random())).hexdigest()[:5]
+            key = hashlib.sha1(salt + user.username).hexdigest()
             try:
-                self.get_query_set().get(key=key)
+                self.get_queryset().get(key=key)
             except self.model.DoesNotExist:
                 break
 

@@ -53,12 +53,20 @@ def digg_paginator(context):
     if 'page' in params:
         del(params['page'])
     get_params = params.urlencode()
+    if page_obj.has_previous():
+        previous_page_num = page_obj.previous_page_number()
+    else:
+        previous_page_num = None
+    if page_obj.has_next():
+        next_page_num = page_obj.next_page_number()
+    else:
+        next_page_num = None
 
     return {
         'pages': pages,
         'page': page,
-        'previous': page_obj.previous_page_number(),
-        'next': page_obj.next_page_number(),
+        'previous': previous_page_num,
+        'next': next_page_num,
         'has_previous': page_obj.has_previous(),
         'has_next': page_obj.has_next(),
         'page_range': page_range,

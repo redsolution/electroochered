@@ -17,8 +17,8 @@
             {% for distribution in distributions %}
                 <tr>
                     <td>{{ distribution.end_datetime }}</td>
-                    <td><a href="{% url distribution_results distribution_id=distribution.id %}">Список заявок</a></td>
-                    <td><a href="{% url distribution_places_results distribution_id=distribution.id %}">Информация по местам</a></td>
+                    <td><a href="{% url 'distribution_results' distribution_id=distribution.id %}">Список заявок</a></td>
+                    <td><a href="{% url 'distribution_places_results' distribution_id=distribution.id %}">Информация по местам</a></td>
                 </tr>
             {% endfor %}
         </table>

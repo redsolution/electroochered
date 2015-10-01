@@ -122,7 +122,7 @@
         <h2>Список детей для которых было выделено место в ДОУ</h2>
         {% with request.user.is_operator as user_is_operator %}
         {% if user_is_operator %}
-            <a target="_blank" class="btn" href="{% url distributed_requestions_for_sadik sadik_id=sadik.id %}">
+            <a target="_blank" class="btn" href="{% url 'distributed_requestions_for_sadik' sadik_id=sadik.id %}">
             Сохранить отчет
             </a>
         {% endif %}

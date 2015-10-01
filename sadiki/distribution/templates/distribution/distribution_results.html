@@ -23,7 +23,7 @@
             countdown();
         </script>
     {% else %}
-        <a class="btn" href="{% url distribution_results distribution_id=current_distribution.id %}?type=xls">Сохранить файл с результатами</a>
+        <a class="btn" href="{% url 'distribution_results' distribution_id=current_distribution.id %}?type=xls">Сохранить файл с результатами</a>
         {% if requestions_by_sadiks %}
         {% for requestions_by_sadik in requestions_by_sadiks %}
             <h2>{{ requestions_by_sadik.0 }}</h2>
@@ -37,7 +37,7 @@
             </tr>
             {% for requestion in requestions_by_sadik.1 %}
                 <tr>
-                    <td><a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a></td>
+                    <td><a href="{% url 'operator_requestion_info' requestion_id=requestion.id %}">{{ requestion }}</a></td>
                     <td>{{ requestion.number_in_old_list }}</td>
                     <td>{{ requestion.birth_date }}</td>
                     <td>{{ requestion.distributed_in_vacancy.sadik_group }}</td>

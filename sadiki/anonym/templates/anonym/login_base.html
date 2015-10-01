@@ -37,7 +37,7 @@
     		<a href="/registration/">Зарегистрироваться</a>
         {% else %}
             <p class="centered"><span class="lead">{{ user.get_verbose_name }}<span></p>
-            <p class="centered"><a href="{% url logout %}">Выйти</a></p>
+            <p class="centered"><a href="{% url 'logout' %}">Выйти</a></p>
         {% endif %}
 	</div>
     <div class="dou_description">

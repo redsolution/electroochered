@@ -1,15 +1,15 @@
 {% load sadiki_core_tags %}
 {% load_urlpatterns %}
-{% url anonym_requestion_search as requestion_search_url %}
+{% url 'anonym_requestion_search' as requestion_search_url %}
 <ul class="content-menu">
-    {% url operator_profile_info profile_id=profile.id as profile_url %}
-    {% url operator_requestion_add profile_id=profile.id as operator_requestion_add_url %}
-    {% url operator_logs profile_id=profile.id as operator_logs_url %}
+    {% url 'operator_profile_info' profile_id=profile.id as profile_url %}
+    {% url 'operator_requestion_add' profile_id=profile.id as operator_requestion_add_url %}
+    {% url 'operator_logs' profile_id=profile.id as operator_logs_url %}
     <li {% if request.path == profile_url %}class="active"{% endif %}>
         <a href="{{ profile_url }}">Профиль</a>
     </li>
     {% for requestion in profile.requestion_set.all|dictsort:"id" %}
-        {% url operator_requestion_info requestion.id as operator_requestion_info_url %}
+        {% url 'operator_requestion_info' requestion.id as operator_requestion_info_url %}
         <li {% if request.path == operator_requestion_info_url %}class="active"{% endif %}>
             <a href="{{ operator_requestion_info_url }}">{{ requestion.requestion_number }}</a>
         </li>

@@ -2,7 +2,7 @@
 import re
 from django import forms
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.generic import BaseGenericInlineFormSet
+from django.contrib.contenttypes.forms import BaseGenericInlineFormSet
 from django.forms.formsets import DELETION_FIELD_NAME
 from django.forms.models import BaseInlineFormSet
 from django.forms.widgets import CheckboxSelectMultiple
@@ -17,6 +17,7 @@ from sadiki.core.models import SadikGroup, AgeGroup, Vacancies, \
     STATUS_REQUESTER, REQUESTION_TYPE_OPERATOR, Requestion, EvidienceDocument, EvidienceDocumentTemplate, BENEFIT_DOCUMENT, NOT_CONFIRMED_STATUSES
 from sadiki.core.utils import get_current_distribution_year, get_user_by_email
 from sadiki.core.widgets import JqueryUIDateWidget, LeafletMap
+from sadiki.core.utils import reorder_fields
 
 
 def select_list_from_qs(queryset, requestion):
@@ -31,7 +32,7 @@ def select_list_from_qs(queryset, requestion):
 class QueueOperatorFilterForm(QueueFilterForm):
     def __init__(self, *args, **kwargs):
         super(QueueOperatorFilterForm, self).__init__(*args, **kwargs)
-        self.fields.keyOrder = [
+        fields_order = [
             'requestion_number',
             'status',
             'area',
@@ -42,8 +43,9 @@ class QueueOperatorFilterForm(QueueFilterForm):
             'decision_date',
             'without_facilities',
         ]
+        self.fields = reorder_fields(self.fields, fields_order)
         admission_date_choices = [
-            (year, year.year) for year in
+            (year.year, year.year) for year in
             Requestion.objects.queue().dates('admission_date', 'year')]
         admission_date_choices = [('', '---------'),] + admission_date_choices
         self.fields['admission_date'].choices = admission_date_choices
@@ -147,6 +149,7 @@ def get_sadik_group_form(sadik):
 
         class Meta:
             model = SadikGroup
+            fields = '__all__'
 
         def save(self, commit=True):
             free_places = self.cleaned_data.get('free_places')
@@ -382,6 +385,7 @@ class DocumentForm(forms.ModelForm):
 
     class Meta:
         model = EvidienceDocument
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super(DocumentForm, self).__init__(*args, **kwargs)

@@ -11,7 +11,7 @@
                 {% if registration_form.non_field_errors %}
                     <div id="errorMsg">
                         {% load i18n %}
-                        <h3>{% blocktrans count errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
+                        <h3>{% blocktrans count errors|length as counter %}Пожалуйста, исправьте ошибку ниже.{% plural %}Пожалуйста, исправьте ошибки ниже.{% endblocktrans %}</h3>
                         <ol>
                             {% for error in registration_form.non_field_errors %}
                                 <li>{{ error }}</li>
@@ -40,7 +40,7 @@
                     <img src="{{ STATIC_URL }}img/esia-large.png"/>
                 </div>
                 <div class="registration">
-                    <a class="auth-link" href="{% url esia_authenticate %}">
+                    <a class="auth-link" href="{% url 'esia_authenticate' %}">
                         ЕСИА
                     </a>
                     <p class="hint">Регистрация через Единую Систему Идентификации и Аутентификации (ЕСИА).
@@ -54,7 +54,7 @@
                     <img src="{{ STATIC_URL }}img/vkontakte-large.png"/>
                 </div>
                 <div class="registration">
-                    <a class="auth-link" href="{% url socialauth_registration_begin 'vkontakte-oauth2' %}">
+                    <a class="auth-link" href="{% url 'social_auth:login' 'vkontakte-oauth2' %}">
                         ВКонтакте
                     </a>
                     <p class="hint">Если у вас есть профиль в социальной сети ВКонтакте, вы можете использовать

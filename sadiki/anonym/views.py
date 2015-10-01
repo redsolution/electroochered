@@ -159,10 +159,8 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = queryset.filter(areas__in=area).distinct()
                 admission_date = form.cleaned_data.get('admission_date')
                 if admission_date:
-                    admission_date = datetime.datetime.strptime(
-                        admission_date, '%Y-%m-%d %H:%M:%S')
                     queryset = queryset.filter(
-                        admission_date__year=admission_date.year)
+                        admission_date__year=admission_date)
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
@@ -185,7 +183,7 @@ class Queue(RequirePermissionsMixin, ListView):
             return queryset.queue(), self.form()
 
     def get_context_data(self, **kwargs):
-        queryset = kwargs.pop('object_list')
+        queryset = kwargs.pop('object_list', self.object_list)
         # Отработать форму фильтрации
         page_number = self.request.GET.get('page', None)
 
