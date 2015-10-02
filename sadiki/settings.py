@@ -224,6 +224,7 @@ SOCIAL_AUTH_DISCONNECT_PIPELINE = (
     'social.pipeline.disconnect.disconnect'
 )
 
+SERIALIZATION_MODULES = {'djson': 'sadiki.core.serializers'}
 
 LOGIN_ERROR_URL = '/auth/login/'
 
