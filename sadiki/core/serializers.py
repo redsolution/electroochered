@@ -75,54 +75,48 @@ class SadikSerializer(serializers.ModelSerializer):
 default_hash = hashlib.sha1('salt1' + '1234').hexdigest()
 default_user_password = "{}${}${}".format('sha1', 'salt1', default_hash)
 
-def clear_log_message(log):
+def remove_log_message(log):
     if log.level > ANONYM_LOG:
         return ''
     return log.message
 
-def clear_benefit_name(benefit):
+def remove_benefit_name(benefit):
     return u"Льгота №{} категории {}".format(benefit.id, benefit.category.id)
 
-def clear_requestion_sex(requestion):
-    u"""
-    Если не указан пол ребёнка, заявкам с чётным id будет присвоен М, другим Ж
-    """
-    return requestion.sex or sex_data[requestion.id & 1]
-
-def clear_requestion_name(requestion):
+def randomize_requestion_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['first_names'])
 
-def clear_requestion_last_name(requestion):
+def randomize_requestion_child_last_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['last_names'])
 
-def clear_requestion_middle_name(requestion):
+def randomize_requestion_child_middle_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['middle_names'])
 
-def clear_requestion_kinship(requestion):
+def randomize_requestion_kinship(requestion):
     if random.randint(0, 3) == 0:
         return u'Опекун'
     sex = sex_data[requestion.profile.user.id & 1]
     return u'Отец' if sex == u'М' else u'Мать'
 
-def clear_profile_name(profile):
+def randomize_user_first_name(profile):
     sex = sex_data[profile.id & 1]
     return random.choice(name_data[sex]['first_names'])
 
-def clear_profile_last_name(profile):
+def randomize_user_last_name(profile):
     sex = sex_data[profile.id & 1]
     return random.choice(name_data[sex]['last_names'])
 
-def clear_profile_middle_name(profile):
+def randomize_profile_middle_name(profile):
     sex = sex_data[profile.user.id & 1]
     return random.choice(name_data[sex]['middle_names'])
 
-def clear_document_number(document):
+def remove_document_number(document):
     return str(100000 + document.id % 900000)
 
-def clear_vk_uid(user_social_auth):
+def remove_vk_uid(user_social_auth):
     u""" Ссылка на VK будет заведомо нерабочей, например vk.com/id_dummy_111"""
     return '_dummy_{}'.format(user_social_auth.id)
 
@@ -152,19 +146,18 @@ FIELD_SIMPLE_DEPERSONALIZERS = {
 # например, Ф.И.О ребёнка должны соответствовать его полу
 # а степень родства - полу родителя
 FIELD_SPECIAL_DEPERSONALIZERS = {
-    'LoggerMessage.message': clear_log_message,
-    'Benefit.name': clear_benefit_name,
-    'Benefit.description': clear_benefit_name,
-    'Requestion.sex': clear_requestion_sex,
-    'Requestion.name': clear_requestion_name,
-    'Requestion.child_last_name': clear_requestion_last_name,
-    'Requestion.child_middle_name': clear_requestion_middle_name,
-    'Requestion.kinship': clear_requestion_kinship,
-    'User.first_name': clear_profile_name,
-    'User.last_name': clear_profile_last_name,
-    'Profile.middle_name': clear_profile_middle_name,
-    'PersonalDocument.number': clear_document_number,
-    'UserSocialAuth.uid': clear_vk_uid,
+    'LoggerMessage.message': remove_log_message,
+    'Benefit.name': remove_benefit_name,
+    'Benefit.description': remove_benefit_name,
+    'Requestion.name': randomize_requestion_name,
+    'Requestion.child_last_name': randomize_requestion_child_last_name,
+    'Requestion.child_middle_name': randomize_requestion_child_middle_name,
+    'Requestion.kinship': randomize_requestion_kinship,
+    'User.first_name': randomize_user_first_name,
+    'User.last_name': randomize_user_last_name,
+    'Profile.middle_name': randomize_profile_middle_name,
+    'PersonalDocument.number': remove_document_number,
+    'UserSocialAuth.uid': remove_vk_uid,
 }
 
 
