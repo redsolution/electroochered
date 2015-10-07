@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import json
 import random
-import string
+import hashlib
 
 from rest_framework import serializers
 from django.core.serializers.python import Serializer as PythonSerializer
@@ -71,6 +71,10 @@ class SadikSerializer(serializers.ModelSerializer):
         return SadikGroupSerializer(groups_qs, many=True).data
 
 
+# генерируем специальный секретный пароль для всех учетных записей
+default_hash = hashlib.sha1('salt1' + '1234').hexdigest()
+default_user_password = "{}${}${}".format('sha1', 'salt1', default_hash)
+
 def clear_log_message(log):
     if log.level > ANONYM_LOG:
         return ''
@@ -115,24 +119,30 @@ def clear_profile_middle_name(profile):
     sex = sex_data[profile.user.id & 1]
     return random.choice(name_data[sex]['middle_names'])
 
+def clear_document_number(document):
+    return str(100000 + document.id % 900000)
+
+def clear_vk_uid(user_social_auth):
+    u""" Ссылка на VK будет заведомо нерабочей, например vk.com/id_dummy_111"""
+    return '_dummy_{}'.format(user_social_auth.id)
+
 
 # функции для обезличивания персональных данных
 # данные, для обезличивания которых не нужна доп. информация об объекте
 FIELD_SIMPLE_DEPERSONALIZERS = {
     'User.email': lambda: '',
+    'User.password': lambda: default_user_password,
     'Profile.town': lambda: random.choice(address_data['town']),
     'Profile.street': lambda: random.choice(address_data['street']),
     'Profile.house': lambda: str(random.randint(1, 99)),
     'Profile.phone_number': generate_random_phone_number,
     'Profile.mobile_number': generate_random_phone_number,
     'Profile.snils': generate_random_snils,
-    'PersonalDocument.series': lambda: ''.join(
-        [random.choice(string.digits) for _ in range(4)]),
-    'PersonalDocument.number': lambda: ''.join(
-        [random.choice(string.digits) for _ in range(6)]),
+    'PersonalDocument.doc_name': lambda: u'Иной документ',
+    'PersonalDocument.series': lambda: str(random.randint(1000, 9999)),
     'PersonalDocument.issued_date': lambda: generate_random_date(
         earliest_issue_date, today),
-    'PersonalDocument.issued_by': lambda: 'organization {}'.format(
+    'PersonalDocument.issued_by': lambda: u'Организация № {}'.format(
         random.randint(1, 100)),
     'Requestion.birthplace': lambda: random.choice(address_data['town']),
     'Requestion.child_snils': generate_random_snils,
@@ -148,11 +158,13 @@ FIELD_SPECIAL_DEPERSONALIZERS = {
     'Requestion.sex': clear_requestion_sex,
     'Requestion.name': clear_requestion_name,
     'Requestion.child_last_name': clear_requestion_last_name,
-    'Reuqestion.child_middle_name': clear_requestion_middle_name,
+    'Requestion.child_middle_name': clear_requestion_middle_name,
     'Requestion.kinship': clear_requestion_kinship,
     'User.first_name': clear_profile_name,
     'User.last_name': clear_profile_last_name,
     'Profile.middle_name': clear_profile_middle_name,
+    'PersonalDocument.number': clear_document_number,
+    'UserSocialAuth.uid': clear_vk_uid,
 }
 
 
@@ -167,10 +179,14 @@ class Serializer(PythonSerializer):
     internal_use_only = False
 
     def handle_field(self, obj, field):
+        value = field._get_val_from_obj(obj)
+        # не трогаем поля с пустыми значениями
+        if not value:
+            return super(Serializer, self).handle_field(obj, field)
         object_name = obj._meta.object_name
         field_name = field.name
         full_field_name = '{obj}.{field}'.format(obj=object_name,
-                                                  field=field.name)
+                                                 field=field.name)
         if full_field_name in FIELD_SIMPLE_DEPERSONALIZERS:
             value = FIELD_SIMPLE_DEPERSONALIZERS[full_field_name]()
             self._current[field.name] = value
