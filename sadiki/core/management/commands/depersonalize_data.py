@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
+import time
+import logging
 import os
 import sys
+
 from django.core import management
 
 
@@ -21,9 +24,22 @@ class Command(management.base.BaseCommand):
             default=False,
         )
         parser.add_argument('file_name', nargs='?')
+        parser.add_argument('-c', '--comment', action='count', default=0)
+        parser.add_argument('-q', '--quiet', action='count', default=0)
 
     def handle(self, *args, **options):
+        # configuring logging
+        quiet = options['quiet']
+        verbose = options['comment']
+        log_level = logging.WARN + 10 * quiet - 10 * verbose
+        logging.basicConfig(
+            level=log_level,
+            format='%(asctime)s, %(levelname)s: %(message)s',
+            datefmt='%m.%d.%Y %H:%M:%S'
+        )
+
         if not (options['export'] ^ options['import']):
+            print 'Error!'
             print 'You must specify exactly one option: --export or --import'
             return
         file_name = options.get('file_name') or 'data.djson'
@@ -39,9 +55,14 @@ class Command(management.base.BaseCommand):
                 if user_input == 'n':
                     print 'Exit...'
                     return
+            logging.info(u"Начинаю экспорт, запускается dumpdata")
+            start_time = time.time()
             management.call_command(
                 'dumpdata', '--format', 'djson', '--output', file_name
             )
+            logging.info(u"Экспорт завершен, время исполнения: {}c".format(
+                time.time() - start_time
+            ))
             print 'Dump saved successfully to {}'.format(file_name)
         else:
             if not os.path.exists(file_name):
