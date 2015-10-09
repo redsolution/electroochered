@@ -75,25 +75,31 @@ class SadikSerializer(serializers.ModelSerializer):
 default_hash = hashlib.sha1('salt1' + '1234').hexdigest()
 default_user_password = "{}${}${}".format('sha1', 'salt1', default_hash)
 
+
 def remove_log_message(log):
     if log.level > ANONYM_LOG:
         return ''
     return log.message
 
+
 def remove_benefit_name(benefit):
     return u"Льгота №{} категории {}".format(benefit.id, benefit.category.id)
+
 
 def randomize_requestion_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['first_names'])
 
+
 def randomize_requestion_child_last_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['last_names'])
 
+
 def randomize_requestion_child_middle_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['middle_names'])
+
 
 def randomize_requestion_kinship(requestion):
     if random.randint(0, 3) == 0:
@@ -101,20 +107,25 @@ def randomize_requestion_kinship(requestion):
     sex = sex_data[requestion.profile.user.id & 1]
     return u'Отец' if sex == u'М' else u'Мать'
 
+
 def randomize_user_first_name(profile):
     sex = sex_data[profile.id & 1]
     return random.choice(name_data[sex]['first_names'])
+
 
 def randomize_user_last_name(profile):
     sex = sex_data[profile.id & 1]
     return random.choice(name_data[sex]['last_names'])
 
+
 def randomize_profile_middle_name(profile):
     sex = sex_data[profile.user.id & 1]
     return random.choice(name_data[sex]['middle_names'])
 
+
 def remove_document_number(document):
     return str(100000 + document.id % 900000)
+
 
 def remove_vk_uid(user_social_auth):
     u""" Ссылка на VK будет заведомо нерабочей, например vk.com/id_dummy_111"""
@@ -163,7 +174,7 @@ FIELD_SPECIAL_DEPERSONALIZERS = {
 
 class Serializer(PythonSerializer):
     u"""
-    Отдельный сериалайзер для команды dumpdata, для удаления персональных данных
+    Отдельный сериалайзер для команды dumpdata для удаления персональных данных
     в момент создания дампа.
     Для использования в настройках необходимо добавить пункт:
         SERIALIZATION_MODULES = {'djson': 'sadiki.core.serializers'}

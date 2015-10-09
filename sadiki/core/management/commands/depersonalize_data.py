@@ -8,12 +8,14 @@ class Command(management.base.BaseCommand):
     # help = "Dumps or loads depersonalized json data"
 
     def add_arguments(self, parser):
-        parser.add_argument('--export',
+        parser.add_argument(
+            '--export',
             action='store_true',
             dest='export',
             default=False,
         )
-        parser.add_argument('--import',
+        parser.add_argument(
+            '--import',
             action='store_true',
             dest='import',
             default=False,
