@@ -187,10 +187,7 @@ class Serializer(PythonSerializer):
         # не трогаем поля с пустыми значениями
         if not value:
             return super(Serializer, self).handle_field(obj, field)
-        object_name = obj._meta.object_name
-        field_name = field.name
-        full_field_name = '{obj}.{field}'.format(obj=object_name,
-                                                 field=field.name)
+        full_field_name = '%s.%s' % (obj._meta.object_name, field.name)
         if full_field_name in FIELD_SIMPLE_DEPERSONALIZERS:
             value = FIELD_SIMPLE_DEPERSONALIZERS[full_field_name]()
             self._current[field.name] = value

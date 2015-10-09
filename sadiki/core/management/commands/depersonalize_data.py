@@ -47,7 +47,7 @@ class Command(management.base.BaseCommand):
         if options['export']:
             if os.path.exists(file_name):
                 user_input = raw_input(
-                    'File {} already exists! Overwrite it? (y/n)\n'.format(
+                    'File {} already exists! Overwrite it? (y/n): '.format(
                         file_name)
                 )
                 while user_input not in ('y', 'n'):
@@ -60,8 +60,9 @@ class Command(management.base.BaseCommand):
             management.call_command(
                 'dumpdata', '--format', 'djson', '--output', file_name
             )
-            logging.info(u"Экспорт завершен, время исполнения: {}c".format(
-                time.time() - start_time
+            logging.info(u"Экспорт завершен, время исполнения: {}:{}".format(
+                int(time.time() - start_time) / 60,
+                int(time.time() - start_time) % 60,
             ))
             print 'Dump saved successfully to {}'.format(file_name)
         else:
