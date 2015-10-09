@@ -41,7 +41,7 @@ class Command(management.base.BaseCommand):
         if not (options['export'] ^ options['import']):
             print 'Error!'
             print 'You must specify exactly one option: --export or --import'
-            return
+            sys.exit()
         file_name = options.get('file_name') or 'data.djson'
         file_name = os.path.abspath(file_name)
         if options['export']:
@@ -54,7 +54,7 @@ class Command(management.base.BaseCommand):
                     user_input = raw_input('Incorrect input!\n')
                 if user_input == 'n':
                     print 'Exit...'
-                    return
+                    sys.exit()
             logging.info(u"Начинаю экспорт, запускается dumpdata")
             start_time = time.time()
             management.call_command(
