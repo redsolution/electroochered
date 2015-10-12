@@ -190,6 +190,10 @@ class RequestionIdentityDocumentForm(FormWithDocument):
     template = TemplateFormField(destination=REQUESTION_IDENTITY,
         label=u'Тип документа')
 
+    class Meta:
+        model = Requestion
+        fields = ['template', 'document_number']
+
     def create_document(self, requestion, commit=True):
         document = super(RequestionIdentityDocumentForm, self).create_document(
             requestion, commit=False)

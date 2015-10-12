@@ -1,24 +1,23 @@
 BeautifulSoup
 xlutils ==1.3.2
 django-zenforms >=0.1,<0.2
-redsolutioncms.django-chunks >=0.2,<0.3
 django-classy-tags ==0.3.4.1
 redsolutioncms.django-trusted-html >=0.1,<0.2
 ordereddict ==1.1
-redsolutioncms.django-tinymce-attachment >=0.4, <0.5
-django-social-auth ==0.7.23
+python-social-auth==0.2.12
 redsolutioncms.django-hex-storage >=0.1, <0.2
-
+django-tinymce==2.0.5
+-e git://github.com/redsolution/django-chunks@0.3.0#egg=redsolutioncms.django-chunks
+-e git://github.com/redsolution/django-tinymce-attachment@0.6.0#egg=redsolutioncms.django-tinymce-attachment
 
 # use system in production
 # gdal >=1.9, <2.0
 PIL >=1.1.7, <1.1.8
 psycopg2 >=2.4, <2.5
-Django>=1.4, <1.5
+Django>=1.8, <1.9
 pytils>=0.2, <0.3
 python-dateutil>=1.4, <=1.5
-South>=0.7, <0.8
 pisa>=3.0.32, <3.1
 httplib2 >=0.7, <0.8
 python-openid >=2.2, <2.3
-djangorestframework==2.4
+djangorestframework==3.2.0
