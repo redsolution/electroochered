@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from django.utils import simplejson
-from django.utils.safestring import mark_safe
-from sadiki.core.models import EvidienceDocumentTemplate
 import re
 import sys
 import os
+import json
+
+from django.utils.safestring import mark_safe
+from sadiki.core.models import EvidienceDocumentTemplate
+
 try:
     import cStringIO as StringIO
 except ImportError:
@@ -29,7 +31,7 @@ class SettingsJSMiddleware(object):
 
     def process_response(self, request, response):
         """Add some script to the end of head element"""
-        documents_template = simplejson.dumps(
+        documents_template = json.dumps(
             dict([(template.id, {
                     'name': template.name,
                     'regexp': template.regex,

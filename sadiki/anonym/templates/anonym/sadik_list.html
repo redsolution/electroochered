@@ -22,7 +22,7 @@
         <tbody>
         {% for sadik in sadik_list %}
             <tr>
-                <td><a href="{% url sadik_info sadik_id=sadik.id %}">{{ sadik.short_name }}</a></td>
+                <td><a href="{% url 'sadik_info' sadik_id=sadik.id %}">{{ sadik.short_name }}</a></td>
                 <td>{{ sadik.address|verbose_value }}</td>
                 <td>{{ sadik.phone|verbose_value }}</td>
             </tr>

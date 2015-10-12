@@ -42,7 +42,7 @@
             <label><strong>Внимание!</strong> При подтверждении текущей заявки, все указанные ниже заявки будут отклонены автоматически</label>
             {% for other_requestion in requestion.other_requestions_with_ident_document.all %}
             <ul>
-                <li><a href="{% url operator_requestion_info other_requestion.id %}">{{ other_requestion }}</a></li>
+                <li><a href="{% url 'operator_requestion_info' other_requestion.id %}">{{ other_requestion }}</a></li>
             </ul>
             {% endfor %}
         </div>

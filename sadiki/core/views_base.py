@@ -68,5 +68,6 @@ class GenerateBlankBase(TemplateView):
             'municipality_name_genitive': municipality_name_genitive,
             'current_datetime': datetime.datetime.now()}
         result = generate_pdf(template_name, context_dict)
-        response = HttpResponse(result.getvalue(), mimetype='application/pdf')
+        response = HttpResponse(result.getvalue(),
+                                content_type='application/pdf')
         return response

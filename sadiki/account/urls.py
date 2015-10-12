@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import patterns, url
 from sadiki.account.plugins import plugins
 from sadiki.account.views import RequestionAdd, \
     AccountFrontPage, RequestionInfo, GenerateBlank, SocialProfilePublic, \

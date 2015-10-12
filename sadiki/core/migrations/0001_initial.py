@@ -1,503 +1,406 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
+from django.db import models, migrations
+import sadiki.core.fields
+import sadiki.core.validators
+import django.contrib.gis.db.models.fields
 import datetime
-from south.db import db
-from south.v2 import SchemaMigration
-from django.db import models
+from django.conf import settings
+import django.core.validators
 
 
-class Migration(SchemaMigration):
+class Migration(migrations.Migration):
 
-    def forwards(self, orm):
-        # Adding model 'EvidienceDocumentTemplate'
-        db.create_table('core_evidiencedocumenttemplate', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('format_tips', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('destination', self.gf('django.db.models.fields.IntegerField')()),
-            ('regex', self.gf('django.db.models.fields.TextField')()),
-        ))
-        db.send_create_signal('core', ['EvidienceDocumentTemplate'])
+    dependencies = [
+        ('contenttypes', '0002_remove_content_type_name'),
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
+        ('chunks', '__first__'),
+    ]
 
-        # Adding model 'EvidienceDocument'
-        db.create_table('core_evidiencedocument', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('template', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.EvidienceDocumentTemplate'])),
-            ('document_number', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('confirmed', self.gf('django.db.models.fields.NullBooleanField')(default=None, null=True, blank=True)),
-            ('content_type', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contenttypes.ContentType'], null=True, blank=True)),
-            ('object_id', self.gf('django.db.models.fields.PositiveIntegerField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('core', ['EvidienceDocument'])
-
-        # Adding model 'BenefitCategory'
-        db.create_table('core_benefitcategory', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('priority', self.gf('django.db.models.fields.IntegerField')()),
-            ('immediately_distribution_active', self.gf('django.db.models.fields.BooleanField')(default=False)),
-        ))
-        db.send_create_signal('core', ['BenefitCategory'])
-
-        # Adding model 'Benefit'
-        db.create_table('core_benefit', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.BenefitCategory'])),
-            ('description', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('has_time_limit', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('identifier', self.gf('django.db.models.fields.IntegerField')()),
-        ))
-        db.send_create_signal('core', ['Benefit'])
-
-        # Adding M2M table for field evidience_documents on 'Benefit'
-        db.create_table('core_benefit_evidience_documents', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('benefit', models.ForeignKey(orm['core.benefit'], null=False)),
-            ('evidiencedocumenttemplate', models.ForeignKey(orm['core.evidiencedocumenttemplate'], null=False))
-        ))
-        db.create_unique('core_benefit_evidience_documents', ['benefit_id', 'evidiencedocumenttemplate_id'])
-
-        # Adding M2M table for field sadik_related on 'Benefit'
-        db.create_table('core_benefit_sadik_related', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('benefit', models.ForeignKey(orm['core.benefit'], null=False)),
-            ('sadik', models.ForeignKey(orm['core.sadik'], null=False))
-        ))
-        db.create_unique('core_benefit_sadik_related', ['benefit_id', 'sadik_id'])
-
-        # Adding model 'Address'
-        db.create_table('core_address', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('address_text', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('postindex', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('ocato', self.gf('django.db.models.fields.CharField')(max_length=11, null=True, blank=True)),
-            ('block_number', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('building_number', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('extra_info', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('kladr', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('location', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('coords', self.gf('django.contrib.gis.db.models.fields.PointField')(null=True, blank=True)),
-        ))
-        db.send_create_signal('core', ['Address'])
-
-        # Adding model 'Sadik'
-        db.create_table('core_sadik', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('area', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Area'])),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('short_name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('number', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
-            ('address', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Address'])),
-            ('email', self.gf('django.db.models.fields.CharField')(max_length=255, blank=True)),
-            ('site', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('head_name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('phone', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-            ('cast', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('tech_level', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('training_program', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('route_info', self.gf('django.db.models.fields.files.ImageField')(max_length=100, null=True, blank=True)),
-            ('extended_info', self.gf('django.db.models.fields.TextField')(null=True, blank=True)),
-            ('active_registration', self.gf('django.db.models.fields.BooleanField')(default=True)),
-            ('active_distribution', self.gf('django.db.models.fields.BooleanField')(default=True)),
-        ))
-        db.send_create_signal('core', ['Sadik'])
-
-        # Adding M2M table for field age_groups on 'Sadik'
-        db.create_table('core_sadik_age_groups', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('sadik', models.ForeignKey(orm['core.sadik'], null=False)),
-            ('agegroup', models.ForeignKey(orm['core.agegroup'], null=False))
-        ))
-        db.create_unique('core_sadik_age_groups', ['sadik_id', 'agegroup_id'])
-
-        # Adding model 'AgeGroup'
-        db.create_table('core_agegroup', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=255)),
-            ('short_name', self.gf('django.db.models.fields.CharField')(max_length=100, null=True)),
-            ('from_age', self.gf('django.db.models.fields.IntegerField')()),
-            ('from_date', self.gf('sadiki.core.fields.SplitDayMonthField')(max_length=10)),
-            ('to_age', self.gf('django.db.models.fields.IntegerField')()),
-            ('to_date', self.gf('sadiki.core.fields.SplitDayMonthField')(max_length=10)),
-            ('next_age_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.AgeGroup'], null=True, blank=True)),
-        ))
-        db.send_create_signal('core', ['AgeGroup'])
-
-        # Adding model 'SadikGroup'
-        db.create_table('core_sadikgroup', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('age_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.AgeGroup'], null=True, blank=True)),
-            ('other_name', self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True)),
-            ('cast', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('sadik', self.gf('django.db.models.fields.related.ForeignKey')(related_name='groups', to=orm['core.Sadik'])),
-            ('capacity', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
-            ('free_places', self.gf('django.db.models.fields.PositiveIntegerField')(default=0)),
-            ('min_birth_date', self.gf('django.db.models.fields.DateField')()),
-            ('max_birth_date', self.gf('django.db.models.fields.DateField')()),
-            ('year', self.gf('django.db.models.fields.DateField')()),
-            ('active', self.gf('django.db.models.fields.BooleanField')(default=True)),
-        ))
-        db.send_create_signal('core', ['SadikGroup'])
-
-        # Adding model 'Vacancies'
-        db.create_table('core_vacancies', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('sadik_group', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.SadikGroup'])),
-            ('distribution', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Distribution'], null=True, blank=True)),
-            ('status', self.gf('django.db.models.fields.IntegerField')(null=True)),
-        ))
-        db.send_create_signal('core', ['Vacancies'])
-
-        # Adding model 'Distribution'
-        db.create_table('core_distribution', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('init_datetime', self.gf('django.db.models.fields.DateTimeField')(auto_now_add=True, blank=True)),
-            ('start_datetime', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('end_datetime', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('status', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('year', self.gf('django.db.models.fields.DateField')()),
-        ))
-        db.send_create_signal('core', ['Distribution'])
-
-        # Adding model 'Profile'
-        db.create_table('core_profile', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('user', self.gf('django.db.models.fields.related.OneToOneField')(to=orm['auth.User'], unique=True)),
-            ('area', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Area'], null=True)),
-            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('patronymic', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('email_verified', self.gf('django.db.models.fields.BooleanField')(default=False)),
-            ('phone_number', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('mobile_number', self.gf('django.db.models.fields.CharField')(max_length=255, null=True, blank=True)),
-        ))
-        db.send_create_signal('core', ['Profile'])
-
-        # Adding M2M table for field sadiks on 'Profile'
-        db.create_table('core_profile_sadiks', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('profile', models.ForeignKey(orm['core.profile'], null=False)),
-            ('sadik', models.ForeignKey(orm['core.sadik'], null=False))
-        ))
-        db.create_unique('core_profile_sadiks', ['profile_id', 'sadik_id'])
-
-        # Adding model 'Requestion'
-        db.create_table('core_requestion', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('admission_date', self.gf('sadiki.core.fields.YearChoiceField')(null=True, blank=True)),
-            ('requestion_number', self.gf('django.db.models.fields.CharField')(max_length=23, null=True, blank=True)),
-            ('distributed_in_vacancy', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Vacancies'], null=True, blank=True)),
-            ('agent_type', self.gf('django.db.models.fields.IntegerField')()),
-            ('birth_date', self.gf('django.db.models.fields.DateField')()),
-            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('patronymic', self.gf('django.db.models.fields.CharField')(max_length=255, null=True)),
-            ('sex', self.gf('django.db.models.fields.CharField')(max_length=1, null=True)),
-            ('cast', self.gf('django.db.models.fields.IntegerField')(default=0)),
-            ('status', self.gf('django.db.models.fields.IntegerField')(default=3, null=True)),
-            ('registration_datetime', self.gf('django.db.models.fields.DateTimeField')(default=datetime.datetime.now)),
-            ('number_in_old_list', self.gf('django.db.models.fields.CharField')(max_length=15, null=True, blank=True)),
-            ('benefit_category', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.BenefitCategory'], null=True)),
-            ('profile', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Profile'])),
-            ('address', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Address'], null=True)),
-            ('status_change_datetime', self.gf('django.db.models.fields.DateTimeField')(null=True, blank=True)),
-            ('distribute_in_any_sadik', self.gf('django.db.models.fields.BooleanField')(default=True)),
-        ))
-        db.send_create_signal('core', ['Requestion'])
-
-        # Adding M2M table for field areas on 'Requestion'
-        db.create_table('core_requestion_areas', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('requestion', models.ForeignKey(orm['core.requestion'], null=False)),
-            ('area', models.ForeignKey(orm['core.area'], null=False))
-        ))
-        db.create_unique('core_requestion_areas', ['requestion_id', 'area_id'])
-
-        # Adding M2M table for field benefits on 'Requestion'
-        db.create_table('core_requestion_benefits', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('requestion', models.ForeignKey(orm['core.requestion'], null=False)),
-            ('benefit', models.ForeignKey(orm['core.benefit'], null=False))
-        ))
-        db.create_unique('core_requestion_benefits', ['requestion_id', 'benefit_id'])
-
-        # Adding M2M table for field pref_sadiks on 'Requestion'
-        db.create_table('core_requestion_pref_sadiks', (
-            ('id', models.AutoField(verbose_name='ID', primary_key=True, auto_created=True)),
-            ('requestion', models.ForeignKey(orm['core.requestion'], null=False)),
-            ('sadik', models.ForeignKey(orm['core.sadik'], null=False))
-        ))
-        db.create_unique('core_requestion_pref_sadiks', ['requestion_id', 'sadik_id'])
-
-        # Adding model 'Area'
-        db.create_table('core_area', (
-            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=100)),
-            ('ocato', self.gf('django.db.models.fields.CharField')(max_length=11)),
-            ('address', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['core.Address'])),
-            ('left_bottom', self.gf('django.db.models.fields.CharField')(default='180,90', max_length=255, blank=True)),
-            ('right_top', self.gf('django.db.models.fields.CharField')(default='0,0', max_length=255, blank=True)),
-        ))
-        db.send_create_signal('core', ['Area'])
-
-
-    def backwards(self, orm):
-        # Deleting model 'EvidienceDocumentTemplate'
-        db.delete_table('core_evidiencedocumenttemplate')
-
-        # Deleting model 'EvidienceDocument'
-        db.delete_table('core_evidiencedocument')
-
-        # Deleting model 'BenefitCategory'
-        db.delete_table('core_benefitcategory')
-
-        # Deleting model 'Benefit'
-        db.delete_table('core_benefit')
-
-        # Removing M2M table for field evidience_documents on 'Benefit'
-        db.delete_table('core_benefit_evidience_documents')
-
-        # Removing M2M table for field sadik_related on 'Benefit'
-        db.delete_table('core_benefit_sadik_related')
-
-        # Deleting model 'Address'
-        db.delete_table('core_address')
-
-        # Deleting model 'Sadik'
-        db.delete_table('core_sadik')
-
-        # Removing M2M table for field age_groups on 'Sadik'
-        db.delete_table('core_sadik_age_groups')
-
-        # Deleting model 'AgeGroup'
-        db.delete_table('core_agegroup')
-
-        # Deleting model 'SadikGroup'
-        db.delete_table('core_sadikgroup')
-
-        # Deleting model 'Vacancies'
-        db.delete_table('core_vacancies')
-
-        # Deleting model 'Distribution'
-        db.delete_table('core_distribution')
-
-        # Deleting model 'Profile'
-        db.delete_table('core_profile')
-
-        # Removing M2M table for field sadiks on 'Profile'
-        db.delete_table('core_profile_sadiks')
-
-        # Deleting model 'Requestion'
-        db.delete_table('core_requestion')
-
-        # Removing M2M table for field areas on 'Requestion'
-        db.delete_table('core_requestion_areas')
-
-        # Removing M2M table for field benefits on 'Requestion'
-        db.delete_table('core_requestion_benefits')
-
-        # Removing M2M table for field pref_sadiks on 'Requestion'
-        db.delete_table('core_requestion_pref_sadiks')
-
-        # Deleting model 'Area'
-        db.delete_table('core_area')
-
-
-    models = {
-        'auth.group': {
-            'Meta': {'object_name': 'Group'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '80'}),
-            'permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'})
-        },
-        'auth.permission': {
-            'Meta': {'ordering': "('content_type__app_label', 'content_type__model', 'codename')", 'unique_together': "(('content_type', 'codename'),)", 'object_name': 'Permission'},
-            'codename': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
-        },
-        'auth.user': {
-            'Meta': {'object_name': 'User'},
-            'date_joined': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Group']", 'symmetrical': 'False', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'is_staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'is_superuser': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'last_login': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '30', 'blank': 'True'}),
-            'password': ('django.db.models.fields.CharField', [], {'max_length': '128'}),
-            'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
-            'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
-        },
-        'contenttypes.contenttype': {
-            'Meta': {'ordering': "('name',)", 'unique_together': "(('app_label', 'model'),)", 'object_name': 'ContentType', 'db_table': "'django_content_type'"},
-            'app_label': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
-        },
-        'core.address': {
-            'Meta': {'object_name': 'Address'},
-            'address_text': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'block_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'building_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'coords': ('django.contrib.gis.db.models.fields.PointField', [], {'null': 'True', 'blank': 'True'}),
-            'extra_info': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'kladr': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'location': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'ocato': ('django.db.models.fields.CharField', [], {'max_length': '11', 'null': 'True', 'blank': 'True'}),
-            'postindex': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'core.agegroup': {
-            'Meta': {'ordering': "['from_age']", 'object_name': 'AgeGroup'},
-            'from_age': ('django.db.models.fields.IntegerField', [], {}),
-            'from_date': ('sadiki.core.fields.SplitDayMonthField', [], {'max_length': '10'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'next_age_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.AgeGroup']", 'null': 'True', 'blank': 'True'}),
-            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
-            'to_age': ('django.db.models.fields.IntegerField', [], {}),
-            'to_date': ('sadiki.core.fields.SplitDayMonthField', [], {'max_length': '10'})
-        },
-        'core.area': {
-            'Meta': {'object_name': 'Area'},
-            'address': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Address']"}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'left_bottom': ('django.db.models.fields.CharField', [], {'default': "'180,90'", 'max_length': '255', 'blank': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'ocato': ('django.db.models.fields.CharField', [], {'max_length': '11'}),
-            'right_top': ('django.db.models.fields.CharField', [], {'default': "'0,0'", 'max_length': '255', 'blank': 'True'})
-        },
-        'core.benefit': {
-            'Meta': {'object_name': 'Benefit'},
-            'category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.BenefitCategory']"}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'evidience_documents': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.EvidienceDocumentTemplate']", 'symmetrical': 'False'}),
-            'has_time_limit': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'identifier': ('django.db.models.fields.IntegerField', [], {}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'sadik_related': ('django.db.models.fields.related.ManyToManyField', [], {'symmetrical': 'False', 'to': "orm['core.Sadik']", 'null': 'True', 'blank': 'True'})
-        },
-        'core.benefitcategory': {
-            'Meta': {'object_name': 'BenefitCategory'},
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'immediately_distribution_active': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
-            'priority': ('django.db.models.fields.IntegerField', [], {})
-        },
-        'core.distribution': {
-            'Meta': {'object_name': 'Distribution'},
-            'end_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'init_datetime': ('django.db.models.fields.DateTimeField', [], {'auto_now_add': 'True', 'blank': 'True'}),
-            'start_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'}),
-            'status': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'year': ('django.db.models.fields.DateField', [], {})
-        },
-        'core.evidiencedocument': {
-            'Meta': {'object_name': 'EvidienceDocument'},
-            'confirmed': ('django.db.models.fields.NullBooleanField', [], {'default': 'None', 'null': 'True', 'blank': 'True'}),
-            'content_type': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['contenttypes.ContentType']", 'null': 'True', 'blank': 'True'}),
-            'document_number': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'object_id': ('django.db.models.fields.PositiveIntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'template': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.EvidienceDocumentTemplate']"})
-        },
-        'core.evidiencedocumenttemplate': {
-            'Meta': {'object_name': 'EvidienceDocumentTemplate'},
-            'destination': ('django.db.models.fields.IntegerField', [], {}),
-            'format_tips': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'regex': ('django.db.models.fields.TextField', [], {})
-        },
-        'core.profile': {
-            'Meta': {'object_name': 'Profile'},
-            'area': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Area']", 'null': 'True'}),
-            'email_verified': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'mobile_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'patronymic': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'phone_number': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Sadik']", 'null': 'True', 'symmetrical': 'False'}),
-            'user': ('django.db.models.fields.related.OneToOneField', [], {'to': "orm['auth.User']", 'unique': 'True'})
-        },
-        'core.requestion': {
-            'Meta': {'object_name': 'Requestion'},
-            'address': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Address']", 'null': 'True'}),
-            'admission_date': ('sadiki.core.fields.YearChoiceField', [], {'null': 'True', 'blank': 'True'}),
-            'agent_type': ('django.db.models.fields.IntegerField', [], {}),
-            'areas': ('sadiki.core.fields.AreaChoiceField', [], {'to': "orm['core.Area']", 'symmetrical': 'False'}),
-            'benefit_category': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.BenefitCategory']", 'null': 'True'}),
-            'benefits': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Benefit']", 'symmetrical': 'False', 'blank': 'True'}),
-            'birth_date': ('django.db.models.fields.DateField', [], {}),
-            'cast': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'distribute_in_any_sadik': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'distributed_in_vacancy': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Vacancies']", 'null': 'True', 'blank': 'True'}),
-            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'number_in_old_list': ('django.db.models.fields.CharField', [], {'max_length': '15', 'null': 'True', 'blank': 'True'}),
-            'patronymic': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True'}),
-            'pref_sadiks': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Sadik']", 'symmetrical': 'False'}),
-            'profile': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Profile']"}),
-            'registration_datetime': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            'requestion_number': ('django.db.models.fields.CharField', [], {'max_length': '23', 'null': 'True', 'blank': 'True'}),
-            'sex': ('django.db.models.fields.CharField', [], {'max_length': '1', 'null': 'True'}),
-            'status': ('django.db.models.fields.IntegerField', [], {'default': '3', 'null': 'True'}),
-            'status_change_datetime': ('django.db.models.fields.DateTimeField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'core.sadik': {
-            'Meta': {'ordering': "['number']", 'object_name': 'Sadik'},
-            'active_distribution': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'active_registration': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'address': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Address']"}),
-            'age_groups': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.AgeGroup']", 'symmetrical': 'False'}),
-            'area': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Area']"}),
-            'cast': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'email': ('django.db.models.fields.CharField', [], {'max_length': '255', 'blank': 'True'}),
-            'extended_info': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'head_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'number': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'phone': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'route_info': ('django.db.models.fields.files.ImageField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'short_name': ('django.db.models.fields.CharField', [], {'max_length': '255'}),
-            'site': ('django.db.models.fields.CharField', [], {'max_length': '255', 'null': 'True', 'blank': 'True'}),
-            'tech_level': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'}),
-            'training_program': ('django.db.models.fields.TextField', [], {'null': 'True', 'blank': 'True'})
-        },
-        'core.sadikgroup': {
-            'Meta': {'ordering': "['-min_birth_date']", 'object_name': 'SadikGroup'},
-            'active': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'age_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.AgeGroup']", 'null': 'True', 'blank': 'True'}),
-            'capacity': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'cast': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
-            'distributions': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['core.Distribution']", 'through': "orm['core.Vacancies']", 'symmetrical': 'False'}),
-            'free_places': ('django.db.models.fields.PositiveIntegerField', [], {'default': '0'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'max_birth_date': ('django.db.models.fields.DateField', [], {}),
-            'min_birth_date': ('django.db.models.fields.DateField', [], {}),
-            'other_name': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'sadik': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'groups'", 'to': "orm['core.Sadik']"}),
-            'year': ('django.db.models.fields.DateField', [], {})
-        },
-        'core.vacancies': {
-            'Meta': {'object_name': 'Vacancies'},
-            'distribution': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.Distribution']", 'null': 'True', 'blank': 'True'}),
-            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'sadik_group': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['core.SadikGroup']"}),
-            'status': ('django.db.models.fields.IntegerField', [], {'null': 'True'})
-        }
-    }
-
-    complete_apps = ['core']
+    operations = [
+        migrations.CreateModel(
+            name='Address',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('town', models.CharField(max_length=255, null=True, verbose_name='\u041d\u0430\u0441\u0435\u043b\u0435\u043d\u043d\u044b\u0439 \u043f\u0443\u043d\u043a\u0442', blank=True)),
+                ('street', models.CharField(max_length=255, null=True, verbose_name='\u0442\u0435\u043a\u0441\u0442 \u0430\u0434\u0440\u0435\u0441\u0430')),
+                ('postindex', models.IntegerField(blank=True, null=True, verbose_name='\u043f\u043e\u0447\u0442\u043e\u0432\u044b\u0439 \u0438\u043d\u0434\u0435\u043a\u0441', validators=[django.core.validators.MaxValueValidator(999999)])),
+                ('ocato', models.CharField(max_length=11, null=True, verbose_name='\u041e\u041a\u0410\u0422\u041e', blank=True)),
+                ('block_number', models.CharField(max_length=255, null=True, verbose_name='\u2116 \u043a\u0432\u0430\u0440\u0442\u0430\u043b\u0430', blank=True)),
+                ('building_number', models.CharField(max_length=255, null=True, verbose_name='\u2116 \u0437\u0434\u0430\u043d\u0438\u044f', blank=True)),
+                ('extra_info', models.TextField(null=True, verbose_name='\u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u0430\u044f \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f', blank=True)),
+                ('kladr', models.CharField(max_length=255, null=True, verbose_name='\u041a\u041b\u0410\u0414\u0420', blank=True)),
+                ('coords', django.contrib.gis.db.models.fields.PointField(srid=4326, null=True, verbose_name='\u041a\u043e\u043e\u0440\u0434\u0438\u043d\u0430\u0442\u044b \u0442\u043e\u0447\u043a\u0438', blank=True)),
+            ],
+            options={
+                'verbose_name': '\u0410\u0434\u0440\u0435\u0441',
+                'verbose_name_plural': '\u0410\u0434\u0440\u0435\u0441\u0430',
+            },
+        ),
+        migrations.CreateModel(
+            name='AgeGroup',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255, verbose_name='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('short_name', models.CharField(max_length=100, null=True, verbose_name='\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('from_age', models.IntegerField(help_text='\u043f\u043e\u043b\u043d\u044b\u0445 \u043c\u0435\u0441\u044f\u0446\u0435\u0432 \u043d\u0430 \u0434\u0430\u0442\u0443 \u0438\u0441\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u043c\u0438\u043d\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u0430', verbose_name='\u041c\u0438\u043d\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u043e\u0437\u0440\u0430\u0441\u0442')),
+                ('from_date', sadiki.core.fields.SplitDayMonthField(help_text='\u0443\u043a\u0430\u0436\u0438\u0442\u0435 \u0434\u0430\u0442\u0443(\u0447\u0438\u0441\u043b\u043e \u0438 \u043c\u0435\u0441\u044f\u0446) \u043d\u0430 \n        \u043a\u043e\u0442\u043e\u0440\u0443\u044e \u0431\u0443\u0434\u0435\u0442 \u0440\u0430\u0441\u0441\u0447\u0438\u0442\u044b\u0432\u0430\u0442\u044c\u0441\u044f \u043c\u0438\u043d\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u043e\u0437\u0440\u0430\u0441\u0442', max_length=10, verbose_name='\u0414\u0430\u0442\u0430 \u0438\u0441\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u043c\u0438\u043d\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u0430')),
+                ('to_age', models.IntegerField(help_text='\u043f\u043e\u043b\u043d\u044b\u0445 \u043c\u0435\u0441\u044f\u0446\u0435\u0432 \u043d\u0430 \u0434\u0430\u0442\u0443 \u0438\u0441\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u0430', verbose_name='\u041c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u043e\u0437\u0440\u0430\u0441\u0442')),
+                ('to_date', sadiki.core.fields.SplitDayMonthField(help_text='\u0443\u043a\u0430\u0436\u0438\u0442\u0435 \u0434\u0430\u0442\u0443(\u0447\u0438\u0441\u043b\u043e \u0438 \u043c\u0435\u0441\u044f\u0446) \u043d\u0430 \n        \u043a\u043e\u0442\u043e\u0440\u0443\u044e \u0431\u0443\u0434\u0435\u0442 \u0440\u0430\u0441\u0441\u0447\u0438\u0442\u044b\u0432\u0430\u0442\u044c\u0441\u044f \u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u044b\u0439 \u0432\u043e\u0437\u0440\u0430\u0441\u0442', max_length=10, verbose_name='\u0414\u0430\u0442\u0430 \u0438\u0441\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f \u043c\u0430\u043a\u0441\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u0433\u043e \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u0430')),
+                ('next_age_group', models.ForeignKey(verbose_name='\u0421\u043b\u0435\u0434\u0443\u044e\u0449\u0430\u044f \u0432\u043e\u0437\u0440\u0430\u0441\u0442\u043d\u0430\u044f \u0433\u0440\u0443\u043f\u043f\u0430', blank=True, to='core.AgeGroup', null=True)),
+            ],
+            options={
+                'ordering': ['from_age'],
+                'verbose_name': '\u0412\u043e\u0437\u0440\u0430\u0441\u0442\u043d\u0430\u044f \u0433\u0440\u0443\u043f\u043f\u0430 \u0434\u043b\u044f \u0441\u0438\u0441\u0442\u0435\u043c\u044b',
+                'verbose_name_plural': '\u0412\u043e\u0437\u0440\u0430\u0441\u0442\u043d\u044b\u0435 \u0433\u0440\u0443\u043f\u043f\u044b \u0434\u043b\u044f \u0441\u0438\u0441\u0442\u0435\u043c\u044b',
+            },
+        ),
+        migrations.CreateModel(
+            name='Area',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(unique=True, max_length=100, verbose_name='\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('ocato', models.CharField(max_length=11, verbose_name='\u041e\u041a\u0410\u0422\u041e')),
+                ('bounds', django.contrib.gis.db.models.fields.PolygonField(srid=4326, null=True, verbose_name='\u0413\u0440\u0430\u043d\u0438\u0446\u044b \u043e\u0431\u043b\u0430\u0441\u0442\u0438', blank=True)),
+            ],
+            options={
+                'ordering': ['name'],
+                'verbose_name': '\u0433\u0440\u0443\u043f\u043f\u0430 \u0441\u0430\u0434\u0438\u043a\u043e\u0432',
+                'verbose_name_plural': '\u0433\u0440\u0443\u043f\u043f\u044b \u0441\u0430\u0434\u0438\u043a\u043e\u0432',
+            },
+        ),
+        migrations.CreateModel(
+            name='Benefit',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('status', models.IntegerField(blank=True, null=True, verbose_name='\u0421\u0442\u0430\u0442\u0443\u0441', choices=[(1, '\u0420\u0435\u0433\u0438\u043e\u043d\u0430\u043b\u044c\u043d\u0430\u044f'), (2, '\u0424\u0435\u0434\u0435\u0440\u0430\u043b\u044c\u043d\u0430\u044f')])),
+                ('name', models.CharField(unique=True, max_length=255, verbose_name='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('description', models.CharField(max_length=255, verbose_name='\u043e\u043f\u0438\u0441\u0430\u043d\u0438\u0435', blank=True)),
+                ('disabled', models.BooleanField(default=False, help_text='\u041e\u0442\u043a\u043b\u044e\u0447\u0435\u043d\u0438\u0435 \u043d\u0435 \u0443\u0434\u0430\u043b\u044f\u0435\u0442 \u043b\u044c\u0433\u043e\u0442\u0443 \u0443 \u0437\u0430\u044f\u0432\u043e\u043a, \u0430 \u0442\u043e\u043b\u044c\u043a\u043e \u043d\u0435 \u0434\u0430\u0435\u0442 \u0432\u044b\u0431\u0440\u0430\u0442\u044c \u0435\u0451 \u043f\u0440\u0438 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438.', verbose_name='\u041e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c')),
+            ],
+            options={
+                'verbose_name': '\u041b\u044c\u0433\u043e\u0442\u0430',
+                'verbose_name_plural': '\u041b\u044c\u0433\u043e\u0442\u044b',
+            },
+        ),
+        migrations.CreateModel(
+            name='BenefitCategory',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=100, verbose_name='\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('description', models.CharField(max_length=255, null=True, verbose_name='\u041e\u043f\u0438\u0441\u0430\u043d\u0438\u0435')),
+                ('priority', models.PositiveIntegerField(help_text='\u0427\u0435\u043c \u0431\u043e\u043b\u044c\u0448\u0435 \u0447\u0438\u0441\u043b\u043e, \u0442\u0435\u043c \u0432\u044b\u0448\u0435 \u043f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442', unique=True, verbose_name='\u041f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u043e\u0441\u0442\u044c \u043b\u044c\u0433\u043e\u0442\u044b', validators=[django.core.validators.MaxValueValidator(99)])),
+                ('immediately_distribution_active', models.BooleanField(default=False, verbose_name='\u0423\u0447\u0430\u0432\u0441\u0442\u0432\u0443\u0435\u0442 \u0432 \u043d\u0435\u043c\u0435\u0434\u043b\u0435\u043d\u043d\u043e\u043c \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0438')),
+            ],
+            options={
+                'verbose_name': '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f \u043b\u044c\u0433\u043e\u0442',
+                'verbose_name_plural': '\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u0438 \u043b\u044c\u0433\u043e\u0442',
+            },
+        ),
+        migrations.CreateModel(
+            name='Distribution',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('init_datetime', models.DateTimeField(auto_now_add=True, verbose_name='\u0414\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430 \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u044f \u043c\u0435\u0441\u0442')),
+                ('start_datetime', models.DateTimeField(null=True, verbose_name='\u0414\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043d\u0430\u0447\u0430\u043b\u0430 \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f', blank=True)),
+                ('end_datetime', models.DateTimeField(null=True, verbose_name='\u0414\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043e\u043a\u043e\u043d\u0447\u0430\u043d\u0438\u044f', blank=True)),
+                ('status', models.IntegerField(default=0, verbose_name='\u0422\u0435\u043a\u0443\u0449\u0438\u0439 \u0441\u0442\u0430\u0442\u0443\u0441', choices=[(0, '\u0420\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u043d\u0430\u0447\u0430\u0442\u043e'), (3, '\u0410\u0432\u0442\u043e\u043c\u0430\u0442\u0438\u0447\u0435\u0441\u043a\u043e\u0435 \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0435'), (1, '\u041a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u0430\u0446\u0438\u044f \u0437\u0430\u044f\u0432\u043e\u043a'), (4, '\u041f\u0440\u043e\u0446\u0435\u0441\u0441 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f'), (2, '\u0420\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043e')])),
+                ('year', models.DateField(verbose_name='\u0413\u043e\u0434 \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f')),
+            ],
+            options={
+                'ordering': ['end_datetime'],
+                'verbose_name': '\u0420\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0435',
+                'verbose_name_plural': '\u0420\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f',
+            },
+        ),
+        migrations.CreateModel(
+            name='District',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('title', models.CharField(max_length=255, verbose_name='\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0440\u0430\u0439\u043e\u043d\u0430')),
+            ],
+            options={
+                'verbose_name': '\u0420\u0430\u0439\u043e\u043d',
+                'verbose_name_plural': '\u0420\u0430\u0439\u043e\u043d\u044b',
+            },
+        ),
+        migrations.CreateModel(
+            name='EvidienceDocument',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('document_number', models.CharField(max_length=255, verbose_name='\u041d\u043e\u043c\u0435\u0440 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430')),
+                ('confirmed', models.NullBooleanField(default=None, verbose_name='\u041f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d')),
+                ('object_id', models.PositiveIntegerField(null=True, blank=True)),
+                ('fake', models.BooleanField(default=False, verbose_name='\u0411\u044b\u043b \u0441\u0433\u0435\u043d\u0435\u0440\u0438\u0440\u043e\u0432\u0430\u043d \u043f\u0440\u0438 \u0438\u043c\u043f\u043e\u0440\u0442\u0435')),
+                ('content_type', models.ForeignKey(blank=True, to='contenttypes.ContentType', null=True)),
+            ],
+            options={
+                'verbose_name': '\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442',
+                'verbose_name_plural': '\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b',
+            },
+        ),
+        migrations.CreateModel(
+            name='EvidienceDocumentTemplate',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255, verbose_name='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('format_tips', models.CharField(max_length=255, verbose_name='\u043f\u043e\u0434\u0441\u043a\u0430\u0437\u043a\u0430 \u043a \u0444\u043e\u0440\u043c\u0430\u0442\u0443', blank=True)),
+                ('destination', models.IntegerField(verbose_name='\u043d\u0430\u0437\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430', choices=[(0, '\u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u0446\u0438\u0440\u0443\u0435\u0442 \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044f'), (1, '\u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u0446\u0438\u0440\u0443\u0435\u0442 \u0440\u0435\u0431\u0451\u043d\u043a\u0430'), (2, '\u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b \u043a \u043b\u044c\u0433\u043e\u0442\u0430\u043c')])),
+                ('regex', models.TextField(verbose_name='\u0420\u0435\u0433\u0443\u043b\u044f\u0440\u043d\u043e\u0435 \u0432\u044b\u0440\u0430\u0436\u0435\u043d\u0438\u0435')),
+                ('import_involved', models.BooleanField(default=False, verbose_name='\u0423\u0447\u0438\u0442\u044b\u0432\u0430\u0435\u0442\u0441\u044f \u043f\u0440\u0438 \u0438\u043c\u043f\u043e\u0440\u0442\u0435')),
+                ('gives_health_impairment', models.BooleanField(verbose_name='\u041e\u0442\u043c\u0435\u0447\u0430\u0435\u0442 \u0440\u0435\u0431\u0435\u043d\u043a\u0430 \u0441 \u043e\u0433\u0440\u0430\u043d\u0438\u0447\u0435\u043d\u043d\u044b\u043c\u0438 \u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u044f\u043c\u0438 \u0437\u0434\u043e\u0440\u043e\u0432\u044c\u044f')),
+                ('gives_compensating_group', models.BooleanField(verbose_name='\u041f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0435\u0442 \u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u044c \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u044f \u0432 \u0433\u0440\u0443\u043f\u043f\u0443 \u043a\u043e\u043c\u043f\u0435\u043d\u0441\u0438\u0440\u0443\u044e\u0449\u0435\u0439 \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043d\u043e\u0441\u0442\u0438')),
+                ('gives_wellness_group', models.BooleanField(verbose_name='\u041f\u0440\u0435\u0434\u043e\u0441\u0442\u0430\u0432\u043b\u044f\u0435\u0442 \u0432\u043e\u0437\u043c\u043e\u0436\u043d\u043e\u0441\u0442\u044c \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u044f \u0432 \u0433\u0440\u0443\u043f\u043f\u0443 \u043e\u0437\u0434\u043e\u0440\u043e\u0432\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0439 \u043d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u043d\u043e\u0441\u0442\u0438')),
+            ],
+            options={
+                'verbose_name': '\u0422\u0438\u043f \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430',
+                'verbose_name_plural': '\u0422\u0438\u043f\u044b \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u043e\u0432',
+            },
+        ),
+        migrations.CreateModel(
+            name='PersonalDocument',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('doc_type', models.IntegerField(default=2, verbose_name='\u0422\u0438\u043f \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430', choices=[(2, '\u041f\u0430\u0441\u043f\u043e\u0440\u0442 \u0433\u0440\u0430\u0436\u0434\u0430\u043d\u0438\u043d\u0430 \u0420\u0424'), (1, '\u0418\u043d\u043e\u0435')])),
+                ('doc_name', models.CharField(max_length=30, null=True, verbose_name='\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430', blank=True)),
+                ('series', models.CharField(max_length=20, null=True, verbose_name='\u0421\u0435\u0440\u0438\u044f \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430', blank=True)),
+                ('number', models.CharField(max_length=50, null=True, verbose_name='\u041d\u043e\u043c\u0435\u0440 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430')),
+                ('issued_date', models.DateField(null=True, verbose_name='\u0414\u0430\u0442\u0430 \u0432\u044b\u0434\u0430\u0447\u0438 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430')),
+                ('issued_by', models.CharField(max_length=250, null=True, verbose_name='\u041a\u0435\u043c \u0432\u044b\u0434\u0430\u043d', blank=True)),
+            ],
+            options={
+                'verbose_name': '\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442 \u0437\u0430\u044f\u0432\u0438\u0442\u0435\u043b\u044f',
+                'verbose_name_plural': '\u0414\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b \u0437\u0430\u044f\u0432\u0438\u0442\u0435\u043b\u0435\u0439',
+            },
+        ),
+        migrations.CreateModel(
+            name='Preference',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('section', models.CharField(max_length=255, verbose_name='\u0420\u0430\u0437\u0434\u0435\u043b', choices=[(b'municipality', '\u0420\u0430\u0437\u0434\u0435\u043b \u0441 \u043f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u0430\u043c\u0438 \u043c\u0443\u043d\u0438\u0446\u0438\u043f\u0430\u043b\u0438\u0442\u0435\u0442\u0430'), (b'system', '\u0421\u0438\u0441\u0442\u0435\u043c\u043d\u044b\u0435 \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438'), (b'hidden', '\u041d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438, \u043a\u043e\u0442\u043e\u0440\u044b\u0435 \u043c\u043e\u0433\u0443\u0442 \u0438\u0437\u043c\u0435\u043d\u044f\u0442\u044c\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u0441\u0438\u0441\u0442\u0435\u043c\u043e\u0439')])),
+                ('key', models.CharField(unique=True, max_length=255, verbose_name='\u041a\u043b\u044e\u0447', choices=[(b'MUNICIPALITY_NAME', '\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043c\u0443\u043d\u0438\u0446\u0438\u043f\u0430\u043b\u0438\u0442\u0435\u0442\u0430'), (b'MUNICIPALITY_NAME_GENITIVE', '\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043c\u0443\u043d\u0438\u0446\u0438\u043f\u0430\u043b\u0438\u0442\u0435\u0442\u0430 (\u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043f\u0430\u0434\u0435\u0436)'), (b'MUNICIPALITY_PHONE', '\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u043d\u044b\u0439 \u0442\u0435\u043b\u0435\u0444\u043e\u043d'), (b'EMAIL_KEY_VALID', '\u0421\u0440\u043e\u043a \u0434\u0435\u0439\u0441\u0442\u0432\u0438\u044f \u043a\u043b\u044e\u0447\u0430 \u0434\u043b\u044f \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d\u0438\u044f \u043f\u043e\u0447\u0442\u044b(\u0434\u043d\u0435\u0439)'), (b'IMPORT_STATUS_FINISHED', '\u0421\u0442\u0430\u0442\u0443\u0441 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0438\u044f \u0438\u043c\u043f\u043e\u0440\u0442\u0430'), (b'REQUESTIONS_IMPORTED', '\u0411\u044b\u043b\u0438 \u0438\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u044b \u0437\u0430\u044f\u0432\u043a\u0438'), (b'LOCAL_AUTHORITY', '\u041d\u0430\u0438\u043c\u0435\u043d\u043e\u0432\u0430\u043d\u0438\u0435 \u043e\u0440\u0433\u0430\u043d\u0430 \u043c\u0435\u0441\u0442\u043d\u043e\u0433\u043e \u0441\u0430\u043c\u043e\u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f, \n        \u043e\u0441\u0443\u0449\u0435\u0441\u0442\u0432\u043b\u044f\u044e\u0449\u0435\u0433\u043e \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0432 \u0441\u0444\u0435\u0440\u0435 \u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u044f (\u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043f\u0430\u0434\u0435\u0436)'), (b'AUTHORITY_HEAD', '\u0424\u0418\u041e \u0433\u043b\u0430\u0432\u044b \u043e\u0440\u0433\u0430\u043d\u0430 \u043c\u0435\u0441\u0442\u043d\u043e\u0433\u043e \u0441\u0430\u043c\u043e\u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u044f,\n        \u043e\u0441\u0443\u0449\u0435\u0441\u0442\u0432\u043b\u044f\u044e\u0449\u0435\u0433\u043e \u0443\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0432 \u0441\u0444\u0435\u0440\u0435 \u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u044f (\u0434\u0430\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u043f\u0430\u0434\u0435\u0436)')])),
+                ('datetime', models.DateTimeField(verbose_name='\u0414\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0433\u043e \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f')),
+                ('value', models.CharField(max_length=255, verbose_name='\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435')),
+            ],
+            options={
+                'verbose_name': '\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440',
+                'verbose_name_plural': '\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b',
+            },
+        ),
+        migrations.CreateModel(
+            name='Profile',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('middle_name', models.CharField(max_length=255, null=True, verbose_name='\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e', blank=True)),
+                ('email_verified', models.BooleanField(default=False, verbose_name='E-mail \u0434\u043e\u0441\u0442\u043e\u0432\u0435\u0440\u043d\u044b\u0439')),
+                ('phone_number', models.CharField(max_length=255, null=True, verbose_name='\u0422\u0435\u043b\u0435\u0444\u043e\u043d \u0434\u043b\u044f \u0441\u0432\u044f\u0437\u0438', blank=True)),
+                ('mobile_number', models.CharField(max_length=255, null=True, verbose_name='\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0439 \u0442\u0435\u043b\u0435\u0444\u043e\u043d', blank=True)),
+                ('skype', models.CharField(help_text='\u0423\u0447\u0435\u0442\u043d\u0430\u044f \u0437\u0430\u043f\u0438\u0441\u044c \u0432 \u0441\u0435\u0440\u0432\u0438\u0441\u0435 Skype', max_length=255, null=True, verbose_name='Skype', blank=True)),
+                ('snils', models.CharField(validators=[django.core.validators.RegexValidator(b'^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$', message='\u043d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u0444\u043e\u0440\u043c\u0430\u0442')], max_length=20, blank=True, help_text='\u0424\u043e\u0440\u043c\u0430\u0442: 123-456-789 12', null=True, verbose_name='\u0421\u041d\u0418\u041b\u0421')),
+                ('town', models.CharField(max_length=50, null=True, verbose_name='\u041d\u0430\u0441\u0435\u043b\u0451\u043d\u043d\u044b\u0439 \u043f\u0443\u043d\u043a\u0442')),
+                ('street', models.CharField(max_length=50, null=True, verbose_name='\u0423\u043b\u0438\u0446\u0430')),
+                ('house', models.CharField(max_length=10, null=True, verbose_name='\u041d\u043e\u043c\u0435\u0440 \u0434\u043e\u043c\u0430')),
+                ('social_auth_public', models.NullBooleanField(verbose_name='\u041f\u043e\u043a\u0430\u0437\u044b\u0432\u0430\u0442\u044c \u043c\u043e\u0439 \u043f\u0440\u043e\u0444\u0438\u043b\u044c \u0412\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u0435 \u0432 \u043f\u0443\u0431\u043b\u0438\u0447\u043d\u043e\u0439 \u043e\u0447\u0435\u0440\u0435\u0434\u0438', choices=[(True, b'\xd0\x9e\xd1\x82\xd0\xbe\xd0\xb1\xd1\x80\xd0\xb0\xd0\xb6\xd0\xb0\xd1\x82\xd1\x8c \xd0\xb2 \xd0\xbf\xd1\x83\xd0\xb1\xd0\xbb\xd0\xb8\xd1\x87\xd0\xbd\xd0\xbe\xd0\xb9 \xd0\xbe\xd1\x87\xd0\xb5\xd1\x80\xd0\xb5\xd0\xb4\xd0\xb8'), (False, b'\xd0\x9d\xd0\xb5 \xd0\xbe\xd1\x82\xd0\xbe\xd0\xb1\xd1\x80\xd0\xb0\xd0\xb6\xd0\xb0\xd1\x82\xd1\x8c \xd0\xb2 \xd0\xbf\xd1\x83\xd0\xb1\xd0\xbb\xd0\xb8\xd1\x87\xd0\xbd\xd0\xbe\xd0\xb9 \xd0\xbe\xd1\x87\xd0\xb5\xd1\x80\xd0\xb5\xd0\xb4\xd0\xb8')])),
+                ('pd_processing_permit', models.DateTimeField(null=True, verbose_name='\u0414\u0430\u0442\u0430 \u0441\u043e\u0433\u043b\u0430\u0441\u0438\u044f \u043d\u0430 \u043e\u0431\u0440\u0430\u0431\u043e\u0442\u043a\u0443 \u043f\u0435\u0440\u0441\u043e\u043d\u0430\u043b\u044c\u043d\u044b\u0445 \u0434\u0430\u043d\u043d\u044b\u0445', blank=True)),
+                ('area', models.ForeignKey(verbose_name='\u0422\u0435\u0440\u0440\u0438\u0442\u043e\u0440\u0438\u0430\u043b\u044c\u043d\u0430\u044f \u043e\u0431\u043b\u0430\u0441\u0442\u044c \u043a \u043a\u043e\u0442\u043e\u0440\u043e\u0439 \u043e\u0442\u043d\u043e\u0441\u0438\u0442\u0441\u044f', to='core.Area', null=True)),
+            ],
+            options={
+                'verbose_name': '\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u044f',
+                'verbose_name_plural': '\u041f\u0440\u043e\u0444\u0438\u043b\u0438 \u0440\u043e\u0434\u0438\u0442\u0435\u043b\u0435\u0439',
+            },
+        ),
+        migrations.CreateModel(
+            name='Requestion',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('admission_date', models.DateField(help_text='\u0414\u0430\u0442\u0430, \u043d\u0430\u0447\u0438\u043d\u0430\u044f \u0441 \u043a\u043e\u0442\u043e\u0440\u043e\u0439 \u0437\u0430\u044f\u0432\u043a\u0430 \u043c\u043e\u0436\u0435\u0442 \u0431\u044b\u0442\u044c \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0430', null=True, verbose_name='\u0416\u0435\u043b\u0430\u0435\u043c\u0430\u044f \u0434\u0430\u0442\u0430 \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u044f', blank=True)),
+                ('requestion_number', models.CharField(max_length=23, null=True, verbose_name='\u041d\u043e\u043c\u0435\u0440 \u0437\u0430\u044f\u0432\u043a\u0438', blank=True)),
+                ('distribution_type', models.IntegerField(default=0, verbose_name='\u0442\u0438\u043f \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f', choices=[(0, '\u041e\u0431\u044b\u0447\u043d\u043e\u0435 \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435'), (1, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435 \u043d\u0430 \u043f\u043e\u0441\u0442\u043e\u044f\u043d\u043d\u043e\u0439 \u043e\u0441\u043d\u043e\u0432\u0435')])),
+                ('birth_date', models.DateField(verbose_name='\u0414\u0430\u0442\u0430 \u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0440\u0435\u0431\u0451\u043d\u043a\u0430', validators=[sadiki.core.validators.birth_date_validator])),
+                ('name', models.CharField(max_length=255, null=True, verbose_name='\u0418\u043c\u044f \u0440\u0435\u0431\u0451\u043d\u043a\u0430', validators=[sadiki.core.fields.validate_no_spaces])),
+                ('child_middle_name', models.CharField(blank=True, max_length=50, null=True, verbose_name='\u041e\u0442\u0447\u0435\u0441\u0442\u0432\u043e \u0440\u0435\u0431\u0451\u043d\u043a\u0430', validators=[sadiki.core.fields.validate_no_spaces])),
+                ('child_last_name', models.CharField(max_length=50, null=True, verbose_name='\u0424\u0430\u043c\u0438\u043b\u0438\u044f \u0440\u0435\u0431\u0451\u043d\u043a\u0430', validators=[sadiki.core.fields.validate_no_spaces])),
+                ('sex', models.CharField(max_length=1, null=True, verbose_name='\u041f\u043e\u043b \u0440\u0435\u0431\u0451\u043d\u043a\u0430', choices=[('\u041c', '\u041c\u0443\u0436\u0441\u043a\u043e\u0439'), ('\u0416', '\u0416\u0435\u043d\u0441\u043a\u0438\u0439')])),
+                ('kinship', models.CharField(max_length=50, null=True, verbose_name='\u0421\u0442\u0435\u043f\u0435\u043d\u044c \u0440\u043e\u0434\u0441\u0442\u0432\u0430 \u0437\u0430\u044f\u0432\u0438\u0442\u0435\u043b\u044f', blank=True)),
+                ('birthplace', models.CharField(max_length=50, null=True, verbose_name='\u041c\u0435\u0441\u0442\u043e \u0440\u043e\u0436\u0434\u0435\u043d\u0438\u044f \u0440\u0435\u0431\u0451\u043d\u043a\u0430')),
+                ('child_snils', models.CharField(validators=[django.core.validators.RegexValidator(b'^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$', message='\u043d\u0435\u0432\u0435\u0440\u043d\u044b\u0439 \u0444\u043e\u0440\u043c\u0430\u0442')], max_length=20, blank=True, help_text='\u0424\u043e\u0440\u043c\u0430\u0442: 123-456-789 12', null=True, verbose_name='\u0421\u041d\u0418\u041b\u0421 \u0440\u0435\u0431\u0451\u043d\u043a\u0430')),
+                ('cast', models.IntegerField(default=3, verbose_name='\u0422\u0438\u043f \u0437\u0430\u044f\u0432\u043a\u0438', choices=[(0, '\u0420\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f \u0447\u0435\u0440\u0435\u0437 \u043e\u043f\u0435\u0440\u0430\u0442\u043e\u0440\u0430'), (1, '\u0418\u043c\u043f\u043e\u0440\u0442\u0438\u0440\u043e\u0432\u0430\u043d\u043d\u0430\u044f \u0437\u0430\u044f\u0432\u043a\u0430'), (2, '\u0417\u0430\u044f\u0432\u043a\u0430 \u0437\u0430\u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0438\u0440\u043e\u0432\u0430\u043d\u0430 \u0434\u043e \u0437\u0430\u043f\u0443\u0441\u043a\u0430 \u0441\u0438\u0441\u0442\u0435\u043c\u044b \u0438 \u0432\u0432\u0435\u0434\u0435\u043d\u0430 \u0432\u0440\u0443\u0447\u043d\u0443\u044e'), (3, 'C\u0430\u043c\u043e\u0441\u0442\u043e\u044f\u0442\u0435\u043b\u044c\u043d\u0430\u044f \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u044f')])),
+                ('status', models.IntegerField(default=3, null=True, verbose_name='\u0421\u0442\u0430\u0442\u0443\u0441', choices=[(1, '\u041e\u0436\u0438\u0434\u0430\u0435\u0442 \u0440\u0430\u0441\u0441\u043c\u043e\u0442\u0440\u0435\u043d\u0438\u044f'), (2, '\u0417\u0430\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u043e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u043e'), (3, '\u041e\u0447\u0435\u0440\u0435\u0434\u043d\u0438\u043a - \u043d\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d'), (4, '\u041e\u0447\u0435\u0440\u0435\u0434\u043d\u0438\u043a'), (6, '\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u043e \u043c\u0435\u0441\u0442\u043e'), (9, '\u0412\u044b\u0434\u0430\u043d\u0430 \u043f\u0443\u0442\u0435\u0432\u043a\u0430'), (12, '\u0412\u044b\u0434\u0430\u043d\u0430 \u043f\u0443\u0442\u0435\u0432\u043a\u0430 \u043d\u0430 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0439 \u043e\u0441\u043d\u043e\u0432\u0435'), (13, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d'), (14, '\u0412\u0440\u0435\u043c\u0435\u043d\u043d\u043e \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d'), (15, '\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442'), (16, '\u041d\u0435 \u044f\u0432\u0438\u043b\u0441\u044f'), (17, '\u0421\u043d\u044f\u0442 \u0441 \u0443\u0447\u0451\u0442\u0430'), (18, '\u0410\u0440\u0445\u0438\u0432\u043d\u0430\u044f'), (50, '\u041d\u0430 \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0438'), (51, '\u041d\u0430 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u043c \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0438'), (53, '\u0421\u0440\u043e\u043a\u0438 \u043d\u0430 \u043e\u0431\u0436\u0430\u043b\u043e\u0432\u0430\u043d\u0438\u0435 \u043d\u0435\u044f\u0432\u043a\u0438 \u0438\u0441\u0442\u0435\u043a\u043b\u0438'), (54, '\u0421\u0440\u043e\u043a\u0438 \u043d\u0430 \u043e\u0431\u0436\u0430\u043b\u043e\u0432\u0430\u043d\u0438\u0435 \u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0438\u044f \u0438\u0441\u0442\u0435\u043a\u043b\u0438'), (55, '\u0414\u043b\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u043e\u0442\u0441\u0443\u0442\u0441\u0432\u0438\u0435 \u043f\u043e \u0443\u0432\u0430\u0436\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0439 \u043f\u0440\u0438\u0447\u0438\u043d\u0435'), (56, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d'), (57, '\u041f\u043e\u0441\u0435\u0449\u0430\u0435\u0442 \u0433\u0440\u0443\u043f\u043f\u0443 \u043a\u0440\u0430\u0442\u043a\u043e\u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0433\u043e \u043f\u0440\u0435\u0431\u044b\u0432\u0430\u043d\u0438\u044f'), (58, '\u0412\u044b\u043f\u0443\u0449\u0435\u043d \u0438\u0437 \u0414\u041e\u0423')])),
+                ('previous_status', models.IntegerField(blank=True, null=True, verbose_name='\u041f\u0440\u0435\u0434\u044b\u0434\u0443\u0449\u0438\u0439 \u0441\u0442\u0430\u0442\u0443\u0441', choices=[(1, '\u041e\u0436\u0438\u0434\u0430\u0435\u0442 \u0440\u0430\u0441\u0441\u043c\u043e\u0442\u0440\u0435\u043d\u0438\u044f'), (2, '\u0417\u0430\u044f\u0432\u043b\u0435\u043d\u0438\u0435 \u043e\u0442\u043a\u043b\u043e\u043d\u0435\u043d\u043e'), (3, '\u041e\u0447\u0435\u0440\u0435\u0434\u043d\u0438\u043a - \u043d\u0435 \u043f\u043e\u0434\u0442\u0432\u0435\u0440\u0436\u0434\u0435\u043d'), (4, '\u041e\u0447\u0435\u0440\u0435\u0434\u043d\u0438\u043a'), (6, '\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u043e \u043c\u0435\u0441\u0442\u043e'), (9, '\u0412\u044b\u0434\u0430\u043d\u0430 \u043f\u0443\u0442\u0435\u0432\u043a\u0430'), (12, '\u0412\u044b\u0434\u0430\u043d\u0430 \u043f\u0443\u0442\u0435\u0432\u043a\u0430 \u043d\u0430 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0439 \u043e\u0441\u043d\u043e\u0432\u0435'), (13, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d'), (14, '\u0412\u0440\u0435\u043c\u0435\u043d\u043d\u043e \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d'), (15, '\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442'), (16, '\u041d\u0435 \u044f\u0432\u0438\u043b\u0441\u044f'), (17, '\u0421\u043d\u044f\u0442 \u0441 \u0443\u0447\u0451\u0442\u0430'), (18, '\u0410\u0440\u0445\u0438\u0432\u043d\u0430\u044f'), (50, '\u041d\u0430 \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0438'), (51, '\u041d\u0430 \u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u043c \u043a\u043e\u043c\u043f\u043b\u0435\u043a\u0442\u043e\u0432\u0430\u043d\u0438\u0438'), (53, '\u0421\u0440\u043e\u043a\u0438 \u043d\u0430 \u043e\u0431\u0436\u0430\u043b\u043e\u0432\u0430\u043d\u0438\u0435 \u043d\u0435\u044f\u0432\u043a\u0438 \u0438\u0441\u0442\u0435\u043a\u043b\u0438'), (54, '\u0421\u0440\u043e\u043a\u0438 \u043d\u0430 \u043e\u0431\u0436\u0430\u043b\u043e\u0432\u0430\u043d\u0438\u0435 \u043e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0438\u044f \u0438\u0441\u0442\u0435\u043a\u043b\u0438'), (55, '\u0414\u043b\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u043e\u0442\u0441\u0443\u0442\u0441\u0432\u0438\u0435 \u043f\u043e \u0443\u0432\u0430\u0436\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0439 \u043f\u0440\u0438\u0447\u0438\u043d\u0435'), (56, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d'), (57, '\u041f\u043e\u0441\u0435\u0449\u0430\u0435\u0442 \u0433\u0440\u0443\u043f\u043f\u0443 \u043a\u0440\u0430\u0442\u043a\u043e\u0432\u0440\u0435\u043c\u0435\u043d\u043d\u043e\u0433\u043e \u043f\u0440\u0435\u0431\u044b\u0432\u0430\u043d\u0438\u044f'), (58, '\u0412\u044b\u043f\u0443\u0449\u0435\u043d \u0438\u0437 \u0414\u041e\u0423')])),
+                ('registration_datetime', models.DateTimeField(default=datetime.datetime.now, verbose_name='\u0414\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043f\u043e\u0434\u0430\u0447\u0438 \u0437\u0430\u044f\u0432\u043a\u0438', validators=[sadiki.core.validators.registration_date_validator])),
+                ('number_in_old_list', models.CharField(max_length=15, null=True, verbose_name='\u041d\u043e\u043c\u0435\u0440 \u0432 \u0431\u0443\u043c\u0430\u0436\u043d\u043e\u043c \u0441\u043f\u0438\u0441\u043a\u0435', blank=True)),
+                ('location', django.contrib.gis.db.models.fields.PointField(help_text='\u041e\u0442\u043d\u043e\u0441\u0438\u0442\u0435\u043b\u044c\u043d\u043e \u044d\u0442\u043e\u0433\u043e \u043c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u044f \u0431\u0443\u0434\u0443\u0442 \u043e\u043f\u0440\u0435\u0434\u0435\u043b\u044f\u0442\u0441\u044f \u0431\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0435 \u0414\u041e\u0423', srid=4326, null=True, verbose_name='\u041c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u0435', blank=True)),
+                ('location_properties', models.CharField(max_length=250, null=True, verbose_name='\u041f\u0430\u0440\u0430\u043c\u0435\u0442\u0440\u044b \u043c\u0435\u0441\u0442\u043e\u043f\u043e\u043b\u043e\u0436\u0435\u043d\u0438\u044f', blank=True)),
+                ('status_change_datetime', models.DateTimeField(null=True, verbose_name='\u0434\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0433\u043e \u0438\u0437\u043c\u0435\u043d\u0435\u043d\u0438\u044f \u0441\u0442\u0430\u0442\u0443\u0441\u0430', blank=True)),
+                ('decision_datetime', models.DateTimeField(null=True, verbose_name='\u0434\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u0438\u044f \u043c\u0435\u0441\u0442\u0430', blank=True)),
+                ('distribution_datetime', models.DateTimeField(null=True, verbose_name='\u0434\u0430\u0442\u0430 \u0438 \u0432\u0440\u0435\u043c\u044f \u043e\u043a\u043e\u043d\u0447\u0430\u0442\u0435\u043b\u044c\u043d\u043e\u0433\u043e \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u044f', blank=True)),
+                ('distribute_in_any_sadik', models.BooleanField(default=True, help_text='\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0435 \u044d\u0442\u043e\u0442 \u0444\u043b\u0430\u0433, \u0435\u0441\u043b\u0438 \u0433\u043e\u0442\u043e\u0432\u044b \u043f\u043e\u043b\u0443\u0447\u0438\u0442\u044c\n            \u043c\u0435\u0441\u0442\u043e \u0432 \u043b\u044e\u0431\u043e\u043c \u0434\u0435\u0442\u0441\u043a\u043e\u043c \u0441\u0430\u0434\u0443 \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0445 \u0442\u0435\u0440\u0440\u0438\u0442\u043e\u0440\u0438\u0430\u043b\u044c\u043d\u044b\u0445 \u043e\u0431\u043b\u0430\u0441\u0442\u044f\u0445,\n            \u0432 \u0441\u043b\u0443\u0447\u0430\u0435, \u043a\u043e\u0433\u0434\u0430 \u0432 \u043f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u044b\u0445 \u0414\u041e\u0423 \u043d\u0435 \u043e\u043a\u0430\u0436\u0435\u0442\u0441\u044f \u043c\u0435\u0441\u0442\u0430', verbose_name='\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c \u0441\u043e\u0433\u043b\u0430\u0441\u0435\u043d \u043d\u0430 \u0437\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0438\u0435 \u0432 \u0414\u041e\u0423, \u043e\u0442\u043b\u0438\u0447\u043d\u044b\u0435 \u043e\u0442 \u043f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u044b\u0445, \u0432 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u044b\u0445 \u0442\u0435\u0440\u0440\u0438\u0442\u043e\u0440\u0438\u0430\u043b\u044c\u043d\u044b\u0445 \u043e\u0431\u043b\u0430\u0441\u0442\u044f\u0445')),
+                ('areas', models.ManyToManyField(help_text='\u0413\u0440\u0443\u043f\u043f\u0430 \u0432 \u043a\u043e\u0442\u043e\u0440\u043e\u0439 \u0432\u044b \u0445\u043e\u0442\u0435\u043b\u0438 \u0431\u044b \u043f\u043e\u0441\u0435\u0449\u0430\u0442\u044c \u0414\u041e\u0423.', to='core.Area', verbose_name='\u041f\u0440\u0435\u0434\u043f\u043e\u0447\u0438\u0442\u0430\u0435\u043c\u044b\u0435 \u0433\u0440\u0443\u043f\u043f\u044b \u0414\u041e\u0423')),
+                ('benefit_category', models.ForeignKey(verbose_name='\u041a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f \u043b\u044c\u0433\u043e\u0442', to='core.BenefitCategory', null=True)),
+                ('benefits', models.ManyToManyField(to='core.Benefit', verbose_name='\u041b\u044c\u0433\u043e\u0442\u044b', blank=True)),
+            ],
+            options={
+                'ordering': ['-benefit_category__priority', 'registration_datetime', 'id'],
+                'verbose_name': '\u0417\u0430\u044f\u0432\u043a\u0430 \u0432 \u043e\u0447\u0435\u0440\u0435\u0434\u0438',
+                'verbose_name_plural': '\u0417\u0430\u044f\u0432\u043a\u0438 \u0432 \u043e\u0447\u0435\u0440\u0435\u0434\u0438',
+            },
+        ),
+        migrations.CreateModel(
+            name='Sadik',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('name', models.CharField(max_length=255, verbose_name='\u043f\u043e\u043b\u043d\u043e\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('short_name', models.CharField(max_length=255, verbose_name='\u043a\u043e\u0440\u043e\u0442\u043a\u043e\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('number', models.IntegerField(null=True, verbose_name='\u043d\u043e\u043c\u0435\u0440')),
+                ('identifier', models.CharField(max_length=25, null=True, verbose_name='\u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440')),
+                ('email', models.CharField(max_length=255, verbose_name='\u044d\u043b\u0435\u043a\u0442\u0440\u043e\u043d\u043d\u0430\u044f \u043f\u043e\u0447\u0442\u0430', blank=True)),
+                ('site', models.CharField(max_length=255, null=True, verbose_name='\u0441\u0430\u0439\u0442', blank=True)),
+                ('head_name', models.CharField(max_length=255, verbose_name='\u0424\u0418\u041e \u0434\u0438\u0440\u0435\u043a\u0442\u043e\u0440\u0430 (\u0437\u0430\u0432\u0435\u0434\u0443\u044e\u0449\u0435\u0439)')),
+                ('phone', models.CharField(max_length=255, null=True, verbose_name='\u0442\u0435\u043b\u0435\u0444\u043e\u043d', blank=True)),
+                ('cast', models.CharField(max_length=255, verbose_name='\u0442\u0438\u043f(\u043a\u0430\u0442\u0435\u0433\u043e\u0440\u0438\u044f) \u0414\u041e\u0423', blank=True)),
+                ('tech_level', models.TextField(null=True, verbose_name='\u0442\u0435\u0445\u043d\u0438\u0447\u0435\u0441\u043a\u0430\u044f \u043e\u0441\u043d\u0430\u0449\u0435\u043d\u043d\u043e\u0441\u0442\u044c', blank=True)),
+                ('training_program', models.TextField(null=True, verbose_name='\u0443\u0447\u0435\u0431\u043d\u044b\u0435 \u043f\u0440\u043e\u0433\u0440\u0430\u043c\u043c\u044b \u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0433\u043e \u043e\u0431\u0440\u0430\u0437\u043e\u0432\u0430\u043d\u0438\u044f', blank=True)),
+                ('route_info', models.ImageField(upload_to='upload/sadiki/routeinfo/', null=True, verbose_name='\u0441\u0445\u0435\u043c\u0430 \u043f\u0440\u043e\u0435\u0437\u0434\u0430', blank=True)),
+                ('extended_info', models.TextField(null=True, verbose_name='\u0434\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u0430\u044f \u0438\u043d\u0444\u043e\u0440\u043c\u0430\u0446\u0438\u044f', blank=True)),
+                ('active_registration', models.BooleanField(default=True, verbose_name='\u043c\u043e\u0436\u0435\u0442 \u0431\u044b\u0442\u044c \u0443\u043a\u0430\u0437\u0430\u043d \u043a\u0430\u043a \u043f\u0440\u0438\u043e\u0440\u0438\u0442\u0435\u0442\u043d\u044b\u0439')),
+                ('active_distribution', models.BooleanField(default=True, verbose_name='\u043f\u0440\u0438\u043d\u0438\u043c\u0430\u0435\u0442 \u0443\u0447\u0430\u0441\u0442\u0438\u0435 \u0432 \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0438')),
+                ('address', models.ForeignKey(verbose_name='\u0410\u0434\u0440\u0435\u0441', to='core.Address')),
+                ('age_groups', models.ManyToManyField(to='core.AgeGroup', verbose_name='\u0412\u043e\u0437\u0440\u0430\u0441\u0442\u043d\u044b\u0435 \u0433\u0440\u0443\u043f\u043f\u044b')),
+                ('area', models.ForeignKey(verbose_name='\u0413\u0440\u0443\u043f\u043f\u0430 \u0414\u041e\u0423', to='core.Area')),
+            ],
+            options={
+                'ordering': ['number'],
+                'verbose_name': '\u0414\u041e\u0423',
+                'verbose_name_plural': '\u0414\u041e\u0423',
+            },
+        ),
+        migrations.CreateModel(
+            name='SadikGroup',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('other_name', models.CharField(max_length=100, null=True, verbose_name='\u0410\u043b\u044c\u0442\u0435\u0440\u043d\u0430\u0442\u0438\u0432\u043d\u043e\u0435 \u0438\u043c\u044f', blank=True)),
+                ('cast', models.IntegerField(default=0, verbose_name='\u0442\u0438\u043f', choices=[(0, '\u041e\u0431\u044b\u0447\u043d\u0430\u044f'), (1, '\u041a\u043e\u0440\u0440\u0435\u043a\u0446\u0438\u043e\u043d\u043d\u0430\u044f')])),
+                ('capacity', models.PositiveIntegerField(default=0, verbose_name='\u043d\u043e\u043c\u0438\u043d\u0430\u043b\u044c\u043d\u0430\u044f \u0432\u043c\u0435\u0441\u0442\u0438\u043c\u043e\u0441\u0442\u044c')),
+                ('free_places', models.PositiveIntegerField(default=0, verbose_name='\u043a\u043e\u043b-\u0432\u043e \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0445 \u043c\u0435\u0441\u0442')),
+                ('min_birth_date', models.DateField(verbose_name='\u041d\u0430\u0438\u043c\u0435\u043d\u044c\u0448\u0438\u0439 \u0432\u043e\u0437\u0440\u0430\u0441\u0442')),
+                ('max_birth_date', models.DateField(verbose_name='\u041d\u0430\u0438\u0431\u043e\u043b\u044c\u0448\u0438\u0439 \u0432\u043e\u0437\u0440\u0430\u0441\u0442')),
+                ('year', models.DateField(verbose_name='\u0413\u043e\u0434 \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u044f')),
+                ('active', models.BooleanField(default=True, help_text='\u0415\u0441\u043b\u0438 \u0433\u0440\u0443\u043f\u043f\u0430 \u0430\u043a\u0442\u0438\u0432\u043d\u0430, \u0442\u043e \u0432 \u043d\u0435\u0451 \u043c\u043e\u0436\u043d\u043e \u0437\u0430\u0447\u0438\u0441\u043b\u044f\u0442\u044c \u0434\u0435\u0442\u0435\u0439', verbose_name='\u0410\u043a\u0442\u0438\u0432\u043d\u0430')),
+                ('age_group', models.ForeignKey(blank=True, to='core.AgeGroup', null=True)),
+            ],
+            options={
+                'ordering': ['-min_birth_date'],
+                'verbose_name': '\u0420\u0430\u0441\u0447\u0451\u0442\u043d\u0430\u044f \u0433\u0440\u0443\u043f\u043f\u0430 \u0434\u0435\u0442\u0441\u043a\u043e\u0433\u043e \u0441\u0430\u0434\u0430',
+                'verbose_name_plural': '\u0420\u0430\u0441\u0447\u0451\u0442\u043d\u044b\u0435 \u0433\u0440\u0443\u043f\u043f\u044b \u0434\u0435\u0442\u0441\u043a\u043e\u0433\u043e \u0441\u0430\u0434\u0430',
+            },
+        ),
+        migrations.CreateModel(
+            name='Vacancies',
+            fields=[
+                ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('status', models.IntegerField(null=True, verbose_name='\u0441\u0442\u0430\u0442\u0443\u0441', choices=[(None, '\u041c\u0435\u0441\u0442\u043e \u0441\u0432\u043e\u0431\u043e\u0434\u043d\u043e'), (0, '\u0412\u044b\u0434\u0435\u043b\u0435\u043d\u043e \u043c\u0435\u0441\u0442\u043e'), (4, '\u041d\u0430 \u0440\u0443\u0447\u043d\u043e\u043c \u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0438\u0438'), (5, '\u041f\u0435\u0440\u0435\u0440\u0430\u0441\u043f\u0440\u0435\u0434\u0435\u043b\u0435\u043d\u0430 \u0432\u0440\u0443\u0447\u043d\u0443\u044e'), (1, '\u0417\u0430\u0447\u0438\u0441\u043b\u0435\u043d\u0430'), (2, '\u041e\u0442\u0441\u0443\u0442\u0441\u0442\u0432\u0443\u0435\u0442 \u043f\u043e \u0443\u0432\u0430\u0436\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0439 \u043f\u0440\u0438\u0447\u0438\u043d\u0435'), (3, '\u0412\u0440\u0435\u043c\u0435\u043d\u043d\u0430\u044f \u043f\u0443\u0442\u0435\u0432\u043a\u0430'), (6, '\u041c\u0435\u0441\u0442\u043e \u043d\u0435 \u0431\u044b\u043b\u043e \u043d\u0438\u043a\u043e\u043c\u0443 \u0432\u044b\u0434\u0435\u043b\u0435\u043d\u043e')])),
+                ('distribution', models.ForeignKey(blank=True, to='core.Distribution', null=True)),
+                ('sadik_group', models.ForeignKey(to='core.SadikGroup')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='ChunkCustom',
+            fields=[
+            ],
+            options={
+                'verbose_name': '\u0411\u043b\u043e\u043a \u043d\u0430 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435',
+                'proxy': True,
+                'verbose_name_plural': '\u0411\u043b\u043e\u043a\u0438 \u043d\u0430 \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u0435',
+            },
+            bases=('chunks.chunk',),
+        ),
+        migrations.AddField(
+            model_name='sadikgroup',
+            name='distributions',
+            field=models.ManyToManyField(to='core.Distribution', through='core.Vacancies'),
+        ),
+        migrations.AddField(
+            model_name='sadikgroup',
+            name='sadik',
+            field=models.ForeignKey(related_name='groups', to='core.Sadik'),
+        ),
+        migrations.AddField(
+            model_name='requestion',
+            name='closest_kg',
+            field=models.ForeignKey(related_name='closest_kg', verbose_name='\u0411\u043b\u0438\u0436\u0430\u0439\u0448\u0438\u0439 \u0414\u041e\u0423', blank=True, to='core.Sadik', null=True),
+        ),
+        migrations.AddField(
+            model_name='requestion',
+            name='distributed_in_vacancy',
+            field=models.ForeignKey(blank=True, to='core.Vacancies', null=True),
+        ),
+        migrations.AddField(
+            model_name='requestion',
+            name='district',
+            field=models.ForeignKey(verbose_name='\u0420\u0430\u0439\u043e\u043d \u0437\u0430\u044f\u0432\u043a\u0438', blank=True, to='core.District', null=True),
+        ),
+        migrations.AddField(
+            model_name='requestion',
+            name='pref_sadiks',
+            field=models.ManyToManyField(to='core.Sadik'),
+        ),
+        migrations.AddField(
+            model_name='requestion',
+            name='previous_distributed_in_vacancy',
+            field=models.ForeignKey(related_name='previous_requestions', blank=True, to='core.Vacancies', null=True),
+        ),
+        migrations.AddField(
+            model_name='requestion',
+            name='profile',
+            field=models.ForeignKey(verbose_name='\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0437\u0430\u044f\u0432\u0438\u0442\u0435\u043b\u044f', to='core.Profile'),
+        ),
+        migrations.AddField(
+            model_name='profile',
+            name='sadiks',
+            field=models.ManyToManyField(to='core.Sadik', null=True),
+        ),
+        migrations.AddField(
+            model_name='profile',
+            name='user',
+            field=models.OneToOneField(verbose_name='\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c', to=settings.AUTH_USER_MODEL),
+        ),
+        migrations.AddField(
+            model_name='personaldocument',
+            name='profile',
+            field=models.ForeignKey(verbose_name='\u041f\u0440\u043e\u0444\u0438\u043b\u044c \u0437\u0430\u044f\u0432\u0438\u0442\u0435\u043b\u044f', to='core.Profile'),
+        ),
+        migrations.AlterUniqueTogether(
+            name='evidiencedocumenttemplate',
+            unique_together=set([('name', 'destination')]),
+        ),
+        migrations.AddField(
+            model_name='evidiencedocument',
+            name='template',
+            field=models.ForeignKey(verbose_name='\u0448\u0430\u0431\u043b\u043e\u043d \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u0430', to='core.EvidienceDocumentTemplate'),
+        ),
+        migrations.AddField(
+            model_name='benefit',
+            name='category',
+            field=models.ForeignKey(verbose_name='\u0442\u0438\u043f \u043b\u044c\u0433\u043e\u0442', to='core.BenefitCategory'),
+        ),
+        migrations.AddField(
+            model_name='benefit',
+            name='evidience_documents',
+            field=models.ManyToManyField(to='core.EvidienceDocumentTemplate', verbose_name='\u041d\u0435\u043e\u0431\u0445\u043e\u0434\u0438\u043c\u044b\u0435 \u0434\u043e\u043a\u0443\u043c\u0435\u043d\u0442\u044b'),
+        ),
+        migrations.AddField(
+            model_name='benefit',
+            name='sadik_related',
+            field=models.ManyToManyField(to='core.Sadik', null=True, verbose_name='\u0414\u041e\u0423 \u0432 \u043a\u043e\u0442\u043e\u0440\u044b\u0445 \u0435\u0441\u0442\u044c \u0433\u0440\u0443\u043f\u043f\u044b', blank=True),
+        ),
+        migrations.AddField(
+            model_name='area',
+            name='district',
+            field=models.ForeignKey(verbose_name='\u0420\u0430\u0439\u043e\u043d', blank=True, to='core.District', null=True),
+        ),
+        migrations.AlterUniqueTogether(
+            name='personaldocument',
+            unique_together=set([('doc_type', 'series', 'number')]),
+        ),
+    ]

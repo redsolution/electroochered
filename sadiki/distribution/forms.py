@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import forms
 from sadiki.core.models import REQUESTION_TYPE_IMPORTED
+from sadiki.core.utils import reorder_fields
 
 
 class SelectSadikForm(forms.Form):
@@ -36,8 +37,10 @@ class SelectSadikForm(forms.Form):
             if not requestion.location:
                 self.fields['accept_location'].widget.attrs['disabled'] = 'disabled'
                 self.fields['accept_location'].error_messages['required'] = u'Необходимо указать местоположение заявки'
-            self.fields.keyOrder.remove('accept_location')
-            self.fields.keyOrder.insert(0, 'accept_location')
+            fields_order = self.fields.keys()
+            fields_order.remove('accept_location')
+            fields_order.insert(0, 'accept_location')
+            self.fields = reorder_fields(self.fields, fields_order)
 
     def clean_requestion_id(self):
         requestion_id = self.cleaned_data.get('requestion_id')

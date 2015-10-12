@@ -10,11 +10,10 @@ from django.http import HttpResponse, Http404, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.template import loader
 from django.template.context import RequestContext
-from django.utils import simplejson
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import View
-from rest_framework.renderers import UnicodeJSONRenderer
+from rest_framework.renderers import JSONRenderer as UnicodeJSONRenderer
 
 from pysnippets import gpgtools, dttools
 from sadiki.core.models import Distribution, Requestion, Sadik, \
@@ -75,7 +74,8 @@ class SignJSONResponseMixin(object):
         return self.get_json_response(self.convert_context_to_json(context))
 
     def get_json_response(self, content, **kwargs):
-        return HttpResponse(content, mimetype='application/json; charset=utf-8',
+        return HttpResponse(content,
+                            content_type='application/json; charset=utf-8',
                             **kwargs)
 
     def convert_context_to_json(self, context):
@@ -214,7 +214,7 @@ class GetRequestionsByResolution(SignJSONResponseMixin, View):
 
 def get_distributions(request):
     data = Distribution.objects.all().values_list('id', flat=True)
-    return HttpResponse(simplejson.dumps(list(data)), mimetype='text/json')
+    return HttpResponse(json.dumps(list(data)), content_type='text/json')
 
 
 @csrf_exempt
@@ -231,7 +231,7 @@ def get_distribution(request):
         raise Http404
     distribution_qs = Distribution.objects.filter(pk=_id)
     if len(distribution_qs) != 1:
-        return HttpResponse(simplejson.dumps([0, ]), mimetype='text/json')
+        return HttpResponse(json.dumps([0, ]), content_type='text/json')
     dist = distribution_qs[0]
     results = []
     sadiks_ids = Requestion.objects.filter(
@@ -260,7 +260,8 @@ def get_distribution(request):
         'year': dist.year.year,
         'results': results,
     }]
-    return HttpResponse(gpgtools.get_signed_json(data), mimetype='text/json')
+    return HttpResponse(gpgtools.get_signed_json(data),
+                        content_type='text/json')
 
 
 @csrf_exempt
@@ -281,7 +282,7 @@ def get_child(request):
         requestions = Requestion.objects.filter(id__in=requestion_ids)
         data = add_requestions_data(requestions, request)
         response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
-        return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+        return HttpResponse(json.dumps(response), content_type='text/json')
     raise Http404
 
 
@@ -341,15 +342,15 @@ def get_kindergartens(request):
             'site': sadik.site,
         })
     response = [{'sign': gpgtools.sign_data(data).data, 'data': data}]
-    return HttpResponse(simplejson.dumps(response), mimetype='text/json')
+    return HttpResponse(json.dumps(response), content_type='text/json')
 
 
 def get_evidience_documents(request):
     documents = EvidienceDocumentTemplate.objects.filter(
         destination__exact=REQUESTION_IDENTITY
     ).values('id', 'name', 'regex')
-    return HttpResponse(simplejson.dumps(list(documents), ensure_ascii=False),
-                        mimetype='application/json')
+    return HttpResponse(json.dumps(list(documents), ensure_ascii=False),
+                        content_type='application/json')
 
 
 @csrf_exempt

@@ -10,7 +10,7 @@ from sadiki.core.models import Profile, Requestion, Sadik, Address, \
 
 
 # Преобразование координат в x/y
-transform = CoordTransform(SpatialReference(4326), SpatialReference(900913))
+transform = CoordTransform(SpatialReference(4326), SpatialReference(3857))
 point = Point(
     float(settings.MAP_CENTER.split(',')[0]),
     float(settings.MAP_CENTER.split(',')[1]),

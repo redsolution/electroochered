@@ -1,8 +1,8 @@
 {% load sadiki_core_tags %}
 
-{% url supervisor_requestion_info requestion.id as supervisor_requestion_info_url %}
-{% url change_registration_datetime requestion.id as change_registration_datetime_url %}
-{% url change_birth_date requestion.id as change_birthdate_url %}
+{% url 'supervisor_requestion_info' requestion.id as supervisor_requestion_info_url %}
+{% url 'change_registration_datetime' requestion.id as change_registration_datetime_url %}
+{% url 'change_birth_date' requestion.id as change_birthdate_url %}
 
 <ul class="content-menu">
     <li {% if request.path == supervisor_requestion_info_url %}class="active"{% endif %}>

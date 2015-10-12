@@ -33,7 +33,7 @@
       $('label[for="q_map"]').off('click');
       $('#q_list').attr('checked', false);
       $('#q_map').attr('checked', true);
-      location.href = '{% url queue_map %}?' + $('form').serialize();
+      location.href = '{% url "queue_map" %}?' + $('form').serialize();
       return false;
     })
 

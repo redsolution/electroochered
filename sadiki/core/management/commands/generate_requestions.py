@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
+import json
+
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
 from django.core.management.base import BaseCommand, CommandError
 from django.contrib.gis.geos import point
-from django.utils import simplejson
 from optparse import make_option
 from os.path import join
 from sadiki.core.models import Requestion, Profile, Area, Sadik, \
@@ -41,7 +42,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         random.seed()
         if args:
-            names = simplejson.loads(open(join(settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures', 'names.json'), 'r').read())
+            names = json.loads(open(join(settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures', 'names.json'), 'r').read())
             max_sadiks = 5
             permission = Permission.objects.get(codename=u'is_requester')
             

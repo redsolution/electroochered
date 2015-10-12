@@ -93,8 +93,8 @@ REGION_NAME = config.get('core', 'REGION_NAME').decode('utf-8')
 # маска для номера заявки(используется в модуле для jquery)
 REQUESTION_NUMBER_MASK = config.get('core', 'REQUESTION_NUMBER_MASK').decode('utf-8')
 # авторизация через ВКонтакте
-VK_APP_ID = config.get('vkontakte', 'VK_APP_ID')
-VK_API_SECRET = config.get('vkontakte', 'VK_API_SECRET')
+SOCIAL_AUTH_VKONTAKTE_OAUTH2_KEY = config.get('vkontakte', 'VK_APP_ID')
+SOCIAL_AUTH_VKONTAKTE_OAUTH2_SECRET = config.get('vkontakte', 'VK_API_SECRET')
 
 USE_DISTRICTS = config.getint('core', 'USE_DISTRICTS')
 

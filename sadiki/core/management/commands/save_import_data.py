@@ -28,7 +28,7 @@ class Command(BaseCommand):
                 pass
                 raise CommandError("Неверный формат файла")
             try:
-                with transaction.commit_on_success():
+                with transaction.atomic():
                     try:
                         while True:
                             instance_data = p.load()

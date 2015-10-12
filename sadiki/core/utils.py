@@ -8,6 +8,7 @@ import urllib2
 from os.path import join, exists
 from os import makedirs
 from subprocess import Popen
+from collections import OrderedDict
 import math
 
 from django import forms
@@ -531,6 +532,22 @@ def active_child_exist(birth_cert):
         if is_active_child_status(child_data['data']['status']):
             return True
     return False
+
+
+def reorder_fields(fields, order, remove=False):
+    u"""
+    Переопределяет порядок полей формы.
+    При remove=False поля, не указанные в order, будут размещены в конце списка
+    При remove=True неуказанные поля будут удалены без возможности наследования
+    """
+    if remove:
+        for field_name, field in fields.items():
+            if field_name not in order:
+                del fields[field_name]
+    else:
+        order.extend([key for key in fields.keys() if key not in order])
+    return OrderedDict(
+        sorted(fields.items(), key=lambda k: order.index(k[0])))
 
 
 def remove_empty_personal_data_values(data):

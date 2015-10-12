@@ -80,7 +80,7 @@ class AccountLogs(AccountPermissionMixin, TemplateView):
         return logs_with_messages
 
     def get(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         data = {'requestions_with_logs': self.get_logs_for_profile(profile),
                 'personal_data_logs': self.get_personal_data_logs(profile),
                 'plugin_menu_items': get_plugin_menu_items(),

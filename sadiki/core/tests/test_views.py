@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+import os
 import random
 import datetime
 from django.test import TestCase, Client
 from django.core import management
+from django.conf import settings
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
 from django.db.models import Q
@@ -30,6 +32,7 @@ class CoreViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(CoreViewsTest, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
@@ -39,6 +42,7 @@ class CoreViewsTest(TestCase):
         BenefitCategory.objects.all().delete()
         Sadik.objects.all().delete()
         Address.objects.all().delete()
+        super(CoreViewsTest, cls).tearDownClass()
 
     def setUp(self):
         management.call_command('generate_sadiks', 1)

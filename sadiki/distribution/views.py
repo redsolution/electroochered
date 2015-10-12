@@ -81,7 +81,7 @@ class DistributionResults(OperatorPermissionMixin, TemplateView):
             if requestions:
                 requestions_by_sadiks.append([sadik, requestions])
         if request.GET.get('type') == 'xls':
-            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            response = HttpResponse(content_type='application/vnd.ms-excel')
             create_xls_report(response, requestions_by_sadiks, distribution)
             return response
         return self.render_to_response({'current_distribution': distribution,

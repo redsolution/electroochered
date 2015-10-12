@@ -4,7 +4,7 @@
 {% block content %}
     <h1>Количество окончательно зачисленных заявок</h1>
     {% for year in years %}
-        <a class="btn {% if year == current_year %}btn-primary{% endif %}" href="{% url distribution_statistics year %}">{{ year }}</a>
+        <a class="btn {% if year == current_year %}btn-primary{% endif %}" href="{% url 'distribution_statistics' year %}">{{ year }}</a>
     {% endfor %}
     <p>количество распределенных мест/количество окончательно зачисленных</p>
     <table class="table table-striped table-bordered table-condensed">
