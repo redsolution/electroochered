@@ -58,10 +58,10 @@ class SocialAuthExceptionMiddlewareCustom(object):
                 messages.error(request,
                                u"При авторизации через ВКонтакте "
                                u"произошла ошибка. Попробуйте ещё раз.")
-            if request.user.is_anonymous():
-                return redirect('login')
-            else:
-                return redirect('frontpage')
+                if request.user.is_anonymous():
+                    return redirect('login')
+                else:
+                    return redirect('frontpage')
 
     def raise_exception(self, request, exception):
         u"""
