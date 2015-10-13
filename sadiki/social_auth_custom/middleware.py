@@ -7,6 +7,7 @@ from django.contrib.messages.api import MessageFailure
 from django.shortcuts import redirect
 from django.utils.http import urlquote
 
+from requests.exceptions import HTTPError
 from social.exceptions import SocialAuthBaseException, AuthAlreadyAssociated
 from social.utils import social_logger
 from sadiki.social_auth_custom.pipeline import SingleAssociationException
@@ -52,6 +53,12 @@ class SocialAuthExceptionMiddlewareCustom(object):
                            'message={0}&backend={1}'.format(urlquote(message),
                                                             backend_name)
                 return redirect(url)
+        if isinstance(exception, HTTPError):
+            if exception.response.status_code == 401:
+                messages.error(request,
+                               u"При авторизации через ВКонтакте "
+                               u"произошла ошибка. Попробуйте ещё раз.")
+            return redirect('frontpage')
 
     def raise_exception(self, request, exception):
         u"""
