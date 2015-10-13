@@ -5,6 +5,7 @@ import os
 import sys
 
 from django.core import management
+from django.db import connection
 
 
 class Command(management.base.BaseCommand):
@@ -71,5 +72,9 @@ class Command(management.base.BaseCommand):
                 print 'Exit...'
                 sys.exit(1)
             management.call_command('flush')
+            cursor = connection.cursor()
+            cursor.execute('DELETE FROM auth_permission;')
+            cursor.execute('DELETE FROM django_content_type;')
+            cursor.cursor.close()
             management.call_command('loaddata', file_name)
             print 'Dump from {} restored successfully'.format(file_name)
