@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*- 
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 
 from sadiki.api.views import get_distributions, get_distribution, get_child, \
     api_sign_test, get_kindergartens, ChangeRequestionStatus, \
@@ -7,8 +7,7 @@ from sadiki.api.views import get_distributions, get_distribution, get_child, \
     RequestionsQueue, api_enc_test, get_simple_kindergtns, get_age_groups, \
     GroupsForSadikView, PlacesCount
 
-urlpatterns = patterns(
-    '',
+urlpatterns = [
     # ДОУ
     url(r'^get_kg_info/', get_kindergartens),
     url(r'^sadik/simple_info/', get_simple_kindergtns),
@@ -30,4 +29,4 @@ urlpatterns = patterns(
     url(r'^enc_test/', api_enc_test),
     url(r'^get_evidience_documents/', get_evidience_documents),
     url(r'^age_groups/', get_age_groups),
-)
+]

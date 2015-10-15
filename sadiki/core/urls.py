@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*- 
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 from django.contrib import admin
 from .views import Frontpage, sadiki_json, registration, queue, search, import_params, \
     GetCoordsFromAddress
 from sadiki.anonym.views import QueueMap
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', Frontpage.as_view(), name='frontpage'),
     url(r'^api/sadiki.json$', sadiki_json, name='sadiki_json'),
     url(r'^registration/$', registration, name=u'anonym_registration'),
@@ -17,4 +17,4 @@ urlpatterns = patterns('',
     url(r'^import_params/$', import_params, name='import_params_json'),
 
     url(r'^admin/', include(admin.site.urls), name="default_admin"),
-)
+]

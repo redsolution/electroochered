@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from sadiki.distribution.views import DistributionInfo, DistributionInit, \
     DistributionEnd, DecisionManager, DistributionResults, EndedDistributions, DistributionPlacesResults
 
-urlpatterns = patterns('',
+urlpatterns = [
 #    Работа с комплектованием
     url(r'^$',
         DistributionInfo.as_view(), name='distribution_info'),
@@ -25,4 +25,4 @@ urlpatterns = patterns('',
 #        DistributionEditmanually.as_view(), name='distribution_swap_requestions'),
     url(r'^finish/$',
         DistributionEnd.as_view(), name='distribution_end'),
-)
+]

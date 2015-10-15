@@ -60,6 +60,7 @@ class CoreViewsTest(TestCase):
         self.requester.user_permissions.add(permission)
         Profile.objects.create(user=self.requester)
         self.requester.save()
+        self.required_error_message = u'Это поле обязательно.'
 
     def tearDown(self):
         Requestion.objects.all().delete()
@@ -426,7 +427,7 @@ class CoreViewsTest(TestCase):
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
         self.assertIn('doc_name', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['doc_name'])
+        self.assertIn(self.required_error_message, doc_form.errors['doc_name'])
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
@@ -679,11 +680,11 @@ class CoreViewsTest(TestCase):
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
         self.assertIn('series', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['series'])
+        self.assertIn(self.required_error_message, doc_form.errors['series'])
         self.assertIn('number', doc_form.errors)
         self.assertIn(u'неверный формат', doc_form.errors['number'])
         self.assertIn('issued_by', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['issued_by'])
+        self.assertIn(self.required_error_message, doc_form.errors['issued_by'])
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -795,9 +796,11 @@ class CoreViewsTest(TestCase):
         # проверяем ошибки формы
         requestion_form = create_response.context['form']
         self.assertIn('name', requestion_form.errors)
-        self.assertIn(u'Обязательное поле', requestion_form.errors['name'])
+        self.assertIn(self.required_error_message,
+                      requestion_form.errors['name'])
         self.assertIn('kinship', requestion_form.errors)
-        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
+        self.assertIn(self.required_error_message,
+                      requestion_form.errors['kinship'])
         # проверяем, что заявка не добавилась
         requestions = Requestion.objects.filter(
             profile_id=self.requester.profile.id)
@@ -931,7 +934,8 @@ class CoreViewsTest(TestCase):
         requestion_form = response.context['change_requestion_form']
         self.assertNotIn('child_snils', requestion_form.errors)
         self.assertIn('kinship', requestion_form.errors)
-        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
+        self.assertIn(self.required_error_message,
+                      requestion_form.errors['kinship'])
         # проверяем, что заявка не изменилась
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')

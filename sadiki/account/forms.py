@@ -96,7 +96,7 @@ class RequestionForm(FormWithDocument):
                 Requestion.REQUESTER_TYPE_CHOICES).get(kinship_type)
         if not self.cleaned_data['kinship']:
             kinship_errors = self._errors.setdefault('kinship', ErrorList())
-            kinship_errors.append(u'Обязательное поле')
+            kinship_errors.append(u'Это поле обязательно.')
         self.cleaned_data['distribute_in_any_sadik'] = True
         return super(RequestionForm, self).clean(*args, **kwargs)
 
@@ -157,7 +157,7 @@ class ChangeRequestionForm(forms.ModelForm):
             self.changed_data.remove('kinship_type')
         if not self.cleaned_data['kinship']:
             kinship_errors = self._errors.setdefault('kinship', ErrorList())
-            kinship_errors.append(u'Обязательное поле')
+            kinship_errors.append(u'Это поле обязательно.')
         return super(ChangeRequestionForm, self).clean(*args, **kwargs)
 
 
@@ -315,7 +315,7 @@ class PersonalDocumentForm(ModelForm):
         for required_field in required_fields:
             required_field_errors = self._errors.setdefault(
                 required_field, ErrorList())
-            required_field_errors.append(u'Обязательное поле')
+            required_field_errors.append(u'Это поле обязательно.')
         return super(PersonalDocumentForm, self).clean(*args, **kwargs)
 
     def __init__(self, *args, **kwargs):

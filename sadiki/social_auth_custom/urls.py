@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls import patterns, url, include
+from django.conf.urls import url, include
 
 # social_auth
 from django.contrib.auth.decorators import login_required
@@ -9,7 +9,7 @@ from sadiki.social_auth_custom.views import AccountSocialAuthDisconnect,\
 from social.apps.django_app.utils import psa
 from social.apps.django_app.views import auth, complete
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^login/(?P<backend>[^/]+)/$', auth, name='login'),
     url(r'^connect/(?P<backend>[^/]+)/$', login_required(auth), name='connect'),
     url(r'^complete/(?P<backend>[^/]+)/$', complete,
@@ -27,4 +27,4 @@ urlpatterns = patterns('',
         OperatorSocialAuthDataUpdate.as_view(), name='operator_social_data_update'),
     url(r'^operator_social_data_remove/(?P<user_id>\d{1,7})/$',
         OperatorSocialAuthDataRemove.as_view(), name='operator_social_data_remove'),
-)
+]
