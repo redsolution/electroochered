@@ -517,7 +517,8 @@ table.table.table-bordered tr.highlight td {
 
 .uniForm label.checkbox{
     float: left;
-    width: 53% !important;
+    margin-top: 8px;
+    width: 100% !important;
 }
 
 /**** Header ****/
@@ -1488,6 +1489,10 @@ tr.dynamic-form .errorlist {
 }
 
 /*Login registration pages*/
+.registrationForm input[type=checkbox]{
+    width: auto !important;
+}
+
 .registrationForm input{
     border: 1px solid #dddddd !important;
     height: 30px;

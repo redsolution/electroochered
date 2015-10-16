@@ -7,6 +7,7 @@ from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
 from django.views.generic import ListView
@@ -51,7 +52,8 @@ class Registration(RequirePermissionsMixin, TemplateView):
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
-            profile = Profile.objects.create(user=user)
+            profile = Profile.objects.create(
+                user=user, pd_processing_permit=timezone.now())
             user.set_username_by_id()
             user.save()
             user = authenticate(username=user.username,
