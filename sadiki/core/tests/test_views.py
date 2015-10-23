@@ -2,6 +2,7 @@
 import os
 import random
 import datetime
+import xlrd
 from django.test import TestCase, Client
 from django.core import management
 from django.conf import settings
@@ -335,3 +336,43 @@ class CoreViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn('birth_date', response.context_data['form'].fields)
         self.assertIn('birth_delta', response.content)
+
+    def test_excel_download(self):
+        login = self.client.login(
+            username=OPERATOR_USERNAME,
+            password=OPERATOR_PASSWORD
+        )
+        self.assertTrue(login)
+        filtered_requestions = Requestion.objects.filter(
+            status=STATUS_REQUESTER,
+            birth_date__gte=datetime.date(2012, 1, 1),
+            birth_date__lte=datetime.date(2014, 1, 1),
+        )
+        request_data = {
+            'birth_date_0': '01.01.2012',
+            'birth_date_1': '01.01.2014',
+            'status': str(STATUS_REQUESTER),
+            'type': 'L',
+        }
+        response = self.client.get(reverse('anonym_queue'), request_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, u'Экспорт в Excel')
+        self.assertListEqual(list(response.context_data['requestions']),
+                             list(filtered_requestions))
+        request_data['type'] = 'xls'
+        response = self.client.get(reverse('anonym_queue'), request_data)
+        self.assertEqual(response.status_code, 200)
+        # проверяем, что в ответе вложенный файл с нужным именем
+        self.assertEqual(response.get('Content-Disposition'),
+                         'attachment; filename="Filter_results.xls"')
+        workbook = xlrd.open_workbook(file_contents=response.content)
+        sheet = workbook.sheet_by_index(0)
+        self.assertEqual(sheet.name, u'Результаты фильтра')
+        # проверяем количество строк в excel-таблице
+        self.assertEqual(filtered_requestions.count(), len(sheet.col(0)) - 1)
+        xls_requestion_numbers = set([cell.value for cell in sheet.col(0)[1:]])
+        filtered_requestion_numbers = set([req.requestion_number
+                                           for req in filtered_requestions])
+        # проверяем содержимое первой колонки (номера заявок)
+        self.assertSetEqual(xls_requestion_numbers,
+                            filtered_requestion_numbers)
