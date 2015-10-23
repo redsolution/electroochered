@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-10-19 14:39+0500\n"
+"POT-Creation-Date: 2015-10-23 16:23+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -65,58 +65,31 @@ msgstr ""
 msgid "Filter"
 msgstr ""
 
-#: sadiki/anonym/forms.py:27
-msgid "Password"
-msgstr ""
-
-#: sadiki/anonym/forms.py:31
-msgid "Password confirmation"
-msgstr ""
-
-#: sadiki/anonym/views.py:104
-msgid "Page is not 'last', nor can it be converted to an int."
-msgstr ""
-
 #: sadiki/anonym/views.py:110
 #, python-format
 msgid "Invalid page (%(page_number)s)"
-msgstr ""
+msgstr "Неправильная страница (%(page_number)s)"
 
-#: sadiki/core/fields.py:71
-msgid "Enter a valid date."
-msgstr ""
+msgid "image"
+msgstr "изображение"
 
-#: sadiki/core/fields.py:167
-msgid "Укажите территориальную область"
-msgstr ""
+msgid "images"
+msgstr "изображения"
 
-#: templates/admin/base_site.html:4
-msgid "Django site admin"
-msgstr ""
+msgid "position"
+msgstr "положение"
 
-#~ msgid "image"
-#~ msgstr "изображение"
+msgid "title"
+msgstr "наименование"
 
-#~ msgid "images"
-#~ msgstr "изображения"
+msgid "group"
+msgstr "группа"
 
-#~ msgid "position"
-#~ msgstr "положение"
+msgid "file"
+msgstr "файл"
 
-#~ msgid "title"
-#~ msgstr "наименование"
+msgid "files"
+msgstr "файлы"
 
-#~ msgid "group"
-#~ msgstr "группа"
-
-#~ msgid "file"
-#~ msgstr "файл"
-
-#~ msgid "files"
-#~ msgstr "файлы"
-
-#~ msgid "Mode"
-#~ msgstr "Режим"
-
-#~ msgid "This field is required."
-#~ msgstr "Обязательное поле"
+msgid "Mode"
+msgstr "Режим"
