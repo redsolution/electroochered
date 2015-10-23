@@ -79,7 +79,6 @@
         $('#mainform button:submit').prop('disabled', !$('#id_pdata_processing_permit').is(':checked'));
 
         $('#id_pdata_processing_permit').on('click', function() {
-          console.log(!$('#id_pdata_processing_permit').checked);
           $('#mainform button:submit').prop('disabled', !$('#id_pdata_processing_permit').is(':checked'));
         });
     });
