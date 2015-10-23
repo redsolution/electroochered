@@ -20,12 +20,11 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         print "Calculating closest kindergartens to all requestions in queue"
-        # TODO: select_related() with wrong argument!
         if options['only_empty']:
             requestions = Requestion.objects.filter(
-                closest_kg=None).select_related('area')
+                closest_kg=None).prefetch_related('areas')
         else:
-            requestions = Requestion.objects.all().select_related('area')
+            requestions = Requestion.objects.all().prefetch_related('areas')
         n = 0
         total = requestions.count()
         for requestion in requestions:
