@@ -11,7 +11,7 @@ from sadiki.core.models import (Preference, Profile, PersonalDocument,
     PREFERENCE_IMPORT_FINISHED)
 
 
-class CoreViewsTest(TestCase):
+class AuthorizationViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):

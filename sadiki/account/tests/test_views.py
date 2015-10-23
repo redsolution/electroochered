@@ -19,7 +19,7 @@ from sadiki.core.workflow import CHANGE_PERSONAL_DATA, \
     REQUESTION_ADD_BY_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR
 
 
-class CoreViewsTest(TestCase):
+class AccountViewsTest(TestCase):
     fixtures = ['sadiki/core/fixtures/test_initial.json', ]
 
     @classmethod
