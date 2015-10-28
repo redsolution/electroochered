@@ -4,6 +4,7 @@ import random
 import hashlib
 
 from rest_framework import serializers
+from django.conf import settings
 from django.core.serializers.python import Serializer as PythonSerializer
 from django.core.serializers.json import DjangoJSONEncoder, Deserializer
 
@@ -14,6 +15,7 @@ from sadiki.core.management.commands.remove_personal_data import (
     earliest_issue_date, today
 )
 from sadiki.core.workflow import ANONYM_LOG
+from sadiki.core.utils import get_fixture_chunk_file_name as get_chunk_filename
 
 
 class LocationField(serializers.Field):
@@ -174,13 +176,44 @@ FIELD_SPECIAL_DEPERSONALIZERS = {
 
 class Serializer(PythonSerializer):
     u"""
-    Отдельный сериалайзер для команды dumpdata для удаления персональных данных
-    в момент создания дампа.
+    Отдельный сериалайзер для команды dumpdata для обезличивания
+    персональных данных в момент создания дампа.
     Для использования в настройках необходимо добавить пункт:
         SERIALIZATION_MODULES = {'djson': 'sadiki.core.serializers'}
     и запускать команду ./manage.py dumpdata --format djson > data.djson
     """
     internal_use_only = False
+
+    def start_serialization(self):
+        self._current = None
+        self.objects = []
+        self.objects_counter = 0
+        # по сколько объектов выгружать
+        self.chunk_size = getattr(settings, 'DJSON_CHUNK_SIZE', 50000)
+        self.current_chunk_number = 1
+        self.chunk_mode = isinstance(self.stream, file)
+        if self.chunk_mode:
+            self.base_output_fname = self.stream.name
+
+    def end_serialization(self):
+        json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
+                  **self.options)
+
+    def end_object(self, obj):
+        super(Serializer, self).end_object(obj)
+        self.objects_counter += 1
+        if self.objects_counter == self.chunk_size and self.chunk_mode:
+            json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
+                      **self.options)
+            self.stream.close()
+            self.stream = open(
+                get_chunk_filename(self.base_output_fname,
+                                   self.current_chunk_number),
+                'w'
+            )
+            self.objects_counter = 0
+            self.objects = []
+            self.current_chunk_number += 1
 
     def handle_field(self, obj, field):
         value = field._get_val_from_obj(obj)
@@ -196,10 +229,6 @@ class Serializer(PythonSerializer):
             self._current[field.name] = value
         else:
             super(Serializer, self).handle_field(obj, field)
-
-    def end_serialization(self):
-        json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
-                  **self.options)
 
     def getvalue(self):
         if callable(getattr(self.stream, 'getvalue', None)):

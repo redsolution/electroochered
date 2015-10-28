@@ -7,6 +7,7 @@ import sys
 from django.core import management
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
+from sadiki.core.utils import get_fixture_chunk_file_name as get_chunk_filename
 
 
 class Command(management.base.BaseCommand):
@@ -42,7 +43,8 @@ class Command(management.base.BaseCommand):
 
         if not (options['export'] ^ options['import']):
             print 'Error!'
-            print 'You must specify exactly one option: --export or --import'
+            print ('You must specify exactly one of this option: '
+                   '--export or --import')
             sys.exit()
         file_name = options.get('file_name') or 'data.djson'
         file_name = os.path.abspath(file_name)
@@ -75,5 +77,13 @@ class Command(management.base.BaseCommand):
             management.call_command('flush')
             Permission.objects.all().delete()
             ContentType.objects.all().delete()
-            management.call_command('loaddata', file_name)
+            chunk_number = 1
+            chunk_file_name = file_name
+            chunk_exists = True
+            while chunk_exists:
+                print 'Loading file {} ...'.format(chunk_file_name)
+                management.call_command('loaddata', chunk_file_name)
+                chunk_file_name = get_chunk_filename(file_name, chunk_number)
+                chunk_exists = os.path.exists(chunk_file_name)
+                chunk_number += 1
             print 'Dump from {} restored successfully'.format(file_name)
