@@ -188,7 +188,7 @@ class Serializer(PythonSerializer):
         self._current = None
         self.objects = []
         self.objects_counter = 0
-        # по сколько объектов выгружать
+        # максимальное количество записей в одном djson-файле
         self.chunk_size = getattr(settings, 'DJSON_CHUNK_SIZE', 50000)
         self.current_chunk_number = 1
         self.chunk_mode = isinstance(self.stream, file)

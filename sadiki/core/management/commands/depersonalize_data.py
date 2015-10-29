@@ -3,13 +3,14 @@ import time
 import logging
 import os
 import sys
+import tarfile
+import shutil
 import itertools
 
 from django.core import management
 from django.apps import apps
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
-from sadiki.core.utils import get_fixture_chunk_file_name as get_chunk_filename
 
 
 class Command(management.base.BaseCommand):
@@ -48,8 +49,15 @@ class Command(management.base.BaseCommand):
             print ('You must specify exactly one of this option: '
                    '--export or --import')
             sys.exit()
-        file_name = options.get('file_name') or 'data.djson'
+        file_name = options.get('file_name') or 'data.tar.gz'
         file_name = os.path.abspath(file_name)
+        dir_name = 'temp_djson_data'
+        dir_name_suffix = 1
+        # ищем свободное имя для временной директории с дампом
+        while os.path.exists(dir_name):
+            dir_name = file_name + str(dir_name_suffix)
+            dir_name_suffix += 1
+
         if options['export']:
             if os.path.exists(file_name):
                 user_input = raw_input(
@@ -74,35 +82,85 @@ class Command(management.base.BaseCommand):
             ]
             logging.info(u"Начинаю экспорт, запускается dumpdata")
             start_time = time.time()
-            management.call_command(
-                'dumpdata',
-                '--format', 'djson',
-                '--output', file_name,
-                *model_labels
-            )
+            os.mkdir(dir_name)
+            for model_number, model_label in enumerate(model_labels):
+                output_fname = os.path.join(
+                    dir_name,
+                    'model{}.djson'.format(model_number+1))
+                management.call_command(
+                    'dumpdata',
+                    model_label,
+                    '--format', 'djson',
+                    '--output', output_fname,
+                )
+            tar = tarfile.open(file_name, 'w:gz')
+            djson_files = sort_djson_files(os.listdir(dir_name))
+            for part_number, fname in enumerate(djson_files):
+                tar.add(os.path.join(dir_name, fname),
+                        arcname='part{}.djson'.format(part_number+1))
+            tar.close()
+            shutil.rmtree(dir_name)
             logging.info(u"Экспорт завершен, время исполнения: {}:{}".format(
                 int(time.time() - start_time) / 60,
                 int(time.time() - start_time) % 60,
             ))
             print 'Dump saved successfully to {}'.format(file_name)
         else:
-            if not os.path.exists(file_name):
-                print 'No such file: {}'.format(file_name)
-                print 'Exit...'
+            if not os.path.isfile(file_name):
+                print 'Error!'
+                print 'No such regular file: {}'.format(file_name)
                 sys.exit(1)
             management.call_command('flush')
             Permission.objects.all().delete()
             ContentType.objects.all().delete()
-            chunk_number = 1
-            chunk_file_name = file_name
-            chunk_exists = True
-            while chunk_exists:
-                print 'Loading file {} ...'.format(chunk_file_name)
-                management.call_command('loaddata', chunk_file_name)
-                chunk_file_name = get_chunk_filename(file_name, chunk_number)
-                chunk_exists = os.path.exists(chunk_file_name)
-                chunk_number += 1
+            try:
+                tar = tarfile.open(file_name)
+            except tarfile.ReadError:
+                print 'Error!'
+                print 'Could not read tar file {}'.format(file_name)
+                sys.exit(1)
+            tar.extractall(path=dir_name)
+            part_number = 1
+            part_fname = os.path.join(dir_name, 'part1.djson')
+            part_exists = os.path.isfile(part_fname)
+            if not part_exists:
+                print 'Error!'
+                print 'Could not find a first part of dump'
+                shutil.rmtree(dir_name)
+                tar.close()
+                sys.exit(1)
+            while part_exists:
+                print 'Loading part {} ...'.format(part_number)
+                management.call_command('loaddata', part_fname)
+                part_fname = os.path.join(dir_name,
+                                          'part{}.djson'.format(part_number))
+                part_exists = os.path.exists(part_fname)
+                part_number += 1
+            shutil.rmtree(dir_name)
+            tar.close()
             print 'Dump from {} restored successfully'.format(file_name)
+
+
+def sort_djson_files(files):
+    u"""
+    Сортирует список файлов дампа в правильном порядке.
+    """
+    sorted_files = []
+    base_fname_pattern = 'model{}.djson'
+    part_fname_pattern = 'model{}.part{}.djson'
+    model_number = 1
+    current_fname = base_fname_pattern.format(model_number)
+    while current_fname in files:
+        sorted_files.append(current_fname)
+        part_number = 1
+        current_fname = part_fname_pattern.format(model_number, part_number)
+        while current_fname in files:
+            sorted_files.append(current_fname)
+            part_number += 1
+            current_fname = part_fname_pattern.format(model_number, part_number)
+        model_number += 1
+        current_fname = base_fname_pattern.format(model_number)
+    return sorted_files
 
 
 def sort_dependencies(model_list):
