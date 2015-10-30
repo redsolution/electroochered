@@ -196,8 +196,9 @@ class Serializer(PythonSerializer):
             self.base_output_fname = self.stream.name
 
     def end_serialization(self):
-        json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
-                  **self.options)
+        if self.objects:
+            json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
+                      **self.options)
 
     def end_object(self, obj):
         super(Serializer, self).end_object(obj)

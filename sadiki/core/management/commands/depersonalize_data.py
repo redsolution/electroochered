@@ -95,9 +95,14 @@ class Command(management.base.BaseCommand):
                 )
             tar = tarfile.open(file_name, 'w:gz')
             djson_files = sort_djson_files(os.listdir(dir_name))
-            for part_number, fname in enumerate(djson_files):
-                tar.add(os.path.join(dir_name, fname),
-                        arcname='part{}.djson'.format(part_number+1))
+            part_number = 1
+            for fname in djson_files:
+                full_fname = os.path.join(dir_name, fname)
+                # пустые файлы не включаем в архив
+                if os.stat(full_fname).st_size > 0:
+                    tar.add(full_fname,
+                            arcname='part{}.djson'.format(part_number))
+                    part_number += 1
             tar.close()
             shutil.rmtree(dir_name)
             logging.info(u"Экспорт завершен, время исполнения: {}:{}".format(
