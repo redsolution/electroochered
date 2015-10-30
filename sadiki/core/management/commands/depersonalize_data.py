@@ -82,28 +82,53 @@ class Command(management.base.BaseCommand):
             ]
             logging.info(u"Начинаю экспорт, запускается dumpdata")
             start_time = time.time()
-            os.mkdir(dir_name)
-            for model_number, model_label in enumerate(model_labels):
-                output_fname = os.path.join(
-                    dir_name,
-                    'model{}.djson'.format(model_number+1))
-                management.call_command(
-                    'dumpdata',
-                    model_label,
-                    '--format', 'djson',
-                    '--output', output_fname,
-                )
-            tar = tarfile.open(file_name, 'w:gz')
-            djson_files = sort_djson_files(os.listdir(dir_name))
-            part_number = 1
-            for fname in djson_files:
-                full_fname = os.path.join(dir_name, fname)
-                # пустые файлы не включаем в архив
-                if os.stat(full_fname).st_size > 0:
-                    tar.add(full_fname,
-                            arcname='part{}.djson'.format(part_number))
-                    part_number += 1
-            tar.close()
+            try:
+                os.mkdir(dir_name)
+            except OSError as e:
+                print 'Error!'
+                print e
+                sys.exit(1)
+            try:
+                for model_number, model_label in enumerate(model_labels):
+                    output_fname = os.path.join(
+                        dir_name,
+                        'model{}.djson'.format(model_number+1))
+                    management.call_command(
+                        'dumpdata',
+                        model_label,
+                        '--format', 'djson',
+                        '--output', output_fname,
+                    )
+            except management.base.CommandError as e:
+                print 'Error!'
+                print e
+                shutil.rmtree(dir_name)
+                sys.exit(1)
+            try:
+                tar = tarfile.open(file_name, 'w:gz')
+            except Exception as e:
+                print 'Error!'
+                print e
+                sys.exit(1)
+            try:
+                djson_files = sort_djson_files(os.listdir(dir_name))
+                part_number = 1
+                for fname in djson_files:
+                    full_fname = os.path.join(dir_name, fname)
+                    # пустые файлы не включаем в архив
+                    if os.stat(full_fname).st_size > 0:
+                        tar.add(full_fname,
+                                arcname='part{}.djson'.format(part_number))
+                        part_number += 1
+                tar.close()
+            except Exception as e:
+                print 'Error!'
+                print e
+                tar.close()
+                if os.path.exists(file_name):
+                    os.remove(file_name)
+                shutil.rmtree(dir_name)
+                sys.exit(1)
             shutil.rmtree(dir_name)
             logging.info(u"Экспорт завершен, время исполнения: {}:{}".format(
                 int(time.time() - start_time) / 60,
@@ -120,11 +145,13 @@ class Command(management.base.BaseCommand):
             ContentType.objects.all().delete()
             try:
                 tar = tarfile.open(file_name)
-            except tarfile.ReadError:
+                tar.extractall(path=dir_name)
+            except Exception as e:
                 print 'Error!'
-                print 'Could not read tar file {}'.format(file_name)
+                print e
+                if os.path.isdir(dir_name):
+                    shutil.rmtree(dir_name)
                 sys.exit(1)
-            tar.extractall(path=dir_name)
             part_number = 1
             part_fname = os.path.join(dir_name, 'part1.djson')
             part_exists = os.path.isfile(part_fname)
@@ -134,13 +161,20 @@ class Command(management.base.BaseCommand):
                 shutil.rmtree(dir_name)
                 tar.close()
                 sys.exit(1)
-            while part_exists:
-                print 'Loading part {} ...'.format(part_number)
-                management.call_command('loaddata', part_fname)
-                part_number += 1
-                part_fname = os.path.join(dir_name,
-                                          'part{}.djson'.format(part_number))
-                part_exists = os.path.exists(part_fname)
+            try:
+                while part_exists:
+                    print 'Loading part {} ...'.format(part_number)
+                    management.call_command('loaddata', part_fname)
+                    part_number += 1
+                    part_fname = os.path.join(dir_name,
+                                              'part{}.djson'.format(part_number))
+                    part_exists = os.path.exists(part_fname)
+            except management.base.CommandError as e:
+                print 'Error!'
+                print e
+                shutil.rmtree(dir_name)
+                tar.close()
+                sys.exit(1)
             shutil.rmtree(dir_name)
             tar.close()
             print 'Dump from {} restored successfully'.format(file_name)
