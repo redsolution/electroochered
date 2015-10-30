@@ -55,7 +55,7 @@ class Command(management.base.BaseCommand):
         dir_name_suffix = 1
         # ищем свободное имя для временной директории с дампом
         while os.path.exists(dir_name):
-            dir_name = file_name + str(dir_name_suffix)
+            dir_name = 'temp_djson_data_' + str(dir_name_suffix)
             dir_name_suffix += 1
 
         if options['export']:
@@ -137,10 +137,10 @@ class Command(management.base.BaseCommand):
             while part_exists:
                 print 'Loading part {} ...'.format(part_number)
                 management.call_command('loaddata', part_fname)
+                part_number += 1
                 part_fname = os.path.join(dir_name,
                                           'part{}.djson'.format(part_number))
                 part_exists = os.path.exists(part_fname)
-                part_number += 1
             shutil.rmtree(dir_name)
             tar.close()
             print 'Dump from {} restored successfully'.format(file_name)

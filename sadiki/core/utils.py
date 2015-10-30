@@ -5,7 +5,7 @@ import json
 import uuid
 import urllib
 import urllib2
-from os.path import join, exists
+from os.path import join, split, exists
 from os import makedirs
 from subprocess import Popen
 from collections import OrderedDict
@@ -561,9 +561,9 @@ def get_fixture_chunk_file_name(base_file_name, chunk_number):
     К основному имени файла добавляет номер чанка, с учётом формата файла
     Например, dumps/file.djson.gz => dumps/file.part5.djson.gz
     """
-    full_name = base_file_name.rsplit('/', 1)
+    full_name = list(split(base_file_name))
     concrete_fname = full_name[-1]
     parts = concrete_fname.rsplit('.', 2)
     parts.insert(1, 'part{}'.format(chunk_number))
     full_name[-1] = '.'.join(parts)
-    return '/'.join(full_name)
+    return join(*full_name)
