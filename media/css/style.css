@@ -517,7 +517,8 @@ table.table.table-bordered tr.highlight td {
 
 .uniForm label.checkbox{
     float: left;
-    margin-top: 8px;
+    margin-top: 0px;
+    margin-bottom: 0px;
     width: 100% !important;
 }
 
@@ -1514,6 +1515,10 @@ tr.dynamic-form .errorlist {
     border-bottom: 0px;
 }
 
+.registrationForm .permission-checkbox .ctrlHolder{
+    padding: 0px 13px;
+}
+
 .social-auth-group{
     margin-top: 20px;
     margin-bottom: 10px;
@@ -1541,8 +1546,8 @@ tr.dynamic-form .errorlist {
 
 .registrationForm .hint{
     color: #909090;
-    margin-top: 20px;
-    margin-left: 10px;
+    margin-top: 10px;
+    margin-left: 15px;
 }
 
 .documents-form .original-form{
