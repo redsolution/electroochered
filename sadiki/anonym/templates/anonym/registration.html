@@ -22,6 +22,9 @@
                 <h2>Создание профиля</h2>
                 {% zenform registration_form options notag=1 %}
                     {% fieldset 'password1' 'password2' %}
+                    <div class="permission-checkbox">
+                        {% fieldset 'pdata_processing_permit' %}
+                    </div>
                     <p class="hint">
                         В соответствии с Федеральным законом № 152-ФЗ от 27.07.2006 года
                         «О персональных данных» выражаю свое согласие на обработку
@@ -34,9 +37,6 @@
                         по программам дошкольного образования, присмотр и уход за детьми»
                         через ведомственную информационную систему «Электроочередь».
                     </p>
-                    <div class="permission-checkbox">
-                        {% fieldset 'pdata_processing_permit' %}
-                    </div>
                     <p class="hint">
                         После регистрации вам будет присвоено Имя пользователя. Пожалуйста, запомните его и используйте в дальнейшем для входа в «Электроочередь».
                     </p>
