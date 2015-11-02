@@ -24,7 +24,7 @@ class AccountViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(CoreViewsTest, cls).setUpClass()
+        super(AccountViewsTest, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
@@ -34,7 +34,7 @@ class AccountViewsTest(TestCase):
         BenefitCategory.objects.all().delete()
         Sadik.objects.all().delete()
         Address.objects.all().delete()
-        super(CoreViewsTest, cls).tearDownClass()
+        super(AccountViewsTest, cls).tearDownClass()
 
     def setUp(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
