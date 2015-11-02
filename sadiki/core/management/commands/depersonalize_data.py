@@ -88,22 +88,23 @@ class Command(management.base.BaseCommand):
                 print 'Error!'
                 print e
                 sys.exit(1)
-            try:
-                for model_number, model_label in enumerate(model_labels):
-                    output_fname = os.path.join(
-                        dir_name,
-                        'model{}.djson'.format(model_number+1))
+            for model_number, model_label in enumerate(model_labels):
+                model_dir_name = os.path.join(dir_name,
+                                              'model{}'.format(model_number+1))
+                try:
+                    os.mkdir(model_dir_name)
+                    output_fname = os.path.join(model_dir_name, 'data.djson')
                     management.call_command(
                         'dumpdata',
                         model_label,
                         '--format', 'djson',
                         '--output', output_fname,
                     )
-            except management.base.CommandError as e:
-                print 'Error!'
-                print e
-                shutil.rmtree(dir_name)
-                sys.exit(1)
+                except Exception as e:
+                    print 'Error!'
+                    print e
+                    shutil.rmtree(dir_name)
+                    sys.exit(1)
             try:
                 tar = tarfile.open(file_name, 'w:gz')
             except Exception as e:
@@ -111,15 +112,7 @@ class Command(management.base.BaseCommand):
                 print e
                 sys.exit(1)
             try:
-                djson_files = sort_djson_files(os.listdir(dir_name))
-                part_number = 1
-                for fname in djson_files:
-                    full_fname = os.path.join(dir_name, fname)
-                    # пустые файлы не включаем в архив
-                    if os.stat(full_fname).st_size > 0:
-                        tar.add(full_fname,
-                                arcname='part{}.djson'.format(part_number))
-                        part_number += 1
+                tar.add(dir_name, arcname='')
                 tar.close()
             except Exception as e:
                 print 'Error!'
@@ -152,54 +145,27 @@ class Command(management.base.BaseCommand):
                 if os.path.isdir(dir_name):
                     shutil.rmtree(dir_name)
                 sys.exit(1)
-            part_number = 1
-            part_fname = os.path.join(dir_name, 'part1.djson')
-            part_exists = os.path.isfile(part_fname)
-            if not part_exists:
-                print 'Error!'
-                print 'Could not find a first part of dump'
-                shutil.rmtree(dir_name)
-                tar.close()
-                sys.exit(1)
-            try:
-                while part_exists:
-                    print 'Loading part {} ...'.format(part_number)
-                    management.call_command('loaddata', part_fname)
-                    part_number += 1
-                    part_fname = os.path.join(dir_name,
-                                              'part{}.djson'.format(part_number))
-                    part_exists = os.path.exists(part_fname)
-            except management.base.CommandError as e:
-                print 'Error!'
-                print e
-                shutil.rmtree(dir_name)
-                tar.close()
-                sys.exit(1)
+            model_number = 1
+            model_dir_name = os.path.join(dir_name, 'model1')
+            while os.path.isdir(model_dir_name):
+                print 'Loading model {} ...'.format(model_number)
+                parts = [os.path.join(model_dir_name, fname)
+                         for fname in os.listdir(model_dir_name)]
+                try:
+                    for part_fname in parts:
+                        management.call_command('loaddata', part_fname)
+                except Exception as e:
+                    print 'Error!'
+                    print e
+                    shutil.rmtree(dir_name)
+                    tar.close()
+                    sys.exit(1)
+                model_number += 1
+                model_dir_name = os.path.join(dir_name,
+                                              'model{}'.format(model_number))
             shutil.rmtree(dir_name)
             tar.close()
             print 'Dump from {} restored successfully'.format(file_name)
-
-
-def sort_djson_files(files):
-    u"""
-    Сортирует список файлов дампа в правильном порядке.
-    """
-    sorted_files = []
-    base_fname_pattern = 'model{}.djson'
-    part_fname_pattern = 'model{}.part{}.djson'
-    model_number = 1
-    current_fname = base_fname_pattern.format(model_number)
-    while current_fname in files:
-        sorted_files.append(current_fname)
-        part_number = 1
-        current_fname = part_fname_pattern.format(model_number, part_number)
-        while current_fname in files:
-            sorted_files.append(current_fname)
-            part_number += 1
-            current_fname = part_fname_pattern.format(model_number, part_number)
-        model_number += 1
-        current_fname = base_fname_pattern.format(model_number)
-    return sorted_files
 
 
 def sort_dependencies(model_list):

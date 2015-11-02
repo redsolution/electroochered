@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import json
 import random
 import hashlib
@@ -199,6 +200,10 @@ class Serializer(PythonSerializer):
         if self.objects:
             json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
                       **self.options)
+        elif self.chunk_mode:
+            self.stream.close()
+            os.remove(self.stream.name)
+            self.stream = None
 
     def end_object(self, obj):
         super(Serializer, self).end_object(obj)
