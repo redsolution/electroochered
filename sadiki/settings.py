@@ -3,6 +3,10 @@ import os
 gettext_noop = lambda s: s
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
+LOCALE_PATHS = [
+    PROJECT_DIR + '/sadiki/locale',
+]
+
 TIME_ZONE = 'Asia/Yekaterinburg'
 
 LANGUAGE_CODE = 'ru'

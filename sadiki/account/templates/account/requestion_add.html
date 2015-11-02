@@ -283,7 +283,7 @@
             <div id="errorMsg">
                 {% load i18n %}
                 <h3>
-                {% blocktrans count form.non_field_errors|length as counter %}Пожалуйста, исправьте ошибку ниже.{% plural %}Пожалуйста, исправьте ошибки ниже.{% endblocktrans %}
+                {% blocktrans count form.non_field_errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
                 </h3>
                 <ol>
                     {% for error in form.non_field_errors %}

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-10-16 13:28+0600\n"
+"POT-Creation-Date: 2015-10-23 16:23+0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,38 +19,77 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2)\n"
 
-#: attachment/models.py:15 attachment/models.py:29
+#: sadiki/account/templates/account/requestion_add.html:286
+#: sadiki/administrator/templates/administrator/change_task_form.html:69
+#: sadiki/administrator/templates/administrator/change_task_list.html:89
+#: sadiki/anonym/templates/anonym/registration.html:14
+#: sadiki/authorisation/templates/authorisation/login.html:15
+#: sadiki/supervisor/templates/supervisor/change_birth_date.html:10
+#: sadiki/supervisor/templates/supervisor/change_registration_datetime.html:10
+msgid "Please correct the error below."
+msgid_plural "Please correct the errors below."
+msgstr[0] "Пожалуйста, исправьте ошибку ниже."
+msgstr[1] "Пожалуйста, исправьте ошибки ниже."
+
+#: sadiki/administrator/admin.py:83
+msgid "Add Another"
+msgstr ""
+
+#: sadiki/administrator/admin.py:200
+msgid "Site administration"
+msgstr ""
+
+#: sadiki/administrator/templates/administrator/change_task_form.html:36
+#: sadiki/administrator/templates/administrator/change_task_list.html:42
+msgid "Home"
+msgstr ""
+
+#: sadiki/administrator/templates/administrator/change_task_form.html:39
+msgid "Add"
+msgstr ""
+
+#: sadiki/administrator/templates/administrator/change_task_form.html:54
+msgid "History"
+msgstr ""
+
+#: sadiki/administrator/templates/administrator/change_task_form.html:55
+msgid "View on site"
+msgstr ""
+
+#: sadiki/administrator/templates/administrator/change_task_list.html:78
+#, python-format
+msgid "Add %(name)s"
+msgstr ""
+
+#: sadiki/administrator/templates/administrator/change_task_list.html:100
+msgid "Filter"
+msgstr ""
+
+#: sadiki/anonym/views.py:110
+#, python-format
+msgid "Invalid page (%(page_number)s)"
+msgstr "Неправильная страница (%(page_number)s)"
+
 msgid "image"
 msgstr "изображение"
 
-#: attachment/models.py:16
 msgid "images"
 msgstr "изображения"
 
-#: attachment/models.py:32
 msgid "position"
 msgstr "положение"
 
-#: attachment/models.py:35 attachment/models.py:60
 msgid "title"
 msgstr "наименование"
 
-#: attachment/models.py:38
 msgid "group"
 msgstr "группа"
 
-#: attachment/models.py:49 attachment/models.py:56
 msgid "file"
 msgstr "файл"
 
-#: attachment/models.py:50
 msgid "files"
 msgstr "файлы"
 
-#: attachment/redsolution_setup/models.py:12
-#: attachment/redsolution_setup/models.py:16
 msgid "Mode"
 msgstr "Режим"
-
-msgid "This field is required."
-msgstr "Обязательное поле"
