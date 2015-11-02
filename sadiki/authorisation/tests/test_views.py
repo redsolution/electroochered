@@ -15,7 +15,7 @@ class AuthorizationViewsTest(TestCase):
 
     @classmethod
     def setUpClass(cls):
-        super(CoreViewsTest, cls).setUpClass()
+        super(AuthorizationViewsTest, cls).setUpClass()
         management.call_command('update_initial_data')
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
 
@@ -24,7 +24,7 @@ class AuthorizationViewsTest(TestCase):
         Permission.objects.all().delete()
         Group.objects.all().delete()
         Preference.objects.all().delete()
-        super(CoreViewsTest, cls).tearDownClass()
+        super(AuthorizationViewsTest, cls).tearDownClass()
 
     def tearDown(self):
         Profile.objects.all().delete()
