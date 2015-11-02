@@ -31,6 +31,10 @@ class RegistrationForm(forms.ModelForm):
         label=_("Password confirmation"), widget=forms.PasswordInput(
             attrs={'placeholder':
                    u"Введите тот же пароль, что и выше, для подтверждения"}))
+    pdata_processing_permit = forms.BooleanField(
+        label=u"Я даю согласие на обработку персональных данных",
+        required=True)
+
 
     class Meta:
         model = User

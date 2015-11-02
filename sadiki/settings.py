@@ -3,6 +3,10 @@ import os
 gettext_noop = lambda s: s
 PROJECT_DIR = os.path.dirname(os.path.dirname(__file__))
 
+LOCALE_PATHS = [
+    PROJECT_DIR + '/sadiki/locale',
+]
+
 TIME_ZONE = 'Asia/Yekaterinburg'
 
 LANGUAGE_CODE = 'ru'
@@ -155,6 +159,7 @@ LOGIN_URL = '/auth/login/'
 
 #Session settings
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 86400
 
 # ------ trustedhtml ------
 

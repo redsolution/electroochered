@@ -375,7 +375,7 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
 
 
 def create_xls_from_queue(response, queue):
-    reqs = queue.select_related('areas', 'benefit_category')
+    reqs = queue.prefetch_related('areas', 'benefit_category')
     file_name = u'Filter_results'
     response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
     import xlwt
