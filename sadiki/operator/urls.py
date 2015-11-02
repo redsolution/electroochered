@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from django.views.decorators.csrf import csrf_exempt
 from sadiki.operator.plugins import plugins
 
@@ -13,7 +13,7 @@ from sadiki.operator.views.sadik import SadikListWithGroups, SadikGroupChangePla
     SadikListWithGroupsJS
 
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Общие функции
     url(r'^$', FrontPage.as_view(), name='operator_frontpage'),
 
@@ -61,7 +61,7 @@ urlpatterns = patterns('',
         RequestionListEnrollment.as_view(), name=u'requestion_list_enroll'),
     url(r'^dou/(?P<sadik_id>\d{1,7})/distributed_requestions/$',
         DistributedRequestionsForSadik.as_view(), name=u'distributed_requestions_for_sadik'),
-)
+]
 
 for plugin in plugins:
     try:

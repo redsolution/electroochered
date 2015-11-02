@@ -11,7 +11,7 @@
                 {% if registration_form.non_field_errors %}
                     <div id="errorMsg">
                         {% load i18n %}
-                        <h3>{% blocktrans count errors|length as counter %}Пожалуйста, исправьте ошибку ниже.{% plural %}Пожалуйста, исправьте ошибки ниже.{% endblocktrans %}</h3>
+                        <h3>{% blocktrans count registration_form.non_field_errors|length as counter %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}</h3>
                         <ol>
                             {% for error in registration_form.non_field_errors %}
                                 <li>{{ error }}</li>
@@ -20,14 +20,28 @@
                     </div>
                 {% endif %}
                 <h2>Создание профиля</h2>
-                {% izenform registration_form options notag=1 %}
-                <p class="hint">
-                    После регистрации вам будет присвоено Имя пользователя. Пожалуйста, запомните его и используйте в дальнейшем для входа в «Электроочередь».
-                </p>
-                 <div class="buttonHolder">
-
-                    <button class="primaryAction" type="submit">Зарегистрироваться</button>
-                 </div>
+                {% zenform registration_form options notag=1 %}
+                    {% fieldset 'password1' 'password2' %}
+                    <div class="permission-checkbox">
+                        {% fieldset 'pdata_processing_permit' %}
+                    </div>
+                    <p class="hint">
+                        В соответствии с Федеральным законом № 152-ФЗ от 27.07.2006 года
+                        «О персональных данных» выражаю свое согласие на обработку
+                        (сбор, систематизацию, накопление, хранение, уточнение, обновление, изменение),
+                        использование способами, не противоречащими закону, моих персональных данных
+                        (паспортных данных) и данных моего ребенка (данных свидетельства о рождении).
+                        Обработка моих персональных данных будет производиться с целью предоставления
+                        муниципальной услуги «Прием заявлений, постановка на учет и зачисление детей
+                        в образовательные учреждения, осуществляющие образовательную деятельность
+                        по программам дошкольного образования, присмотр и уход за детьми»
+                        через ведомственную информационную систему «Электроочередь».
+                    </p>
+                    <p class="hint">
+                        После регистрации вам будет присвоено Имя пользователя. Пожалуйста, запомните его и используйте в дальнейшем для входа в «Электроочередь».
+                    </p>
+                    {% submit "Зарегистрироваться" %}
+                {% endzenform %}
             </form>
         </div>
 
@@ -68,4 +82,17 @@
 
         </div>
     </div>
+{% endblock %}
+
+{% block bottomjs %}
+{{ block.super }}
+    <script>
+    $(document).ready(function() {
+        $('#mainform button:submit').prop('disabled', !$('#id_pdata_processing_permit').is(':checked'));
+
+        $('#id_pdata_processing_permit').on('click', function() {
+          $('#mainform button:submit').prop('disabled', !$('#id_pdata_processing_permit').is(':checked'));
+        });
+    });
+    </script>
 {% endblock %}

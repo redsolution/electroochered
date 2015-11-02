@@ -19,12 +19,12 @@ from sadiki.core.workflow import CHANGE_PERSONAL_DATA, \
     REQUESTION_ADD_BY_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR
 
 
-class CoreViewsTest(TestCase):
+class AccountViewsTest(TestCase):
     fixtures = ['sadiki/core/fixtures/test_initial.json', ]
 
     @classmethod
     def setUpClass(cls):
-        super(CoreViewsTest, cls).setUpClass()
+        super(AccountViewsTest, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
@@ -34,7 +34,7 @@ class CoreViewsTest(TestCase):
         BenefitCategory.objects.all().delete()
         Sadik.objects.all().delete()
         Address.objects.all().delete()
-        super(CoreViewsTest, cls).tearDownClass()
+        super(AccountViewsTest, cls).tearDownClass()
 
     def setUp(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
