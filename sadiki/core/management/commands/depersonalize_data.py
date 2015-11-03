@@ -6,7 +6,10 @@ import sys
 import tarfile
 import shutil
 import itertools
+import subprocess
+import multiprocessing
 
+from django.conf import settings
 from django.core import management
 from django.apps import apps
 from django.contrib.auth.models import Permission
@@ -149,11 +152,8 @@ class Command(management.base.BaseCommand):
             model_dir_name = os.path.join(dir_name, 'model1')
             while os.path.isdir(model_dir_name):
                 print 'Loading model {} ...'.format(model_number)
-                parts = [os.path.join(model_dir_name, fname)
-                         for fname in os.listdir(model_dir_name)]
                 try:
-                    for part_fname in parts:
-                        management.call_command('loaddata', part_fname)
+                    load_model_data(model_dir_name)
                 except Exception as e:
                     print 'Error!'
                     print e
@@ -166,6 +166,27 @@ class Command(management.base.BaseCommand):
             shutil.rmtree(dir_name)
             tar.close()
             print 'Dump from {} restored successfully'.format(file_name)
+
+
+def run_loaddata(fname):
+    manage_file = os.path.join(settings.PROJECT_DIR, 'manage.py')
+    abs_fname = os.path.abspath(fname)
+    subprocess.check_call(['python', manage_file, 'loaddata', abs_fname])
+
+
+def load_model_data(model_dir_name):
+    chunk_fnames = [os.path.join(model_dir_name, fname)
+                    for fname in os.listdir(model_dir_name)]
+    if not chunk_fnames:
+        return
+    if len(chunk_fnames) == 1:
+        management.call_command('loaddata', chunk_fnames[0])
+    else:
+        pool = multiprocessing.Pool(
+            processes=getattr(settings, 'DJSON_NUM_OF_POOL_WORKERS', 4))
+        pool.map(run_loaddata, chunk_fnames)
+        pool.close()
+        pool.join()
 
 
 def sort_dependencies(model_list):
