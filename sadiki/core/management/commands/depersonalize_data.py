@@ -16,6 +16,10 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
 
+CHUNK_SIZE = getattr(settings, 'DJSON_CHUNK_SIZE', 20000)
+PROCESSES = getattr(settings, 'DJSON_NUM_OF_POOL_WORKERS', 4)
+
+
 class Command(management.base.BaseCommand):
     # help = "Dumps or loads depersonalized json data"
 
@@ -60,6 +64,7 @@ class Command(management.base.BaseCommand):
         while os.path.exists(dir_name):
             dir_name = 'temp_djson_data_' + str(dir_name_suffix)
             dir_name_suffix += 1
+        dir_name = os.path.abspath(dir_name)
 
         if options['export']:
             if os.path.exists(file_name):
@@ -83,31 +88,29 @@ class Command(management.base.BaseCommand):
                 '.'.join([model._meta.app_label, model._meta.model_name])
                 for model in sorted_model_list
             ]
+            model_dir_names = [
+                os.path.join(dir_name, 'model{}'.format(model_number+1))
+                for model_number in range(len(model_labels))
+            ]
             logging.info(u"Начинаю экспорт, запускается dumpdata")
             start_time = time.time()
             try:
                 os.mkdir(dir_name)
+                for model_dir_name in model_dir_names:
+                    os.mkdir(model_dir_name)
             except OSError as e:
                 print 'Error!'
                 print e
                 sys.exit(1)
-            for model_number, model_label in enumerate(model_labels):
-                model_dir_name = os.path.join(dir_name,
-                                              'model{}'.format(model_number+1))
-                try:
-                    os.mkdir(model_dir_name)
-                    output_fname = os.path.join(model_dir_name, 'data.djson')
-                    management.call_command(
-                        'dumpdata',
-                        model_label,
-                        '--format', 'djson',
-                        '--output', output_fname,
-                    )
-                except Exception as e:
-                    print 'Error!'
-                    print e
-                    shutil.rmtree(dir_name)
-                    sys.exit(1)
+            try:
+                for model_dir_name, model_label in zip(
+                            model_dir_names, model_labels):
+                    dump_model_data(model_dir_name, model_label)
+            except Exception as e:
+                print 'Error!'
+                print e
+                shutil.rmtree(dir_name)
+                sys.exit(1)
             try:
                 tar = tarfile.open(file_name, 'w:gz')
             except Exception as e:
@@ -168,6 +171,44 @@ class Command(management.base.BaseCommand):
             print 'Dump from {} restored successfully'.format(file_name)
 
 
+def run_dumpdata((fname, model_name, start, end)):
+    manage_file = os.path.join(settings.PROJECT_DIR, 'manage.py')
+    abs_fname = os.path.abspath(fname)
+    subprocess.check_call([
+        'python', manage_file, 'chunk_dumpdata', model_name,
+        '--start', str(start), '--end', str(end),
+        '--output', abs_fname,
+    ])
+
+
+def dump_model_data(model_dir_name, model_label):
+    print '\nProcessing model: ', model_label
+    model = apps.get_model(model_label)
+    objects_count = model.objects.count()
+    if objects_count == 0:
+        return
+    if objects_count <= CHUNK_SIZE:
+        management.call_command(
+            'dumpdata', model_label, '--format', 'djson',
+            '--output', os.path.join(model_dir_name, 'part1.djson'))
+        return
+
+    pool_args = [
+        (
+            os.path.join(model_dir_name, 'part{}.djson'.format(i + 1)),
+            model_label,
+            chunk_start,
+            chunk_start + CHUNK_SIZE,
+        )
+        for i, chunk_start
+        in enumerate(range(0, objects_count, CHUNK_SIZE))
+    ]
+    pool = multiprocessing.Pool(processes=PROCESSES)
+    pool.map(run_dumpdata, pool_args)
+    pool.close()
+    pool.join()
+
+
 def run_loaddata(fname):
     manage_file = os.path.join(settings.PROJECT_DIR, 'manage.py')
     abs_fname = os.path.abspath(fname)
@@ -182,8 +223,7 @@ def load_model_data(model_dir_name):
     if len(chunk_fnames) == 1:
         management.call_command('loaddata', chunk_fnames[0])
     else:
-        pool = multiprocessing.Pool(
-            processes=getattr(settings, 'DJSON_NUM_OF_POOL_WORKERS', 4))
+        pool = multiprocessing.Pool(processes=PROCESSES)
         pool.map(run_loaddata, chunk_fnames)
         pool.close()
         pool.join()
