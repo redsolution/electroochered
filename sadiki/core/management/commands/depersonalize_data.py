@@ -12,6 +12,7 @@ import multiprocessing
 from django.conf import settings
 from django.core import management
 from django.apps import apps
+from django.db import connections, DEFAULT_DB_ALIAS
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
@@ -138,7 +139,17 @@ class Command(management.base.BaseCommand):
                 print 'Error!'
                 print 'No such regular file: {}'.format(file_name)
                 sys.exit(1)
-            management.call_command('flush')
+            db_name = connections[DEFAULT_DB_ALIAS].settings_dict['NAME']
+            user_input = raw_input(
+                'Do you want to flush the "{}" database? (y/n): '.format(
+                    db_name)
+            )
+            while user_input not in ('y', 'n'):
+                user_input = raw_input('Incorrect input!\n')
+            if user_input == 'n':
+                print 'Exit...'
+                sys.exit()
+            management.call_command('flush', '--noinput')
             Permission.objects.all().delete()
             ContentType.objects.all().delete()
             try:
