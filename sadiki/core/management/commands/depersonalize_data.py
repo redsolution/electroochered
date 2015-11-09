@@ -16,6 +16,7 @@ from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
 
+MANAGE_FILE = os.path.join(settings.PROJECT_DIR, 'manage.py')
 CHUNK_SIZE = getattr(settings, 'DJSON_CHUNK_SIZE', 20000)
 PROCESSES = getattr(settings, 'DJSON_NUM_OF_POOL_WORKERS', 4)
 
@@ -103,25 +104,23 @@ class Command(management.base.BaseCommand):
                 print e
                 sys.exit(1)
             try:
-                for model_dir_name, model_label in zip(
-                            model_dir_names, model_labels):
-                    dump_model_data(model_dir_name, model_label)
+                map(dump_model_data, zip(model_dir_names, model_labels))
             except Exception as e:
-                print 'Error!'
+                print 'Error while dumping data!'
                 print e
                 shutil.rmtree(dir_name)
                 sys.exit(1)
             try:
                 tar = tarfile.open(file_name, 'w:gz')
             except Exception as e:
-                print 'Error!'
+                print 'Error while opening .tar.gz archive!'
                 print e
                 sys.exit(1)
             try:
                 tar.add(dir_name, arcname='')
                 tar.close()
             except Exception as e:
-                print 'Error!'
+                print 'Error while creating .tar.gz archive!'
                 print e
                 tar.close()
                 if os.path.exists(file_name):
@@ -146,7 +145,7 @@ class Command(management.base.BaseCommand):
                 tar = tarfile.open(file_name)
                 tar.extractall(path=dir_name)
             except Exception as e:
-                print 'Error!'
+                print 'Error while extracting .tar.gz archive!'
                 print e
                 if os.path.isdir(dir_name):
                     shutil.rmtree(dir_name)
@@ -158,7 +157,7 @@ class Command(management.base.BaseCommand):
                 try:
                     load_model_data(model_dir_name)
                 except Exception as e:
-                    print 'Error!'
+                    print 'Error while loading data!'
                     print e
                     shutil.rmtree(dir_name)
                     tar.close()
@@ -172,16 +171,15 @@ class Command(management.base.BaseCommand):
 
 
 def run_dumpdata((fname, model_name, start, end)):
-    manage_file = os.path.join(settings.PROJECT_DIR, 'manage.py')
     abs_fname = os.path.abspath(fname)
     subprocess.check_call([
-        'python', manage_file, 'chunk_dumpdata', model_name,
+        'python', MANAGE_FILE, 'chunk_dumpdata', model_name,
         '--start', str(start), '--end', str(end),
         '--output', abs_fname,
     ])
 
 
-def dump_model_data(model_dir_name, model_label):
+def dump_model_data((model_dir_name, model_label)):
     print '\nProcessing model: ', model_label
     model = apps.get_model(model_label)
     objects_count = model.objects.count()
@@ -195,12 +193,12 @@ def dump_model_data(model_dir_name, model_label):
 
     pool_args = [
         (
-            os.path.join(model_dir_name, 'part{}.djson'.format(i + 1)),
+            os.path.join(model_dir_name, 'part{}.djson'.format(part_num + 1)),
             model_label,
             chunk_start,
             chunk_start + CHUNK_SIZE,
         )
-        for i, chunk_start
+        for part_num, chunk_start
         in enumerate(range(0, objects_count, CHUNK_SIZE))
     ]
     pool = multiprocessing.Pool(processes=PROCESSES)
@@ -210,14 +208,14 @@ def dump_model_data(model_dir_name, model_label):
 
 
 def run_loaddata(fname):
-    manage_file = os.path.join(settings.PROJECT_DIR, 'manage.py')
     abs_fname = os.path.abspath(fname)
-    subprocess.check_call(['python', manage_file, 'loaddata', abs_fname])
+    subprocess.check_call(['python', MANAGE_FILE, 'loaddata', abs_fname])
 
 
 def load_model_data(model_dir_name):
-    chunk_fnames = [os.path.join(model_dir_name, fname)
-                    for fname in os.listdir(model_dir_name)]
+    fnames = [os.path.join(model_dir_name, fname)
+              for fname in os.listdir(model_dir_name)]
+    chunk_fnames = [fname for fname in fnames if os.stat(fname).st_size > 0]
     if not chunk_fnames:
         return
     if len(chunk_fnames) == 1:
