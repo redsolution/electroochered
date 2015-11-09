@@ -12,7 +12,6 @@ import multiprocessing
 from django.conf import settings
 from django.core import management
 from django.apps import apps
-from django.db import connections, DEFAULT_DB_ALIAS
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 
@@ -139,7 +138,7 @@ class Command(management.base.BaseCommand):
                 print 'Error!'
                 print 'No such regular file: {}'.format(file_name)
                 sys.exit(1)
-            db_name = connections[DEFAULT_DB_ALIAS].settings_dict['NAME']
+            db_name = settings.DATABASES['default']['NAME']
             user_input = raw_input(
                 'Do you want to flush the "{}" database? (y/n): '.format(
                     db_name)
@@ -204,13 +203,13 @@ def dump_model_data((model_dir_name, model_label)):
 
     pool_args = [
         (
-            os.path.join(model_dir_name, 'part{}.djson'.format(part_num + 1)),
+            os.path.join(model_dir_name, 'part{}.djson'.format(part_num)),
             model_label,
             chunk_start,
             chunk_start + CHUNK_SIZE,
         )
         for part_num, chunk_start
-        in enumerate(range(0, objects_count, CHUNK_SIZE))
+        in enumerate(range(0, objects_count, CHUNK_SIZE), start=1)
     ]
     pool = multiprocessing.Pool(processes=PROCESSES)
     pool.map(run_dumpdata, pool_args)
