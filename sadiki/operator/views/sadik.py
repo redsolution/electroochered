@@ -223,7 +223,9 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
             u'№',
             u'Номер заявки',
             u'Документ',
+            u'Фамилия ребенка',
             u'Имя ребенка',
+            u'Отчество ребенка',
             u'Дата рождения',
             u'Дата регистрации',
             u'Категория льгот',
@@ -243,11 +245,16 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
             for i, requestion in enumerate(requestions, start=1):
                 if requestion.related_documents:
                     document = requestion.related_documents[0]
-                    document_number = u"{0} ({1})".format(document.document_number, document.template.name)
+                    document_number = u"{0} ({1})".format(
+                        document.document_number, document.template.name)
                 else:
                     document_number = u''
-                row = [unicode(i), requestion.requestion_number, document_number, requestion.name, requestion.birth_date,
-                       requestion.registration_datetime.date(), unicode(requestion.benefit_category),
+                row = [unicode(i), requestion.requestion_number,
+                       document_number, requestion.child_last_name or '-',
+                       requestion.name, requestion.child_middle_name or '-',
+                       requestion.birth_date,
+                       requestion.registration_datetime.date(),
+                       unicode(requestion.benefit_category),
                        requestion.get_status_display()]
                 for column_number, element in enumerate(row):
                     ws.write(row_number, column_number, element, style)
