@@ -250,8 +250,8 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
                 else:
                     document_number = u''
                 row = [unicode(i), requestion.requestion_number,
-                       document_number, requestion.child_last_name or '-',
-                       requestion.name, requestion.child_middle_name or '-',
+                       document_number, requestion.child_last_name,
+                       requestion.name, requestion.child_middle_name,
                        requestion.birth_date,
                        requestion.registration_datetime.date(),
                        unicode(requestion.benefit_category),
