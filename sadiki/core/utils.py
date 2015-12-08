@@ -5,7 +5,7 @@ import json
 import uuid
 import urllib
 import urllib2
-from os.path import join, exists
+from os.path import join, split, exists
 from os import makedirs
 from subprocess import Popen
 from collections import OrderedDict
