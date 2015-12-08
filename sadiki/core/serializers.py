@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import os
 import json
 import random
-import string
+import hashlib
 
 from rest_framework import serializers
 from django.core.serializers.python import Serializer as PythonSerializer
@@ -71,68 +72,83 @@ class SadikSerializer(serializers.ModelSerializer):
         return SadikGroupSerializer(groups_qs, many=True).data
 
 
-def clear_log_message(log):
+# генерируем специальный секретный пароль для всех учетных записей
+default_hash = hashlib.sha1('salt1' + '1234').hexdigest()
+default_user_password = "{}${}${}".format('sha1', 'salt1', default_hash)
+
+
+def remove_log_message(log):
     if log.level > ANONYM_LOG:
         return ''
     return log.message
 
-def clear_benefit_name(benefit):
+
+def remove_benefit_name(benefit):
     return u"Льгота №{} категории {}".format(benefit.id, benefit.category.id)
 
-def clear_requestion_sex(requestion):
-    u"""
-    Если не указан пол ребёнка, заявкам с чётным id будет присвоен М, другим Ж
-    """
-    return requestion.sex or sex_data[requestion.id & 1]
 
-def clear_requestion_name(requestion):
+def randomize_requestion_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['first_names'])
 
-def clear_requestion_last_name(requestion):
+
+def randomize_requestion_child_last_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['last_names'])
 
-def clear_requestion_middle_name(requestion):
+
+def randomize_requestion_child_middle_name(requestion):
     sex = requestion.sex or sex_data[requestion.id & 1]
     return random.choice(name_data[sex]['middle_names'])
 
-def clear_requestion_kinship(requestion):
+
+def randomize_requestion_kinship(requestion):
     if random.randint(0, 3) == 0:
         return u'Опекун'
     sex = sex_data[requestion.profile.user.id & 1]
     return u'Отец' if sex == u'М' else u'Мать'
 
-def clear_profile_name(profile):
+
+def randomize_user_first_name(profile):
     sex = sex_data[profile.id & 1]
     return random.choice(name_data[sex]['first_names'])
 
-def clear_profile_last_name(profile):
+
+def randomize_user_last_name(profile):
     sex = sex_data[profile.id & 1]
     return random.choice(name_data[sex]['last_names'])
 
-def clear_profile_middle_name(profile):
+
+def randomize_profile_middle_name(profile):
     sex = sex_data[profile.user.id & 1]
     return random.choice(name_data[sex]['middle_names'])
+
+
+def remove_document_number(document):
+    return str(100000 + document.id % 900000)
+
+
+def remove_vk_uid(user_social_auth):
+    u""" Ссылка на VK будет заведомо нерабочей, например vk.com/id_dummy_111"""
+    return '_dummy_{}'.format(user_social_auth.id)
 
 
 # функции для обезличивания персональных данных
 # данные, для обезличивания которых не нужна доп. информация об объекте
 FIELD_SIMPLE_DEPERSONALIZERS = {
     'User.email': lambda: '',
+    'User.password': lambda: default_user_password,
     'Profile.town': lambda: random.choice(address_data['town']),
     'Profile.street': lambda: random.choice(address_data['street']),
     'Profile.house': lambda: str(random.randint(1, 99)),
     'Profile.phone_number': generate_random_phone_number,
     'Profile.mobile_number': generate_random_phone_number,
     'Profile.snils': generate_random_snils,
-    'PersonalDocument.series': lambda: ''.join(
-        [random.choice(string.digits) for _ in range(4)]),
-    'PersonalDocument.number': lambda: ''.join(
-        [random.choice(string.digits) for _ in range(6)]),
+    'PersonalDocument.doc_name': lambda: u'Иной документ',
+    'PersonalDocument.series': lambda: str(random.randint(1000, 9999)),
     'PersonalDocument.issued_date': lambda: generate_random_date(
         earliest_issue_date, today),
-    'PersonalDocument.issued_by': lambda: 'organization {}'.format(
+    'PersonalDocument.issued_by': lambda: u'Организация № {}'.format(
         random.randint(1, 100)),
     'Requestion.birthplace': lambda: random.choice(address_data['town']),
     'Requestion.child_snils': generate_random_snils,
@@ -142,35 +158,43 @@ FIELD_SIMPLE_DEPERSONALIZERS = {
 # например, Ф.И.О ребёнка должны соответствовать его полу
 # а степень родства - полу родителя
 FIELD_SPECIAL_DEPERSONALIZERS = {
-    'LoggerMessage.message': clear_log_message,
-    'Benefit.name': clear_benefit_name,
-    'Benefit.description': clear_benefit_name,
-    'Requestion.sex': clear_requestion_sex,
-    'Requestion.name': clear_requestion_name,
-    'Requestion.child_last_name': clear_requestion_last_name,
-    'Reuqestion.child_middle_name': clear_requestion_middle_name,
-    'Requestion.kinship': clear_requestion_kinship,
-    'User.first_name': clear_profile_name,
-    'User.last_name': clear_profile_last_name,
-    'Profile.middle_name': clear_profile_middle_name,
+    'LoggerMessage.message': remove_log_message,
+    'Benefit.name': remove_benefit_name,
+    'Benefit.description': remove_benefit_name,
+    'Requestion.name': randomize_requestion_name,
+    'Requestion.child_last_name': randomize_requestion_child_last_name,
+    'Requestion.child_middle_name': randomize_requestion_child_middle_name,
+    'Requestion.kinship': randomize_requestion_kinship,
+    'User.first_name': randomize_user_first_name,
+    'User.last_name': randomize_user_last_name,
+    'Profile.middle_name': randomize_profile_middle_name,
+    'PersonalDocument.number': remove_document_number,
+    'UserSocialAuth.uid': remove_vk_uid,
 }
 
 
 class Serializer(PythonSerializer):
     u"""
-    Отдельный сериалайзер для команды dumpdata, для удаления персональных данных
-    в момент создания дампа.
+    Отдельный сериалайзер для команды dumpdata для обезличивания
+    персональных данных в момент создания дампа.
     Для использования в настройках необходимо добавить пункт:
         SERIALIZATION_MODULES = {'djson': 'sadiki.core.serializers'}
     и запускать команду ./manage.py dumpdata --format djson > data.djson
     """
     internal_use_only = False
 
+    def end_serialization(self):
+        if self.objects:
+            json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
+                      **self.options)
+        print 'Saved {} objects'.format(len(self.objects))
+
     def handle_field(self, obj, field):
-        object_name = obj._meta.object_name
-        field_name = field.name
-        full_field_name = '{obj}.{field}'.format(obj=object_name,
-                                                  field=field.name)
+        value = field._get_val_from_obj(obj)
+        # не трогаем поля с пустыми значениями
+        if not value:
+            return super(Serializer, self).handle_field(obj, field)
+        full_field_name = '%s.%s' % (obj._meta.object_name, field.name)
         if full_field_name in FIELD_SIMPLE_DEPERSONALIZERS:
             value = FIELD_SIMPLE_DEPERSONALIZERS[full_field_name]()
             self._current[field.name] = value
@@ -179,10 +203,6 @@ class Serializer(PythonSerializer):
             self._current[field.name] = value
         else:
             super(Serializer, self).handle_field(obj, field)
-
-    def end_serialization(self):
-        json.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
-                  **self.options)
 
     def getvalue(self):
         if callable(getattr(self.stream, 'getvalue', None)):

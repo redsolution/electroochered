@@ -5,7 +5,7 @@ import json
 import uuid
 import urllib
 import urllib2
-from os.path import join, exists
+from os.path import join, split, exists
 from os import makedirs
 from subprocess import Popen
 from collections import OrderedDict
@@ -295,19 +295,22 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
     header = [
         u'Номер заявки',
         u'Номер в списке',
+        u'Фамилия',
+        u'Имя',
+        u'Отчество',
         u'Дата рождения',
         u'Адрес',
         u'Группа',
         u'Документ',
     ]
     if settings.USE_DISTRICTS:
-        header.insert(4, u'Район')
+        header.insert(7, u'Район')
     else:
-        header.insert(4, u'Группа ДОУ')
+        header.insert(7, u'Группа ДОУ')
     row_number = 0
     for requestions_by_sadik in requestions_by_sadiks:
         if requestions_by_sadik[1]:
-            ws.write_merge(row_number, row_number, 0, 4,
+            ws.write_merge(row_number, row_number, 0, 9,
                            requestions_by_sadik[0].name, header_style)
             row_number += 1
             for column_number, element in enumerate(header):
@@ -316,16 +319,19 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
             for requestion in requestions_by_sadik[1]:
                 row = [requestion.requestion_number,
                        requestion.number_in_old_list,
+                       requestion.child_last_name,
+                       requestion.name,
+                       requestion.child_middle_name,
                        requestion.birth_date,
                        requestion.location_properties,
                        unicode(requestion.distributed_in_vacancy.sadik_group)]
                 if settings.USE_DISTRICTS:
                     if requestion.district:
-                        row.insert(4, requestion.district.title)
+                        row.insert(7, requestion.district.title)
                     else:
-                        row.insert(4, '')
+                        row.insert(7, '')
                 else:
-                    row.insert(4, requestions_by_sadik[0].area.name)
+                    row.insert(7, requestions_by_sadik[0].area.name)
                 if requestion.related_documents:
                     document = requestion.related_documents[0]
                     row.append("%s (%s)" % (document.document_number,
@@ -334,17 +340,20 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
                     ws.write(row_number, column_number, element, style)
                 row_number += 1
     ws.col(0).width = 256 * 20
-    ws.col(3).width = 256 * 30
-    ws.col(4).width = 256 * 30
-    ws.col(5).width = 256 * 35
-    ws.col(6).width = 256 * 45
+    ws.col(2).width = 256 * 15
+    ws.col(3).width = 256 * 15
+    ws.col(4).width = 256 * 15
+    ws.col(6).width = 256 * 30
+    ws.col(7).width = 256 * 30
+    ws.col(8).width = 256 * 35
+    ws.col(9).width = 256 * 45
 
     if settings.USE_DISTRICTS:
         districts = sadiki.core.models.District.objects.all().order_by('title')
         for district in districts:
             row_number = 0
             ws = wb.add_sheet(district.title)
-            header[4] = u'ДОУ'
+            header[7] = u'ДОУ'
             for column_number, element in enumerate(header):
                 ws.write(row_number, column_number, element, header_style)
             row_number += 1
@@ -354,6 +363,9 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
                         if requestion.district == district:
                             row = [requestion.requestion_number,
                                    requestion.number_in_old_list,
+                                   requestion.child_last_name,
+                                   requestion.name,
+                                   requestion.child_middle_name,
                                    requestion.birth_date,
                                    requestion.location_properties,
                                    requestions_by_sadik[0].short_name,
@@ -367,10 +379,13 @@ def create_xls_report(response, requestions_by_sadiks ,distribution):
                                          element, style)
                             row_number += 1
             ws.col(0).width = 256 * 20
-            ws.col(3).width = 256 * 30
-            ws.col(4).width = 256 * 30
-            ws.col(5).width = 256 * 35
-            ws.col(6).width = 256 * 45
+            ws.col(2).width = 256 * 15
+            ws.col(3).width = 256 * 15
+            ws.col(4).width = 256 * 15
+            ws.col(6).width = 256 * 30
+            ws.col(7).width = 256 * 30
+            ws.col(8).width = 256 * 35
+            ws.col(9).width = 256 * 45
     wb.save(response)
 
 

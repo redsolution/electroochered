@@ -36,17 +36,16 @@ class Command(BaseCommand):
                 print req
 
 
-BIRTH_DOC_SIMPLE = 0
-BIRTH_DOC_SIMPLE_TEMPLATE = EvidienceDocumentTemplate.objects.get(
-    destination=REQUESTION_IDENTITY,
-    regex=ur'^[A-Z]{1,3}-[А-Я]{1,2} \d{6,7}$')
-BIRTH_DOC_FOREIGN = 1
-BIRTH_DOC_FOREIGN_TEMPLATE = EvidienceDocumentTemplate.objects.filter(
-    destination=REQUESTION_IDENTITY,
-    regex=ur'.*')[0]
-
-
 def create_document(requestion, document_number, document_type):
+
+    BIRTH_DOC_SIMPLE = 0
+    BIRTH_DOC_SIMPLE_TEMPLATE = EvidienceDocumentTemplate.objects.get(
+        destination=REQUESTION_IDENTITY,
+        regex=ur'^[A-Z]{1,3}-[А-Я]{1,2} \d{6,7}$')
+    BIRTH_DOC_FOREIGN = 1
+    BIRTH_DOC_FOREIGN_TEMPLATE = EvidienceDocumentTemplate.objects.filter(
+        destination=REQUESTION_IDENTITY,
+        regex=ur'.*')[0]
     if document_type == BIRTH_DOC_SIMPLE:
         template = BIRTH_DOC_SIMPLE_TEMPLATE
     else:
@@ -88,6 +87,10 @@ def create_requestion(data, create_log=True):
     :return:
     """
     # проверяем свидетельство о рождении
+    BIRTH_DOC_SIMPLE = 0
+    BIRTH_DOC_SIMPLE_TEMPLATE = EvidienceDocumentTemplate.objects.get(
+        destination=REQUESTION_IDENTITY,
+        regex=ur'^[A-Z]{1,3}-[А-Я]{1,2} \d{6,7}$')
     if not data.get('birth_doc'):
         return u"Не указан номер свидетельства о рождении"
     if data.get('birth_doc_type') == BIRTH_DOC_SIMPLE and not \

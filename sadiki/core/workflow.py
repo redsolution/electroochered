@@ -585,7 +585,6 @@ requestion_anonym_template = u"""
         Весь муниципалитет;
     {% endfor %}
     {% if requestion.birth_date %}Дата рождения: {{ requestion.birth_date }};{% endif %}
-    {% if not requestion.distribute_in_any_sadik == None %}Зачислять в любой ДОУ: {{ requestion.distribute_in_any_sadik|yesno:"Да, Нет" }};{% endif %}
     {% if requestion.admission_date %}Желаемая дата зачисления: {{ requestion.admission_date }};{% endif %}
     {% if pref_sadiks %}
         Приоритетные МДОУ: {% for sadik in pref_sadiks %}{{ sadik }};{% endfor %}
@@ -625,7 +624,6 @@ change_requestion_anonym_template = u"""
         {% if "pref_sadiks" in changed_data %}
             Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
         {% endif %}
-        {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
         {% if "district" in changed_data %} Район: {{ requestion.district }};{% endif %} 
         """
 
@@ -670,7 +668,6 @@ change_preferred_sadiks_anonym_template = u'''
     {% if "pref_sadiks" in changed_data %}
         Приоритетные МДОУ: {% for sadik in cleaned_data.pref_sadiks %}{{ sadik }}; {% endfor %}
     {% endif %}
-    {% if "distribute_in_any_sadik" in changed_data %}Зачислять в любой ДОУ: {{ cleaned_data.distribute_in_any_sadik|yesno:"да,нет" }};{% endif %}
     '''
 
 change_benefits_anonym_template = u"""
