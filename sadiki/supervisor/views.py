@@ -166,22 +166,20 @@ class StartDistributionYear(SupervisorBases):
             # and not Requestion.objects.enrollment_in_progress().exists())
 
     def dispatch(self, request):
-        redirect_to = request.REQUEST.get('next', '')
+        redirect_to = request.GET.get('next') or request.POST.get('next', '')
         redirect_to = check_url(redirect_to, reverse('supervisor_frontpage'))
         return RequirePermissionsMixin.dispatch(self, request,
                                                 redirect_to=redirect_to)
 
-    @transaction.commit_manually
+    @transaction.atomic
     def post(self, request, redirect_to=None):
         if request.POST.get('confirmation') == 'yes':
             # закрываем все возрастные группы на текущий год
             SadikGroup.objects.active().update(active=False)
-            transaction.commit()
             Logger.objects.create_for_action(
                 START_NEW_YEAR,
                 context_dict={},
                 extra={'user': request.user, 'obj': None})
-            transaction.commit()
         return HttpResponseRedirect(redirect_to)
 
 

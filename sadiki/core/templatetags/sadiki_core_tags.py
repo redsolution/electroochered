@@ -16,7 +16,7 @@ from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.test.client import FakePayload
 from django.utils.http import urlencode
-from django.utils.importlib import import_module
+from importlib import import_module
 from sadiki.core.models import AgeGroup, BenefitCategory
 
 register = template.Library()

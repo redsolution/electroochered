@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
+import json
+
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import simplejson
 from sadiki.core.models import Area, Sadik, Address, AgeGroup
 from django.conf import settings
 from os.path import join
@@ -33,7 +34,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         if args:
-            names = simplejson.loads(open(join(
+            names = json.loads(open(join(
                 settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures',
                 'names.json'), 'r').read())
             

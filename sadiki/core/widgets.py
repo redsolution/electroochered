@@ -3,7 +3,7 @@ from itertools import chain
 import datetime
 from time import strftime
 
-from django.forms.util import flatatt
+from django.forms.utils import flatatt
 from django.forms.widgets import MultiWidget, DateInput, TextInput, Widget
 from django import forms
 from django.conf import settings

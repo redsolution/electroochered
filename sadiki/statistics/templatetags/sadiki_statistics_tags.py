@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 import datetime
+import json
+
 from dateutil.relativedelta import relativedelta
 from django import template
 from django.conf import settings
 from django.db import connection
-from django.utils import simplejson
 from sadiki.core.models import Requestion, STATUS_REQUESTER, \
     STATUS_ON_DISTRIBUTION, AgeGroup, STATUS_DISTRIBUTED, DISTRIBUTION_PROCESS_STATUSES
 from sadiki.core.utils import get_current_distribution_year
@@ -91,9 +92,9 @@ def show_wait_time_statistics():
         'groups': groups,
         'total_requestions_number': total_requestions_number,
         'json': {
-            'requestions_numbers_by_groups': simplejson.dumps(requestions_numbers_by_groups),
-            'distributed_requestions_numbers_by_groups': simplejson.dumps(distributed_requestions_numbers_by_groups),
-            'wait_intervals': simplejson.dumps(wait_intervals),
+            'requestions_numbers_by_groups': json.dumps(requestions_numbers_by_groups),
+            'distributed_requestions_numbers_by_groups': json.dumps(distributed_requestions_numbers_by_groups),
+            'wait_intervals': json.dumps(wait_intervals),
         },
     }
 

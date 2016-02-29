@@ -27,7 +27,7 @@
         {% for requestion in requestions %}
             <tr {% if requestion == source_requestion %} class="highlight" {% endif %}>
                 <td >
-                    <a href="{% url distribution_swap_requestions requestion.pk %}">
+                    <a href="{% url 'distribution_swap_requestions' requestion.pk %}">
                         {{ requestion.requestion_number }}
                     </a>
                 </td>
@@ -43,13 +43,13 @@
             </tr>
         {% endfor %}
             </tbody>
-        </table><button onclick="window.location='{% url distribution_end %}'">Завершить комплектование</button>
+        </table><button onclick="window.location='{% url 'distribution_end' %}'">Завершить комплектование</button>
     </div>
 
     {% if target_requestions %}
     <div class="span4">
         <h2 class="page-header">Можно поменять с:</h2>
-        <form action="{% url distribution_swap_requestions requestion_id=source_requestion.id %}" id="swap_requrestions" method="post">
+        <form action="{% url 'distribution_swap_requestions' requestion_id=source_requestion.id %}" id="swap_requrestions" method="post">
         <table class="table table-striped table-bordered table-condensed">
             <thead>
                 <tr>

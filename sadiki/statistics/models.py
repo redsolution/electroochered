@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
-from sadiki.core.models import query_set_factory
 from sadiki.core.utils import get_current_distribution_year
 import json
 
@@ -31,7 +30,7 @@ class StatisticsArchive(models.Model):
     data = models.TextField(verbose_name=u"Данные статистики")
     date = models.DateField(verbose_name=u"Дата на которую актуальна статистика", auto_now_add=True)
     year = models.DateField(verbose_name=u"Год распределения к которому относится статистика")
-    objects = query_set_factory(StatisticsArchiveQuerySet)
+    objects = StatisticsArchiveQuerySet.as_manager()
 
     def __unicode__(self):
         return u"%s за %d" % (self.get_record_type_display(), self.year.year)

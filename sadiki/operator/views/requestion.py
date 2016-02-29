@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import Permission, User
-from django.contrib.contenttypes.generic import generic_inlineformset_factory
+from django.contrib.contenttypes.forms import generic_inlineformset_factory
 from django.core.urlresolvers import reverse
 from django.db import transaction
 from django.forms.models import ModelFormMetaclass
@@ -69,7 +69,7 @@ class Queue(OperatorPermissionMixin, AnonymQueue):
         """
         request = args[0]
         if request.GET.get('type') == 'xls':
-            response = HttpResponse(mimetype='application/vnd.ms-excel')
+            response = HttpResponse(content_type='application/vnd.ms-excel')
             queryset, form = self.process_filter_form(self.queryset, request.GET)
             num = queryset.count()
             if num < 5000:
@@ -225,7 +225,10 @@ class SetIdentityDocument(OperatorRequestionMixin, TemplateView):
     template_name = u"operator/set_identity_document.html"
 
     def dispatch(self, request, requestion_id):
-        redirect_to = request.REQUEST.get('next', '')
+        if request.method == 'GET':
+            redirect_to = request.GET.get('next', '')
+        else:
+            redirect_to = request.POST.get('next', '')
         self.redirect_to = check_url(redirect_to,
             reverse('operator_requestion_info',
                     kwargs={'requestion_id': requestion_id}))
@@ -313,8 +316,10 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         Метод переопределен, чтобы сохранить в атрибутах ``transition``
         """
         requestion = get_object_or_404(Requestion, id=requestion_id)
-
-        redirect_to = request.REQUEST.get('next', '')
+        if request.method == 'GET':
+            redirect_to = request.GET.get('next', '')
+        else:
+            redirect_to = request.POST.get('next', '')
         self.redirect_to = check_url(
             redirect_to, self.default_redirect_to(request, requestion))
 
@@ -398,7 +403,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         try:
             template = loader.get_template(
                 'operator/status_change/{}.html'.format(self.transition.index))
-            return template.name
+            return template.template.name
         except TemplateDoesNotExist:
             return None
 
@@ -410,7 +415,7 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         })
         return self.render_to_response(context)
 
-    @method_decorator(transaction.commit_manually)
+    @method_decorator(transaction.atomic)
     def post(self, request, requestion, *args, **kwargs):
         u"""По post-запросу применяем изменение статуса заявки. Autocommit
         отключаем, чтобы иметь возможность отображаеть сообщение об ошибке,
@@ -418,7 +423,6 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
         """
         if request.POST.get('confirmation') == "no":
             messages.info(request, u"Статус заявки не был изменен")
-            transaction.rollback()
             return HttpResponseRedirect(self.redirect_to)
         context = self.get_context_data(requestion)
         form = self.get_confirm_form(
@@ -438,11 +442,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                     sender=Requestion, request=request, requestion=requestion,
                     transition=self.transition, form=form)
             except TransitionNotAllowed as e:
-                transaction.rollback()
                 messages.error(request, e.message)
                 return HttpResponseRedirect(self.redirect_to)
             except Exception:
-                transaction.rollback()
                 raise
 
             # если ошибка возникла во время применения изменений, вероятно
@@ -462,11 +464,9 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                     sender=Requestion, request=request, requestion=requestion,
                     transition=self.transition, form=form)
                 # если все прошло без ошибок - сохраняем
-                transaction.commit()
             # если возникли ошибки в ходе изменения статуса заявки - отображаем
             # и отменяем ранее запланированные изменения
             except TransitionNotRegistered as e:
-                transaction.rollback()
                 if e.requestion == requestion:
                     messages.error(request, e.message)
                 else:
@@ -475,14 +475,11 @@ class RequestionStatusChange(RequirePermissionsMixin, TemplateView):
                               u" документом".format(e.requestion)
                     messages.error(request, err_msg)
             except TransitionNotAllowed as e:
-                transaction.rollback()
                 messages.error(request, e.message)
             except Exception:
-                transaction.rollback()
                 raise
             return HttpResponseRedirect(self.redirect_to)
         else:
-            transaction.rollback()
             return self.render_to_response(context)
 
 
@@ -578,7 +575,8 @@ class GenerateProfilePassword(OperatorPermissionMixin, View):
             result = generate_pdf(template_name='operator/blanks/reset_password.html',
                                   context_dict={'password': password, 'media_root': settings.MEDIA_ROOT,
                                                 'profile': profile})
-            response = HttpResponse(result.getvalue(), mimetype='application/pdf')
+            response = HttpResponse(result.getvalue(),
+                                    content_type='application/pdf')
             return response
 
 
@@ -607,9 +605,9 @@ class ChangeRequestionLocation(OperatorPermissionMixin, View):
                     'requestion': requestion},
                         extra={'user': request.user, 'obj': requestion})
                 return HttpResponse(content=json.dumps({'ok': True}),
-                        mimetype='text/javascript')
+                                    content_type='text/javascript')
             return HttpResponse(content=json.dumps({'ok': False}),
-                        mimetype='text/javascript')
+                                content_type='text/javascript')
 
         else:
             return HttpResponseBadRequest()

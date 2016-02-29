@@ -2,9 +2,9 @@
 import random
 import string
 import datetime
+import json
 import os.path
 
-from django.utils import simplejson
 from django.contrib.gis.geos import point
 from django.conf import settings
 from django.contrib.auth.models import User, Permission
@@ -81,7 +81,7 @@ def get_admission_date():
 
 
 def create_requestion(**kwargs):
-    names = simplejson.loads(
+    names = json.loads(
         open(os.path.join(
             settings.PROJECT_DIR, 'sadiki', 'core', 'fixtures', 'names.json'),
             'r').read())

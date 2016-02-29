@@ -6,9 +6,9 @@
 {% block content_menu %}
     {% load_urlpatterns %}
     {% if current_distribution %}
-        {% url distribution_info current_distribution.id as distribution_info_url %}
+        {% url 'distribution_info' current_distribution.id as distribution_info_url %}
         {% create_extend_list distribution_info distribution_info_url as decision_urls %}
-        {% url decision_results current_distribution.id as decision_results_url %}
+        {% url 'decision_results' current_distribution.id as decision_results_url %}
         {% create_extend_list ended_distributions decision_results_url as decision_results_urls %}
     {% else %}
         {% create_extend_list distribution_info as decision_urls %}

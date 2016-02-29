@@ -7,6 +7,7 @@ from django.core.paginator import InvalidPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django.utils.http import urlquote, urlencode
 from django.utils.translation import ugettext as _
 from django.views.generic import ListView
@@ -51,7 +52,8 @@ class Registration(RequirePermissionsMixin, TemplateView):
             #        задаем права
             permission = Permission.objects.get(codename=u'is_requester')
             user.user_permissions.add(permission)
-            profile = Profile.objects.create(user=user)
+            profile = Profile.objects.create(
+                user=user, pd_processing_permit=timezone.now())
             user.set_username_by_id()
             user.save()
             user = authenticate(username=user.username,
@@ -159,10 +161,8 @@ class Queue(RequirePermissionsMixin, ListView):
                     queryset = queryset.filter(areas__in=area).distinct()
                 admission_date = form.cleaned_data.get('admission_date')
                 if admission_date:
-                    admission_date = datetime.datetime.strptime(
-                        admission_date, '%Y-%m-%d %H:%M:%S')
                     queryset = queryset.filter(
-                        admission_date__year=admission_date.year)
+                        admission_date__year=admission_date)
                 if form.cleaned_data.get('without_facilities'):
                     queryset = queryset.order_by('registration_datetime')
                 if form.cleaned_data.get('requestion_number', None):
@@ -185,7 +185,7 @@ class Queue(RequirePermissionsMixin, ListView):
             return queryset.queue(), self.form()
 
     def get_context_data(self, **kwargs):
-        queryset = kwargs.pop('object_list')
+        queryset = kwargs.pop('object_list', self.object_list)
         # Отработать форму фильтрации
         page_number = self.request.GET.get('page', None)
 

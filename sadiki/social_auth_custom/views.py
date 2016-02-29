@@ -4,28 +4,31 @@ import urllib2
 
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, Http404, HttpResponseForbidden, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 from django.views.generic.base import TemplateView, View
 from sadiki.account.views import AccountPermissionMixin
 from sadiki.core.models import Profile
 from sadiki.core.utils import check_url
 from sadiki.operator.views.base import OperatorPermissionMixin
-from social_auth.backends import get_backend
-from social_auth.backends.contrib.vkontakte import VK_DEFAULT_DATA, vkontakte_api
-from social_auth.decorators import dsa_view
-from social_auth.exceptions import WrongBackend
-from social_auth.utils import setting
-from social_auth.db.django_models import UserSocialAuth
-from social_auth.views import associate_complete, complete_process, auth_process
+from social.backends.vk import vk_api
+from social.exceptions import WrongBackend
+from social.apps.django_app.default.models import UserSocialAuth
+from social.apps.django_app.views import auth, complete, disconnect
+
+
+VK_DEFAULT_DATA = ['first_name', 'last_name', 'screen_name',
+                   'nickname', 'photo']
 
 
 class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
 
     def dispatch(self, request):
-        profile = request.user.get_profile()
+        profile = request.user.profile
         return super(AccountSocialAuthDataRemove, self).dispatch(request, profile)
 
     def post(self, request, profile):
@@ -35,10 +38,10 @@ class AccountSocialAuthDataRemove(AccountPermissionMixin, View):
                 profile.skype = None
             else:
                 return HttpResponse(content=json.dumps({'ok': False}),
-                        mimetype='text/javascript')
+                                    content_type='text/javascript')
             profile.save()
             return HttpResponse(content=json.dumps({'ok': True}),
-                    mimetype='text/javascript')
+                                content_type='text/javascript')
         else:
             return HttpResponseBadRequest()
 
@@ -47,7 +50,7 @@ class OperatorSocialAuthDataRemove(OperatorPermissionMixin, AccountSocialAuthDat
 
     def dispatch(self, request, user_id):
         user = get_object_or_404(User, id=user_id)
-        profile = user.get_profile()
+        profile = user.profile
         return super(AccountSocialAuthDataRemove, self).dispatch(request, profile)
 
 
@@ -69,17 +72,17 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
 
     def post(self, request, user, user_social_auth):
         if request.is_ajax():
-            profile = user.get_profile()
+            profile = user.profile
             access_token = user_social_auth.tokens.get('access_token')
             uid = user_social_auth.uid
-            fields = ','.join(VK_DEFAULT_DATA + setting('VK_EXTRA_DATA', []))
+            fields = ','.join(VK_DEFAULT_DATA + settings.get('VK_EXTRA_DATA', []))
             params = {'access_token': access_token,
                       'fields': fields,
                       'uids': uid}
-            raw_data = vkontakte_api('users.get', params).get('response')
+            raw_data = vk_api('users.get', params).get('response')
             if not raw_data:
                 return HttpResponse(content=json.dumps({'ok': True}),
-                                    mimetype='text/javascript')
+                                    content_type='text/javascript')
             data = raw_data[0]
             field = request.POST.get("field")
             if field == "first_name":
@@ -98,11 +101,11 @@ class AccountSocialAuthDataUpdate(AccountPermissionMixin, View):
                 profile.skype = field_value
             else:
                 return HttpResponse(content=json.dumps({'ok': False}),
-                                    mimetype='text/javascript')
+                                    content_type='text/javascript')
             profile.save()
-            return HttpResponse(content=json.dumps(
-                {'ok': True, 'field_value': field_value}),
-                mimetype='text/javascript')
+            return HttpResponse(
+                content=json.dumps({'ok': True, 'field_value': field_value}),
+                content_type='text/javascript')
         else:
             return HttpResponseBadRequest()
 
@@ -121,14 +124,14 @@ class AccountSocialAuthDisconnect(AccountPermissionMixin, TemplateView):
     template_name = 'social_auth/disconnect.html'
 
     def dispatch(self, request, backend, association_id):
-        redirect_to = request.REQUEST.get('next', '')
+        redirect_to = request.GET.get('next') or request.POST.get('next', '')
         redirect_to = check_url(redirect_to, reverse('frontpage'))
         return super(AccountSocialAuthDisconnect, self).dispatch(request, backend, association_id, redirect_to=redirect_to)
 
     def post(self, request, backend, association_id, redirect_to):
         if request.POST.get('confirmation') == 'yes':
             association = get_object_or_404(UserSocialAuth, id=association_id, user=request.user)
-            backend.disconnect(request.user, association.id)
+            disconnect(request, backend, association_id=association_id)
             profile = request.user.profile
             profile.social_auth_clean_data()
         return HttpResponseRedirect(redirect_to)
@@ -142,44 +145,9 @@ class OperatorSocialAuthDisconnect(OperatorPermissionMixin, AccountSocialAuthDis
             user = association.user
             # оператор может отвязывать профиль только для заявителей
             if user.is_requester():
-                backend.disconnect(user, association_id)
+                disconnect(request, backend, association_id=association_id)
                 profile = user.profile
                 profile.social_auth_clean_data()
             else:
                 return HttpResponseForbidden(u'Вы можете работать только с заявителями')
         return HttpResponseRedirect(redirect_to)
-
-
-class CustomAuth(View):
-    def get_redirect(self, backend):
-        raise NotImplementedError
-
-    def get(self, request, backend):
-        request.social_auth_backend = get_backend(backend, request, self.get_redirect(backend))
-        if request.social_auth_backend is None:
-            raise WrongBackend(backend)
-        return auth_process(request, request.social_auth_backend)
-
-
-class LoginAuth(CustomAuth):
-    def get_redirect(self, backend):
-        return reverse('socialauth_complete', kwargs={"backend": backend, "type": "login"})
-
-
-class RegistrationAuth(CustomAuth):
-    def get_redirect(self, backend):
-        return reverse('socialauth_complete', kwargs={"backend": backend, "type": "registration"})
-
-
-@csrf_exempt
-@dsa_view()
-def custom_complete(request, backend, type):
-    if request.user.is_authenticated():
-        return associate_complete(request, backend, type=type)
-    else:
-        try:
-            return complete_process(request, backend, type=type)
-        except urllib2.HTTPError:
-            msg = u"Ошибка во время авторизации, попробуйте еще раз"
-            messages.error(request, msg)
-            return HttpResponseRedirect(reverse('login'))

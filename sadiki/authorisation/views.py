@@ -35,7 +35,7 @@ class EmailVerification(TemplateView):
         else:
             verification_key_object.unused = False
             verification_key_object.save()
-            profile = user.get_profile()
+            profile = user.profile
             profile.email_verified = True
             profile.save()
             message = u'Адрес электронной почты %s подтвержден!' % user.email
@@ -135,7 +135,7 @@ def is_allowed_send_confirm(user):
     """
     if user.is_anonymous():
         raise PermissionDenied
-    if any((not user.email, user.get_profile().email_verified)):
+    if any((not user.email, user.profile.email_verified)):
         return False
     try:
         last_key = VerificationKey.objects.filter(user=user).latest('created')

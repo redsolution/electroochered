@@ -1,5 +1,5 @@
 {% extends "anonym/includes/sadik_info_distributed_include.html" %}
 
 {% block requestion_number %}
-    <a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a>
+    <a href="{% url 'operator_requestion_info' requestion.id %}">{{ requestion }}</a>
 {% endblock %}

@@ -1,3 +1,3 @@
 {% extends "anonym/includes/queue_include.html" %}
 
-{% block requestion_number %}<a href="{% url operator_requestion_info requestion.id %}">{{ requestion.requestion_number }}</a>{% endblock %}
+{% block requestion_number %}<a href="{% url 'operator_requestion_info' requestion.id %}">{{ requestion.requestion_number }}</a>{% endblock %}

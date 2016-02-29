@@ -28,7 +28,7 @@ class SadikOperatorSadikMixin(SadikOperatorPermissionMixin):
     def check_permissions(self, request, sadik):
 #        у оператора должны быть права или на ДОУ или на область
         return (super(SadikOperatorSadikMixin, self).check_permissions(request, sadik)
-            and request.user.get_profile().sadik_available(sadik))
+            and request.user.profile.sadik_available(sadik))
 
     def dispatch(self, request, sadik_id):
         sadik = get_object_or_404(Sadik, id=sadik_id)
@@ -42,7 +42,7 @@ class SadikListWithGroups(SadikOperatorPermissionMixin, TemplateView):
     def get(self, request):
         distribution = Distribution.objects.active()
         context = {'distribution': distribution}
-        profile = request.user.get_profile()
+        profile = request.user.profile
 #        получаем все ДОУ у которых есть возможность участвовать в распределении
         sadiks = Sadik.objects.filter_for_profile(profile)
         sadiks_dict = sadiks.add_related_groups()
@@ -148,7 +148,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
     def get(self, request, sadik_id):
         # получаем ДОУ для данного района в которых есть заявки
         # с выделенными местами
-        profile = request.user.get_profile()
+        profile = request.user.profile
         sadiks_query = Sadik.objects.filter(
             groups__vacancies__requestion__status__in=(
                 STATUS_DECISION, STATUS_ABSENT, STATUS_NOT_APPEAR,
@@ -184,7 +184,7 @@ class RequestionListEnrollment(RequirePermissionsMixin, TemplateView):
                     status__in=(STATUS_DECISION, STATUS_NOT_APPEAR,
                                 STATUS_NOT_APPEAR_EXPIRE),
                     distributed_in_vacancy__sadik_group__sadik=sadik
-                ).select_related('distribute_in_group', 'profile').order_by(
+                ).select_related('profile').order_by(
                     '-benefit_category__priority',
                     'registration_datetime', 'id')
                 requestions_for_group = requestions_for_sadik.filter(
@@ -211,7 +211,7 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
         sadik = Sadik.objects.get(id=sadik_id)
         groups_with_distributed_requestions = sadik.get_groups_with_distributed_requestions()
 
-        response = HttpResponse(mimetype='application/vnd.ms-excel')
+        response = HttpResponse(content_type='application/vnd.ms-excel')
         file_name = u'Sadik_%s' % sadik.number
         response['Content-Disposition'] = u'attachment; filename="%s.xls"' % file_name
         import xlwt
@@ -223,7 +223,9 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
             u'№',
             u'Номер заявки',
             u'Документ',
+            u'Фамилия ребенка',
             u'Имя ребенка',
+            u'Отчество ребенка',
             u'Дата рождения',
             u'Дата регистрации',
             u'Категория льгот',
@@ -243,11 +245,16 @@ class DistributedRequestionsForSadik(RequirePermissionsMixin, TemplateView):
             for i, requestion in enumerate(requestions, start=1):
                 if requestion.related_documents:
                     document = requestion.related_documents[0]
-                    document_number = u"{0} ({1})".format(document.document_number, document.template.name)
+                    document_number = u"{0} ({1})".format(
+                        document.document_number, document.template.name)
                 else:
                     document_number = u''
-                row = [unicode(i), requestion.requestion_number, document_number, requestion.name, requestion.birth_date,
-                       requestion.registration_datetime.date(), unicode(requestion.benefit_category),
+                row = [unicode(i), requestion.requestion_number,
+                       document_number, requestion.child_last_name,
+                       requestion.name, requestion.child_middle_name,
+                       requestion.birth_date,
+                       requestion.registration_datetime.date(),
+                       unicode(requestion.benefit_category),
                        requestion.get_status_display()]
                 for column_number, element in enumerate(row):
                     ws.write(row_number, column_number, element, style)

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*- 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import url
 from sadiki.supervisor.views import FrontPage, ChangeRegistrationDateTime, \
     ChangeBirthDate, RequestionSearch, \
     RequestionInfo, StartDistributionYear, DistributionYearInfo, RequestionStatusChange
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^$', FrontPage.as_view(), name='supervisor_frontpage'),
     url(r'^requestion_info/(?P<requestion_id>\d{1,7})/$',
         RequestionInfo.as_view(), name=u'supervisor_requestion_info'),
@@ -19,4 +19,4 @@ urlpatterns = patterns('',
         StartDistributionYear.as_view(), name=u'start_distribution_year'),
     url(r'^request/(?P<requestion_id>\d{1,7})/status-(?P<dst_status>\d{1,3})/$',
         RequestionStatusChange.as_view(), name=u'supervisor_requestion_status_change'),
-)
+]

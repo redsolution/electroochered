@@ -15,6 +15,7 @@ from sadiki.core.models import Requestion, PROFILE_IDENTITY, Profile, \
     STATUS_CHOICES_FILTER, STATUS_KG_LEAVE
 from sadiki.core.utils import get_unique_username, active_child_exist
 from sadiki.core.widgets import JqueryUIDateWidget
+from sadiki.core.utils import reorder_fields
 
 
 # STATUS_CHOICES_EMPTY = (('', '---------'), ) + STATUS_CHOICES
@@ -30,6 +31,10 @@ class RegistrationForm(forms.ModelForm):
         label=_("Password confirmation"), widget=forms.PasswordInput(
             attrs={'placeholder':
                    u"Введите тот же пароль, что и выше, для подтверждения"}))
+    pdata_processing_permit = forms.BooleanField(
+        label=u"Я даю согласие на обработку персональных данных",
+        required=True)
+
 
     class Meta:
         model = User
@@ -181,7 +186,7 @@ class PublicSearchForm(forms.Form):
 class QueueFilterForm(forms.Form):
     def __init__(self, *args, **kwargs):
         super(QueueFilterForm, self).__init__(*args, **kwargs)
-        self.fields.keyOrder = [
+        fields_order = [
             'requestion_number',
             'status',
             'area',
@@ -191,8 +196,11 @@ class QueueFilterForm(forms.Form):
             'decision_date',
             'without_facilities',
         ]
+        self.fields = reorder_fields(self.fields, fields_order)
+        if 'not_appeared' in self.fields:
+            del self.fields['not_appeared']
         admission_date_choices = [
-            (year, year.year) for year in
+            (year.year, year.year) for year in
             Requestion.objects.queue().dates('admission_date', 'year')]
         admission_date_choices = [('', '---------'),] + admission_date_choices
         self.fields['admission_date'].choices = admission_date_choices

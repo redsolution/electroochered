@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db import models
 from django.db.models.query_utils import Q
 from django.template.context import Context
 from django.template.loader import render_to_string
-from sadiki.core.models import query_set_factory, Requestion, \
-    DISTRIBUTION_TYPE_CHOICES
+from sadiki.core.models import Requestion, DISTRIBUTION_TYPE_CHOICES
 from sadiki.core.utils import scheme_and_domain
 import logging
 import re
@@ -129,7 +128,7 @@ class Logger(models.Model):
     datetime = models.DateTimeField(u"дата создания", auto_now_add=True)
     content_type = models.ForeignKey(ContentType, null=True)
     object_id = models.PositiveIntegerField(null=True)
-    content_object = generic.GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey('content_type', 'object_id')
     added_pref_sadiks = models.ManyToManyField(
         'core.Sadik',
         related_name='logger_added')
@@ -159,7 +158,7 @@ class LoggerMessageQuerySet(models.query.QuerySet):
             elif user.is_requester():
                 level_log = ACCOUNT_LOG
                 # для пользователя показываем только его заявки
-                user_requestions_ids = user.get_profile().requestion_set.all().values_list('id', flat=True)
+                user_requestions_ids = user.profile.requestion_set.all().values_list('id', flat=True)
                 return self.filter(
                     Q(level=level_log, logger__object_id__in=user_requestions_ids,
                         logger__content_type=ContentType.objects.get_for_model(Requestion)) |
@@ -176,7 +175,7 @@ class LoggerMessage(models.Model):
         choices=LOG_LEVELS, default=logging.ERROR, blank=True, db_index=True)
     logger = models.ForeignKey(Logger)
 
-    objects = query_set_factory(LoggerMessageQuerySet)
+    objects = LoggerMessageQuerySet.as_manager()
 
     class Meta:
         ordering = ['-level']

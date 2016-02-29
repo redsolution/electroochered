@@ -73,7 +73,7 @@
                 <div class="field">
                     <label class="field-label">Заявки, принадлежащие профилю</label>
                     {% for requestion in profile.requestion_set.all %}
-                        <p class="field-value"><a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a></p>
+                        <p class="field-value"><a href="{% url 'operator_requestion_info' requestion.id %}">{{ requestion }}</a></p>
                     {% endfor %}
                 </div>
             {% endwith %}

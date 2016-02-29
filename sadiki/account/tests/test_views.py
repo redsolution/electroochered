@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import datetime
 
 from django.test import TestCase
@@ -18,11 +19,12 @@ from sadiki.core.workflow import CHANGE_PERSONAL_DATA, \
     REQUESTION_ADD_BY_REQUESTER, REQUESTION_REGISTRATION_BY_OPERATOR
 
 
-class CoreViewsTest(TestCase):
+class AccountViewsTest(TestCase):
     fixtures = ['sadiki/core/fixtures/test_initial.json', ]
 
     @classmethod
     def setUpClass(cls):
+        super(AccountViewsTest, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
@@ -32,6 +34,7 @@ class CoreViewsTest(TestCase):
         BenefitCategory.objects.all().delete()
         Sadik.objects.all().delete()
         Address.objects.all().delete()
+        super(AccountViewsTest, cls).tearDownClass()
 
     def setUp(self):
         Preference.objects.create(key=PREFERENCE_IMPORT_FINISHED)
@@ -57,6 +60,7 @@ class CoreViewsTest(TestCase):
         self.requester.user_permissions.add(permission)
         Profile.objects.create(user=self.requester)
         self.requester.save()
+        self.required_error_message = u'Это поле обязательно.'
 
     def tearDown(self):
         Requestion.objects.all().delete()
@@ -83,7 +87,7 @@ class CoreViewsTest(TestCase):
         """
 
         self.assertFalse(self.requester.email)
-        profile = self.requester.get_profile()
+        profile = self.requester.profile
         self.assertFalse(profile.email_verified)
         login = self.client.login(username=self.requester.username,
                                   password='123456q')
@@ -97,7 +101,7 @@ class CoreViewsTest(TestCase):
             **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
         self.assertEqual(response.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertEqual(u.email, email)
         self.assertEqual(response.content, '{"ok": true}')
         self.assertFalse(profile.email_verified)
@@ -114,7 +118,7 @@ class CoreViewsTest(TestCase):
                                              args=[profile.id]))
         self.assertEqual(op_confirm.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertTrue(profile.email_verified)
 
         # change email by operator
@@ -126,7 +130,7 @@ class CoreViewsTest(TestCase):
         self.assertEqual(op_change.status_code, 200)
         self.assertEqual(response.content, '{"ok": true}')
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertTrue(profile.email_verified)
         self.assertEqual(u.email, email_by_op)
         self.client.logout()
@@ -142,7 +146,7 @@ class CoreViewsTest(TestCase):
             **{'HTTP_X_REQUESTED_WITH': 'XMLHttpRequest'})
         self.assertEqual(response.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertEqual(u.email, changed_email)
         self.assertEqual(response.content, '{"ok": true}')
         self.assertFalse(profile.email_verified)
@@ -155,7 +159,7 @@ class CoreViewsTest(TestCase):
                                                args=[key.key]))
         self.assertTrue(ver_response.status_code, 200)
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertTrue(profile.email_verified)
         self.assertEqual(u.email, changed_email)
         self.client.logout()
@@ -178,7 +182,7 @@ class CoreViewsTest(TestCase):
 
         # impossible login with unverified email
         u = User.objects.get(pk=self.requester.id)
-        profile = u.get_profile()
+        profile = u.profile
         self.assertFalse(profile.email_verified)
         self.assertFalse(self.client.login(username=email,
                                            password='123456q'))
@@ -423,7 +427,7 @@ class CoreViewsTest(TestCase):
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
         self.assertIn('doc_name', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['doc_name'])
+        self.assertIn(self.required_error_message, doc_form.errors['doc_name'])
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Ann')
@@ -676,11 +680,11 @@ class CoreViewsTest(TestCase):
         doc_form = response.context['doc_form']
         self.assertFalse(pdata_form.errors)
         self.assertIn('series', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['series'])
+        self.assertIn(self.required_error_message, doc_form.errors['series'])
         self.assertIn('number', doc_form.errors)
         self.assertIn(u'неверный формат', doc_form.errors['number'])
         self.assertIn('issued_by', doc_form.errors)
-        self.assertIn(u'Обязательное поле', doc_form.errors['issued_by'])
+        self.assertIn(self.required_error_message, doc_form.errors['issued_by'])
         # проверяем, что документ не сохранился
         changed_profile = Profile.objects.get(id=profile.id)
         self.assertEqual(changed_profile.first_name, 'Mary')
@@ -792,9 +796,11 @@ class CoreViewsTest(TestCase):
         # проверяем ошибки формы
         requestion_form = create_response.context['form']
         self.assertIn('name', requestion_form.errors)
-        self.assertIn(u'Обязательное поле', requestion_form.errors['name'])
+        self.assertIn(self.required_error_message,
+                      requestion_form.errors['name'])
         self.assertIn('kinship', requestion_form.errors)
-        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
+        self.assertIn(self.required_error_message,
+                      requestion_form.errors['kinship'])
         # проверяем, что заявка не добавилась
         requestions = Requestion.objects.filter(
             profile_id=self.requester.profile.id)
@@ -928,7 +934,8 @@ class CoreViewsTest(TestCase):
         requestion_form = response.context['change_requestion_form']
         self.assertNotIn('child_snils', requestion_form.errors)
         self.assertIn('kinship', requestion_form.errors)
-        self.assertIn(u'Обязательное поле', requestion_form.errors['kinship'])
+        self.assertIn(self.required_error_message,
+                      requestion_form.errors['kinship'])
         # проверяем, что заявка не изменилась
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')

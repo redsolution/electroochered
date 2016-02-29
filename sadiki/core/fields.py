@@ -6,7 +6,6 @@ from django.utils import formats, dates
 from django.utils.encoding import smart_unicode
 from django.utils.translation import ugettext_lazy as _
 from sadiki.core.widgets import BooleanNextYearWidget, AreaWidget, DateRangeWidget
-from south.modelsinspector import add_introspection_rules
 from time import strptime
 from widgets import JqSplitDateTimeWidget, YearChoiceDateWigdet
 import datetime
@@ -148,7 +147,7 @@ class BooleanNextYearField(models.DateField):
 class TemplateFormField(forms.ModelChoiceField):
 
     def __init__(self, destination, queryset=None, empty_label=u"---------",
-            cache_choices=False, required=True, widget=None, label=None,
+            cache_choices=None, required=True, widget=None, label=None,
             initial=None, help_text=None, to_field_name=None, *args, **kwargs):
 #        нам нужен первый элемент
         from sadiki.core.models import EvidienceDocumentTemplate
@@ -168,7 +167,7 @@ class AreaFormField(forms.ModelChoiceField):
         'required': _(u'Укажите территориальную область'),
     }
 
-    def __init__(self, queryset, empty_label=u"---------", cache_choices=False,
+    def __init__(self, queryset, empty_label=u"---------", cache_choices=None,
                  required=True, widget=None, label=None, initial=None,
                  *args, **kwargs):
         super(AreaFormField, self).__init__(queryset, empty_label,
@@ -250,7 +249,3 @@ class SadikWithAreasNameField(forms.ModelMultipleChoiceField):
 def validate_no_spaces(value):
     if value and u' ' in value:
         raise ValidationError(u"Поле не должно содержать пробелов")
-
-
-add_introspection_rules([], ["^sadiki\.core\.fields\.AreaChoiceField"])
-add_introspection_rules([], ["^sadiki\.core\.fields\.SplitDatMonthField"])

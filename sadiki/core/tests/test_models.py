@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import datetime
 from django.test import TestCase
 from django.core import management
@@ -22,6 +23,7 @@ class RequestionTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(RequestionTestCase, cls).setUpClass()
         test_utils.create_objects(test_utils.create_area, 5)
         management.call_command('generate_sadiks', 10)
 
@@ -31,6 +33,7 @@ class RequestionTestCase(TestCase):
         Group.objects.all().delete()
         BenefitCategory.objects.all().delete()
         Address.objects.all().delete()
+        super(RequestionTestCase, cls).tearDownClass()
 
     def setUp(self):
         self.requestion = test_utils.create_requestion(name='Ann')
@@ -90,9 +93,10 @@ class RequestionTestCase(TestCase):
 
     def test_all_group_methods(self):
         kidgdn = Sadik.objects.all()[0]
+        # создаём заявку с ребёнком, попадающим в первую группу раннего возраста
         test_requestion = test_utils.create_requestion(
             admission_date=datetime.date.today() + datetime.timedelta(days=365),
-            birth_date=datetime.date.today()-datetime.timedelta(days=365)
+            birth_date=datetime.date(datetime.date.today().year-1, 9, 1)
         )
         test_requestion.areas.add(kidgdn.area)
         test_requestion.save()
@@ -211,12 +215,14 @@ class BenefitTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(BenefitTestCase, cls).setUpClass()
         management.call_command('update_initial_data')
 
     @classmethod
     def tearDownClass(cls):
         BenefitCategory.objects.all().delete()
         Benefit.objects.all().delete()
+        super(BenefitTestCase, cls).tearDownClass()
 
     def tearDown(self):
         Benefit.objects.all().delete()

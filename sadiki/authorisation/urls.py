@@ -1,23 +1,13 @@
 # -*- coding: utf-8 -*- 
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import url
 from forms import LoginForm
 
-# django generic views
+from django.contrib.auth import views as auth_views
 from sadiki.authorisation.views import password_set, EmailVerification, \
     send_confirm_letter, login_with_error_handling
 
-urlpatterns = patterns(
-    'django.contrib.auth.views',
-    url(r'^passwd/$', 'password_change',
-        {'template_name': 'authorisation/passwd.html'}, name='passwd'),
-    url(r'^passwd/done/$', 'password_change_done',
-        {'template_name': 'authorisation/passwd_done.html'},
-        name='passwd_done'),
-    url(r'^logout/$', 'logout', {'next_page': '/', }, name="logout"),
-)
 
-urlpatterns += patterns(
-    '',
+urlpatterns = [
     url(r'^login/$', login_with_error_handling, {
         'template_name': 'authorisation/login.html',
         'authentication_form': LoginForm}, name='login'),
@@ -29,5 +19,10 @@ urlpatterns += patterns(
     #     ResetPasswordRequest.as_view(), name='reset_password_request'),
     # url(r'^reset_password/(?P<key>\w{40})/$',
     #     ResetPassword.as_view(), name='reset_password'),
-
-)
+    url(r'^passwd/$', auth_views.password_change,
+        {'template_name': 'authorisation/passwd.html'}, name='passwd'),
+    url(r'^passwd/done/$', auth_views.password_change_done,
+        {'template_name': 'authorisation/passwd_done.html'},
+        name='password_change_done'),
+    url(r'^logout/$', auth_views.logout, {'next_page': '/', }, name="logout"),
+]

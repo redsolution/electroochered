@@ -41,14 +41,14 @@
                         <td>{{ profile.first_name|verbose_value }}</td>
                         <td>
                             {% for requestion in profile.requestion_set.all %}
-                                <a href="{% url operator_requestion_info requestion.id %}">{{ requestion }}</a><br>
+                                <a href="{% url 'operator_requestion_info' requestion.id %}">{{ requestion }}</a><br>
                             {% endfor %}
                         </td>
                         <td>
                             {% if profile == requestion.profile %}
                                 Заявка принадлежит этому профилю
                             {% else %}
-                                <a href="{% url embed_requestion_to_profile requestion_id=params.requestion.id profile_id=profile.id %}">Привязать заявку</a>
+                                <a href="{% url 'embed_requestion_to_profile' requestion_id=params.requestion.id profile_id=profile.id %}">Привязать заявку</a>
                             {% endif %}
                         </td>
                     </tr>

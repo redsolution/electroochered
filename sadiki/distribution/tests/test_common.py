@@ -68,8 +68,12 @@ class TestAll(TestCase):
         # они не должны быть распределены
         requestions_admission_date_ids = list(Requestion.objects.all(
         ).order_by('?')[:30].values_list('id', flat=True))
-        admission_date = current_datetime.replace(
-            year=current_datetime.year + 1)
+        try:
+            admission_date = current_datetime.replace(
+                year=current_datetime.year + 1)
+        except ValueError:
+            admission_date = current_datetime.replace(
+                year=current_datetime.year + 1, day=current_datetime.day - 1)
         Requestion.objects.filter(
             id__in=requestions_admission_date_ids
         ).update(admission_date=admission_date)

@@ -286,12 +286,12 @@
             {% else %}
                 В МДОУ не осталось ни одного свободного места
             {% endif %}
-            <a id="end_distribution" class="btn" href="{% url distribution_end %}">Завершить распределение</a>
+            <a id="end_distribution" class="btn" href="{% url 'distribution_end' %}">Завершить распределение</a>
             <script type="text/javascript">
                 // отключаем кнопку после нажатия
                 $('#end_distribution').click(function() {
                     $('#end_distribution').addClass("disabled");
-                    window.location.href='{% url distribution_end %}';
+                    window.location.href='{% url 'distribution_end' %}';
                     return false;
                 });
             </script>
@@ -306,7 +306,7 @@
                 {% for requestion in inactive_queue %}
                     <tr class="requestion_info table-row {% cycle 'even' 'odd' %}">
                         <td class="{% if requestion.status == decision_status %} decision_requestion{% else %} inactive_requestion{% endif %}">
-                            <a href="{% url operator_requestion_info requestion_id=requestion.id %}">{{ requestion }}</a>
+                            <a href="{% url 'operator_requestion_info' requestion_id=requestion.id %}">{{ requestion }}</a>
                         </td>
                         <td class="centered">
                             <div class="icon_text">{{ requestion.benefit_category }}</div>
@@ -322,7 +322,7 @@
                 {% for requestion in queue %}
                     <tr class="requestion_info table-row {% cycle 'even' 'odd' %}">
                         <td>
-                            <a href="{% url operator_requestion_info requestion_id=requestion.id %}" {% if requestion == current_requestion %}class="red"{% endif %}>{{ requestion }}</a>
+                            <a href="{% url 'operator_requestion_info' requestion_id=requestion.id %}" {% if requestion == current_requestion %}class="red"{% endif %}>{{ requestion }}</a>
                         </td>
                         <td class="centered">
                             <div class="icon_text">{{ requestion.benefit_category }}</div>
@@ -372,7 +372,7 @@
 
         <div class="span_3">
             {% if last_distributed_requestion %}
-                {% comment %}<a href="{% url cancel_requestion_distribution requestion_id=last_distributed_requestion.id %}">Отменить последнее распределение заявки</a>{% endcomment %}
+                {% comment %}<a href="{% url 'cancel_requestion_distribution' requestion_id=last_distributed_requestion.id %}">Отменить последнее распределение заявки</a>{% endcomment %}
             {% endif %}
             {% if current_requestion %}
                 <h3>Заявка</h3>
@@ -425,7 +425,7 @@
 
                 </form>
 
-                <form action="{% url change_requestion_location requestion_id=current_requestion.id %}" method="POST" id="change_location_form">
+                <form action="{% url 'change_requestion_location' requestion_id=current_requestion.id %}" method="POST" id="change_location_form">
                     {% csrf_token %}
                     {{ location_form.as_p }}
                 </form>

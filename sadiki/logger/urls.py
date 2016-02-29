@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-from django.conf.urls.defaults import patterns, url
+from django.conf.urls import url
 from sadiki.logger.views import RequestionLogs, AccountLogs, OperatorLogs, \
     AdmPersonsList, LogsByPerson
 
-urlpatterns = patterns('',
+urlpatterns = [
     url(r'^request/(?P<requestion_id>\d{1,7})/$',
         RequestionLogs.as_view(), name=u'requestion_logs'),
     url(r'^account_logs/$',
@@ -14,4 +14,4 @@ urlpatterns = patterns('',
         AdmPersonsList.as_view(), name='adm_persons_list'),
     url(r'by_person/(?P<user_id>\d{1,7})/$',
         LogsByPerson.as_view(), name='logs_by_person'),
-)
+]
