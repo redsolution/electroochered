@@ -52,9 +52,8 @@ class EmailVerification(TemplateView):
                                              extra=extra)
 
             if user.is_active:
-                backend = get_backends()[1]
-                user.backend = "%s.%s" % (backend.__module__, backend.__class__.__name__)
-                login(request, user)
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
+                login_func(request, user)
 
             return HttpResponseRedirect(reverse('frontpage'))
 
