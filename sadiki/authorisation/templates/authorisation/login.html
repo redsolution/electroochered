@@ -24,6 +24,7 @@
             {% izenform form options notag=1 %}
             <p class="hint">Для входа в систему может использоваться выданное при регистрации имя пользователя или электронный почтовый адрес. Добавить и подтвердить электронный адрес можно на главной странице профиля.</p>
             <div class="buttonHolder">
+                <a class="link" href="{% url 'reset_password_request' %}">Забыли пароль?</a>
                 <button class="primaryAction" type="submit">Войти</button>
             </div>
         </form>

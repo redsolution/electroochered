@@ -2,9 +2,9 @@
 import datetime
 
 from django.contrib import messages
-from django.contrib.auth import get_backends
+from django.contrib.auth import login as login_func
 from django.contrib.auth.forms import SetPasswordForm, PasswordChangeForm, PasswordResetForm
-from django.contrib.auth.views import password_change, login
+from django.contrib.auth.views import login, password_change
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied, \
     MultipleObjectsReturned
@@ -71,10 +71,10 @@ class ResetPasswordRequest(TemplateView):
         if form.is_valid():
             user = form.save()
             messages.info(request, u'''
-                 На указанный в профиле адрес электронной почты(%s)
-                 выслано письмо с инструкцией по восстановлению пароля.
+                 На указанный в профиле адрес электронной почты (%s)
+                 выслано письмо со ссылкой для восстановления пароля.
             ''' % user.email)
-            return HttpResponseRedirect(reverse('frontpage'))
+            return HttpResponseRedirect(reverse('reset_password_request'))
         return self.render_to_response({'form': form})
 
 
@@ -82,33 +82,36 @@ class ResetPassword(TemplateView):
     template_name = 'authorisation/reset_password.html'
 
     def dispatch(self, request, key):
-        verification_key_object = get_object_or_404(VerificationKey, key=key)
+        try:
+            verification_key_object = VerificationKey.objects.get(key=key)
+        except VerificationKey.DoesNotExist:
+            messages.error(request, u'Данная ссылка недействительна')
+            return HttpResponseRedirect(reverse('reset_password_request'))
         if not verification_key_object.is_valid:
             msg = u'Данная ссылка уже использовалась, попробуйте получить новую.'
-            return {'message': msg}
+            messages.error(request, msg)
+            return HttpResponseRedirect(reverse('reset_password_request'))
         return TemplateView.dispatch(
             self, request, verification_key_object=verification_key_object)
 
     def get(self, request, verification_key_object):
-        form = SetPasswordForm(verification_key_object.user)
-        return self.render_to_response({
-            'form': form, 'username': verification_key_object.user.email})
+        user = verification_key_object.user
+        form = SetPasswordForm(user)
+        return self.render_to_response({'form': form, 'user': user})
 
     def post(self, request, verification_key_object):
         user = verification_key_object.user
         form = SetPasswordForm(user, request.POST)
         if form.is_valid():
             form.save()
-            verification_key_object.valid = False
+            verification_key_object.unused = False
             verification_key_object.save()
             if user.is_active:
-                backend = get_backends()[1]
-                user.backend = "%s.%s" % (backend.__module__,
-                                          backend.__class__.__name__)
-                login(request, user)
+                user.backend = 'django.contrib.auth.backends.ModelBackend'
+                login_func(request, user)
             messages.info(request, u"Пароль пользователя успешно изменён.")
             return HttpResponseRedirect(reverse('frontpage'))
-        return self.render_to_response({'form': form, 'username': user.email})
+        return self.render_to_response({'form': form, 'user': user})
 
 
 def password_set(request):

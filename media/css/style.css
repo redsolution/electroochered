@@ -479,6 +479,13 @@ table.table.table-bordered tr.highlight td {
     position: relative;
     top: 0;
 }
+
+.uniForm .buttonHolder a.link {
+  float: left;
+  margin: 7px 0 0 10px;
+  font-size: 14px;
+}
+
 .uniForm .secondaryAction:disabled{
     color: #9f9f9f;
 }
@@ -911,9 +918,18 @@ html, body {
     padding:30px;
 }
 
-.centering{
-    width: 750px;
-    margin-left: 200px;
+.password-reset-area {
+    width: 700px;
+    margin-left: 3px;
+}
+
+.password-reset-area.request ul.errorlist {
+  position: relative;
+}
+
+.semi-header {
+  margin: 8px 0 5px 5px;
+  font-size: 14px;
 }
 
 /*Sadik info*/

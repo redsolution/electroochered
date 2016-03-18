@@ -24,8 +24,11 @@ class EmailResetForm(forms.Form):
         if email:
             user = get_user_by_email(email)
             if not user:
-                raise forms.ValidationError(u'''Нет пользователя с 
-                    таким адресом электронной почты или адрес не подтвержден''')
+                raise forms.ValidationError(
+                    u'Такой адрес электронной почты не зарегистрирован '
+                    u'в системе или не подтвержден. Для восстановления '
+                    u'пароля обратитесь к оператору систему "Электроочередь" '
+                    u'в Управление образования')
             else:
                 self.user_with_email = user
         return self.cleaned_data
