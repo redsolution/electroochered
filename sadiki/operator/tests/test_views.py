@@ -61,6 +61,7 @@ class CoreViewsTest(TestCase):
         management.call_command('generate_sadiks', 10)
         kgs = Sadik.objects.all()
         url = reverse('anonym_registration')
+        admission_date = datetime.date.today() + datetime.timedelta(days=3)
         form_data = {
             'core-evidiencedocument-content_type-object_id-TOTAL_FORMS': '1',
             'core-evidiencedocument-content_type-object_id-INITIAL_FORMS': '0',
@@ -78,7 +79,7 @@ class CoreViewsTest(TestCase):
                 'child_last_name': 'Jordison',
                 'sex': 'Ж',
                 'birth_date': '07.06.2014',
-                'admission_date': '01.01.2014',
+                'admission_date': admission_date.strftime('%d.%m.%Y'),
                 'template': '2',
                 'document_number': 'II-ИВ 016809',
                 'birthplace': 'Chelyabinsk',
@@ -104,7 +105,7 @@ class CoreViewsTest(TestCase):
              'child_last_name': 'Jordison',
              'sex': 'Ж',
              'birth_date': '07.06.2014',
-             'admission_date': '01.01.2014',
+             'admission_date': admission_date.strftime('%d.%m.%Y'),
              'template': '2',
              'document_number': 'II-ИВ 016809',
              'birthplace': 'Chelyabinsk',
