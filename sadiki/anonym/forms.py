@@ -143,8 +143,7 @@ class PublicSearchForm(forms.Form):
         label=u'Номер свидетельства о рождении', required=False,
         widget=forms.TextInput(), help_text=u'Формат: II-ИВ 123456')
     child_name = forms.CharField(
-        label=u'Имя ребёнка', required=False, widget=forms.TextInput(),
-        help_text=u'Только для заявок, поданных до запуска системы')
+        label=u'Имя ребёнка', required=False, widget=forms.TextInput())
 
     field_map = {
         'birth_date': 'birth_date__exact',

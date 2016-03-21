@@ -109,6 +109,22 @@ class OperatorSearchForm(PublicSearchForm):
         required=False, widget=forms.TextInput(attrs={'data-mask': REQUESTION_NUMBER_MASK}))
     birth_date = forms.DateField(label=u'Дата рождения ребёнка',
             widget=JqueryUIDateWidget(), required=False)
+    child_last_name = forms.CharField(
+        label=u'Фамилия ребёнка', required=False, widget=forms.TextInput())
+    child_middle_name = forms.CharField(
+        label=u'Отчество ребёнка', required=False, widget=forms.TextInput())
+    requester_first_name = forms.CharField(
+        label=u'Имя заявителя', required=False, widget=forms.TextInput())
+    requester_last_name = forms.CharField(
+        label=u'Фамилия заявителя', required=False, widget=forms.TextInput())
+    requester_middle_name = forms.CharField(
+        label=u'Отчество заявителя', required=False, widget=forms.TextInput())
+    requester_document_series = forms.CharField(
+        label=u'Серия документа заявителя', max_length=20, required=False,
+        widget=forms.TextInput())
+    requester_document_number = forms.CharField(
+        label=u'Номер документа заявителя', max_length=50, required=False,
+        widget=forms.TextInput())
 
     field_map = {
         'requestion_number': 'requestion_number__exact',
@@ -116,7 +132,14 @@ class OperatorSearchForm(PublicSearchForm):
         'registration_date': 'registration_datetime__range',
         'number_in_old_list': 'number_in_old_list__exact',
         'child_name': 'name__icontains',
-        'document_number': 'id__in'
+        'document_number': 'id__in',
+        'child_last_name': 'child_last_name__exact',
+        'child_middle_name': 'child_middle_name__exact',
+        'requester_last_name': 'profile__user__last_name__exact',
+        'requester_first_name': 'profile__user__first_name__exact',
+        'requester_middle_name': 'profile__middle_name__exact',
+        'requester_document_series': 'profile__personaldocument__series',
+        'requester_document_number': 'profile__personaldocument__number',
     }
 
     def build_query(self):
@@ -124,8 +147,14 @@ class OperatorSearchForm(PublicSearchForm):
             filter_kwargs = PublicSearchForm.build_query(self)
             if filter_kwargs is None:
                 filter_kwargs = {}
-            if 'requestion_number' in self.changed_data:
-                filter_kwargs[self.field_map['requestion_number']] = self.cleaned_data['requestion_number']
+            for param in ['requestion_number', 'child_last_name',
+                          'child_middle_name', 'requester_first_name',
+                          'requester_last_name', 'requester_middle_name',
+                          'requester_document_series',
+                          'requester_document_number']:
+                if param in self.changed_data:
+                    filter_kwargs[self.field_map[param]] = (
+                        self.cleaned_data[param])
             return filter_kwargs
 
     def clean(self):
