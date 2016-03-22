@@ -7,13 +7,16 @@ from django.core import management
 from django.contrib.auth.models import User, Group, Permission
 from django.core.urlresolvers import reverse
 
-from sadiki.core.models import Profile, BenefitCategory, Requestion, Sadik, \
-    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address
+from sadiki.core.models import (
+    Profile, BenefitCategory, Requestion, Sadik,
+    SadikGroup, Preference, PREFERENCE_IMPORT_FINISHED, Address,
+    PersonalDocument)
 from sadiki.core.permissions import OPERATOR_GROUP_NAME, SUPERVISOR_GROUP_NAME, \
     SADIK_OPERATOR_GROUP_NAME, DISTRIBUTOR_GROUP_NAME
+from sadiki.core.tests import utils as test_utils
 
 
-class CoreViewsTest(TestCase):
+class OperatorViewsTest(TestCase):
     fixtures = [
         'sadiki/core/fixtures/test_initial.json',
         'sadiki/core/fixtures/perms.json',
@@ -61,6 +64,7 @@ class CoreViewsTest(TestCase):
         management.call_command('generate_sadiks', 10)
         kgs = Sadik.objects.all()
         url = reverse('anonym_registration')
+        admission_date = datetime.date.today() + datetime.timedelta(days=3)
         form_data = {
             'core-evidiencedocument-content_type-object_id-TOTAL_FORMS': '1',
             'core-evidiencedocument-content_type-object_id-INITIAL_FORMS': '0',
@@ -78,7 +82,7 @@ class CoreViewsTest(TestCase):
                 'child_last_name': 'Jordison',
                 'sex': 'Ж',
                 'birth_date': '07.06.2014',
-                'admission_date': '01.01.2014',
+                'admission_date': admission_date.strftime('%d.%m.%Y'),
                 'template': '2',
                 'document_number': 'II-ИВ 016809',
                 'birthplace': 'Chelyabinsk',
@@ -104,7 +108,7 @@ class CoreViewsTest(TestCase):
              'child_last_name': 'Jordison',
              'sex': 'Ж',
              'birth_date': '07.06.2014',
-             'admission_date': '01.01.2014',
+             'admission_date': admission_date.strftime('%d.%m.%Y'),
              'template': '2',
              'document_number': 'II-ИВ 016809',
              'birthplace': 'Chelyabinsk',
@@ -161,37 +165,147 @@ class CoreViewsTest(TestCase):
 
     # тест поиска профилей по имени, пока банальная проверка на status code 200
     def test_profile_search(self):
-        for num in range(0, 5):
-            user = User.objects.create(username='requester_{}'.format(num))
-            profile = Profile.objects.create(user=user)
-            profile.first_name = u'Иван'
-            profile.save()
-        for num in range(10, 15):
-            user = User.objects.create(username='requester_{}'.format(num))
-            profile = Profile.objects.create(user=user)
-            profile.first_name = u'Андрей'
-            profile.save()
+        permission = Permission.objects.get(codename=u'is_requester')
+        user = User.objects.create(username='requester_1')
+        user.user_permissions.add(permission)
+        profile = Profile.objects.create(user=user)
+        profile.first_name = u'Иван'
+        profile.save()
+        user = User.objects.create(username='requester_2')
+        user.user_permissions.add(permission)
+        profile = Profile.objects.create(user=user)
+        profile.first_name = u'Иван'
+        profile.save()
+        new_requestion = test_utils.create_requestion(profile=profile)
+        user = User.objects.create(username='requester_3')
+        user.user_permissions.add(permission)
+        profile = Profile.objects.create(user=user)
+        profile.first_name = u'Андрей'
+        profile.save()
+
         self.assertTrue(self.client.login(username=self.operator.username,
                                           password='password'))
-        requestion = Requestion.objects.create(
-            profile=self.requester.profile,
-            birth_date=datetime.date.today())
+        old_requestion = test_utils.create_requestion(
+            profile=self.requester.profile)
         profile_search_url = reverse('find_profile_for_requestion',
-                                     args=(requestion.id,))
+                                     args=(old_requestion.id,))
         # ищем по имени заявителя, которое должно найтись
         search_form_data = {'parent_first_name': u'Иван'}
         response = self.client.post(profile_search_url, search_form_data)
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'requester_1')
+        self.assertContains(response, 'requester_2')
+        self.assertNotContains(response, 'requester_3')
         # ищем по несуществующему имени заявителя
         search_form_data = {'parent_first_name': u'Вася'}
         response = self.client.post(profile_search_url, search_form_data)
         self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'requester_1')
+        self.assertNotContains(response, 'requester_2')
+        self.assertNotContains(response, 'requester_3')
         # ищем только по имени User
         search_form_data = {'username': 'requester_2'}
         response = self.client.post(profile_search_url, search_form_data)
         self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'requester_1')
+        self.assertContains(response, 'requester_2')
+        self.assertNotContains(response, 'requester_3')
         # ищем по имени заявителя и имени User одновременно
-        search_form_data = {'username': 'requester_12',
+        search_form_data = {'username': 'requester_3',
                             'parent_first_name': u'Андрей'}
         response = self.client.post(profile_search_url, search_form_data)
         self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'requester_1')
+        self.assertNotContains(response, 'requester_2')
+        self.assertContains(response, 'requester_3')
+        # ищем по номеру заявки
+        search_form_data = {
+            'requestion_number': new_requestion.requestion_number}
+        response = self.client.post(profile_search_url, search_form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'requester_1')
+        self.assertContains(response, 'requester_2')
+        self.assertNotContains(response, 'requester_3')
+
+    def test_requestion_search(self):
+        today = datetime.date.today()
+        date1 = today - datetime.timedelta(days=500)
+        date2 = today - datetime.timedelta(days=1000)
+        date3 = today - datetime.timedelta(days=800)
+        date4 = today - datetime.timedelta(days=1200)
+        permission = Permission.objects.get(codename=u'is_requester')
+        user = User.objects.create(username='requester_1')
+        user.user_permissions.add(permission)
+        profile = Profile.objects.create(user=user)
+        profile.first_name = u'Иван'
+        profile.last_name = u'Иванов'
+        profile.save()
+        document = PersonalDocument.objects.create(
+            profile=profile, series='1234', number='135790')
+        requestion1 = test_utils.create_requestion(
+            profile=profile, name=u'Серёжа', child_last_name=u'Иванов',
+            birth_date=date2)
+        requestion1.update_registration_datetime(date1)
+        requestion2 = test_utils.create_requestion(
+            profile=profile, name=u'Василий', child_last_name=u'Иванов',
+            birth_date=date3)
+        user = User.objects.create(username='requester_2')
+        user.user_permissions.add(permission)
+        profile = Profile.objects.create(user=user)
+        profile.first_name = u'Андрей'
+        profile.last_name = u'Смирнов'
+        profile.save()
+        requestion3 = test_utils.create_requestion(
+            profile=profile, name=u'Саша', child_last_name=u'Смирнова',
+            birth_date=date4)
+        number1 = requestion1.requestion_number
+        number2 = requestion2.requestion_number
+        number3 = requestion3.requestion_number
+
+        self.assertTrue(self.client.login(username=self.operator.username,
+                                          password='password'))
+        post_url = reverse('anonym_requestion_search')
+        # поиск по номеру заявки
+        post_data = {'requestion_number': requestion2.requestion_number}
+        response = self.client.post(post_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, number1)
+        self.assertContains(response, number2)
+        self.assertNotContains(response, number3)
+        # поиск по дате регистрации
+        post_data = {'registration_date': today.strftime('%d.%m.%Y')}
+        response = self.client.post(post_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, number1)
+        self.assertContains(response, number2)
+        self.assertContains(response, number3)
+        # поиск по данным ребёнка
+        post_data = {'child_name': u'Серёжа'}
+        response = self.client.post(post_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, number1)
+        self.assertNotContains(response, number2)
+        self.assertNotContains(response, number3)
+        post_data = {'child_name': u'Саша', 'child_last_name': u'Смирнова'}
+        response = self.client.post(post_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, number1)
+        self.assertNotContains(response, number2)
+        self.assertContains(response, number3)
+        # поиск по данным заявителя
+        post_data = {'requester_first_name': u'Иван',
+                     'requester_last_name': u'Иванов'}
+        response = self.client.post(post_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, number1)
+        self.assertContains(response, number2)
+        self.assertNotContains(response, number3)
+        # комбинированный поиск: перс. данные заявителя + дата рождения ребёнка
+        post_data = {'requester_document_series': '1234',
+                     'requester_document_number': '135790',
+                     'birth_date': date3.strftime('%d.%m.%Y')}
+        response = self.client.post(post_url, post_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, number1)
+        self.assertContains(response, number2)
+        self.assertNotContains(response, number3)

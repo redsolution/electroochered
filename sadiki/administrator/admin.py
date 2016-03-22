@@ -499,8 +499,46 @@ class AgeGroupForm(forms.ModelForm):
         super(AgeGroupForm, self).__init__(*args, **kwargs)
         if self.instance.id:
             self.fields['sadiks'].initial = self.instance.sadik_set.all()
+            self.fields['from_age'].required = False
+            self.fields['from_age'].widget.attrs['disabled'] = True
+            self.fields['from_date'].required = False
+            for widget in self.fields['from_date'].widget.widgets:
+                widget.attrs['disabled'] = True
+            self.fields['to_age'].required = False
+            self.fields['to_age'].widget.attrs['disabled'] = True
+            self.fields['to_date'].required = False
+            for widget in self.fields['to_date'].widget.widgets:
+                widget.attrs['disabled'] = True
+            self.fields['next_age_group'].widget.widget.attrs[
+                'disabled'] = True
+            self.fields['next_age_group'].required = False
         else:
             self.fields['sadiks'].initial = Sadik.objects.all()
+
+    def clean_from_age(self):
+        if self.instance.id:
+            return self.instance.from_age
+        return self.cleaned_data.get('from_age')
+
+    def clean_from_date(self):
+        if self.instance.id:
+            return self.instance.from_date
+        return self.cleaned_data.get('from_date')
+
+    def clean_to_age(self):
+        if self.instance.id:
+            return self.instance.to_age
+        return self.cleaned_data.get('to_age')
+
+    def clean_to_date(self):
+        if self.instance.id:
+            return self.instance.to_date
+        return self.cleaned_data.get('to_date')
+
+    def clean_next_age_group(self):
+        if self.instance.id:
+            return self.instance.next_age_group
+        return self.cleaned_data.get('next_age_group')
 
     def clean_name(self):
         return clean_str(self.cleaned_data.get('name'))
@@ -514,6 +552,12 @@ class AgeGroupForm(forms.ModelForm):
         if (from_age and to_age and from_age >= to_age):
             raise forms.ValidationError(
                 u"Минимальный возраст должен быть меньше максимального")
+        if not self.instance.id:
+            for age_group in AgeGroup.objects.all():
+                if age_group.from_age < to_age and age_group.to_age > from_age:
+                    raise forms.ValidationError(
+                        u'Возрастной промежуток пересекается c возрастным '
+                        u'промежутком группы "{}"'.format(age_group.name))
         return self.cleaned_data
 
     def save(self, commit=True):

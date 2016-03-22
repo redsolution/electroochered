@@ -144,11 +144,18 @@ class RequestionSearch(OperatorPermissionMixin, AnonymRequestionSearch):
     initial_query = Requestion.objects.all()
     field_weights = {
         'requestion_number__exact': 0,
-        'birth_date__exact': 6,
-        'registration_datetime__range': 2,
+        'birth_date__exact': 4,
+        'registration_datetime__range': 3,
         'number_in_old_list__exact': 1,
-        'id__in': 5,
-        'name__icontains': 3,
+        'id__in': 7,
+        'name__icontains': 6,
+        'child_last_name__exact': 8,
+        'child_middle_name__exact': 9,
+        'profile__user__last_name__exact': 5,
+        'profile__user__first_name__exact': 10,
+        'profile__middle_name__exact': 11,
+        'profile__personaldocument__series': 12,
+        'profile__personaldocument__number': 2,
         }
 
     def guess_more(self, initial_query):
