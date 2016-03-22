@@ -98,6 +98,21 @@ class RequestionForm(FormWithDocument):
             kinship_errors = self._errors.setdefault('kinship', ErrorList())
             kinship_errors.append(u'Это поле обязательно.')
         self.cleaned_data['distribute_in_any_sadik'] = True
+        admission_date = self.cleaned_data.get('admission_date')
+        admission_date_error = False
+        if admission_date:
+            today = datetime.date.today()
+            if admission_date < today:
+                admission_date_error = True
+            birth_date = self.cleaned_data.get('birth_date')
+            if birth_date and admission_date < birth_date:
+                admission_date_error = True
+        if admission_date_error:
+            admission_date_errors = self._errors.setdefault(
+                'admission_date', ErrorList())
+            admission_date_errors.append(
+                u'Не может быть меньше текущей даты '
+                u'и меньше даты рождения ребёнка.')
         return super(RequestionForm, self).clean(*args, **kwargs)
 
     def save(self, profile, commit=True):
@@ -107,7 +122,6 @@ class RequestionForm(FormWithDocument):
             requestion.save()
             self.save_m2m()
             self.instance.document = self.create_document(requestion)
-
         return requestion
 
 
@@ -158,6 +172,21 @@ class ChangeRequestionForm(forms.ModelForm):
         if not self.cleaned_data['kinship']:
             kinship_errors = self._errors.setdefault('kinship', ErrorList())
             kinship_errors.append(u'Это поле обязательно.')
+        admission_date = self.cleaned_data.get('admission_date')
+        admission_date_error = False
+        if admission_date:
+            today = datetime.date.today()
+            if admission_date < today:
+                admission_date_error = True
+            birth_date = self.cleaned_data.get('birth_date')
+            if birth_date and admission_date < birth_date:
+                admission_date_error = True
+        if admission_date_error:
+            admission_date_errors = self._errors.setdefault(
+                'admission_date', ErrorList())
+            admission_date_errors.append(
+                u'Не может быть меньше текущей даты '
+                u'и меньше даты рождения ребёнка.')
         return super(ChangeRequestionForm, self).clean(*args, **kwargs)
 
 

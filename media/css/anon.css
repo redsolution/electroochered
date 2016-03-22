@@ -724,7 +724,7 @@ table.table.table-bordered tr.highlight td {
 
 .stickyfooter .footer-links{
     padding: 0px;
-    margin: 10px 0px 0px 80px;
+    margin: 10px 0px 0px 120px;
 }
 
 .stickyfooter .footer-links a{
@@ -744,7 +744,7 @@ table.table.table-bordered tr.highlight td {
 
 .stickyfooter .mestovsadik_logo{
     float: right !important;
-    margin: 10px 70px 0 0;
+    margin: 10px 0 0 0;
     text-align: center;
 }
 
@@ -766,6 +766,10 @@ table.table.table-bordered tr.highlight td {
 .stickyfooter .mestovsadik_logo a p {
     text-transform: none;
     font-size: 12px;
+}
+
+.stickyfooter .gosuslugi_logo {
+  margin: -3px 0 0 45px;
 }
 
 /* Sticky Footer by Ryan Fait http://ryanfait.com/ */

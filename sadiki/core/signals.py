@@ -62,7 +62,7 @@ from sadiki.logger.models import Logger
 from sadiki.operator.forms import TempDistributionConfirmationForm, \
     ImmediatelyDistributionConfirmationForm, RequestionConfirmationForm
 from sadiki.supervisor.forms import DistributionByResolutionForm
-from sadiki.core.utils import active_child_exist
+from sadiki.core.utils import active_child_exist, get_current_distribution_year
 
 
 pre_status_change = Signal(
@@ -530,7 +530,8 @@ def after_distribution_by_resolution(sender, **kwargs):
     requestion = kwargs['requestion']
     sadik = form.cleaned_data.get('sadik')
     sadik.create_default_sadikgroups()
-    sadik_group = requestion.get_sadik_groups(sadik)[0]
+    sadik_group = requestion.get_sadik_groups(sadik).filter(
+        year=get_current_distribution_year())[0]
     vacancy = Vacancies.objects.create(
         sadik_group=sadik_group, status=VACANCY_STATUS_PROVIDED)
     requestion.distributed_in_vacancy = vacancy

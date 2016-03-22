@@ -94,9 +94,15 @@ class RequestionTestCase(TestCase):
     def test_all_group_methods(self):
         kidgdn = Sadik.objects.all()[0]
         # создаём заявку с ребёнком, попадающим в первую группу раннего возраста
+        today = datetime.date.today()
+        new_year_start_date = today.replace(month=9, day=1)
+        if today <= new_year_start_date:
+            birth_date = today.replace(year=today.year-2, month=6, day=1)
+        else:
+            birth_date = today.replace(year=today.year-1, month=6, day=1)
         test_requestion = test_utils.create_requestion(
-            admission_date=datetime.date.today() + datetime.timedelta(days=365),
-            birth_date=datetime.date(datetime.date.today().year-1, 9, 1)
+            admission_date=today.replace(year=today.year+1),
+            birth_date=birth_date
         )
         test_requestion.areas.add(kidgdn.area)
         test_requestion.save()

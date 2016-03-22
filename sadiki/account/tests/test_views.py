@@ -244,11 +244,12 @@ class AccountViewsTest(TestCase):
 
         management.call_command('generate_sadiks', 10)
         kgs = Sadik.objects.all()
+        admission_date = datetime.date.today() + datetime.timedelta(days=3)
         form_data = {'name': 'Ann',
                      'child_last_name': 'Jordison',
                      'sex': 'Ж',
                      'birth_date': '07.06.2014',
-                     'admission_date': '01.01.2014',
+                     'admission_date': admission_date.strftime('%d.%m.%Y'),
                      'template': '2',
                      'document_number': 'II-ИВ 016809',
                      'birthplace': 'Chelyabinsk',
@@ -768,12 +769,15 @@ class AccountViewsTest(TestCase):
         requestion_add_by_user_url = reverse('requestion_add_by_user')
         management.call_command('generate_sadiks', 1)
         kgs = Sadik.objects.all()
+        wrong_admission_date = (datetime.date.today() -
+                                datetime.timedelta(days=10))
+        admission_date = datetime.date.today() + datetime.timedelta(days=3)
         requestion_form_data = {
             'name': '',
             'child_last_name': 'Jordison',
             'sex': 'Ж',
             'birth_date': '07.06.2014',
-            'admission_date': '01.01.2014',
+            'admission_date': admission_date.strftime('%d.%m.%Y'),
             'template': '2',
             'document_number': 'II-ИВ 016809',
             'birthplace': 'Chelyabinsk',
@@ -829,7 +833,7 @@ class AccountViewsTest(TestCase):
         self.assertEqual(requestion.name, 'Ann')
         self.assertEqual(requestion.child_last_name, 'Jordison')
         self.assertEqual(requestion.sex, u'Ж')
-        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.admission_date, admission_date)
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, u'Мать')
@@ -856,7 +860,7 @@ class AccountViewsTest(TestCase):
             'child_last_name': 'Jordison',
             'sex': 'Ж',
             'birth_date': '07.06.2014',
-            'admission_date': '01.01.2014',
+            'admission_date': admission_date.strftime('%d.%m.%Y'),
             'birthplace': 'Chelyabinsk',
             'kinship_type': 1,
             'child_snils': '111-222-333 99',
@@ -876,7 +880,7 @@ class AccountViewsTest(TestCase):
         self.assertEqual(requestion.name, 'Mary')
         self.assertEqual(requestion.child_last_name, 'Jordison')
         self.assertEqual(requestion.sex, u'Ж')
-        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.admission_date, admission_date)
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
@@ -897,13 +901,20 @@ class AccountViewsTest(TestCase):
         last_log.delete()
 
         # пытаемся поменять СНИЛС на некорректный, + имя ребёнка с пробелами
-        change_requestion_form_data.update({'child_snils': '111222333',
-                                            'name': 'Mary Mary'})
+        # и устанавливаем некорректную дату зачисления
+        change_requestion_form_data.update(
+            {'child_snils': '111222333',
+             'name': 'Mary Mary',
+             'admission_date': wrong_admission_date.strftime('%d.%m.%Y')}
+        )
         response = self.client.post(requestion_info_url,
                                     change_requestion_form_data)
         self.assertEqual(response.status_code, 200)
-        change_requestion_form_data.update({'child_snils': '111-222-333 99',
-                                            'name': 'Mary'})
+        change_requestion_form_data.update(
+            {'child_snils': '111-222-333 99',
+             'name': 'Mary',
+             'admission_date': admission_date.strftime('%d.%m.%Y')}
+        )
         # проверяем ошибки формы
         requestion_form = response.context['change_requestion_form']
         self.assertIn('name', requestion_form.errors)
@@ -911,12 +922,13 @@ class AccountViewsTest(TestCase):
                       requestion_form.errors['name'])
         self.assertIn('child_snils', requestion_form.errors)
         self.assertIn(u'неверный формат', requestion_form.errors['child_snils'])
+        self.assertIn('admission_date', requestion_form.errors)
         # проверяем, что заявка не изменилась
         requestion = Requestion.objects.get(id=requestion_id)
         self.assertEqual(requestion.name, 'Mary')
         self.assertEqual(requestion.child_last_name, 'Jordison')
         self.assertEqual(requestion.sex, u'Ж')
-        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.admission_date, admission_date)
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
@@ -941,7 +953,7 @@ class AccountViewsTest(TestCase):
         self.assertEqual(requestion.name, 'Mary')
         self.assertEqual(requestion.child_last_name, 'Jordison')
         self.assertEqual(requestion.sex, u'Ж')
-        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.admission_date, admission_date)
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, u'Мать')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
@@ -964,7 +976,7 @@ class AccountViewsTest(TestCase):
         self.assertEqual(requestion.name, 'Mary')
         self.assertEqual(requestion.child_last_name, 'Jordison')
         self.assertEqual(requestion.sex, u'Ж')
-        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.admission_date, admission_date)
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, 'grandfather')
         self.assertEqual(requestion.child_snils, '111-222-333 99')
@@ -1016,7 +1028,7 @@ class AccountViewsTest(TestCase):
         self.assertEqual(requestion.name, 'Ann')
         self.assertEqual(requestion.child_last_name, 'Jordison')
         self.assertEqual(requestion.sex, u'Ж')
-        self.assertEqual(requestion.admission_date, datetime.date(2014, 1, 1))
+        self.assertEqual(requestion.admission_date, admission_date)
         self.assertEqual(requestion.birth_date, datetime.date(2014, 6, 7))
         self.assertEqual(requestion.birthplace, 'Chelyabinsk')
         self.assertEqual(requestion.kinship, u'Мать')
