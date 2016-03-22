@@ -135,7 +135,7 @@ class PublicSearchForm(forms.Form):
         label=u'Дата рождения ребёнка',
         widget=JqueryUIDateWidget(), required=True)
     registration_date = forms.DateField(
-        label=u'Дата регистрации', widget=JqueryUIDateWidget(), required=False)
+        label=u'Дата регистрации заявки', widget=JqueryUIDateWidget(), required=False)
     number_in_old_list = forms.CharField(
         label=u'Номер в списке у заявок, поданных до запуска системы',
         required=False, widget=forms.TextInput())
